@@ -1,0 +1,289 @@
+package wizardPages;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.SwingUtilities;
+
+import mapView.DREAMMap;
+import mapView.IJ;
+import objects.SensorSetting;
+
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
+
+import utilities.Constants;
+import utilities.Point3i;
+import wizardPages.DREAMWizard.STORMData;
+
+public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage {
+
+	STORMData data;
+
+	private ScrolledComposite sc;
+	private Composite container;
+	private Composite rootContainer;
+	private GridLayout layout;
+	private Map<Integer, Map<Integer, Button>> buttons;
+
+	private Map<Integer, Map<Integer, Boolean>> selection;
+
+	private boolean isCurrentPage = false;
+
+	private int minI = Integer.MAX_VALUE;
+	private int maxI = -Integer.MAX_VALUE;
+	private int minJ = Integer.MAX_VALUE;
+	private int maxJ = -Integer.MAX_VALUE;
+
+	public Page_ExcludeWells(STORMData data) {
+		super("Inference Test");
+		this.data = data;		
+	}
+
+	@Override
+	public void createControl(Composite parent) {
+		
+
+		buttons = new HashMap<Integer, Map<Integer, Button>>();
+		selection = new HashMap<Integer, Map<Integer, Boolean>>();
+		rootContainer = new Composite(parent, SWT.NULL);
+		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
+
+		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
+		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
+		sc.addListener(SWT.Activate, new Listener() {
+	        public void handleEvent(Event e) {
+	            sc.setFocus();
+	        }
+	    });
+		sc.addListener(SWT.MouseWheel, new Listener() {
+	        public void handleEvent(Event event) {
+	            int wheelCount = event.count;
+	            wheelCount = (int) Math.ceil(wheelCount / 3.0f);
+	            while (wheelCount < 0) {
+	                sc.getVerticalBar().setIncrement(4);
+	                wheelCount++;
+	            }
+
+	            while (wheelCount > 0) {
+	                sc.getVerticalBar().setIncrement(-4);
+	                wheelCount--;
+	            }
+	            sc.redraw();
+	        }
+	    });
+
+		container = new Composite(sc, SWT.NULL);
+
+		layout = new GridLayout();
+		layout.horizontalSpacing = 4;
+		layout.verticalSpacing = 4;
+		container.setLayout(layout);
+		layout.numColumns = 5;
+
+		sc.setContent(container);
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+		setControl(rootContainer);
+		setPageComplete(true);
+	}
+
+	@Override
+	public void loadPage() {
+		isCurrentPage = true;
+		for(Control control: container.getChildren()) {
+			control.dispose(); // Remove the children.
+		}
+
+		container.layout();			
+		buttons.clear();
+
+		// Add check boxes for all valid well locations
+		Map<Integer, List<Integer>> wells = data.getSet().getAllPossibleWells();
+
+		for(Integer i: wells.keySet()) {			
+			if(i < minI) {
+				minI = i;
+			} 
+			if(i > maxI) {
+				maxI = i;
+			}
+			for(Integer j: wells.get(i)) {
+				if(j < minJ) {
+					minJ = j;
+				}
+				if(j > maxJ) {
+					maxJ = j;
+				}
+			}				
+		}
+		layout.numColumns = maxJ-minJ+1;
+
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );		
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel1.setText("Exclude Locations");
+		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData1.verticalSpan = 4;
+		infoLabel1.setLayoutData(infoGridData1);
+		infoLabel1.setFont(boldFont);
+
+		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel.setText("Deselect unapproved or infeasible monitoring locations.");
+		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
+		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData.verticalSpan = 4;
+		infoLabel.setLayoutData(infoGridData);
+
+		Label corner = new Label(container, SWT.NULL);
+		corner.setText("X | Y");
+		for(int j = minJ; j < maxJ; j++) {			
+			Label label = new Label(container, SWT.NULL);
+			label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
+		}
+		for(int i = minI; i <= maxI; i++) {
+			Label label = new Label(container, SWT.NULL);
+			label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
+			for(int j = minJ; j < maxJ; j++) {		
+				// Wells
+				if(wells.containsKey(i) && wells.get(i).contains(j)) {
+					Button wellButton = new Button(container, SWT.CHECK);
+					wellButton.setSelection(true);
+					if(selection.containsKey(i) && selection.get(i).containsKey(j)) {
+						// Already have a button here, save the state of it
+						wellButton.setSelection(selection.get(i).get(j));
+						if(!selection.get(i).get(j))
+							System.out.println("Restoring the state of a previously saved button selection: " + selection.get(i).get(j));
+					}
+					if(!buttons.containsKey(i)) {
+						buttons.put(i, new HashMap<Integer, Button>());
+					}
+					buttons.get(i).put(j, wellButton);
+				} else {
+					Label empty = new Label(container, SWT.NULL);
+					empty.setText(" ");
+				}				
+			}
+		}
+
+		Button launchMapButton = new Button(container, SWT.BUTTON1);		
+		GridData launchButtonData = new GridData(GridData.BEGINNING);
+		launchButtonData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		launchMapButton.setLayoutData(launchButtonData);		
+		launchMapButton.setText("Launch Google map (needs internet connection)");
+		launchMapButton.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				final List<IJ> ijs = new ArrayList<IJ>();
+				for(int i = minI; i <= maxI; i++) {
+					for(int j = minJ; j < maxJ; j++) {	
+						boolean selectable = buttons.containsKey(i) && buttons.get(i).containsKey(j);
+						ijs.add(new IJ(j, i, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));						
+					}
+				}
+
+				// Can I do this from the swt thread?
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+
+						DREAMMap map = new DREAMMap(ijs, 
+								new ArrayList<Float>(data.getSet().getNodeStructure().getX()),
+								new ArrayList<Float>(data.getSet().getNodeStructure().getY()));
+
+						map.viewer.addWindowListener(new WindowAdapter() {
+
+							@Override
+							public void windowClosed(WindowEvent e) {
+								System.out.println("Window is closing!!");
+								for(IJ ij: ijs) {	
+									if(buttons.containsKey(ij.j) && buttons.get(ij.j).containsKey(ij.i)) {
+										final int i = ij.j;
+										final int j = ij.i;
+										final boolean select = ij.prohibited;
+										Display.getDefault().syncExec(new Runnable() {
+										    public void run() {
+										    	buttons.get(i).get(j).setSelection(select);
+										    }
+										});
+									}										
+								}								
+							}
+						});
+					}
+
+				});
+
+			}
+		});
+
+		container.layout();	
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		sc.layout();
+	}
+
+	@Override
+	public void completePage() throws Exception {
+		isCurrentPage = false;
+		// Need to remove from the set of available wells the ones we selected
+		for(Integer i: buttons.keySet()) {
+			for(Integer j: buttons.get(i).keySet()) {
+				if(!selection.containsKey(i)) {
+					selection.put(i, new HashMap<Integer, Boolean>());
+				}
+				selection.get(i).put(j, buttons.get(i).get(j).getSelection());
+
+				if(!buttons.get(i).get(j).getSelection()) {
+					System.out.println("Found a button that wasn't selected: " + i + ", " + j);
+					// Not selected, remove this from the spaces we can go
+					for(SensorSetting setting: data.getSet().getSensorSettings().values()) {
+						List<Integer> nodes = new ArrayList<Integer>();
+						for(Integer nodeNumber: setting.getValidNodes()) {
+							Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
+							if(ijk.getI() == i && ijk.getJ() == j) {
+								nodes.add(nodeNumber);
+							}
+						}
+						for(Integer node: nodes) {
+							setting.removeNode(node);
+							System.out.println("Removing node #" + node + " from " + setting.toString());
+						}
+					}
+				}
+			}
+		}
+	}	
+
+	@Override
+	public boolean isPageCurrent() {
+		return isCurrentPage;
+	}
+
+	@Override
+	public void setPageCurrent(boolean current) {
+		isCurrentPage = current;
+	}
+}
