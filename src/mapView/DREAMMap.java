@@ -23,6 +23,8 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import utilities.Constants;
+
 public class DREAMMap {
 
 	public List<Float> xlines = new ArrayList<Float>();
@@ -80,8 +82,8 @@ public class DREAMMap {
 
 	public DREAMMap(List<IJ> ijs, List<Float> xLines, List<Float> yLines) {
 		this.boxes = ijs;
-		this.xlines = xLines;
-		this.ylines = yLines;
+		this.xlines = Constants.makeLines((ArrayList<Float>) xLines);
+		this.ylines = Constants.makeLines((ArrayList<Float>) yLines);
 		viewer = new Viewer();
 		viewer.setVisible(true);
 	}
@@ -102,8 +104,6 @@ public class DREAMMap {
 		//	ylines.add(rand.nextFloat()*h);
 		//}
 
-		xlines.add(0f);
-		ylines.add(0f);
 		ylines.add(10f);
 		ylines.add(20f);
 		xlines.add((float)(w/2));
@@ -112,6 +112,8 @@ public class DREAMMap {
 		ylines.add((float)h);
 		Collections.sort(xlines);
 		Collections.sort(ylines);
+		xlines = Constants.makeLines((ArrayList<Float>) xlines);
+		ylines = Constants.makeLines((ArrayList<Float>) ylines);
 
 		new DREAMMap(null, xlines, ylines);
 	}
@@ -170,8 +172,8 @@ public class DREAMMap {
 			//Initialize the boxes
 			if(boxes == null) {
 				boxes = new ArrayList<IJ>();
-				for(int i=0; i< xlines.size()-1; i++){
-					for(int j=0; j< ylines.size()-1; j++){ //Only iterate through size-1 as we care about boxes, not about corners
+				for(int i=1; i< xlines.size(); i++){
+					for(int j=1; j< ylines.size(); j++){ //Only iterate through size-1 as we care about boxes, not about corners
 						boxes.add(new IJ(i,j, true, true));
 					}
 				}
@@ -296,10 +298,10 @@ public class DREAMMap {
 					for(IJ box : boxes){
 						int i = box.i;
 						int j = box.j;
-						int x1 = (int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter);
-						int x2 = (int)((xlines.get(i+1)-xMin)*gridZoomPixelsPerMeter);
-						int y1 = (int)((ylines.get(j)-yMin)*gridZoomPixelsPerMeter);
-						int y2 = (int)((ylines.get(j+1)-yMin)*gridZoomPixelsPerMeter);
+						int x1 = (int)((xlines.get(i-1)-xMin)*gridZoomPixelsPerMeter);
+						int x2 = (int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter);
+						int y1 = (int)((ylines.get(j-1)-yMin)*gridZoomPixelsPerMeter);
+						int y2 = (int)((ylines.get(j)-yMin)*gridZoomPixelsPerMeter);
 						// FLIP
 //						int y1 = (int)(adjustedPyMax - ((ylines.get(j)-yMin))*gridZoomPixelsPerMeter);
 //						int y2 = (int)(adjustedPyMax - ((ylines.get(j+1)-yMin))*gridZoomPixelsPerMeter);
@@ -362,7 +364,7 @@ public class DREAMMap {
 					for(int i=0; i<xlines.size()-1; i++){
 						if(((int)((xlines.get(i+1)-xMin)*gridZoomPixelsPerMeter) > x1)
 								&& ((int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter) < x2)){
-							iList.add(i);
+							iList.add(i+1);
 						}
 					}
 					for(int j=0; j<ylines.size()-1; j++){
@@ -371,7 +373,7 @@ public class DREAMMap {
 					//			&& ((adjustedPyMax - (int)((ylines.get(j+1)-yMin)*gridZoomPixelsPerMeter)) < y2)){
 						if(((int)((ylines.get(j+1)-yMin)*gridZoomPixelsPerMeter) > y1)
 								&& ((int)((ylines.get(j)-yMin)*gridZoomPixelsPerMeter) < y2)){
-								jList.add(j);
+								jList.add(j+1);
 						}
 					}
 					for(IJ box : boxes){

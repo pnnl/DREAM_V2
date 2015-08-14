@@ -3,6 +3,7 @@ package utilities;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -243,6 +244,19 @@ public class Constants {
 		public String toString() {
 			return "Per configuration, scenario, time: " + perConfiguration + ", " + perScenario + ", " + perTime;
 		}
+	}
+	
+	public static ArrayList<Float> makeLines(ArrayList<Float> centers){
+		ArrayList<Float> lines = new ArrayList<Float>();
+		for(int x = 1; x < centers.size(); x++) {
+			float half = (centers.get(x)-centers.get(x-1))/2;
+			if(x == 1) 
+				lines.add(new Float(centers.get(x-1)-half).floatValue());
+			lines.add(new Float(centers.get(x-1)+half).floatValue());
+			if(x == centers.size()-1) 
+				lines.add(new Float(centers.get(x)+half).floatValue());
+		}
+		return lines;
 	}
 
 }

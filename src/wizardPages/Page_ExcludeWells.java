@@ -140,7 +140,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 				}
 			}				
 		}
-		layout.numColumns = maxJ-minJ+1;
+		layout.numColumns = maxI-minI+2;
 
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
@@ -154,20 +154,33 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Deselect unapproved or infeasible monitoring locations.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData.horizontalSpan = 6;
 		infoGridData.verticalSpan = 4;
 		infoLabel.setLayoutData(infoGridData);
+		
 
+		Button launchMapButton = new Button(container, SWT.BUTTON1);		
+		GridData launchButtonData = new GridData(GridData.BEGINNING);
+		launchButtonData.horizontalSpan = 6;
+		launchButtonData.verticalSpan = 4;
+		launchMapButton.setLayoutData(launchButtonData);
+		
+		Label spacer = new Label(container, SWT.NULL);
+		GridData spacerGridData = new GridData(GridData.FILL_HORIZONTAL);
+		spacerGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns-12;
+		spacerGridData.verticalSpan = 4;
+		spacer.setLayoutData(spacerGridData);
+		
 		Label corner = new Label(container, SWT.NULL);
-		corner.setText("X | Y");
-		for(int j = minJ; j < maxJ; j++) {			
-			Label label = new Label(container, SWT.NULL);
-			label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
-		}
-		for(int i = minI; i <= maxI; i++) {
+		corner.setText("Y | X");
+		for(int i = minI; i <= maxI; i++) {			
 			Label label = new Label(container, SWT.NULL);
 			label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
-			for(int j = minJ; j < maxJ; j++) {		
+		}
+		for(int j = minJ; j <= maxJ; j++) {
+			Label label = new Label(container, SWT.NULL);
+			label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
+			for(int i = minI; i <= maxI; i++) {		
 				// Wells
 				if(wells.containsKey(i) && wells.get(i).contains(j)) {
 					Button wellButton = new Button(container, SWT.CHECK);
@@ -188,19 +201,15 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 				}				
 			}
 		}
-
-		Button launchMapButton = new Button(container, SWT.BUTTON1);		
-		GridData launchButtonData = new GridData(GridData.BEGINNING);
-		launchButtonData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		launchMapButton.setLayoutData(launchButtonData);		
+		
 		launchMapButton.setText("Launch Google map (needs internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				final List<IJ> ijs = new ArrayList<IJ>();
 				for(int i = minI; i <= maxI; i++) {
-					for(int j = minJ; j < maxJ; j++) {	
+					for(int j = minJ; j <= maxJ; j++) {	
 						boolean selectable = buttons.containsKey(i) && buttons.get(i).containsKey(j);
-						ijs.add(new IJ(j, i, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));						
+						ijs.add(new IJ(i, j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));						
 					}
 				}
 
@@ -213,16 +222,15 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 						DREAMMap map = new DREAMMap(ijs, 
 								new ArrayList<Float>(data.getSet().getNodeStructure().getX()),
 								new ArrayList<Float>(data.getSet().getNodeStructure().getY()));
-
 						map.viewer.addWindowListener(new WindowAdapter() {
 
 							@Override
 							public void windowClosed(WindowEvent e) {
 								System.out.println("Window is closing!!");
 								for(IJ ij: ijs) {	
-									if(buttons.containsKey(ij.j) && buttons.get(ij.j).containsKey(ij.i)) {
-										final int i = ij.j;
-										final int j = ij.i;
+									if(buttons.containsKey(ij.i) && buttons.get(ij.i).containsKey(ij.j)) {
+										final int i = ij.i;
+										final int j = ij.j;
 										final boolean select = ij.prohibited;
 										Display.getDefault().syncExec(new Runnable() {
 										    public void run() {

@@ -541,8 +541,9 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	}
 	
 	private void testReady() {
+		/*
 		boolean isReady = true;
-
+		
 		for(SensorData data: sensorData.values()) {
 
 
@@ -557,8 +558,9 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			}
 
 		}
-		
 		if(this.isPageComplete() != isReady)
 			this.setPageComplete(isReady);
+			*/
 	}
+	
 }
