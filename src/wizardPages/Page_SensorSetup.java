@@ -139,7 +139,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				minStr =  Constants.exponentialFormat.format(dataMin);
 			String maxStr =  Constants.decimalFormat.format(dataMax);
 			if(dataMax < 0.001)
-				maxStr =  Constants.decimalFormat.format(dataMax);
+				maxStr =  Constants.exponentialFormat.format(dataMax);
 		
 			if(minStr.length() > 8) minStr = Constants.exponentialFormat.format(dataMin);
 			if(maxStr.length() > 8) maxStr = Constants.exponentialFormat.format(dataMax);			
@@ -207,11 +207,17 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			// Specifics fields
 			valueInput = new Text(container, SWT.BORDER | SWT.SINGLE);
 			if(trigger == Trigger.MAXIMUM_THRESHOLD) {
-				if(max != 0) // What if a user wants to set this to 0?
+				if(max != 0) {// What if a user wants to set this to 0? 
 					valueInput.setText(Constants.decimalFormat.format(max));
+					if(max < 0.001)
+						valueInput.setText(Constants.exponentialFormat.format(max));
+				}
 			} else { 
-				if(min != 0)
+				if(min != 0) {
 					valueInput.setText(Constants.decimalFormat.format(min));
+					if(min < 0.001)
+						valueInput.setText(Constants.exponentialFormat.format(min));
+				}
 			}
 			
 			valueInput.addModifyListener(new ModifyListener() {
