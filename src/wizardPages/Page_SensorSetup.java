@@ -134,10 +134,16 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			});
 			
 			// Label [min, max]
-			String minStr =  Constants.decimalFormat.format(dataMin);			
+			String minStr =  Constants.decimalFormat.format(dataMin);		
+			if(dataMin < 0.001)
+				minStr =  Constants.exponentialFormat.format(dataMin);
 			String maxStr =  Constants.decimalFormat.format(dataMax);
+			if(dataMax < 0.001)
+				maxStr =  Constants.decimalFormat.format(dataMax);
+		
 			if(minStr.length() > 8) minStr = Constants.exponentialFormat.format(dataMin);
 			if(maxStr.length() > 8) maxStr = Constants.exponentialFormat.format(dataMax);			
+			
 			includeButton.setText(sensorType);
 			
 			// Cost
