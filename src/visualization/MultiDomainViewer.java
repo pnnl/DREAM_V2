@@ -403,13 +403,13 @@ public class MultiDomainViewer {
 
 		public void triggerDisplayThread() {
 			try {
-			getDisplay().syncExec(new Runnable() {
-				public void run() {
-					if (!isDisposed()) {
-						updateDisplay();						
+				getDisplay().syncExec(new Runnable() {
+					public void run() {
+						if (!isDisposed()) {
+							updateDisplay();						
+						}
 					}
-				}
-			});
+				});
 			} catch (Exception e) { };
 		}
 
@@ -520,7 +520,7 @@ public class MultiDomainViewer {
 			gl.glBegin(GL2.GL_QUADS);  
 			for(String type: nodes.keySet()) {
 				List<Vector3f[]> cubes = nodes.get(type);
-			//	System.out.println("Cubes of type: " + type + " = " + cubes.size());
+				//	System.out.println("Cubes of type: " + type + " = " + cubes.size());
 
 				// Color this set of cubes, we need to know the type
 				Color color = colorsByType.get(type);
@@ -530,7 +530,7 @@ public class MultiDomainViewer {
 						((float)color.getBlue())/255.0f, 
 						type.startsWith("cloud") ? 0.02f : 0.8f};
 				gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, colorF, 0);
-		//		System.out.println("Color: " + colorF[0] + ", " + colorF[1] + ", " + colorF[2] + ", " + colorF[3]);
+				//		System.out.println("Color: " + colorF[0] + ", " + colorF[1] + ", " + colorF[2] + ", " + colorF[3]);
 				for(Vector3f[] cube : cubes) {
 					if(cube.length == 8) {	// 3D
 						int counter = 0; 
@@ -553,7 +553,7 @@ public class MultiDomainViewer {
 				}
 			}
 			gl.glEnd();
-		//	System.out.println("Num cubes: " + numCubesDrawn);
+			//	System.out.println("Num cubes: " + numCubesDrawn);
 			float black[] = {0.0f, 0.0f, 0.0f, 1.0f};
 			gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, black, 0);	
 
@@ -926,72 +926,69 @@ public class MultiDomainViewer {
 		private void DrawDomainUniformXYZ()
 		{
 
-			if(false) {
-				int nX = showMesh ? cellBoundsX.size() - 1 : 0;
-				int nY = showMesh ? cellBoundsY.size() - 1 : 0;
-				int nZ = showMesh ? cellBoundsZ.size() - 1 : 0;
-	
-				//      GL2.Material(MaterialFace.FrontAndBack, MaterialParameter.Diffuse, Color.Linen);
-				GL2 gl = context.getGL().getGL2();
-				gl.glBegin(GL2.GL_LINES);  
-				float black[] = {0.0f, 0.0f, 0.0f, 1.0f};
-				gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, black, 0);	
-				for (int intZ = 0; intZ <= nZ; intZ++)
+			int nX = showMesh ? cellBoundsX.size() - 1 : 0;
+			int nY = showMesh ? cellBoundsY.size() - 1 : 0;
+			int nZ = showMesh ? cellBoundsZ.size() - 1 : 0;
+
+			//      GL2.Material(MaterialFace.FrontAndBack, MaterialParameter.Diffuse, Color.Linen);
+			GL2 gl = context.getGL().getGL2();
+			gl.glBegin(GL2.GL_LINES);  
+			float black[] = {0.0f, 0.0f, 0.0f, 1.0f};
+			gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, black, 0);	
+			for (int intZ = 0; intZ <= nZ; intZ++)
+			{
+				float z = (maxDelta * intZ) -offset.z;
+				for (int intX = 0; intX <= nXYZ.i; intX++)  // Draw lines in x direction
 				{
-					float z = (maxDelta * intZ) -offset.z;
-					for (int intX = 0; intX <= nXYZ.i; intX++)  // Draw lines in x direction
+					gl.glVertex3f((maxDelta * intX) - offset.x, -offset.y, z);
+					gl.glVertex3f((maxDelta * intX) - offset.x, maxXYZUniform.y, z);
+
+				}
+				for (int intY = 0; intY <= nXYZ.j; intY++)   // Draw lines in y direction
+				{
+					gl.glVertex3f(-offset.x, (maxDelta * intY) - offset.y, z);
+					gl.glVertex3f(maxXYZUniform.x, (maxDelta * intY) - offset.y, z);
+				}
+			}
+
+			// X Direction
+			for (int intX = 0; intX <= nXYZ.i; intX++)
+			{
+				for (int intY = 0; intY <= nY; intY++)  // Draw lines in z direction
+				{
+					gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, minimum.z);
+					gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, maxXYZUniform.z);
+				}
+			}
+
+			// Y Direction
+			if (!showMesh)
+			{
+				for (int intZ = 0; intZ <= nXYZ.k; intZ++)
+				{
+
+					float z = (maxDelta * intZ) - offset.z;
+					for (int intX = 0; intX <= nX; intX++)  // Draw lines in x direction
 					{
 						gl.glVertex3f((maxDelta * intX) - offset.x, -offset.y, z);
 						gl.glVertex3f((maxDelta * intX) - offset.x, maxXYZUniform.y, z);
-						
 					}
-					for (int intY = 0; intY <= nXYZ.j; intY++)   // Draw lines in y direction
+					for (int intY = 0; intY <= nY; intY++)   // Draw lines in y direction
 					{
 						gl.glVertex3f(-offset.x, (maxDelta * intY) - offset.y, z);
 						gl.glVertex3f(maxXYZUniform.x, (maxDelta * intY) - offset.y, z);
 					}
 				}
-	
-				// X Direction
-				for (int intX = 0; intX <= nXYZ.i; intX++)
+				for (int intX = 0; intX <= nX; intX++)
 				{
-					for (int intY = 0; intY <= nY; intY++)  // Draw lines in z direction
+					for (int intY = 0; intY <= nXYZ.j; intY++)  // Draw lines in z direction
 					{
 						gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, minimum.z);
 						gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, maxXYZUniform.z);
 					}
 				}
-	
-				// Y Direction
-				if (!showMesh)
-				{
-					for (int intZ = 0; intZ <= nXYZ.k; intZ++)
-					{
-	
-						float z = (maxDelta * intZ) - offset.z;
-						for (int intX = 0; intX <= nX; intX++)  // Draw lines in x direction
-						{
-							gl.glVertex3f((maxDelta * intX) - offset.x, -offset.y, z);
-							gl.glVertex3f((maxDelta * intX) - offset.x, maxXYZUniform.y, z);
-						}
-						for (int intY = 0; intY <= nY; intY++)   // Draw lines in y direction
-						{
-							gl.glVertex3f(-offset.x, (maxDelta * intY) - offset.y, z);
-							gl.glVertex3f(maxXYZUniform.x, (maxDelta * intY) - offset.y, z);
-						}
-					}
-					for (int intX = 0; intX <= nX; intX++)
-					{
-						for (int intY = 0; intY <= nXYZ.j; intY++)  // Draw lines in z direction
-						{
-							gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, minimum.z);
-							gl.glVertex3f((maxDelta * intX) - offset.x, (maxDelta * intY) - offset.y, maxXYZUniform.z);
-						}
-					}
-				}
-				gl.glEnd(); 
 			}
-
+			gl.glEnd(); 
 			DrawSensors();
 			VisualizeCloud();
 		}
