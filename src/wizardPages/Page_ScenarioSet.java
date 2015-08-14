@@ -186,7 +186,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		modelDescription = new Label(container, SWT.NULL);
 		
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		noteLabel.setText("More info: The “Launch Converter” button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
+		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
 		GridData noteGridData = new GridData(GridData.FILL_HORIZONTAL);
 		noteGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		noteGridData.verticalSpan = 4;
