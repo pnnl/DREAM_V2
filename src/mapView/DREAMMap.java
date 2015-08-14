@@ -91,7 +91,6 @@ public class DREAMMap {
 	public static void main(String[] args) {
 
 		//Load this test set if running just the map tool
-
 		List<Float> xlines = new ArrayList<Float>();
 		List<Float> ylines = new ArrayList<Float>();
 
@@ -184,7 +183,6 @@ public class DREAMMap {
 			 */
 			theGrid = new JPanel() {
 				private static final long serialVersionUID = 1L;
-
 
 				@Override
 				public void paintComponent(Graphics g) {
@@ -307,9 +305,8 @@ public class DREAMMap {
 //						int y2 = (int)(adjustedPyMax - ((ylines.get(j+1)-yMin))*gridZoomPixelsPerMeter);
 						if(box.prohibited) g.setColor(prohibitedColor);
 						else g.setColor(allowedColor);
-						g.fillRect(x1, y2, x2-x1, y1-y2);
+						g.fillRect(x1, y1, x2-x1, y2-y1);
 					}
-
 
 					g.setColor(lineColor);
 					//Draw Lines
