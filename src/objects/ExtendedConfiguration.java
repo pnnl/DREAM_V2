@@ -336,6 +336,15 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 	public synchronized boolean mutateSensor(ScenarioSet scenarioSet, ModelOption modelOption) {
+		for(String type : scenarioSet.getDataTypes()){
+			int count = 0;
+			for(Sensor sensor : sensors){
+				if(sensor.getSensorType() == type) count++;
+			}
+			System.out.println(type + ": " + count);
+		}
+		
+		
 		// If we can afford a new sensor add it at the add point:
 
 		Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
@@ -483,7 +492,30 @@ public class ExtendedConfiguration extends Configuration {
 		return moveSensor(sensors, scenarioSet);	// Otherwise just move a random one
 	}
 
+	/*
+	 * This is the beginnings of a stand-alone sensor-swap. TODO: Remove?
+	 * 
+	private Object switchSensor(ScenarioSet scenarioSet) {
+		//Pick a current sensor
+		Sensor thisSensor = sensors.get(Constants.random.nextInt(sensors.size()));
+		System.out.println("Switching the type of sensor: " + thisSensor);
+		
+		//Get the list of valid types to switch with, return if empty (only one allowed)
+		List<String> types = scenarioSet.getDataTypes();
+		if(!types.remove(thisSensor.getSensorType())) System.out.println("This sensor type wasn't in the list. That shouldn't happen.");
+		if(types.isEmpty()){
+			System.out.println("Cannot switch sensor type - only one is allowed");
+			return null;
+		}
+		
+		//Make sure that there's not already other sensors 
+		
+		
+		
 
+	}
+	*/
+	
 	private Object moveWell(ScenarioSet scenarioSet) {
 		if(wells.size() == 0)
 			return null; // No wells to move

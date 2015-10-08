@@ -159,7 +159,8 @@ public class ExtendedSensor extends Sensor {
 	 * @return
 	 */
 	public boolean move(ExtendedConfiguration configuration, ScenarioSet set) {
-		
+		/*
+		 * Old version that I'm leaving for now. TODO: Remove?
 		// We will try to move to a neighbor 80% of the time.
 		if(Double.compare(Constants.random.nextDouble(), .8) < 0) {
 			if(move(set.getNodeStructure().getNeighborNodes(node), configuration, set))
@@ -181,6 +182,35 @@ public class ExtendedSensor extends Sensor {
 		move(validMoves.get(Constants.random.nextInt(validMoves.size())), set.getNodeStructure());
 		
 		return true;
+		*/
+		if(Double.compare(Constants.random.nextDouble(), .8) < 0) {
+			if(move(set.getNodeStructure().getNeighborNodes(node), configuration, set))
+				return true;
+		}
+		
+		
+		// Get all sensor types that we can afford to switch to
+		List<String> validTypes = set.getValidSwitchTypes(getSensorType(), configuration);
+		Collections.shuffle(validTypes);
+		
+		for(String type : validTypes){
+			// Get all the nodes we can afford to move to that are in the cloud and unoccupied
+			List<Integer> validMoves = set.getValidNodes(type, configuration, false, false, !isWell());
+			
+			// Remove our current location
+			if(validMoves.contains(getNodeNumber()))
+				validMoves.remove(getNodeNumber());
+			
+			// If there's somewhere to put a sensor of this type, do it.
+			if(!validMoves.isEmpty()){
+				//System.out.println("changing a sensor of type " + getSensorType() + " to " + type);
+				this.type = type;
+				move(validMoves.get(Constants.random.nextInt(validMoves.size())), set.getNodeStructure());
+				return true;
+			}
+		}
+		// There must be no other spot to put a sensor
+		return false;
 	}
 	
 	/**

@@ -366,6 +366,20 @@ public class ScenarioSet {
 
 	}
 	
+	public List<String> getValidSwitchTypes(String currentType, ExtendedConfiguration configuration){
+		//Get all candidate types
+		List<String> types = getDataTypes();
+		//Decrement the current cost by the sensor whose type we might be changing
+		float configurationCost = getCost(configuration);
+		configurationCost -= getCost(currentType);
+		List<String> toRemove = new ArrayList<String>();
+		for(String type : types)
+			if(configurationCost + getCost(type) > getCostConstraint()) toRemove.add(type);
+		for(String type : toRemove)
+			types.remove(type);
+		return types;
+	}
+	
 	public List<String> getAllPossibleDataTypes() {
 		return nodeStructure.getDataTypes();
 	}
@@ -394,10 +408,7 @@ public class ScenarioSet {
 	}
 	
 	public List<String> getDataTypes() {
-		List<String> types = new ArrayList<String>();
-		for(String type: sensorSettings.keySet())
-			types.add(type);
-		return types;
+		return new ArrayList<String>(sensorSettings.keySet());
 	}	
 	
 	public static void main(String[] args) {
