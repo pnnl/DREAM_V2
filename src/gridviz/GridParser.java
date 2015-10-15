@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -442,7 +444,11 @@ public class GridParser {
 		while(!sc.nextLine().startsWith("index") && sc.hasNextLine());
 		
 		float[][] dataDoubleArray = new float[timeSteps][lineCount];
-		float[][] xyzs = new float[3][lineCount];
+		// Need unique xyz's only
+		HashSet<Float> uniqueXs = new HashSet<Float>();
+		HashSet<Float> uniqueYs = new HashSet<Float>();
+		HashSet<Float> uniqueZs = new HashSet<Float>();
+		
 		int[][] ijks = new int[3][lineCount];
 
 		int maxis = 0;
@@ -477,11 +483,14 @@ public class GridParser {
 								if(i == lineCount - 1)
 									maxks = nextInt;
 							} else if(key == NTAB_KEY.X) {
-								xyzs[0][i] = isInt ? nextInt: nextFloat;
+								uniqueXs.add(isInt ? nextInt: nextFloat);
+							//  xyzs[0][i] = isInt ? nextInt: nextFloat;
 							} else if(key == NTAB_KEY.Y) {
-								xyzs[1][i] = isInt ? nextInt: nextFloat;
+								uniqueYs.add(isInt ? nextInt: nextFloat);
+							//	xyzs[1][i] = isInt ? nextInt: nextFloat;
 							} else if(key == NTAB_KEY.Z) {
-								xyzs[2][i] = isInt ? nextInt: nextFloat;						
+								uniqueZs.add(isInt ? nextInt: nextFloat);
+							//	xyzs[2][i] = isInt ? nextInt: nextFloat;						
 							}								
 						}
 					}
@@ -513,13 +522,34 @@ public class GridParser {
 		}
 		structure.data.put(fieldKey, dataDoubleArray);
 		
+		ArrayList<Float> xs = new ArrayList<Float>(uniqueXs);
+		ArrayList<Float> ys = new ArrayList<Float>(uniqueYs);
+		ArrayList<Float> zs = new ArrayList<Float>(uniqueZs);
+		
+		Collections.sort(xs);
+		Collections.sort(ys);
+		Collections.sort(zs);
+
+		float[] x = new float[xs.size()];
+		for(int i = 0; i < xs.size(); i++) {
+			x[i] = xs.get(i);
+		}
+		float[] y = new float[ys.size()];
+		for(int i = 0; i < ys.size(); i++) {
+			y[i] = ys.get(i);
+		}
+		float[] z = new float[zs.size()];
+		for(int i = 0; i < zs.size(); i++) {
+			z[i] = zs.get(i);
+		}
+		
 		if(appendMetaData) {
 		//	structure.i = ijks[0];
 		//	structure.j = ijks[1];
 		//	structure.k = ijks[2];
-			structure.x = xyzs[0];
-			structure.y = xyzs[1];
-			structure.z = xyzs[2];
+			structure.x = x;
+			structure.y = y;
+			structure.z = z;
 			structure.i = maxis;
 			structure.j = maxjs;
 			structure.k = maxks;
