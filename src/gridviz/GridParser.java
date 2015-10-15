@@ -455,8 +455,10 @@ public class GridParser {
 				for(int j = 0; j < metaDataLength; j++) {
 					int nextInt = 0;
 					float nextFloat = 0f;
+					boolean isInt = false;
 					if(sc.hasNextInt()) {
 						nextInt = sc.nextInt();
+						isInt = true;
 					} else {
 						nextFloat = sc.nextFloat();
 					}
@@ -475,11 +477,11 @@ public class GridParser {
 								if(i == lineCount - 1)
 									maxks = nextInt;
 							} else if(key == NTAB_KEY.X) {
-								xyzs[0][i] = nextFloat;
+								xyzs[0][i] = isInt ? nextInt: nextFloat;
 							} else if(key == NTAB_KEY.Y) {
-								xyzs[1][i] = nextFloat;
+								xyzs[1][i] = isInt ? nextInt: nextFloat;
 							} else if(key == NTAB_KEY.Z) {
-								xyzs[2][i] = nextFloat;						
+								xyzs[2][i] = isInt ? nextInt: nextFloat;						
 							}								
 						}
 					}
