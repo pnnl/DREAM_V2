@@ -60,21 +60,22 @@ public class InferenceTest {
 	
 	// Default inference test 
 	public Boolean reachedInference(Map<String, Integer> triggeredByType) {
-		boolean inferred = true;
+		boolean inferred = false;
 		int totalTriggering = 0;
 		for(String dataType: minimumRequiredPerType.keySet()) {
 			
 			int required = minimumRequiredPerType.get(dataType);
-			if(required <= 0)
+			if(required <= 0){
+				inferred = true;
 				continue; // None required, continue on
+			}
 			
 			if(!triggeredByType.containsKey(dataType)) {
-				inferred = false; // Some were required, but the type wasn't found in the counts
 				continue;
 			}
 			
-			if(triggeredByType.get(dataType) < required)
-				inferred = false; // Not enough triggering
+			if(triggeredByType.get(dataType) >= required)
+				inferred = true; // Not enough triggering
 			
 			totalTriggering += triggeredByType.get(dataType);
 		}
