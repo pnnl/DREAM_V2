@@ -461,10 +461,10 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						}
 						System.out.println("Intersection: (" + intersection.size() + ") " + intersection);
 						for(SensorData temp: sensorData.values()) {
-							data.getSet().getSensorSettings(temp.sensorType).setValidNodes(intersection);
-							if(data.getSet().getSensorSettings(temp.sensorType).isSet())
+							if(data.getSet().getSensorSettings(temp.sensorType) != null && data.getSet().getSensorSettings(temp.sensorType).isSet()) {
+								data.getSet().getSensorSettings(temp.sensorType).setValidNodes(intersection);
 								temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes().size());
-							else
+							} else
 								temp.nodeLabel.setText(temp.sensorType+ ": Not set");
 						}
 					}

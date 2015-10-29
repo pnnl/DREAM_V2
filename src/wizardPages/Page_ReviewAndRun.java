@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -42,7 +46,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	private Text runs;
 	private Text samples;
 	private Text iterations;
-	
+
 	private boolean isCurrentPage = false;
 
 	protected Page_ReviewAndRun(STORMData data) {
@@ -58,37 +62,37 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL);
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
-        sc.setExpandHorizontal(true);
-        sc.setExpandVertical(true);
-        sc.addListener(SWT.Activate, new Listener() {
-	        public void handleEvent(Event e) {
-	            sc.setFocus();
-	        }
-	    });
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
+		sc.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event e) {
+				sc.setFocus();
+			}
+		});
 		sc.addListener(SWT.MouseWheel, new Listener() {
-	        public void handleEvent(Event event) {
-	            int wheelCount = event.count;
-	            wheelCount = (int) Math.ceil(wheelCount / 3.0f);
-	            while (wheelCount < 0) {
-	                sc.getVerticalBar().setIncrement(4);
-	                wheelCount++;
-	            }
+			public void handleEvent(Event event) {
+				int wheelCount = event.count;
+				wheelCount = (int) Math.ceil(wheelCount / 3.0f);
+				while (wheelCount < 0) {
+					sc.getVerticalBar().setIncrement(4);
+					wheelCount++;
+				}
 
-	            while (wheelCount > 0) {
-	                sc.getVerticalBar().setIncrement(-4);
-	                wheelCount--;
-	            }
-	            sc.redraw();
-	        }
-	    });
-        
-        container = new Composite(sc, SWT.NULL);
+				while (wheelCount > 0) {
+					sc.getVerticalBar().setIncrement(-4);
+					wheelCount--;
+				}
+				sc.redraw();
+			}
+		});
+
+		container = new Composite(sc, SWT.NULL);
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
 		layout.numColumns = 3;
-		
+
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
@@ -104,7 +108,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			control.dispose(); // Remove the children.
 		}
 		container.layout();	
-		
+
 
 		Text summary = new Text(container, SWT.MULTI | SWT.WRAP| SWT.BORDER | SWT.V_SCROLL );
 		summary.setEditable(false);
@@ -114,7 +118,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		summaryGD.grabExcessVerticalSpace = true;
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);
-		
+
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("Select an output directory");
@@ -129,7 +133,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}
 		});
 		new Label(container, SWT.NULL); // Spacer
-				
+
 		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
 		outputFolder.setText(new File(new File(Constants.homeDirectory).getParent(), "_results").getAbsolutePath());
 		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
@@ -139,20 +143,20 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		Button button = new Button(container, SWT.BALLOON);
 		button.setSelection(true);
 		button.setText("Run Iterative Procedure");
-		
+
 		//Label temp2 = new Label(container, SWT.NULL);
 		runs= new Text(container, SWT.BORDER | SWT.SINGLE);
 		runs.setText("1");		
 		GridData runsGD = new GridData(GridData.FILL_HORIZONTAL);
 		runs.setLayoutData(runsGD);
-		
+
 		Label iterationLabel = new Label(container, SWT.NULL);
 		iterationLabel.setText("Configurations to test");
 		iterations = new Text(container, SWT.BORDER | SWT.SINGLE);
 		iterations.setText(String.valueOf(data.getSet().getIterations()));
 		GridData iterationGD = new GridData(GridData.FILL_HORIZONTAL);
 		iterations.setLayoutData(iterationGD);
-		
+
 		button.addListener(SWT.Selection, new Listener() {
 
 			@Override
@@ -172,7 +176,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});
 
-		
+
 		Button button3 = new Button(container, SWT.BALLOON);
 		button3.setSelection(true);
 		button3.setText(" Run Full Enumeration  ");
@@ -190,7 +194,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				}
 			}	       
 		});
-		
+
 		Button button4 = new Button(container, SWT.BALLOON);
 		button4.setSelection(true);
 		button4.setText("IJK to XYZ");
@@ -210,9 +214,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				}
 			}	       
 		});
-		
-	//	Label temp = new Label(container, SWT.NULL);
-	//	Label temp3 = new Label(container, SWT.NULL);
+
+		//	Label temp = new Label(container, SWT.NULL);
+		//	Label temp3 = new Label(container, SWT.NULL);
 		Button button2 = new Button(container, SWT.BALLOON);
 		button2.setSelection(true);
 		button2.setText("  Run Random Sample   ");
@@ -227,20 +231,130 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				try {
 					data.randomEnumeration(numSamples);
 				} catch (Exception e) {
-					
+
 				}
+			}	       
+		});		
+
+		Button cloudButton = new Button(container, SWT.BALLOON);
+		cloudButton.setSelection(true);
+		cloudButton.setText("Cloud data");
+		cloudButton.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				JFrame temp = new JFrame();
+				JTextArea textArea = new JTextArea();
+
+				String text = "TITLE = Cloud nodes\n";
+				text += "VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"";
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
+					text += "\t\"" + sensorType + "\"";
+				}
+				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
+				int numNodes = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
+				int numElements = 8*numNodes;
+				text += "\n";
+				text += "ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n";
+				
+				String varRanks = "[1, 2, 3, ";
+				int rank = 4;
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
+					varRanks += (rank++) + ", ";
+				}
+				varRanks = varRanks.substring(0, varRanks.length() - 2) + "]";
+				text += "VARLOCATION = (" + varRanks + "= CELLCENTERED)\n";
+
+				// X values
+				for(int k = 0; k < ijk.getK(); k++) { 			
+					for(int j = 0; j < ijk.getJ(); j++) { 
+						float prevValue = 0.0f; // Assume center is at 0	
+						for(int i = 0; i < ijk.getI(); i++) { 
+							float nextValue = data.getSet().getNodeStructure().getX().get(i);	
+							float var0 = prevValue;
+							float var1 = prevValue + ((nextValue-prevValue)*2);
+							prevValue = var1;	
+							text += var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n";	
+						}
+					}
+				}
+				text += "\n";
+				// Y values	
+				for(int k = 0; k < ijk.getK(); k++) { 
+					float prevValue = 0.0f; // Assume center is at 0
+					for(int j = 0; j < ijk.getJ(); j++) {
+						float nextValue = data.getSet().getNodeStructure().getY().get(j);					
+						float var0 = prevValue;
+						float var1 = prevValue + ((nextValue-prevValue)*2);
+						prevValue = var1;	
+						for(int i = 0; i < ijk.getI(); i++) { 
+							text += var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n";	
+						}
+					}
+				}
+				text += "\n";
+				// Z values
+				float prevValue = 0.0f; // Assume center is at 0				
+				for(int k = 0; k < ijk.getK(); k++) { 
+					float nextValue = data.getSet().getNodeStructure().getZ().get(k);					
+					float var0 = prevValue;
+					float var1 = prevValue + ((nextValue-prevValue)*2);
+					prevValue = var1;	
+					for(int j = 0; j < ijk.getJ(); j++) {		
+						for(int i = 0; i < ijk.getI(); i++) {				
+							text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n";	
+						}
+					}
+				}
+				text += "\n";
+				
+				// Variables
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
+						int nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
+						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeId) ? "1" : "0");		
+						text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n";	
+					}}}
+					text += "\n";
+				}
+				text += "\n";
+				/*
+				// Connection list		index = 0;
+				for(int k = 1; k < ijk.getK(); k++) { for(int j = 1; j < ijk.getJ(); j++) { for(int i = 1; i < ijk.getI(); i++) {
+					
+					int var0 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
+					int var1 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j,   k));
+					int var2 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j+1, k));
+					int var3 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j+1, k));
+					int var4 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k+1));
+					int var5 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j,   k+1));
+					int var6 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j+1, k+1));
+					int var7 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j+1, k+1));
+					
+					int iMax = ijkDimensions.getI();
+		int jMax = ijkDimensions.getJ();
+		return (k-1) * iMax * jMax + (j-1) * iMax + i;
+					text += var0 + " " + var1 + " " + var2 + " " + var3 + " " + var4 + " " + var5 + " " + var6 + " " + var7 + "\n";
+				}}}
+				*/
+				text += "\n";
+				
+				textArea.setText(text);
+				temp.add(new JScrollPane(textArea));
+				temp.setSize(400, 400);
+				temp.setVisible(true);
 			}	       
 		});		
 
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-		
+
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();	
 
 	}
-	
+
 	public void convertFile(File file) throws IOException {
 		/*
 		System.out.println("i, x edge, x center");
@@ -264,7 +378,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			double center = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node).getZ();
 			System.out.println(k + ", " + edge + ", " + center);
 		}
-		*/
+		 */
 		List<String> lines = FileUtils.readLines(file);
 		StringBuffer fileOut = new StringBuffer();
 		for(String line: lines) {
@@ -304,5 +418,5 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
 	}
-	
+
 }

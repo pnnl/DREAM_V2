@@ -4,6 +4,7 @@ import gridviz.DataGrid;
 import gridviz.GridError;
 import gridviz.GridParser;
 import gridviz.GridParser.NTABStructure;
+import gridviz.Utilities;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -51,6 +52,7 @@ import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.H5File;
+import utilities.Constants;
 
 /*
  * To change this template, choose Tools | Templates
@@ -768,9 +770,9 @@ public class FileBrowser extends javax.swing.JFrame {
 
 				int counter = 0;
 				// Ordering is different for ntab, i's, j's, then k's?
-				for(int k = 1; k <= dims3D[2]; k++) {	
-					for(int j = 1; j <= jMax; j++) {	
-						for(int i = 1; i <= iMax; i++) {				
+				for(int i = 1; i <= iMax; i++) {		
+					for(int j = 1; j <= jMax; j++) {			
+						for(int k = 1; k <= dims3D[2]; k++) {	
 							// Apply the shift (if one exists)						
 							int shiftedI = i-shiftI;
 							int shiftedJ = j-shiftJ;
@@ -782,7 +784,7 @@ public class FileBrowser extends javax.swing.JFrame {
 									System.out.println("Problem...");
 								}
 								tempForShift[counter] = Math.abs(dataAsFloats[shiftedNodeNumber-1]);
-							} 
+							}
 							counter++;
 						}
 					}	
