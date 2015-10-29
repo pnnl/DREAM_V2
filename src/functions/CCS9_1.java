@@ -203,8 +203,11 @@ public class CCS9_1 extends Function {
 					} else {
 						triggered = false;
 					}
-														
+					if(triggered) {
+						System.out.println("HERE!");
+					}								
 				}		
+				
 				
 				// Store the result, set the sensor to triggered or not
 				storeHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType(), triggered);

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -31,6 +32,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import objects.ExtendedConfiguration;
+import objects.ExtendedSensor;
+import objects.Sensor;
 import utilities.Constants;
 import utilities.Point3d;
 import utilities.Point3i;
@@ -343,6 +347,23 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				temp.add(new JScrollPane(textArea));
 				temp.setSize(400, 400);
 				temp.setVisible(true);
+			}	       
+		});		
+		
+
+		Button bestTTDButton = new Button(container, SWT.BALLOON);
+		bestTTDButton.setSelection(true);
+		bestTTDButton.setText("Best TTD");
+		bestTTDButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				ExtendedConfiguration configuration = new ExtendedConfiguration();
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+					for(int nodeId: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
+						configuration.addSensor(new ExtendedSensor(nodeId, sensorType, data.getSet().getNodeStructure()));
+					}
+				}
+				JOptionPane.showMessageDialog(null, "Best TTD: " + data.runObjective(configuration));				
 			}	       
 		});		
 

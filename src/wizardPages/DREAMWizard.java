@@ -391,6 +391,10 @@ public class DREAMWizard extends Wizard {
 			});
 		}
 
+		public float runObjective(ExtendedConfiguration configuration) {
+			return runner.objective(configuration, set);
+		}
+		
 		public void randomEnumeration(final int max) throws Exception {			
 			wizard.launchVisWindow();
 			runner.setDomainViewer(wizard.domainViewer);
