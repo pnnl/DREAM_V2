@@ -203,9 +203,6 @@ public class CCS9_1 extends Function {
 					} else {
 						triggered = false;
 					}
-					if(triggered) {
-						System.out.println("HERE!");
-					}								
 				}		
 				
 				

@@ -84,4 +84,12 @@ public class Configuration {
 	public Map<Scenario, Float> getTimesToDetection() {
 		return timesToDetection;
 	}
+
+	public void setTimeToDetection(float timeToDetection) {
+		this.timeToDetection = timeToDetection;
+	}
+	
+	public void setTimesToDetection(Map<Scenario, Float> map) {
+		this.timesToDetection = new HashMap<Scenario, Float>(map);
+	}
 }

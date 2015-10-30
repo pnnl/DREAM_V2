@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
@@ -27,48 +28,48 @@ public class ResultPrinter {
 
 	// Where to put the results
 	public static String resultsDirectory;
-	
+
 	// The results object
 	public static Results results;
-	
+
 	public static void clearResults(ScenarioSet set) {
 		results = new Results(set);
 	}
-	
+
 	public static void storeResults(int run, int iteration, ExtendedConfiguration newConfiguration,
 			ExtendedConfiguration bestConfiguration, ExtendedConfiguration currentConfiguration, ScenarioSet set) {
-		
+
 		if(results == null)
 			clearResults(set);
-		
+
 		results.storeResult(run, iteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 	}
-	
+
 	/**
 	 * Prints everything we currently know how to prints
 	 */
 	public static void printAll() {
-		
+
 		try {
 			printAllConfigs();	
 		} catch (Exception e) {
 			System.out.println("Failed to print all configurations");
 		}
-		
-		
+
+
 		try {
 			printBestConfigSum();	
 		} catch (Exception e) {
 			System.out.println("Failed to print best configuration summary");
 		}
-		
+
 		try {
 			printObjPerIterSum();	
 		} catch (Exception e) {
 			System.out.println("Failed to print objective per iteration summary");
 		}
 	}
-	
+
 	/**
 	 * If results have been stored for all configs:
 	 * One file per type per run will be generated
@@ -77,7 +78,7 @@ public class ResultPrinter {
 	public static void printAllConfigs() throws IOException {
 		if(!results.allConfigs)
 			return;
-	
+
 		for(Type type: results.allConfigsMap.keySet()) {			
 			for(Integer run: results.allConfigsMap.get(type).keySet()) {
 				String fileName = "run_" + run +"_" + type.toString();
@@ -93,9 +94,9 @@ public class ResultPrinter {
 				FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 			}	
 		}
-		
+
 	}
-	
+
 	/**
 	 * Prints a unique list of all the best configurations found
 	 * @throws IOException 
@@ -106,48 +107,63 @@ public class ResultPrinter {
 		String fileName = "best_configurations";
 		List<String> lines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected %, Average ETFD of Successful Scenarios, Range of ETFD over Successful Scenarios, Scenarios with No Leak Detected, Sensor Types (x y z)");
+
+		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
 		for(Configuration configuration: results.bestConfigSumList) {
-			String scenariosNotDetected = "";
-			float ttd = 0;
-			float scenariosDetected = 0;		
-			for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-				float timeToDetection = configuration.getTimesToDetection().get(scenario);
-				if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
-					scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
-				} else {
-					ttd += timeToDetection;
-					scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-				}			
-			}
-			float percentScenariosDetected = scenariosDetected * 100;
-			float minYear = Float.MAX_VALUE;
-			float maxYear = -Float.MAX_VALUE;			
-			String line = percentScenariosDetected + ", " + ttd;	
-			for(Sensor sensor: configuration.getSensors()) {
-				if(sensor instanceof ExtendedSensor) {
-					for(TreeMap<TimeStep, Double> ttds  : ((ExtendedSensor)sensor).getScenariosUsed().values()) {
-						for(TimeStep ts: ttds.keySet()) {
-							if(ts.getRealTime() < minYear)
-								minYear = ts.getRealTime();
-							if(ts.getRealTime() > maxYear)
-								maxYear = ts.getRealTime();
+			Integer sensors = configuration.getSensors().size();
+			if(!resultsByNumSensors.containsKey(sensors))
+				resultsByNumSensors.put(sensors, new ArrayList<Configuration>());
+			resultsByNumSensors.get(sensors).add(configuration);
+		}
+
+		for(List<Configuration> configurations: resultsByNumSensors.values()) {
+			for(Configuration configuration: configurations) {
+				String scenariosNotDetected = "";
+				float ttd = 0;
+				// float scenariosDetected = 0; // Uniform distribution among scenarios
+				int scenariosDetectedInt = 0;
+				int totalScenarios = 0;
+				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+					float timeToDetection = configuration.getTimesToDetection().get(scenario);
+					if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
+						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
+					} else {
+						ttd += timeToDetection;
+						scenariosDetectedInt++;
+						//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
+					}	
+					totalScenarios++;
+				}
+				float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
+				float minYear = Float.MAX_VALUE;
+				float maxYear = -Float.MAX_VALUE;			
+				String line = percentScenariosDetected + ", " + (ttd/scenariosDetectedInt);	
+				for(Sensor sensor: configuration.getSensors()) {
+					if(sensor instanceof ExtendedSensor) {
+						for(TreeMap<TimeStep, Double> ttds  : ((ExtendedSensor)sensor).getScenariosUsed().values()) {
+							for(TimeStep ts: ttds.keySet()) {
+								if(ts.getRealTime() < minYear)
+									minYear = ts.getRealTime();
+								if(ts.getRealTime() > maxYear)
+									maxYear = ts.getRealTime();
+							}
 						}
-					}
-				}								
+					}								
+				}
+				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected;
+				for(Sensor sensor: configuration.getSensors()) {		
+					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
+					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+				}
+
+				lines.add(line);
 			}
-			line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected;
-			for(Sensor sensor: configuration.getSensors()) {		
-				Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
-				line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
-			}
-			
-			lines.add(line);
 		}
 
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 	}
-	
-	
+
+
 	public static void printObjPerIterSum() throws IOException {
 		if(!results.objPerIterSum) 
 			return;
@@ -172,5 +188,5 @@ public class ResultPrinter {
 			FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 		}
 	}
-	
+
 }

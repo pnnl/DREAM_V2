@@ -12,7 +12,7 @@ public class Sensor {
 	
 	// What type of sensor
 	protected String type;
-	
+		
     public Sensor(float x, float y, float z, String type, NodeStructure domain) {
     	
     	point = new Point3d(x,y,z);

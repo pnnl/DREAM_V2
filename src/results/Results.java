@@ -1,5 +1,6 @@
 package results;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -7,7 +8,10 @@ import java.util.Map;
 
 import objects.Configuration;
 import objects.ExtendedConfiguration;
+import objects.ExtendedSensor;
+import objects.Scenario;
 import objects.ScenarioSet;
+import objects.Sensor;
 
 public class Results {
 
@@ -91,26 +95,28 @@ public class Results {
 				bestObjValue = ttd;
 			}
 			if(Float.compare(ttd, bestObjValue) == 0) {
-				// We have a new best configuration, add it to the list
-				bestConfigSumList.add(new Configuration(configuration));
+				Configuration newConfiguration = new Configuration();
+				for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
+					if(sensor.isInferred())
+						newConfiguration.addSensor(sensor.makeCopy());
+				}
+				newConfiguration.setTimesToDetection(configuration.getTimesToDetection());
+				newConfiguration.setTimeToDetection(configuration.getTimeToDetection());	
+				bestConfigSumList.add(newConfiguration);
 			}
 		}
 		
 		if(objPerIterSum) {
-			
 			if(!objPerIterSumMap.get(type).containsKey(iteration)) {
 				objPerIterSumMap.get(type).put(iteration, new LinkedHashMap<Integer, Float>());
-			}
-			
+			}			
 			objPerIterSumMap.get(type).get(iteration).put(run, configuration.getTimeToDetection());
 		}
 		
 		if(allConfigs) {
-			
 			if(!allConfigsMap.get(type).containsKey(run)) {
 				allConfigsMap.get(type).put(run, new LinkedHashMap<Integer, Configuration>());
 			}
-		
 			allConfigsMap.get(type).get(run).put(iteration, new Configuration(configuration));
 		}
 		

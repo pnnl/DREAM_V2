@@ -267,7 +267,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					varRanks += (rank++) + ", ";
 				}
 				varRanks = varRanks.substring(0, varRanks.length() - 2) + "]";
-				text += "VARLOCATION = (" + varRanks + "= CELLCENTERED)\n";
+				text += "VARLOCATION = (" + varRanks + " = NODAL)\n";
 
 				// X values
 				for(int k = 0; k < ijk.getK(); k++) { 			
@@ -275,9 +275,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						float prevValue = 0.0f; // Assume center is at 0	
 						for(int i = 0; i < ijk.getI(); i++) { 
 							float nextValue = data.getSet().getNodeStructure().getX().get(i);	
-							float var0 = prevValue;
-							float var1 = prevValue + ((nextValue-prevValue)*2);
-							prevValue = var1;	
+							float var0f = prevValue;
+							float var1f = prevValue + ((nextValue-prevValue)*2);
+							prevValue = var1f;	
+							String var0 = utilities.Constants.exponentialFormat.format(var0f);
+							String var1 = utilities.Constants.exponentialFormat.format(var0f);							
 							text += var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n";	
 						}
 					}
@@ -288,9 +290,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					float prevValue = 0.0f; // Assume center is at 0
 					for(int j = 0; j < ijk.getJ(); j++) {
 						float nextValue = data.getSet().getNodeStructure().getY().get(j);					
-						float var0 = prevValue;
-						float var1 = prevValue + ((nextValue-prevValue)*2);
-						prevValue = var1;	
+						float var0f = prevValue;
+						float var1f = prevValue + ((nextValue-prevValue)*2);
+						prevValue = var1f;	
+						String var0 = utilities.Constants.exponentialFormat.format(var0f);
+						String var1 = utilities.Constants.exponentialFormat.format(var0f);
 						for(int i = 0; i < ijk.getI(); i++) { 
 							text += var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n";	
 						}
@@ -301,9 +305,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				float prevValue = 0.0f; // Assume center is at 0				
 				for(int k = 0; k < ijk.getK(); k++) { 
 					float nextValue = data.getSet().getNodeStructure().getZ().get(k);					
-					float var0 = prevValue;
-					float var1 = prevValue + ((nextValue-prevValue)*2);
-					prevValue = var1;	
+					float var0f = prevValue;
+					float var1f = prevValue + ((nextValue-prevValue)*2);
+					prevValue = var1f;
+					String var0 = utilities.Constants.exponentialFormat.format(var0f);
+					String var1 = utilities.Constants.exponentialFormat.format(var0f);	
 					for(int j = 0; j < ijk.getJ(); j++) {		
 						for(int i = 0; i < ijk.getI(); i++) {				
 							text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n";	
@@ -322,25 +328,43 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					text += "\n";
 				}
 				text += "\n";
-				/*
-				// Connection list		index = 0;
-				for(int k = 1; k < ijk.getK(); k++) { for(int j = 1; j < ijk.getJ(); j++) { for(int i = 1; i < ijk.getI(); i++) {
+				// Connection list
+				for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
+					int nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
+					int var1, var2, var3, var4, var5, var6, var7, var8;
+					var1 = (nodeId-1)*8+1;
+					var2 = (nodeId-1)*8+2;
+					var3 = (nodeId-1)*8+3;
+					var4 = (nodeId-1)*8+4;
+					var5 = (nodeId-1)*8+5;
+					var6 = (nodeId-1)*8+6;
+					var7 = (nodeId-1)*8+7;
+					var8 = (nodeId-1)*8+8;
+					if(i != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
+						var1 = (nodeId-1)*8+2;
+						var3 = (nodeId-1)*8+4;
+						var5 = (nodeId-1)*8+6;
+						var7 = (nodeId-1)*8+8;
+					}
+					if(j != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
+						var1 = (nodeId-1)*8+3;
+						var2 = (nodeId-1)*8+4;
+						var5 = (nodeId-1)*8+7;
+						var6 = (nodeId-1)*8+8;
+					}
+					if(k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var1 = (nodeId-1)*8+5;
+						var2 = (nodeId-1)*8+6;
+						var3 = (nodeId-1)*8+7;
+						var4 = (nodeId-1)*8+8;
+					}
+					text += var1 + " " + var2 + " " + var4 + " " + var3 + " " + var5 + " " + var6 + " " + var8 + " " + var7 + "\n";
 					
-					int var0 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
-					int var1 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j,   k));
-					int var2 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j+1, k));
-					int var3 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j+1, k));
-					int var4 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k+1));
-					int var5 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j,   k+1));
-					int var6 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j+1, k+1));
-					int var7 = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i+1, j+1, k+1));
-					
-					int iMax = ijkDimensions.getI();
-		int jMax = ijkDimensions.getJ();
-		return (k-1) * iMax * jMax + (j-1) * iMax + i;
-					text += var0 + " " + var1 + " " + var2 + " " + var3 + " " + var4 + " " + var5 + " " + var6 + " " + var7 + "\n";
 				}}}
-				*/
+				
 				text += "\n";
 				
 				textArea.setText(text);
