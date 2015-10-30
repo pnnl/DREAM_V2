@@ -60,21 +60,19 @@ public class InferenceTest {
 	
 	// Default inference test 
 	public Boolean reachedInference(Map<String, Integer> triggeredByType) {
-		// Assume we reached inference
 		boolean inferred = true;
 		int totalTriggering = 0;
 		for(String dataType: minimumRequiredPerType.keySet()) {
 			
 			int required = minimumRequiredPerType.get(dataType);
-			if(required <= 0){
+			if(required <= 0)
 				continue; // None required, continue on
-			}
 			
 			if(!triggeredByType.containsKey(dataType)) {
+				inferred = false; // Some were required, but the type wasn't found in the counts
 				continue;
 			}
 			
-			// Turn inference off if we don't have enough of a required type
 			if(triggeredByType.get(dataType) < required)
 				inferred = false; // Not enough triggering
 			
@@ -82,8 +80,6 @@ public class InferenceTest {
 		}
 		
 		// Additional check
-		
-		// Turn inference back on if we still had enough total sensors
 		if(minimumRequired > 0 && totalTriggering >= minimumRequired)
 			inferred = true;
 		
