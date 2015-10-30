@@ -340,12 +340,12 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					var6 = (nodeId-1)*8+6;
 					var7 = (nodeId-1)*8+7;
 					var8 = (nodeId-1)*8+8;
-					if(i != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
-						var1 = (nodeId-1)*8+2;
-						var3 = (nodeId-1)*8+4;
-						var5 = (nodeId-1)*8+6;
-						var7 = (nodeId-1)*8+8;
+					if(k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var1 = (nodeId-1)*8+5;
+						var2 = (nodeId-1)*8+6;
+						var3 = (nodeId-1)*8+7;
+						var4 = (nodeId-1)*8+8;
 					}
 					if(j != 1) {
 						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
@@ -354,13 +354,13 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						var5 = (nodeId-1)*8+7;
 						var6 = (nodeId-1)*8+8;
 					}
-					if(k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var1 = (nodeId-1)*8+5;
-						var2 = (nodeId-1)*8+6;
-						var3 = (nodeId-1)*8+7;
-						var4 = (nodeId-1)*8+8;
-					}
+					if(i != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
+						var1 = (nodeId-1)*8+2;
+						var3 = (nodeId-1)*8+4;
+						var5 = (nodeId-1)*8+6;
+						var7 = (nodeId-1)*8+8;
+					}				
 					text += var1 + " " + var2 + " " + var4 + " " + var3 + " " + var5 + " " + var6 + " " + var8 + " " + var7 + "\n";
 					
 				}}}
