@@ -336,17 +336,8 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 	public synchronized boolean mutateSensor(ScenarioSet scenarioSet, ModelOption modelOption) {
-		for(String type : scenarioSet.getDataTypes()){
-			int count = 0;
-			for(Sensor sensor : sensors){
-				if(sensor.getSensorType() == type) count++;
-			}
-			System.out.println(type + ": " + count);
-		}
-		
-		
-		// If we can afford a new sensor add it at the add point:
 
+		// If we can afford a new sensor add it at the add point:
 		Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
 		//	boolean debug = true;
 
