@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Text;
 
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
+import objects.Scenario;
 import objects.Sensor;
 import utilities.Constants;
 import utilities.Point3d;
@@ -340,27 +341,67 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					var6 = (nodeId-1)*8+6;
 					var7 = (nodeId-1)*8+7;
 					var8 = (nodeId-1)*8+8;
-					if(k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var1 = (nodeId-1)*8+5;
-						var2 = (nodeId-1)*8+6;
-						var3 = (nodeId-1)*8+7;
-						var4 = (nodeId-1)*8+8;
+					if(i != 1 && j == 1 && k == 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
+						var1 = (nodeId-1)*8+2;
+						var3 = (nodeId-1)*8+4;
+						var5 = (nodeId-1)*8+6;
+						var7 = (nodeId-1)*8+8;
 					}
-					if(j != 1) {
+
+					if(i == 1 && j != 1 && k == 1) {
 						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
 						var1 = (nodeId-1)*8+3;
 						var2 = (nodeId-1)*8+4;
 						var5 = (nodeId-1)*8+7;
 						var6 = (nodeId-1)*8+8;
 					}
-					if(i != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
-						var1 = (nodeId-1)*8+2;
-						var3 = (nodeId-1)*8+4;
-						var5 = (nodeId-1)*8+6;
-						var7 = (nodeId-1)*8+8;
-					}				
+
+					if(i == 1 && j == 1 && k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var1 = (nodeId-1)*8+5;
+						var2 = (nodeId-1)*8+6;
+						var3 = (nodeId-1)*8+7;
+						var4 = (nodeId-1)*8+8;
+					}
+
+					if(i != 1 && j != 1 && k == 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k));
+						var1 = (nodeId-1)*8+4;
+						var5 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
+						var2 = (nodeId-1)*8+4;
+						var6 = (nodeId-1)*8+8;
+					}
+					
+					if(i != 1 && j == 1 && k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
+						var1 = (nodeId-1)*8+7;
+						var2 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var3 = (nodeId-1)*8+7;
+						var4 = (nodeId-1)*8+8;						
+					}
+					
+					if(i == 1 && j != 1 && k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
+						var1 = (nodeId-1)*8+7;
+						var2 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var3 = (nodeId-1)*8+7;
+						var4 = (nodeId-1)*8+8;						
+					}
+					
+					if(i != 1 && j != 1 && k != 1) {
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k-1));
+						var1 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
+						var2 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
+						var3 = (nodeId-1)*8+8;
+						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var4 = (nodeId-1)*8+8;						
+					}
 					text += var1 + " " + var2 + " " + var4 + " " + var3 + " " + var5 + " " + var6 + " " + var8 + " " + var7 + "\n";
 					
 				}}}
@@ -387,7 +428,36 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						configuration.addSensor(new ExtendedSensor(nodeId, sensorType, data.getSet().getNodeStructure()));
 					}
 				}
-				JOptionPane.showMessageDialog(null, "Best TTD: " + data.runObjective(configuration));				
+				data.runObjective(configuration);
+				String text = "";
+				
+				float totalTimeToDetection = 0.0f;
+				int detectedScenarios = 0;
+				int totalScenarios = 0;
+				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+					float timeToDetection = configuration.getTimesToDetection().get(scenario) / 
+							 data.getSet().getScenarioProbabilities().get(scenario);
+					if(timeToDetection == 1000000) {
+						text += scenario.getScenario() + ": did not detect\n";
+					} else {
+						detectedScenarios++;
+						totalTimeToDetection += timeToDetection;
+						text += scenario.getScenario() + ":" + timeToDetection + "\n";
+					}
+					totalScenarios++;
+				}
+				
+				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
+				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
+				     + text;
+				
+				JFrame temp = new JFrame();
+				temp.setTitle("Best possible time to detection");
+				JTextArea textArea = new JTextArea();
+				textArea.setText(text);
+				temp.add(new JScrollPane(textArea));
+				temp.setSize(400, 400);
+				temp.setVisible(true);
 			}	       
 		});		
 
