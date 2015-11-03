@@ -12,6 +12,7 @@ import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.ScenarioSet;
 import objects.Sensor;
+import utilities.Constants;
 
 public class Results {
 
@@ -46,7 +47,7 @@ public class Results {
 	 * n
 	 */
 	public boolean objPerIterSum = true;
-	public Map<Type, Map<Integer, Map<Integer, Float>>> objPerIterSumMap;
+	public Map<Type, Map<Integer, Map<Integer, ObjectiveResult>>> objPerIterSumMap;
 
 	// Print a file for each run, for each type, that contains all iterations,
 	// their times to detection, and their configuration
@@ -58,15 +59,16 @@ public class Results {
 	
 	public ScenarioSet set;
 	
+	
 	public Results(ScenarioSet set) {
 		this.set = set;
 		bestConfigSumList = new HashSet<Configuration>();
 		bestObjValue = Float.MAX_VALUE;
 		
-		objPerIterSumMap = new HashMap<Type, Map<Integer, Map<Integer, Float>>>();
-		objPerIterSumMap.put(Type.New, new LinkedHashMap<Integer, Map<Integer, Float>>());
-		objPerIterSumMap.put(Type.Best, new LinkedHashMap<Integer, Map<Integer, Float>>());
-		objPerIterSumMap.put(Type.Current, new LinkedHashMap<Integer, Map<Integer, Float>>());
+		objPerIterSumMap = new HashMap<Type, Map<Integer, Map<Integer, ObjectiveResult>>>();
+		objPerIterSumMap.put(Type.New, new LinkedHashMap<Integer, Map<Integer, ObjectiveResult>>());
+		objPerIterSumMap.put(Type.Best, new LinkedHashMap<Integer, Map<Integer, ObjectiveResult>>());
+		objPerIterSumMap.put(Type.Current, new LinkedHashMap<Integer, Map<Integer, ObjectiveResult>>());
 		
 		allConfigsMap = new HashMap<Type, Map<Integer, Map<Integer, Configuration>>>();
 		allConfigsMap.put(Type.New, new LinkedHashMap<Integer, Map<Integer, Configuration>>());
@@ -74,7 +76,7 @@ public class Results {
 		allConfigsMap.put(Type.Current, new LinkedHashMap<Integer, Map<Integer, Configuration>>());
 
 		if(resultsPlots) {
-			ttdPlots = new TimeToDetectionPlots(set.getIterations());
+			ttdPlots = new TimeToDetectionPlots(set.getIterations(), set.getNodeStructure().getTimeSteps().get(set.getNodeStructure().getTimeSteps().size()-1).getRealTime());
 		}
 	}
 	
@@ -108,9 +110,27 @@ public class Results {
 		
 		if(objPerIterSum) {
 			if(!objPerIterSumMap.get(type).containsKey(iteration)) {
-				objPerIterSumMap.get(type).put(iteration, new LinkedHashMap<Integer, Float>());
-			}			
-			objPerIterSumMap.get(type).get(iteration).put(run, configuration.getTimeToDetection());
+				objPerIterSumMap.get(type).put(iteration, new LinkedHashMap<Integer, ObjectiveResult>());
+			}	
+			
+			float ttd = 0;
+			int scenariosDetectedInt = 0;
+			int totalScenarios = 0;
+			for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+				float timeToDetection = configuration.getTimesToDetection().get(scenario);
+				if(timeToDetection == set.getScenarioProbabilities().get(scenario)*1000000) {
+					// Do nothing...
+				} else {
+					ttd += timeToDetection / set.getScenarioProbabilities().get(scenario);
+					scenariosDetectedInt++;
+					//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
+				}	
+				totalScenarios++;
+			}
+			float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
+			float timeToDetection = ttd/((float)scenariosDetectedInt);
+			
+			objPerIterSumMap.get(type).get(iteration).put(run, new ObjectiveResult(timeToDetection, percentScenariosDetected));
 		}
 		
 		if(allConfigs) {
@@ -122,6 +142,15 @@ public class Results {
 		
 		if(resultsPlots) {
 			ttdPlots.addData(type, iteration, configuration, set);			
+		}
+	}
+	
+	public class ObjectiveResult {
+		public float timeToDetectionInDetected;
+		public float percentScenariosDetected;
+		public ObjectiveResult(float ttd, float p) {
+			this.timeToDetectionInDetected = ttd;
+			this.percentScenariosDetected = p;
 		}
 	}
 }

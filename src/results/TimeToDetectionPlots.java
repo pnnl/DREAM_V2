@@ -30,6 +30,7 @@ import org.jfree.chart.axis.TickUnitSource;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.category.SlidingCategoryDataset;
@@ -65,14 +66,16 @@ public class TimeToDetectionPlots extends JFrame {
 	double triggeringScenarios = 0;
 	
 	public static void main(String[] args) {
-		new TimeToDetectionPlots(100);
+		new TimeToDetectionPlots(100, 100);
 	}
 	
 	protected int iterations;
-
+	protected double maxYear = 0.0;
 	
-	public TimeToDetectionPlots(int iterations) {
+	
+	public TimeToDetectionPlots(int iterations, double maxYear) {
 		
+		this.maxYear = maxYear;
 		this.iterations = iterations;
 		newMoreThan90 = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
 		bestMoreThan90 = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
@@ -222,7 +225,9 @@ public class TimeToDetectionPlots extends JFrame {
 		
 		double scenarios = 0;
 		double detected = 0;
-		double totalTTD = 0;
+		double totalTTD = 0;		
+		double totalTTDTriggerOnly = 0;
+		double numDetectedScenarios = 0;
 		
 		boolean addTick = false;
 		for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
@@ -231,18 +236,19 @@ public class TimeToDetectionPlots extends JFrame {
 			// 	System.out.println("Did not detect in scenario " + scenario.getScenario());
 			} else {
 				detected += set.getScenarioProbabilities().get(scenario);
-				totalTTD += ttd;	
+				totalTTD += ttd;
+				totalTTDTriggerOnly += ttd / set.getScenarioProbabilities().get(scenario);
 				if(type == Results.Type.New) {
-					((DefaultCategoryDataset)perScenarioTTD.getUnderlyingDataset()).addValue(ttd, scenario.getScenario(), String.valueOf(iteration));
+					((DefaultCategoryDataset)perScenarioTTD.getUnderlyingDataset()).addValue((ttd/set.getScenarioProbabilities().get(scenario)), scenario.getScenario(), String.valueOf(iteration));
 					addTick = true;
 				}
+				numDetectedScenarios++;
 			}	
 			scenarios += set.getScenarioProbabilities().get(scenario);
 		}
 		
 		if(addTick) {
 			perScenarioTTDScrollBar.setMaximum(perScenarioTTDScrollBar.getMaximum()+1);
-
 			if(perScenarioTTDScrollBar.getMaximum() > 40)
 				perScenarioTTDScrollBar.setValue(perScenarioTTDScrollBar.getValue() + 1);
 		}
@@ -252,14 +258,13 @@ public class TimeToDetectionPlots extends JFrame {
 		}
 
 	//	System.out.println("Probability: " + detected + "/" + scenarios);
-		double totalTTDTriggerOnly = totalTTD;
 		if(detected > 0)
 			totalTTD /= detected; // Average
 		
-		double percent = detected/scenarios;
+		double percent = detected/scenarios * 100;
 		
 		if(type == Results.Type.New) {
-			((DefaultCategoryDataset)newMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));
+			((DefaultCategoryDataset)newMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly/numDetectedScenarios, type.toString(), String.valueOf(iteration));
 			newMoreThan90ScrollBar.setMaximum(newMoreThan90ScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(newMoreThan90ScrollBar.getMaximum() > 40)
 				newMoreThan90ScrollBar.setValue(newMoreThan90ScrollBar.getValue() + 1);
@@ -267,9 +272,8 @@ public class TimeToDetectionPlots extends JFrame {
 			if(percent != this.triggeringScenarios) {
 				// Clear the plot and set the global
 				this.triggeringScenarios = percent;
-				double percenttriggeringScenarios = triggeringScenarios * 100;
 				((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).clear();
-				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(percenttriggeringScenarios)+"% or more scenarios");						
+				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios)+"% or more scenarios");						
 				bestMoreThan90ScrollBar.setMaximum(20);
 			}
 			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTD, type.toString(), String.valueOf(iteration));			
@@ -335,6 +339,9 @@ public class TimeToDetectionPlots extends JFrame {
 		plot.getRangeAxis().setLabelPaint(Color.BLACK);
 		plot.getRangeAxis().setTickLabelFont(TICK_FONT);
 		plot.getRangeAxis().setTickLabelPaint(TICk_COLOR);
+		plot.getRangeAxis().setRange(new Range(0, title.contains("Percent") ? 100 : maxYear));
+		plot.getRangeAxis().setAutoRange(false);
+		
 	
 		plot.getDomainAxis().setLabelFont(LABEL_FONT);
 		plot.getDomainAxis().setLabelPaint(Color.BLACK);

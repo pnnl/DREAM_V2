@@ -18,6 +18,7 @@ public class ExtendedSensor extends Sensor {
     
     // If this sensor has reached inference
     private boolean triggering;
+    
     // Which scenarios it was used to determine inference
     private Map<Scenario, TreeMap<TimeStep, Double>> scenariosUsed;
   

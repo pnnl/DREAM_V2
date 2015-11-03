@@ -16,7 +16,9 @@ import objects.Scenario;
 import objects.ScenarioSet;
 import objects.Sensor;
 import objects.TimeStep;
+import results.Results.ObjectiveResult;
 import results.Results.Type;
+import utilities.Constants;
 import utilities.Point3d;
 
 /**
@@ -85,7 +87,24 @@ public class ResultPrinter {
 				List<String> lines = new ArrayList<String>();
 				for(Integer iteration: results.allConfigsMap.get(type).get(run).keySet()) {
 					Configuration configuration = results.allConfigsMap.get(type).get(run).get(iteration);
-					String line = iteration + ", " + configuration.getTimeToDetection();
+					// Compute ttd for only detecting scenarios
+					float ttd = 0;
+					int scenariosDetectedInt = 0;
+					int totalScenarios = 0;
+					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+						float timeToDetection = configuration.getTimesToDetection().get(scenario);
+						if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
+							// Do nothing...
+						} else {
+							ttd += timeToDetection / results.set.getScenarioProbabilities().get(scenario);
+							scenariosDetectedInt++;
+							//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
+						}	
+						totalScenarios++;
+					}
+					float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
+					String timeToDetection =  Constants.decimalFormat.format((ttd/((float)scenariosDetectedInt)));	
+					String line = iteration + ", " + timeToDetection + ", " + percentScenariosDetected;
 					for(Sensor sensor: configuration.getSensors()) {
 						line += ", " + sensor.getNodeNumber() + ": " + sensor.getSensorType();
 					}
@@ -116,6 +135,7 @@ public class ResultPrinter {
 			resultsByNumSensors.get(sensors).add(configuration);
 		}
 
+		List<Scenario> scenariosThatDidNotDetect = new ArrayList<Scenario>();
 		for(List<Configuration> configurations: resultsByNumSensors.values()) {
 			for(Configuration configuration: configurations) {
 				String scenariosNotDetected = "";
@@ -126,9 +146,11 @@ public class ResultPrinter {
 				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 					float timeToDetection = configuration.getTimesToDetection().get(scenario);
 					if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
+						if(!scenariosThatDidNotDetect.contains(scenario))
+							scenariosThatDidNotDetect.add(scenario);
 						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
 					} else {
-						ttd += timeToDetection;
+						ttd += timeToDetection / results.set.getScenarioProbabilities().get(scenario);
 						scenariosDetectedInt++;
 						//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
 					}	
@@ -137,15 +159,23 @@ public class ResultPrinter {
 				float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
 				float minYear = Float.MAX_VALUE;
 				float maxYear = -Float.MAX_VALUE;			
-				String line = percentScenariosDetected + ", " + (ttd/scenariosDetectedInt);	
+				String line = percentScenariosDetected + ", " + (ttd/((float)scenariosDetectedInt));	
 				for(Sensor sensor: configuration.getSensors()) {
 					if(sensor instanceof ExtendedSensor) {
-						for(TreeMap<TimeStep, Double> ttds  : ((ExtendedSensor)sensor).getScenariosUsed().values()) {
+						for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
+							if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) {
+								continue;
+							}			
+							if(scenariosThatDidNotDetect.contains(scenario)) {
+								continue;
+							}
+							TreeMap<TimeStep, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
 							for(TimeStep ts: ttds.keySet()) {
 								if(ts.getRealTime() < minYear)
 									minYear = ts.getRealTime();
-								if(ts.getRealTime() > maxYear)
+								if(ts.getRealTime() > maxYear) {
 									maxYear = ts.getRealTime();
+								}
 							}
 						}
 					}								
@@ -175,13 +205,14 @@ public class ResultPrinter {
 				if(lines.isEmpty()) { // Add the heading
 					String line = "Iteration";
 					for(Integer run: results.objPerIterSumMap.get(type).get(iteration).keySet()) {
-						line += ", run" + run;
+						line += ", run" + run + " ETFD" + ", run" + run + " % scenarios detected";
 					}
 					lines.add(line);
 				}	
 				String line = String.valueOf(iteration);
-				for(Float ttd: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line += ", " + ttd;
+				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
+					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : objRes.timeToDetectionInDetected) + ", " + 
+								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : objRes.percentScenariosDetected);
 				}
 				lines.add(line);
 			}	
