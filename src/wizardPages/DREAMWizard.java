@@ -323,7 +323,8 @@ public class DREAMWizard extends Wizard {
 									data.min,
 									data.max,
 									data.trigger, 
-									reset);
+									reset,
+									data.deltaType);
 							monitor.worked(1);
 							if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
 								monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");

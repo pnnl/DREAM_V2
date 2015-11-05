@@ -33,6 +33,24 @@ public class SensorSetting {
 		}
 	}
 	
+	public enum DeltaType {
+		
+		INCREASE("Delta Increase"),
+		DECREASE("Delta Decrease"), 
+		BOTH("Delta Both");
+		
+		private String type;
+		
+		private DeltaType(String type) {
+			this.type = type;
+		}
+		
+		@Override
+		public String toString() {
+			return type;
+		}
+	}
+	
 	private String type;	
 	private float cost;
 
@@ -40,6 +58,7 @@ public class SensorSetting {
 	private Float max;
 
 	private Trigger trigger;
+	private DeltaType deltaType;
 
 	private float lowerThreshold;
 	private float upperThreshold;
@@ -68,6 +87,7 @@ public class SensorSetting {
 		setMax();
 
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
+		this.setDeltaType(DeltaType.BOTH);
 		this.lowerThreshold = 0;
 		this.upperThreshold = (max-min)/2+min;
 
@@ -94,6 +114,7 @@ public class SensorSetting {
 		this.max = max;
 
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
+		this.setDeltaType(DeltaType.BOTH);
 		this.lowerThreshold = 0;
 		this.upperThreshold = (max-min)/2+min;
 
@@ -137,7 +158,7 @@ public class SensorSetting {
 	}
 	
 
-	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset) {
+	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset, DeltaType deltaType) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
 		
@@ -167,7 +188,12 @@ public class SensorSetting {
 			this.trigger = trigger;
 			changeOccured = true;
 		}
-
+		
+		if(this.getDeltaType() != deltaType) {
+			this.deltaType = deltaType;
+			changeOccured = true;
+		}
+		
 		this.isReady = true;
 
 		if(changeOccured)
@@ -226,8 +252,8 @@ public class SensorSetting {
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = !Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger()) :
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger());
+							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType()) :
+							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType());
 					if(first) {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
@@ -390,6 +416,14 @@ public class SensorSetting {
 
 	public void setUpperThreshold(Float upperThreshold) {
 		this.upperThreshold = upperThreshold;
+	}
+
+	public DeltaType getDeltaType() {
+		return deltaType;
+	}
+
+	public void setDeltaType(DeltaType deltaType) {
+		this.deltaType = deltaType;
 	}
 
 }

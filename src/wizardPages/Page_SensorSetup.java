@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import objects.SensorSetting;
+import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
 import org.eclipse.jface.layout.GridDataFactory;
@@ -61,6 +62,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		public boolean isIncluded;
 		public float cost;
 		public Trigger trigger;
+		public DeltaType deltaType;
 		
 		private float dataMin;
 		private float dataMax;
@@ -89,9 +91,10 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			
 			// These may be backwards?
 			trigger = Trigger.MINIMUM_THRESHOLD;
+			deltaType = sensorSettings.getDeltaType();
 			
 			// Try to be a little smarter about pressure
-			if(sensorType.toLowerCase().contains("pressure"))
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
 				trigger = Trigger.RELATIVE_DELTA;
 			
 			// Removing this, its buggy...
@@ -188,7 +191,12 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						} else {	
 							min = Float.parseFloat(valueInput.getText());
 							max = Float.MAX_VALUE;
-						}	
+						}
+						
+						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
+						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
+						else deltaType = DeltaType.BOTH;
+						
 						if(valueInput != null)
 							valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));						
 						testReady();
@@ -220,6 +228,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				}
 			}
 			
+			if(deltaType == DeltaType.INCREASE) valueInput.setText("+" + valueInput.getText());
 			valueInput.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -232,7 +241,11 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 							min = Float.parseFloat(valueInput.getText());
 							max = Float.MAX_VALUE;
 						}
-
+						
+						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
+						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
+						else deltaType = DeltaType.BOTH;
+						
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						testReady();
 					} catch (NumberFormatException ne) {

@@ -15,6 +15,7 @@ import objects.Scenario;
 import objects.ExtendedSensor;
 import objects.SensorSetting;
 import objects.TimeStep;
+import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import utilities.Constants;
 
@@ -166,6 +167,9 @@ public class CCS9_1 extends Function {
 
 		for (ExtendedSensor sensor : con.getExtendedSensors())
 		{
+			if(sensor.getNodeNumber() == 30099) {
+				System.out.println("HERE");
+			}
 			// Make sure the sensor is in the cloud...
 			if (sensor.isInCloud(set))
 			{
@@ -196,10 +200,14 @@ public class CCS9_1 extends Function {
 						triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
 					} else if(currentValue != null && temp.getTrigger() == Trigger.RELATIVE_DELTA) {
 						float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-						triggered =  temp.getLowerThreshold() <= change && change <= temp.getUpperThreshold();						
+						if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+						else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+						else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);					
 					} else if(currentValue != null && temp.getTrigger() == Trigger.ABSOLUTE_DELTA) {
 						float change = currentValue - valueAtTime0;
-						triggered =  temp.getLowerThreshold() <= change && change <= temp.getUpperThreshold();	
+						if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+						else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+						else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
 					} else {
 						triggered = false;
 					}

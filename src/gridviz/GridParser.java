@@ -417,7 +417,7 @@ public class GridParser {
 		// Get all the float data out of the file's that make up this scenario
 
 		appendData(dataFile, structure, true, dataIndex, dataValues, lines, indexOf);
-		for(File fileToMerge: filesToMerge) {
+		for(File fileToMerge: filesToMerge) {			
 			appendData(fileToMerge, structure, false, dataIndex, dataValues, lines, indexOf);
 		}	
 		
@@ -440,6 +440,7 @@ public class GridParser {
 
 	private void appendData(File file, NTABStructure structure, boolean appendMetaData, int metaDataLength, int timeSteps, int lineCount, Map<NTAB_KEY, Integer> indexOf) throws FileNotFoundException {
 
+		System.out.println(file); //TODO: Delete
 		Scanner sc = new Scanner(file); // Skip index line
 		while(!sc.nextLine().startsWith("index") && sc.hasNextLine());
 		
@@ -498,7 +499,9 @@ public class GridParser {
 				// Just skip the meta data
 			}  else {
 				for(int j = 0; j < metaDataLength; j++) {
+					//if(sc.hasNext())
 					sc.next();
+					//else System.out.println(metaDataLength + " expected, at " + j);
 				}
 			}
 			// sc should point to the first float, we can parse until the end of the line

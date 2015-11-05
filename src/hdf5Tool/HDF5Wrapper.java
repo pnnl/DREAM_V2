@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import objects.NodeStructure;
+import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import objects.TimeStep;
 import ncsa.hdf.hdf5lib.H5;
@@ -67,6 +68,7 @@ public class HDF5Wrapper {
 			for(int timeStep: Constants.hdf5Data.get(scenario).keySet()) {
 				float value = Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
 				if(value >= lowerThreshold && value < upperThreshold) {
+					//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 					nodes.add(index+1);
 					break; // Next node index
 				}					
@@ -75,7 +77,7 @@ public class HDF5Wrapper {
 		return nodes;
 	}
 
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger) throws Exception {
+	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {
 
 		HashSet<Integer> nodes = new HashSet<Integer>();		
 		int i = nodeStructure.getIJKDimensions().getI();
@@ -101,11 +103,18 @@ public class HDF5Wrapper {
 							// This is the calculation for non percentage (not checked)
 							valueAtCurrentTime - valueAtTime0;
 
-						if(lowerThreshold <= change && change <= upperThreshold) {						
+						if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {						
 							exceededInThis = true;
 							break; // Done after we find one time step
-						}				
+						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {						
+							exceededInThis = true;
+							break; // Done after we find one time step
+						} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
+							exceededInThis = true;
+							break; // Done after we find one time step
+						}
 			}
+			//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 			if(exceededInThis) {
 				nodes.add(index+1);
 			}			
@@ -320,7 +329,7 @@ public class HDF5Wrapper {
 		Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).put(nodeNumber, value);	
 	}
 
-	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger) throws Exception {
+	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {
 
 		H5File h5file = Constants.hdf5Files.get(scenario);
 		h5file.open();
@@ -356,7 +365,8 @@ public class HDF5Wrapper {
 
 		for(int nodeId = 0; nodeId < totalNodes; nodeId++) {	
 			boolean exceededInThis = false;	
-			for(int startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
+			int startTimeIndex = 0;
+			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
 				int startTime = (Integer) orderedTimes[startTimeIndex];
 				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[nodeId];
 				//	int valueAtStartTimeInt = (int)(valueAtStartTime * epsilon);
@@ -375,18 +385,31 @@ public class HDF5Wrapper {
 							// This is the calculation for non percentage (not checked)
 							valueAtCurrentTime - valueAtTime0;
 
+						
 						// Max change is what the user entered
-						if(lowerThreshold <= change && change <= upperThreshold) {
+						if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {						
+							int nodeNumber = getNodeNumber(nodeStructure.getIJKDimensions(), nodeId);
 							exceededInThis = true;
-
-							System.out.println(dataType + " triggers at " + nodeId + " at time: " + startTime);
-							addNodeToCloud(scenario, timeStepAt0, dataType, nodeId, valueAtTime0);
-							addNodeToCloud(scenario, startTime, dataType, nodeId, valueAtCurrentTime);
-							
+							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							System.out.println("valueAtTime0: " + valueAtTime0 + "\tcur: " + valueAtCurrentTime);
 							break; // Done after we find one time step
-						}				
+						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
+							int nodeNumber = getNodeNumber(nodeStructure.getIJKDimensions(), nodeId);						
+							exceededInThis = true;
+							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							break; // Done after we find one time step
+						} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
+							int nodeNumber = getNodeNumber(nodeStructure.getIJKDimensions(), nodeId);
+							exceededInThis = true;
+							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							break; // Done after we find one time step
+						}			
 			}
 			if(exceededInThis) {
+				System.out.println("Triggered ID: " + Constants.getNodeNumber(iMax, jMax, kMax, nodeId) + " " + nodeId + " start time: " + startTimeIndex);
 				nodes.add(getNodeNumber(iMax, jMax, kMax, nodeId));
 			}				
 		}
