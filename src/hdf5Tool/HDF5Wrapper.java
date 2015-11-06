@@ -392,7 +392,6 @@ public class HDF5Wrapper {
 							exceededInThis = true;
 							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
 							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-							System.out.println("valueAtTime0: " + valueAtTime0 + "\tcur: " + valueAtCurrentTime);
 							break; // Done after we find one time step
 						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
 							int nodeNumber = getNodeNumber(nodeStructure.getIJKDimensions(), nodeId);						
@@ -409,7 +408,6 @@ public class HDF5Wrapper {
 						}			
 			}
 			if(exceededInThis) {
-				System.out.println("Triggered ID: " + Constants.getNodeNumber(iMax, jMax, kMax, nodeId) + " " + nodeId + " start time: " + startTimeIndex);
 				nodes.add(getNodeNumber(iMax, jMax, kMax, nodeId));
 			}				
 		}

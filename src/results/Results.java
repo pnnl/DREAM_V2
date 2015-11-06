@@ -113,24 +113,29 @@ public class Results {
 				objPerIterSumMap.get(type).put(iteration, new LinkedHashMap<Integer, ObjectiveResult>());
 			}	
 			
-			float ttd = 0;
-			int scenariosDetectedInt = 0;
-			int totalScenarios = 0;
+			ArrayList<Float> ttd = new ArrayList<Float>();
+			ArrayList<Float> weights = new ArrayList<Float>();
+			int scenariosDetected = 0;
 			for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 				float timeToDetection = configuration.getTimesToDetection().get(scenario);
-				if(timeToDetection == set.getScenarioProbabilities().get(scenario)*1000000) {
+				if(timeToDetection == 1000000) {
 					// Do nothing...
 				} else {
-					ttd += timeToDetection / set.getScenarioProbabilities().get(scenario);
-					scenariosDetectedInt++;
+					ttd.add(timeToDetection);
+					weights.add(set.getScenarioWeights().get(scenario));
+					scenariosDetected += set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight();
 					//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
 				}	
-				totalScenarios++;
 			}
-			float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
-			float timeToDetection = ttd/((float)scenariosDetectedInt);
+			//float percentScenariosDetected = ((float)scenariosDetected)/((float)totalScenarios) * 100;
+			float sum = 0;
+			float timeToDetection = 0;
+			for(float value: weights) sum += value;
+			for(int i=0; i<ttd.size(); i++){
+				timeToDetection += ttd.get(i)*weights.get(i)/sum;
+			}
 			
-			objPerIterSumMap.get(type).get(iteration).put(run, new ObjectiveResult(timeToDetection, percentScenariosDetected));
+			objPerIterSumMap.get(type).get(iteration).put(run, new ObjectiveResult(timeToDetection, scenariosDetected));
 		}
 		
 		if(allConfigs) {

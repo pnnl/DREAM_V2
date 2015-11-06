@@ -50,7 +50,7 @@ public class ResultSet {
 		scenarioProbabilities = new HashMap<String, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>(); // TODO: Need to copy out useful information from sensorSetting
 		for(Scenario scenario: set.getScenarios()) {
-			scenarioProbabilities.put(scenario.getScenario(), set.getScenarioProbabilities().get(scenario));
+			scenarioProbabilities.put(scenario.getScenario(), set.getScenarioWeights().get(scenario));
 			sensorSettings.put(scenario.getScenario(), set.getSensorSettings(scenario.getScenario()));
 		}
 		this.inferenceTest = set.getInferenceTest(); // TODO: Need to copy useful information from this.

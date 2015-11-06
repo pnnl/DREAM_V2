@@ -27,7 +27,7 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage {
 
-	Map<Scenario, Text> probabilities;
+	Map<Scenario, Text> weights;
 	Map<Scenario, Button> selectedScenarios;
 	
 	private ScrolledComposite sc;
@@ -103,9 +103,9 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		infoGridData.verticalSpan = 4;
 		infoLabel.setLayoutData(infoGridData);
 		
-		if(probabilities == null)
-			probabilities = new HashMap<Scenario, Text>();
-		probabilities.clear();
+		if(weights == null)
+			weights = new HashMap<Scenario, Text>();
+		weights.clear();
 
 		if(selectedScenarios == null)
 			selectedScenarios = new HashMap<Scenario, Button>();
@@ -134,11 +134,11 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			button.setSelection(true);
 			button.setText(scenario.getScenario());
 			Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
-			text1.setText(data.getSet().getScenarioProbabilities().get(scenario).toString()); // Do not format this
+			text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
 			GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 			text1.setLayoutData(gd);
 			selectedScenarios.put(scenario, button);
-			probabilities.put(scenario, text1);
+			weights.put(scenario, text1);
 		}
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -148,13 +148,13 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		
-		Map<Scenario, Float> scenarioProbabilities = new HashMap<Scenario, Float>();
+
+		Map<Scenario, Float> scenarioWeights = new HashMap<Scenario, Float>();
 		List<Scenario> scenariosToRemove = new ArrayList<Scenario>();
 		
-		// Save the probabilities
-		for(Scenario scenario: probabilities.keySet()) {
-			scenarioProbabilities.put(scenario, Float.valueOf(probabilities.get(scenario).getText()));
+		// Save the weights
+		for(Scenario scenario: weights.keySet()) {
+			scenarioWeights.put(scenario, Float.valueOf(weights.get(scenario).getText()));
 		}
 		
 		// Remove any unselected scenarios from the set
@@ -164,7 +164,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			}
 		}
 		
-		data.setupScenarios(scenarioProbabilities, scenariosToRemove);
+		data.setupScenarios(scenarioWeights, scenariosToRemove);
 		
 	}
 	

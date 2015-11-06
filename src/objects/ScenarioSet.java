@@ -22,7 +22,7 @@ import utilities.Point3i;
 public class ScenarioSet {
 
 	private boolean runLoaded;
-	private boolean defaultProbabilities;
+	private boolean defaultWeights;
 	private boolean isReady;
 		
 	/**
@@ -39,7 +39,8 @@ public class ScenarioSet {
 	private int iterations;
 	private float costConstraint;
 	
-	private Map<Scenario, Float> scenarioProbabilities;
+	private Map<Scenario, Float> scenarioWeights;
+	private float totalScenarioWeight;
 	private Map<String, SensorSetting> sensorSettings;
 	
 	private InferenceTest inferenceTest;
@@ -54,11 +55,12 @@ public class ScenarioSet {
 	public ScenarioSet() {
 		
 		runLoaded = false;
-		defaultProbabilities = true;
+		defaultWeights = true;
 		isReady = false;
 		
 		scenarios = new ArrayList<Scenario>();
-		scenarioProbabilities = new HashMap<Scenario, Float>();
+		scenarioWeights = new HashMap<Scenario, Float>();
+		setTotalScenarioWeight(0);
 		sensorSettings = new HashMap<String, SensorSetting>();
 
 		addPoint = new Point3i(1,1,1);
@@ -83,12 +85,12 @@ public class ScenarioSet {
 			builder.append("\tData loaded:\r\n");
 			builder.append("\t\t" + nodeStructure.getRun() + "\r\n");
 			builder.append("\tScenarios: " + scenarios.toString() + "\r\n");
-			if(defaultProbabilities) {
-				builder.append("\tDefault probabilities: ");
+			if(defaultWeights) {
+				builder.append("\tDefault weights: ");
 			} else {
-				builder.append("\tProbabilities: ");
+				builder.append("\tWeights: ");
 			}
-			builder.append(scenarioProbabilities.toString() + "\r\n");
+			builder.append(scenarioWeights.toString() + "\r\n");
 		} else {
 			builder.append("\tNot ready - no data loaded.\r\n");
 		}
@@ -144,7 +146,8 @@ public class ScenarioSet {
 				this.scenarios.add(new Scenario(scenario));
 			}
 			for(Scenario scenario: this.scenarios) {
-				scenarioProbabilities.put(scenario, (float)1/(float)scenarios.size());
+				scenarioWeights.put(scenario, (float)1);
+				setTotalScenarioWeight(getTotalScenarioWeight() + 1);
 			}
 		} 
 		
@@ -177,12 +180,12 @@ public class ScenarioSet {
 		this.scenarios = scenarios;
 	}
 
-	public Map<Scenario, Float> getScenarioProbabilities() {
-		return scenarioProbabilities;
+	public Map<Scenario, Float> getScenarioWeights() {
+		return scenarioWeights;
 	}
 
-	public void setScenarioProbabilities(Map<Scenario, Float> scenarioProbabilities) {
-		this.scenarioProbabilities = scenarioProbabilities;
+	public void setScenarioWeights(Map<Scenario, Float> scenarioWeights) {
+		this.scenarioWeights = scenarioWeights;
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
@@ -416,26 +419,28 @@ public class ScenarioSet {
 		set.loadRunData(Constants.RUN_TEST);
 	}
 
-	public void setScenarioProbability(Scenario scenario, float probability) {
-		if(scenarioProbabilities.containsKey(scenario) && Float.compare(scenarioProbabilities.get(scenario), probability) == 0)
+	public void setScenarioWeight(Scenario scenario, float weight) {
+		if(scenarioWeights.containsKey(scenario) && Float.compare(scenarioWeights.get(scenario), weight) == 0)
 			return; // Nothing new
-		defaultProbabilities = false;
-		scenarioProbabilities.put(scenario, probability);
+		defaultWeights = false;
+		scenarioWeights.put(scenario, weight);
+		setTotalScenarioWeight(0);
+		for(float value: scenarioWeights.values()) setTotalScenarioWeight(getTotalScenarioWeight() + value);
 	}
 
 	public void removeScenario(Scenario scenario) {
 		// Remove the given scenario from all maps
 		scenarios.remove(scenario);
-		scenarioProbabilities.remove(scenario);
+		scenarioWeights.remove(scenario);
 	}
 
 	public void clearRun() {
 		runLoaded = false;
-		defaultProbabilities = true;
+		defaultWeights = true;
 		isReady = false;
 		
 		scenarios.clear();
-		scenarioProbabilities.clear();
+		scenarioWeights.clear();
 		sensorSettings.clear();
 
 		addPoint = new Point3i(0,0,0);
@@ -451,6 +456,14 @@ public class ScenarioSet {
 
 	public void setAddPoint(Point3i addPoint) {
 		this.addPoint = new Point3i(addPoint);
+	}
+
+	public float getTotalScenarioWeight() {
+		return totalScenarioWeight;
+	}
+
+	public void setTotalScenarioWeight(float totalScenarioWeight) {
+		this.totalScenarioWeight = totalScenarioWeight;
 	}
 
 	

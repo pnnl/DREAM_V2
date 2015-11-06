@@ -213,14 +213,15 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 	/** We're going to have an option here, either average or worst */
-	public synchronized float getTimeToDetection() {
+	public synchronized float getTimeToDetection(ScenarioSet set) {
 		if(Constants.returnAverageTTD) {
 			float sum = 0;
 			if(getTimesToDetection().isEmpty())
 				return Float.MAX_VALUE;
-			for(float ttd: getTimesToDetection().values()) {
-				if(ttd >= 0)
-					sum+= ttd;
+			//TODO: added by Luke, make sure that this makes sense for weights.
+			for(Scenario scenario: getTimesToDetection().keySet()) {
+				if(getTimesToDetection().get(scenario) >= 0)
+					sum+= getTimesToDetection().get(scenario)*set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight();
 			}
 			return sum;///timesToDetection.size();
 		} else {
@@ -232,7 +233,7 @@ public class ExtendedConfiguration extends Configuration {
 				if(ttd >= 0)
 					max = Math.max(ttd, max);
 			}
-			return max;			
+			return max;	
 		}
 	}
 

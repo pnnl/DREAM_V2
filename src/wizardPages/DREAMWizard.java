@@ -109,7 +109,7 @@ public class DREAMWizard extends Wizard {
 
 		addPage(new Page_WelcomeScreen());	
 		addPage(new Page_ScenarioSet(data));	
-	//	addPage(new Page_ScenarioSetup(data));
+		addPage(new Page_ScenarioSetup(data));
 		addPage(new Page_SensorSetup(data));
 		addPage(new Page_InferenceTest(data));
 		addPage(new Page_RunSettings(data));
@@ -273,16 +273,16 @@ public class DREAMWizard extends Wizard {
 			});
 		}
 
-		public void setupScenarios(final Map<Scenario, Float> scenarioProbabilities, final List<Scenario> scenariosToRemove) throws Exception {
+		public void setupScenarios(final Map<Scenario, Float> scenarioWeights, final List<Scenario> scenariosToRemove) throws Exception {
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					// Run tasks:
-					monitor.beginTask("Scenario set settings", scenarioProbabilities.size() + scenariosToRemove.size());
+					monitor.beginTask("Scenario set settings", scenarioWeights.size() + scenariosToRemove.size());
 
-					monitor.subTask("applying scenario probabilities");
-					set.setScenarioProbabilities(scenarioProbabilities);
-					monitor.worked(scenarioProbabilities.size());
+					monitor.subTask("applying scenario weights");
+					set.setScenarioWeights(scenarioWeights);
+					monitor.worked(scenarioWeights.size());
 
 					for(Scenario scenario: scenariosToRemove) {
 						monitor.subTask("removing unused scenario: " + scenario);

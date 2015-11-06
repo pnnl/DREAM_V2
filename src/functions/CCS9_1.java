@@ -123,7 +123,7 @@ public class CCS9_1 extends Function {
 		}
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
 
-		return configuration.getTimeToDetection();
+		return configuration.getTimeToDetection(set);
 
 	}
 
@@ -135,7 +135,7 @@ public class CCS9_1 extends Function {
 
 	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception
 	{
-		if (set.getScenarioProbabilities().get(scenario) > 0)
+		if (set.getScenarioWeights().get(scenario) > 0)
 		{
 			int maxTime = 0;
 			InferenceResult inferenceResult = null;
@@ -155,7 +155,7 @@ public class CCS9_1 extends Function {
 				timeInYears = set.getNodeStructure().getTimeAt(maxTime); // Only keep track if we've hit inference
 
 			con.addObjectiveValue(scenario, timeInYears); // Did not detect a leak
-			con.addTimeToDetection(scenario, timeInYears * set.getScenarioProbabilities().get(scenario)); // TODO: is this objective value?
+			con.addTimeToDetection(scenario, timeInYears); // TODO: does this make sense with weight scheme?
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}
@@ -167,9 +167,7 @@ public class CCS9_1 extends Function {
 
 		for (ExtendedSensor sensor : con.getExtendedSensors())
 		{
-			if(sensor.getNodeNumber() == 30099) {
-				System.out.println("HERE");
-			}
+
 			// Make sure the sensor is in the cloud...
 			if (sensor.isInCloud(set))
 			{

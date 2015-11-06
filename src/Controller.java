@@ -53,10 +53,11 @@ public class Controller {
 			System.out.println("\tRemoving scenario: " + scenario);
 		}
 		
-		float probability = 1.0f/set.getScenarios().size();
+//		float probability = 1.0f/set.getScenarios().size();
+		float weight = 1.0f;
 		for(Scenario scenario: set.getScenarios()) {
-			set.setScenarioProbability(scenario, probability);
-			System.out.println("\tSetting probability of scenario " + scenario + " to: " + probability);
+			set.setScenarioWeight(scenario, weight);
+			System.out.println("\tSetting probability of scenario " + scenario + " to: " + weight);
 		}
 		
 		set.setUserSettings(new Point3i(1, 1, 1), wells, sensors);

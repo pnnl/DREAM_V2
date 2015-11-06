@@ -249,7 +249,7 @@ public class Vortex extends Function {
 
 	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception
 	{
-		if (set.getScenarioProbabilities().get(scenario) > 0)
+		if (set.getScenarioWeights().get(scenario) > 0)
 		{
 			int maxTime = 0;
 			InferenceResult inferenceResult = null;
@@ -268,7 +268,7 @@ public class Vortex extends Function {
 				area = -inferenceResult.getGoodness();//set.getNodeStructure().getTimeAt(maxTime); // Only keep track if we've hit inference
 
 			con.addObjectiveValue(scenario, area); // Did not detect a leak
-			con.addTimeToDetection(scenario, area * set.getScenarioProbabilities().get(scenario)); // TODO: is this objective value?
+			con.addTimeToDetection(scenario, area); // TODO: does this make sense with weight scheme?
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}

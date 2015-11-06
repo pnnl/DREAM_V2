@@ -88,23 +88,27 @@ public class ResultPrinter {
 				for(Integer iteration: results.allConfigsMap.get(type).get(run).keySet()) {
 					Configuration configuration = results.allConfigsMap.get(type).get(run).get(iteration);
 					// Compute ttd for only detecting scenarios
-					float ttd = 0;
-					int scenariosDetectedInt = 0;
-					int totalScenarios = 0;
+					ArrayList<Float> ttd = new ArrayList<Float>();
+					ArrayList<Float> weights = new ArrayList<Float>();
+					int scenariosDetected = 0;
 					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 						float timeToDetection = configuration.getTimesToDetection().get(scenario);
-						if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
+						if(timeToDetection == 1000000) {
 							// Do nothing...
 						} else {
-							ttd += timeToDetection / results.set.getScenarioProbabilities().get(scenario);
-							scenariosDetectedInt++;
+							ttd.add(timeToDetection);
+							weights.add(results.set.getScenarioWeights().get(scenario));
+							scenariosDetected += results.set.getScenarioWeights().get(scenario)/results.set.getTotalScenarioWeight();
 							//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-						}	
-						totalScenarios++;
+						}
 					}
-					float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
-					String timeToDetection =  Constants.decimalFormat.format((ttd/((float)scenariosDetectedInt)));	
-					String line = iteration + ", " + timeToDetection + ", " + percentScenariosDetected;
+					float weightedAverageTTD = 0;
+					float sum = 0;
+					for(float value: weights) sum += value;
+					for(int i=0; i<ttd.size(); i++) weightedAverageTTD += ttd.get(i)*weights.get(i)/sum;
+					
+					String timeToDetection =  Constants.decimalFormat.format((weightedAverageTTD));	
+					String line = iteration + ", " + timeToDetection + ", " + scenariosDetected;
 					for(Sensor sensor: configuration.getSensors()) {
 						line += ", " + sensor.getNodeNumber() + ": " + sensor.getSensorType();
 					}
@@ -139,27 +143,30 @@ public class ResultPrinter {
 		for(List<Configuration> configurations: resultsByNumSensors.values()) {
 			for(Configuration configuration: configurations) {
 				String scenariosNotDetected = "";
-				float ttd = 0;
+				ArrayList<Float> ttd = new ArrayList<Float>();
+				ArrayList<Float> weights = new ArrayList<Float>();
 				// float scenariosDetected = 0; // Uniform distribution among scenarios
-				int scenariosDetectedInt = 0;
-				int totalScenarios = 0;
+				int scenariosDetected = 0;
 				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 					float timeToDetection = configuration.getTimesToDetection().get(scenario);
-					if(timeToDetection == results.set.getScenarioProbabilities().get(scenario)*1000000) {
+					if(timeToDetection == 1000000) {
 						if(!scenariosThatDidNotDetect.contains(scenario))
 							scenariosThatDidNotDetect.add(scenario);
 						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
 					} else {
-						ttd += timeToDetection / results.set.getScenarioProbabilities().get(scenario);
-						scenariosDetectedInt++;
+						ttd.add(timeToDetection);
+						weights.add(results.set.getScenarioWeights().get(scenario));
+						scenariosDetected += results.set.getScenarioWeights().get(scenario)/results.set.getTotalScenarioWeight();
 						//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-					}	
-					totalScenarios++;
+					}
 				}
-				float percentScenariosDetected = ((float)scenariosDetectedInt)/((float)totalScenarios) * 100;
+				float weightedAverageTTD = 0;
+				float sum = 0;
+				for(float value: weights) sum += value;
+				for(int i=0; i<ttd.size(); i++) weightedAverageTTD += ttd.get(i)*weights.get(i)/sum;
 				float minYear = Float.MAX_VALUE;
 				float maxYear = -Float.MAX_VALUE;			
-				String line = percentScenariosDetected + ", " + (ttd/((float)scenariosDetectedInt));	
+				String line = scenariosDetected + ", " + weightedAverageTTD;	
 				for(Sensor sensor: configuration.getSensors()) {
 					if(sensor instanceof ExtendedSensor) {
 						for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
