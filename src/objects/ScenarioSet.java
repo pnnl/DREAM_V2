@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 import utilities.Constants;
@@ -116,7 +114,6 @@ public class ScenarioSet {
 		
 		this.addPoint = addPoint;
 		this.maxWells = maxWells;
-		this.iterations = iterations;
 		this.costConstraint = costConstraint;
 		isReady = true;
 		
@@ -180,6 +177,13 @@ public class ScenarioSet {
 		this.scenarios = scenarios;
 	}
 
+	/**
+	 * TODO: Luke name this function.. math stuff
+	 */
+	public float getNormalizedScenarioWeight(Scenario scenario) {
+		return scenarioWeights.get(scenario) / totalScenarioWeight;
+	}
+	
 	public Map<Scenario, Float> getScenarioWeights() {
 		return scenarioWeights;
 	}

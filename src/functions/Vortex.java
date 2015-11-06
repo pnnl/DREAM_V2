@@ -251,12 +251,9 @@ public class Vortex extends Function {
 	{
 		if (set.getScenarioWeights().get(scenario) > 0)
 		{
-			int maxTime = 0;
 			InferenceResult inferenceResult = null;
-
 			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps())
 			{
-				maxTime = timeStep.getTimeStep();
 				inferenceResult = runOneTime(con, set, timeStep, scenario, true);
 				if (inferenceResult.isInferred())
 					break;
@@ -264,11 +261,12 @@ public class Vortex extends Function {
 
 			// maxTime is an index, we want the value there
 			float area = 1;		 // Bigger is better this time	
-			if (inferenceResult.isInferred())
-				area = -inferenceResult.getGoodness();//set.getNodeStructure().getTimeAt(maxTime); // Only keep track if we've hit inference
-
-			con.addObjectiveValue(scenario, area); // Did not detect a leak
-			con.addTimeToDetection(scenario, area); // TODO: does this make sense with weight scheme?
+			if (inferenceResult.isInferred()) {
+				area = -inferenceResult.getGoodness();
+				con.addTimeToDetection(scenario, area);				
+			}
+			
+			con.addObjectiveValue(scenario, area * set.getNormalizedScenarioWeight(scenario));
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}

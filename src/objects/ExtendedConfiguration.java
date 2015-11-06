@@ -15,8 +15,13 @@ public class ExtendedConfiguration extends Configuration {
 
 	private List<Well> wells;
 
+	// Actual time to detection, if a scenario does not detect value will be null
 	private Map<Scenario, Float> timesToDetection;
+	
+	// Weighted with penalty for scenarios that do not detect
 	private Map<Scenario, Float> objectiveValues;
+	
+	
 	private Map<Scenario, InferenceResult> inferenceResults;
 
 	public ExtendedConfiguration() {
@@ -27,7 +32,7 @@ public class ExtendedConfiguration extends Configuration {
 
 		wells = Collections.synchronizedList(new ArrayList<Well>());
 		sensors = Collections.synchronizedList(new ArrayList<Sensor>());
-		setTimesToDetection(Collections.synchronizedMap(new HashMap<Scenario, Float>()));
+		timesToDetection = Collections.synchronizedMap(new HashMap<Scenario, Float>());
 		objectiveValues = Collections.synchronizedMap(new HashMap<Scenario, Float>());		
 		inferenceResults = Collections.synchronizedMap(new HashMap<Scenario, InferenceResult>());
 
@@ -53,7 +58,7 @@ public class ExtendedConfiguration extends Configuration {
 			}
 		}
 
-		getTimesToDetection().clear();
+		timesToDetection.clear();
 		objectiveValues.clear();
 		inferenceResults.clear();
 
@@ -100,7 +105,7 @@ public class ExtendedConfiguration extends Configuration {
 
 		// Copy in ttd and objective values?
 		for(Scenario key: getTimesToDetection().keySet()) {
-			copy.addTimeToDetection(key, getTimesToDetection().get(key));
+			copy.addTimeToDetection(key, timesToDetection.get(key));
 		}
 
 		for(Scenario key: objectiveValues.keySet()) {
@@ -172,7 +177,7 @@ public class ExtendedConfiguration extends Configuration {
 
 	public synchronized void Clear() {
 		objectiveValues.clear();
-		getTimesToDetection().clear();
+		timesToDetection.clear();
 		inferenceResults.clear();
 	}
 
@@ -180,9 +185,8 @@ public class ExtendedConfiguration extends Configuration {
 		objectiveValues.put(scenario, timeInYears);
 	}
 
-
 	public synchronized void addTimeToDetection(Scenario scenario, float timeToDetection) {
-		getTimesToDetection().put(scenario, timeToDetection);
+		timesToDetection.put(scenario, timeToDetection);
 	}
 
 	public synchronized void addInferenceResult(Scenario scenario, InferenceResult inferenceResult) {
@@ -193,65 +197,89 @@ public class ExtendedConfiguration extends Configuration {
 		sensors.clear();
 	}
 	
-	public synchronized float getTriggeredScenarios() {
-		int triggered = 0;
-		if(Constants.returnAverageTTD) {
-			for(float ttd: getTimesToDetection().values()) {
-				if(ttd >= 0)
-					triggered++;
-			}
-			return triggered;///timesToDetection.size();
-		} else {
-			// we'll return the max
-			for(float ttd: objectiveValues.values()) {
-				if(ttd >= 0)
-					triggered++;
-			}
-			return triggered;
-		}
-		
-	}
-
-	/** We're going to have an option here, either average or worst */
-	public synchronized float getTimeToDetection(ScenarioSet set) {
-		if(Constants.returnAverageTTD) {
-			float sum = 0;
-			if(getTimesToDetection().isEmpty())
-				return Float.MAX_VALUE;
-			//TODO: added by Luke, make sure that this makes sense for weights.
-			for(Scenario scenario: getTimesToDetection().keySet()) {
-				if(getTimesToDetection().get(scenario) >= 0)
-					sum+= getTimesToDetection().get(scenario)*set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight();
-			}
-			return sum;///timesToDetection.size();
-		} else {
-			// we'll return the max
-			float max = 0;
-			if(objectiveValues.isEmpty()) 
-				return Float.MAX_VALUE;
-			for(float ttd: objectiveValues.values()) {
-				if(ttd >= 0)
-					max = Math.max(ttd, max);
-			}
-			return max;	
-		}
-	}
-
-	public synchronized float getAverageGoodness() {		
+	/**
+	 * Returns the absolute objective value of all scenarios
+	 * 
+	 * A penalty has been applied for scenarios that do not detect
+	 * 
+	 * This value has been weighted
+	 * 
+	 */
+	public synchronized float getAbsoluteObjectiveValue() {
 		float sum = 0;
-		for(InferenceResult result: inferenceResults.values())
-			sum+= result.getGoodness();
-		return sum/inferenceResults.size();
-	}
-
-	public synchronized List<Integer> getSensorPositions() {
-		List<Integer> positions = new ArrayList<Integer>();
-		for(Sensor sensor: sensors) {
-			positions.add(sensor.getNodeNumber());
+		for(Scenario scenario: getObjectiveValues().keySet()) {
+			sum += getObjectiveValues().get(scenario); // No weights here
 		}
-		return positions;
+		return sum;
 	}
-
+	
+	/**
+	 * Returns the average objective value of all scenarios
+	 * 
+	 * A penalty has been applied for scenarios that do not detect
+	 * 
+	 * This value has been weighted
+	 * 
+	 */
+	public synchronized float getAverageObjectiveValue() {
+		return getAbsoluteObjectiveValue() /(float)getObjectiveValues().keySet().size();
+	}
+	
+	/**
+	 * Returns the absolute time to detection of the triggering scenarios
+	 * 
+	 * This value does not include any weights or penalties
+	 * 
+	 */
+	public synchronized float getAbsoluteTimeToDetection() {
+		float sum = 0;
+		for(Scenario scenario: getTimesToDetection().keySet()) {
+			sum += getTimesToDetection().get(scenario); // No weights here
+		}
+		return sum;
+	}
+	
+	/**
+	 * Returns the average time to detection of the triggering scenarios
+	 * 
+	 * This value does not include any weights or penalties
+	 * 
+	 */
+	public synchronized float getAverageTimeToDetection() {
+		return getAbsoluteTimeToDetection() /(float)getTimesToDetection().keySet().size();
+	}
+	
+	/**
+	 * Returns the average time to detection of the triggering scenarios
+	 * 
+	 * This value has been normalized against all detecting scenarios
+	 * 
+	 */
+	public synchronized float getNormalizedAverageTimeToDetection(Map<Scenario, Float> scenarioWeights) {	
+		float sum = 0;
+		float totalWeight = 0;
+		for(Scenario scenario: getTimesToDetection().keySet()) {
+			sum += getTimesToDetection().get(scenario) * scenarioWeights.get(scenario);
+			totalWeight += scenarioWeights.get(scenario);
+		}
+		return sum / totalWeight;
+	}
+	
+	/**
+	 * Returns the average time to detection of the triggering scenarios
+	 * 
+	 * This value has been normalized against all detecting scenarios
+	 * 
+	 */
+	public synchronized float getNormalizedPercentScenariosDetected(Map<Scenario, Float> scenarioWeights, float totalScenarioWeights) {
+		float detectedWeight = 0;
+		for(Scenario scenario: getTimesToDetection().keySet()) {
+			detectedWeight += scenarioWeights.get(scenario);
+		}
+		return detectedWeight / totalScenarioWeights;
+	}
+	
+	
 	public synchronized List<Integer> getSensorPositions(String type) {
 		List<Integer> positions = new ArrayList<Integer>();
 		for(Sensor sensor: sensors) {
@@ -273,6 +301,58 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		return positions;
 	}
+
+	public float getCost(ScenarioSet set) {
+		// Get the cost
+		float totalCost = 0;
+		for(Sensor sensor: sensors) {			
+			totalCost += set.getCost(sensor.getSensorType());
+		}
+		return totalCost;
+	}
+
+	public String getSummary() {
+		List<String> ijs = new ArrayList<String>();
+
+		StringBuffer nodePositions = new StringBuffer();
+		if(sensors.isEmpty())
+			return "Empty";		
+		for(Sensor sensor: sensors) {
+			char type = sensor.getSensorType().charAt(0);
+			nodePositions.append(sensor.getNodeNumber() + "" + type + ", ");
+			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
+			if(!ijs.contains(IJ))
+				ijs.add(IJ);
+		}
+		Collections.sort(ijs);
+		String nodes = "\t[" + nodePositions.toString().substring(0, nodePositions.toString().length()-2) + "]";
+		return "\t" + ijs.size() + " " + ijs.toString() + "\t" + nodes;
+
+	}
+
+	public String getInferenceResults() {
+		StringBuffer toString = new StringBuffer();
+		for(Scenario key: inferenceResults.keySet()) {
+			toString.append("\tInference result for " + key.toString() + ": " + inferenceResults.get(key).toString() + "\n");
+		}
+		return toString.toString();
+	}
+	
+	public Map<Scenario, Float> getTimesToDetection() {
+		return timesToDetection;
+	}
+
+	public Map<Scenario, Float> getObjectiveValues() {
+		return objectiveValues;
+	}
+
+	public void setTimesToDetection(Map<Scenario, Float> timesToDetection) {
+		this.timesToDetection = timesToDetection;
+	}
+	
+	/*******************************************************************************************
+	 * Helper Methods for Move Logic
+	 * **************************************/
 
 	public synchronized void addSensor(ScenarioSet scenarioSet, ExtendedSensor sensor) {
 
@@ -384,18 +464,12 @@ public class ExtendedConfiguration extends Configuration {
 		return false;
 	}
 
-
-
 	public boolean mutateSensorToEdgeOnly(ScenarioSet set) {	
 		set.setEdgeMovesOnly(true);
 		boolean sensorMutate = mutateSensor(set, ModelOption.INDIVIDUAL_SENSORS);
 		set.setEdgeMovesOnly(false);
 		return sensorMutate;
 	}
-
-	/*******************************************************************************************
-	 * Level 1 Private Helper Methods for Move Logic
-	 * **************************************/
 
 	private Object addRealizedWell(ScenarioSet scenarioSet) {
 
@@ -575,63 +649,4 @@ public class ExtendedConfiguration extends Configuration {
 		wells.add(realizedWell);
 	}
 
-	public float getCost(ScenarioSet set) {
-		// Get the cost
-		float totalCost = 0;
-		for(Sensor sensor: sensors) {			
-			totalCost += set.getCost(sensor.getSensorType());
-		}
-		return totalCost;
-	}
-
-	public String getSummary() {
-		List<String> ijs = new ArrayList<String>();
-
-		StringBuffer nodePositions = new StringBuffer();
-		if(sensors.isEmpty())
-			return "Empty";		
-		for(Sensor sensor: sensors) {
-			char type = sensor.getSensorType().charAt(0);
-			nodePositions.append(sensor.getNodeNumber() + "" + type + ", ");
-			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
-			if(!ijs.contains(IJ))
-				ijs.add(IJ);
-		}
-		Collections.sort(ijs);
-		String nodes = "\t[" + nodePositions.toString().substring(0, nodePositions.toString().length()-2) + "]";
-		return "\t" + ijs.size() + " " + ijs.toString() + "\t" + nodes;
-
-	}
-
-	public String flatList() {
-		StringBuffer nodePositions = new StringBuffer();
-		if(sensors.isEmpty())
-			return "Empty";		
-		for(Sensor sensor: sensors)
-			nodePositions.append(sensor.getIJK().toString() + ", " + sensor.getSensorType() + ", ");
-		return nodePositions.toString();
-	}
-
-
-	public String getInferenceResults() {
-		StringBuffer toString = new StringBuffer();
-		for(Scenario key: inferenceResults.keySet()) {
-			toString.append("\tInference result for " + key.toString() + ": " + inferenceResults.get(key).toString() + "\n");
-		}
-		return toString.toString();
-	}
-	public boolean isInferred() {
-		for(InferenceResult result: inferenceResults.values())
-			if(result.isInferred())
-				return true;
-		return false;
-	}
-
-	public Map<Scenario, Float> getTimesToDetection() {
-		return timesToDetection;
-	}
-
-	public void setTimesToDetection(Map<Scenario, Float> timesToDetection) {
-		this.timesToDetection = timesToDetection;
-	}
 }

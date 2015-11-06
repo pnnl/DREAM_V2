@@ -123,7 +123,7 @@ public class CCS9_1 extends Function {
 		}
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
 
-		return configuration.getTimeToDetection(set);
+		return configuration.getAverageObjectiveValue();
 
 	}
 
@@ -151,11 +151,13 @@ public class CCS9_1 extends Function {
 
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
-			if (inferenceResult.isInferred())
-				timeInYears = set.getNodeStructure().getTimeAt(maxTime); // Only keep track if we've hit inference
+			if (inferenceResult.isInferred()) {
+				timeInYears = set.getNodeStructure().getTimeAt(maxTime); 
+				// Only keep track if we've hit inference
+				con.addTimeToDetection(scenario, timeInYears);
+			}
 
-			con.addObjectiveValue(scenario, timeInYears); // Did not detect a leak
-			con.addTimeToDetection(scenario, timeInYears); // TODO: does this make sense with weight scheme?
+			con.addObjectiveValue(scenario, timeInYears * set.getNormalizedScenarioWeight(scenario));
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}

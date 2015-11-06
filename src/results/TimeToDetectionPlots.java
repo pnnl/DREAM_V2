@@ -1,18 +1,12 @@
 package results;
 
-import gridviz.Utilities;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GradientPaint;
-
-import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -25,11 +19,8 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.TickUnitSource;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.Range;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
@@ -223,47 +214,26 @@ public class TimeToDetectionPlots extends JFrame {
 
 	public void addData(Results.Type type, int iteration, ExtendedConfiguration configuration, ScenarioSet set) {
 		
-		double detected = 0;
-		double totalTTD = 0;		
-		double totalTTDTriggerOnly = 0;
-		double numDetectedScenarios = 0;
-		
+
 		boolean addTick = false;
 		
-		//Get the total weights of a) the scenarios that are detected by this configuration and b) all of the scenarios
-		//TODO: Can make the latter a variable in the scenarios class for speed purposes
-		float detectedWeightSum = 0;
-		for(float weight: configuration.getTimesToDetection().values()){
-			detectedWeightSum += weight;
-		}
+		// These will contain just the detecting scenarios: configuration.getTimesToDetection()	
 		for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-			float unweightedTTD = configuration.getTimesToDetection().get(scenario);
-			if(unweightedTTD == 1000000) {
-			// 	System.out.println("Did not detect in scenario " + scenario.getScenario());
-			} else {
-				detected += set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight(); //this is for the calculation of what percentage of our value is detected.
-				totalTTD += unweightedTTD * set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight(); //this is the global value, should always be normalized by overall weights.
-				totalTTDTriggerOnly += unweightedTTD * set.getScenarioWeights().get(scenario)/detectedWeightSum; //this is the one we want to plot, where they are normalized against
-				if(type == Results.Type.New) {
-					((DefaultCategoryDataset)perScenarioTTD.getUnderlyingDataset()).addValue(unweightedTTD, scenario.getScenario(), String.valueOf(iteration));
-					addTick = true;
-				}
-				numDetectedScenarios++;
+			double unweightedTTD = configuration.getTimesToDetection().get(scenario);
+			if(type == Results.Type.New) {
+				((DefaultCategoryDataset)perScenarioTTD.getUnderlyingDataset()).addValue(unweightedTTD, scenario.getScenario(), String.valueOf(iteration));
+				addTick = true;
 			}
 		}
-		
+
 		if(addTick) {
 			perScenarioTTDScrollBar.setMaximum(perScenarioTTDScrollBar.getMaximum()+1);
 			if(perScenarioTTDScrollBar.getMaximum() > 40)
 				perScenarioTTDScrollBar.setValue(perScenarioTTDScrollBar.getValue() + 1);
 		}
 		
-		if(detected == 0) {
-			return; // did not detect
-		}
-
-		
-		//double percent = detected/scenarios * 100;
+		float totalTTDTriggerOnly = configuration.getNormalizedAverageTimeToDetection(set.getScenarioWeights());
+		float detected = configuration.getNormalizedPercentScenariosDetected(set.getScenarioWeights(), set.getTotalScenarioWeight());
 		
 		if(type == Results.Type.New) {
 			((DefaultCategoryDataset)newMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));
@@ -272,7 +242,6 @@ public class TimeToDetectionPlots extends JFrame {
 				newMoreThan90ScrollBar.setValue(newMoreThan90ScrollBar.getValue() + 1);
 		} else if(type == Results.Type.Best && detected >= this.triggeringScenarios) {
 			if(detected != this.triggeringScenarios) {
-				// Clear the plot and set the global
 				this.triggeringScenarios = detected;
 				((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).clear();
 				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios)+"% or more scenarios");						
@@ -280,7 +249,6 @@ public class TimeToDetectionPlots extends JFrame {
 			}
 			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));			
 			bestMoreThan90ScrollBar.setMaximum(bestMoreThan90ScrollBar.getMaximum()+1); // increment this every time we add a value?
-		//	System.out.println(bestMoreThan90ScrollBar.getValue());
 			if(bestMoreThan90ScrollBar.getMaximum() > 40)
 				bestMoreThan90ScrollBar.setValue(bestMoreThan90ScrollBar.getValue() + 1);
 		
@@ -290,21 +258,7 @@ public class TimeToDetectionPlots extends JFrame {
 			scenariosDetectedScrollBar.setMaximum(scenariosDetectedScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(scenariosDetectedScrollBar.getMaximum() > 40)
 				scenariosDetectedScrollBar.setValue(scenariosDetectedScrollBar.getValue() + 1);
-		}
-		
-		/*		
-		if(percent <= .25) {
-			lessThan25.addValue(totalTTD, type.toString(), String.valueOf(iteration));
-		} else if(percent <= .50) {
-			lessThan50.addValue(totalTTD, type.toString(), String.valueOf(iteration));
-		} else if(percent <= .75) {
-			lessThan75.addValue(totalTTD, type.toString(), String.valueOf(iteration));
-		} else {
-			moreThan75.addValue(totalTTD, type.toString(), String.valueOf(iteration));			
-		}*/
-		
-		// Update the plots?
-		//initializeUI();
+		}		
 	}
 	
 	
@@ -341,10 +295,9 @@ public class TimeToDetectionPlots extends JFrame {
 		plot.getRangeAxis().setLabelPaint(Color.BLACK);
 		plot.getRangeAxis().setTickLabelFont(TICK_FONT);
 		plot.getRangeAxis().setTickLabelPaint(TICk_COLOR);
-		//plot.getRangeAxis().setRange(new Range(0, title.contains("Percent") ? 100 : maxYear));
-		//plot.getRangeAxis().setAutoRange(false);
+		plot.getRangeAxis().setRange(new Range(0, title.contains("Percent") ? 100 : maxYear));
+		plot.getRangeAxis().setAutoRange(false);
 		
-	
 		plot.getDomainAxis().setLabelFont(LABEL_FONT);
 		plot.getDomainAxis().setLabelPaint(Color.BLACK);
 		plot.getDomainAxis().setTickLabelFont(TICK_FONT);
