@@ -81,54 +81,30 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		GridData aboutInfoData1 = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-		aboutInfoData1.horizontalSpan = 2;
-		aboutInfoData1.widthHint = 500;
-		String text1 = "";
-		Label aboutInfo1 = new Label(container,SWT.WRAP);
-		aboutInfo1.setText(text1);
-		aboutInfo1.setLayoutData(aboutInfoData1);
-		
-		GridData aboutInfoData2 = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-		aboutInfoData2.horizontalSpan = 2;
-		aboutInfoData2.widthHint = 500;
-		String text2 = "";
-		Label aboutInfo2 = new Label(container,SWT.WRAP);
-		aboutInfo2.setText(text2);
-		aboutInfo2.setLayoutData(aboutInfoData2);
-		
+
 		GridData aboutInfoData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-		aboutInfoData.horizontalSpan = 2;
-		aboutInfoData.widthHint = 500;
+		aboutInfoData.horizontalSpan = 2;	
+		aboutInfoData.verticalSpan = 5;
+		aboutInfoData.widthHint = 640;	
 		String text = "DREAM is an optimization tool to identify optimal monitoring designs that minimize the time to first detection of CO2 leakage from a subsurface storage formation. This tool requires user-provided output produced from subsurface leakage simulations. DREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
 		Label aboutInfo = new Label(container,SWT.WRAP);
 		aboutInfo.setText(text);
 		aboutInfo.setLayoutData(aboutInfoData);
-		
-		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
-		Image dreamImage = new Image(container.getDisplay(), "./img/outputpic.png");
-		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
-		dreamImageLabel.setImage(dreamImage);
-		dreamImageLabel.setLayoutData(dreamImageData);
 
+		new Label(container, SWT.WRAP).setText("\tPrimary contact: Yonkofski, C.");
+		new Label(container, SWT.WRAP).setText("\tEmail: catherine.ruprecht@pnnl.gov");
+		new Label(container, SWT.WRAP).setText("\tVersion 1.0");
+		new Label(container, SWT.WRAP).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
+	
 		// NRAP logo at the bottom
 		GridData nrapImageData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		nrapImageData.horizontalSpan = 2;
-		nrapImageData.verticalSpan = 10;
+		nrapImageData.verticalSpan = 4;
 		Image nrapLogo = new Image(container.getDisplay(), "./img/NRAP.png");
 		CLabel nrapLogoLabel = new CLabel(container, SWT.BORDER_SOLID);
 		nrapLogoLabel.setImage(nrapLogo);
 		nrapLogoLabel.setLayoutData(nrapImageData);
-
-		
-		new Label(container, SWT.WRAP).setText("\tPrimary contact: Ruprecht, C.");
-		new Label(container, SWT.WRAP).setText("\tEmail: catherine.ruprecht@pnnl.gov");
-		new Label(container, SWT.WRAP).setText("\tVersion 1.0");
-		new Label(container, SWT.WRAP).setText("\tDeveloper: Porter, E.; Gastelum, J.");
-		//	new Label(container, SWT.WRAP).setText(""); // Space
-		
-		new Label(container, SWT.WRAP);
-		
+			
 		Link acknowledgements = new Link(container, SWT.WRAP);
 		acknowledgements.setText("                   <A>Acknowledgements</A>");
 		acknowledgements.addListener(SWT.Selection, new Listener() {
@@ -159,15 +135,24 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		references.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				MessageBox messageBox = new MessageBox(Page_WelcomeScreen.this.getShell(), SWT.OK );
-				messageBox.setMessage("Gastelum, J. A., Ruprecht, C. M., Porter, E. A., Bacon, D.H., and Brown, C. F. An Optimization Approach to Design Monitoring Schemes for CO2 Leakage Detection. IJGGC NRAP Special Issue.(2015). In Review. ");
+				messageBox.setMessage("Yonkofski, C. M., Gastelum, J. A., Porter, E. A., Rodriguez, L. R., Bacon, D. H., and Brown, C. F. An Optimization Approach to Design Monitoring Schemes for CO2 Leakage Detection. IJGGC NRAP Special Issue.(2015). In Review. ");
 				messageBox.setText("References");
 				messageBox.open();
 			}
 		});
+
 		
+		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_END);
+		aboutInfoData.verticalSpan = 7;
+		Image dreamImage = new Image(container.getDisplay(), "./img/outputpic.png");
+		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
+		dreamImageLabel.setImage(dreamImage);
+		dreamImageLabel.setLayoutData(dreamImageData);			
+	
 		// Lab logo at the bottom
-		GridData imageData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_END);
+		GridData imageData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_END);
 		imageData.horizontalSpan = 3;
+		imageData.heightHint = 240;
 		Image labLogos = new Image(container.getDisplay(), "./img/DOE-LABS_S.png");
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
