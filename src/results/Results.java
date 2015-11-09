@@ -115,7 +115,7 @@ public class Results {
 			
 			ArrayList<Float> ttd = new ArrayList<Float>();
 			ArrayList<Float> weights = new ArrayList<Float>();
-			int scenariosDetected = 0;
+			float scenariosDetected = 0;
 			for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 				float timeToDetection = configuration.getTimesToDetection().get(scenario);
 				if(timeToDetection == 1000000) {
@@ -123,7 +123,7 @@ public class Results {
 				} else {
 					ttd.add(timeToDetection);
 					weights.add(set.getScenarioWeights().get(scenario));
-					scenariosDetected += set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight();
+					scenariosDetected += 100*set.getScenarioWeights().get(scenario)/set.getTotalScenarioWeight();
 					//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
 				}	
 			}

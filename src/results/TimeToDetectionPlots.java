@@ -244,7 +244,7 @@ public class TimeToDetectionPlots extends JFrame {
 			if(detected != this.triggeringScenarios) {
 				this.triggeringScenarios = detected;
 				((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).clear();
-				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios)+"% or more scenarios");						
+				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios*100)+"% or more scenarios");						
 				bestMoreThan90ScrollBar.setMaximum(20);
 			}
 			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));			
@@ -254,7 +254,7 @@ public class TimeToDetectionPlots extends JFrame {
 		
 		}
 		if(type == Results.Type.New) {
-			((DefaultCategoryDataset)scenariosDetected.getUnderlyingDataset()).addValue(detected, type.toString(), String.valueOf(iteration));
+			((DefaultCategoryDataset)scenariosDetected.getUnderlyingDataset()).addValue(detected*100, type.toString(), String.valueOf(iteration));
 			scenariosDetectedScrollBar.setMaximum(scenariosDetectedScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(scenariosDetectedScrollBar.getMaximum() > 40)
 				scenariosDetectedScrollBar.setValue(scenariosDetectedScrollBar.getValue() + 1);

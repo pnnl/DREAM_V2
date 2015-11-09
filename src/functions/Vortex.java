@@ -266,7 +266,7 @@ public class Vortex extends Function {
 				con.addTimeToDetection(scenario, area);				
 			}
 			
-			con.addObjectiveValue(scenario, area * set.getNormalizedScenarioWeight(scenario));
+			con.addObjectiveValue(scenario, area * set.getGloballyNormalizedScenarioWeight(scenario));
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}

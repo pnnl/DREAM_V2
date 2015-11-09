@@ -435,7 +435,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				int detectedScenarios = 0;
 				int totalScenarios = 0;
 				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-					float timeToDetection = configuration.getTimesToDetection().get(scenario); //TODO: Luke might have introduced an error here due to weight logic
+					float timeToDetection = configuration.getTimesToDetection().get(scenario);
 					if(timeToDetection == 1000000) {
 						text += scenario.getScenario() + ": did not detect\n";
 					} else {

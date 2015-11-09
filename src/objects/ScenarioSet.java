@@ -177,10 +177,7 @@ public class ScenarioSet {
 		this.scenarios = scenarios;
 	}
 
-	/**
-	 * TODO: Luke name this function.. math stuff
-	 */
-	public float getNormalizedScenarioWeight(Scenario scenario) {
+	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
 		return scenarioWeights.get(scenario) / totalScenarioWeight;
 	}
 	
@@ -190,6 +187,8 @@ public class ScenarioSet {
 
 	public void setScenarioWeights(Map<Scenario, Float> scenarioWeights) {
 		this.scenarioWeights = scenarioWeights;
+		this.totalScenarioWeight = 0;
+		for(float value: scenarioWeights.values()) this.totalScenarioWeight += value;
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {

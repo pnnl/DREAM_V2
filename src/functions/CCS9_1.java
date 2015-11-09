@@ -123,7 +123,7 @@ public class CCS9_1 extends Function {
 		}
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
 
-		return configuration.getAverageObjectiveValue();
+		return configuration.getObjectiveValue();
 
 	}
 
@@ -157,7 +157,7 @@ public class CCS9_1 extends Function {
 				con.addTimeToDetection(scenario, timeInYears);
 			}
 
-			con.addObjectiveValue(scenario, timeInYears * set.getNormalizedScenarioWeight(scenario));
+			con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
 			con.addInferenceResult(scenario, inferenceResult);
 		}
 	}

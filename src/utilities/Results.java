@@ -46,8 +46,7 @@ public class Results {
 				} 
 			catch (IOException e) 
 			{
-				// TODO Auto-generated catch block
-				System.out.println("You threw and IOException.");
+				System.out.println("You threw an IOException.");
 				e.printStackTrace();
 			}
 		

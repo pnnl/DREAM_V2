@@ -196,22 +196,7 @@ public class ExtendedConfiguration extends Configuration {
 	public synchronized void ClearSensors() {
 		sensors.clear();
 	}
-	
-	/**
-	 * Returns the absolute objective value of all scenarios
-	 * 
-	 * A penalty has been applied for scenarios that do not detect
-	 * 
-	 * This value has been weighted
-	 * 
-	 */
-	public synchronized float getAbsoluteObjectiveValue() {
-		float sum = 0;
-		for(Scenario scenario: getObjectiveValues().keySet()) {
-			sum += getObjectiveValues().get(scenario); // No weights here
-		}
-		return sum;
-	}
+
 	
 	/**
 	 * Returns the average objective value of all scenarios
@@ -221,8 +206,12 @@ public class ExtendedConfiguration extends Configuration {
 	 * This value has been weighted
 	 * 
 	 */
-	public synchronized float getAverageObjectiveValue() {
-		return getAbsoluteObjectiveValue() /(float)getObjectiveValues().keySet().size();
+	public synchronized float getObjectiveValue() {
+		float sum = 0;
+		for(Scenario scenario: getObjectiveValues().keySet()) {
+			sum += getObjectiveValues().get(scenario); // No weights here
+		}
+		return sum;
 	}
 	
 	/**
@@ -238,17 +227,7 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		return sum;
 	}
-	
-	/**
-	 * Returns the average time to detection of the triggering scenarios
-	 * 
-	 * This value does not include any weights or penalties
-	 * 
-	 */
-	public synchronized float getAverageTimeToDetection() {
-		return getAbsoluteTimeToDetection() /(float)getTimesToDetection().keySet().size();
-	}
-	
+		
 	/**
 	 * Returns the average time to detection of the triggering scenarios
 	 * 

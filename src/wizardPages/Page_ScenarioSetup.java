@@ -161,6 +161,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		for(Scenario scenario: selectedScenarios.keySet()) {
 			if(!selectedScenarios.get(scenario).getSelection()) {
 				scenariosToRemove.add(scenario);
+				scenarioWeights.remove(scenario);
 			}
 		}
 		

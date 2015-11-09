@@ -160,30 +160,7 @@ public class ExtendedSensor extends Sensor {
 	 * @return
 	 */
 	public boolean move(ExtendedConfiguration configuration, ScenarioSet set) {
-		/*
-		 * Old version that I'm leaving for now. TODO: Remove?
-		// We will try to move to a neighbor 80% of the time.
-		if(Double.compare(Constants.random.nextDouble(), .8) < 0) {
-			if(move(set.getNodeStructure().getNeighborNodes(node), configuration, set))
-				return true;
-		}
-		
-		// Get all the nodes we can afford to move to that are in the cloud and unoccupied
-		List<Integer> validMoves = set.getValidNodes(getSensorType(), configuration, false, false, !isWell());
-		
-		// Remove our current location
-		if(validMoves.contains(getNodeNumber()))
-			validMoves.remove(getNodeNumber());
-		
-		// If there are no spots, we can't move, return false
-		if(validMoves.isEmpty())
-			return false;
-		
-		// Otherwise go ahead and make the move
-		move(validMoves.get(Constants.random.nextInt(validMoves.size())), set.getNodeStructure());
-		
-		return true;
-		*/
+
 		if(Double.compare(Constants.random.nextDouble(), .8) < 0) {
 			if(move(set.getNodeStructure().getNeighborNodes(node), configuration, set))
 				return true;
