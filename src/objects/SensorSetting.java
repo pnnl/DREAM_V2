@@ -3,6 +3,7 @@ package objects;
 import hdf5Tool.HDF5Wrapper;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +65,9 @@ public class SensorSetting {
 	private float upperThreshold;
 
 	private Set<Integer> validNodes;
+	private float trueDepth;
+	private float minDepth;
+	private float maxDepth;
 
 	private Color color;
 
@@ -92,6 +96,10 @@ public class SensorSetting {
 		this.upperThreshold = (max-min)/2+min;
 
 		this.validNodes = new TreeSet<Integer>(); // None yet
+		
+		this.setTrueDepth(Collections.max(this.nodeStructure.getZ()));
+		this.setMaxDepth(Collections.max(this.nodeStructure.getZ()));
+		this.setMinDepth(Collections.min(this.nodeStructure.getZ()));
 		this.color = Color.GREEN;	
 
 		this.isReady = false;
@@ -147,6 +155,9 @@ public class SensorSetting {
 		builder.append("\t\tMin value: " + min + "\n");
 		builder.append("\t\tMax value: " + max + "\n");
 		builder.append("\t\tTriggering on: " + getTrigger().toString()  + "\n");
+		
+		builder.append("\t\tminDepth: " + minDepth + "\n");
+		builder.append("\t\tmaxDepth: " + maxDepth + "\n");
 
 		if(areNodesReady()) {
 			builder.append("\t"+validNodes.size()+" Valid nodes: " + validNodes.toString() + "\n");
@@ -200,6 +211,11 @@ public class SensorSetting {
 			this.nodesReady = false; // We will need to re-query the database
 
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
+	}
+	
+	public void setValidNodes(HashSet<Integer> newSet){
+		this.validNodes.clear();
+		this.validNodes.addAll(newSet);
 	}
 
 	// Update the valid nodes based on current settings 
@@ -424,6 +440,30 @@ public class SensorSetting {
 
 	public void setDeltaType(DeltaType deltaType) {
 		this.deltaType = deltaType;
+	}
+
+	public float getMinDepth() {
+		return minDepth;
+	}
+
+	public void setMinDepth(float minDepth) {
+		this.minDepth = minDepth;
+	}
+
+	public float getMaxDepth() {
+		return maxDepth;
+	}
+
+	public void setMaxDepth(float maxDepth) {
+		this.maxDepth = maxDepth;
+	}
+
+	public float getTrueDepth() {
+		return trueDepth;
+	}
+
+	public void setTrueDepth(float trueDepth) {
+		this.trueDepth = trueDepth;
 	}
 
 }
