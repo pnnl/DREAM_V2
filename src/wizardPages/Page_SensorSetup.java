@@ -65,8 +65,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		public String sensorType;		
 		public boolean isIncluded;
 		public float cost;
-		public float maxDepth;
-		public float minDepth;
+		public float maxZ;
+		public float minZ;
 		public Trigger trigger;
 		public DeltaType deltaType;
 		
@@ -85,10 +85,10 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		private Combo thresholdCombo;
 		private Label valueLabel;
 		private Text valueInput;
-		private Label maxDepthLabel;
-		private Text maxDepthText;
-		private Label minDepthLabel;
-		private Text minDepthText;
+		private Label maxZLabel;
+		private Text maxZText;
+		private Label minZLabel;
+		private Text minZText;
 		
 		private Label nodeLabel;
 		private boolean hasErrors;	
@@ -98,8 +98,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			sensorType = sensorSettings.getType();			
 			isIncluded = false; // By default	
 			cost = sensorSettings.getCost();
-			maxDepth = sensorSettings.getMaxDepth();
-			minDepth = sensorSettings.getMinDepth();
+			maxZ = sensorSettings.getMaxZ();
+			minZ = sensorSettings.getMinZ();
 			
 			
 			// These may be backwards?
@@ -273,14 +273,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 
 			
 			
-			// Set minimum depth
-			minDepthText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			minDepthText.setText(Constants.decimalFormat.format(minDepth));
-			minDepthText.addModifyListener(new ModifyListener() {
+			// Set minimum z
+			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			minZText.setText(Constants.decimalFormat.format(minZ));
+			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					try {
-						minDepth = Float.parseFloat(((Text)e.getSource()).getText());	
+						minZ = Float.parseFloat(((Text)e.getSource()).getText());	
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						testReady();
 					} catch (NumberFormatException ne) {
@@ -289,20 +289,20 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 					}
 				}				
 			});
-			GridData minDepthTextData = new GridData(SWT.FILL, SWT.END, false, false);
-			minDepthTextData.widthHint = 60;
-			minDepthText.setLayoutData(minDepthTextData);
+			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
+			minZTextData.widthHint = 60;
+			minZText.setLayoutData(minZTextData);
 			
 			
 			
-			// Set maximum depth
-			maxDepthText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			maxDepthText.setText(Constants.decimalFormat.format(maxDepth));
-			maxDepthText.addModifyListener(new ModifyListener() {
+			// Set maximum z
+			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			maxZText.setText(Constants.decimalFormat.format(maxZ));
+			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					try {
-						maxDepth = Float.parseFloat(((Text)e.getSource()).getText());	
+						maxZ = Float.parseFloat(((Text)e.getSource()).getText());	
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						testReady();
 					} catch (NumberFormatException ne) {
@@ -311,9 +311,9 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 					}
 				}				
 			});
-			GridData maxDepthTextData = new GridData(SWT.FILL, SWT.END, false, false);
-			maxDepthTextData.widthHint = 60;
-			maxDepthText.setLayoutData(maxDepthTextData);
+			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
+			maxZTextData.widthHint = 60;
+			maxZText.setLayoutData(maxZTextData);
 			
 			toggleEnabled();
 		}		
@@ -329,14 +329,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				valueInput.setEnabled(isIncluded);
 			if(valueLabel != null && !valueLabel.isDisposed())
 				valueLabel.setEnabled(isIncluded);
-			if(minDepthLabel != null && !minDepthLabel.isDisposed())
-				minDepthLabel.setEnabled(isIncluded);
-			if(minDepthText != null && !minDepthText.isDisposed())
-				minDepthText.setEnabled(isIncluded);
-			if(maxDepthLabel != null && !maxDepthLabel.isDisposed())
-				maxDepthLabel.setEnabled(isIncluded);
-			if(maxDepthText != null && !maxDepthText.isDisposed())
-				maxDepthText.setEnabled(isIncluded);
+			if(minZLabel != null && !minZLabel.isDisposed())
+				minZLabel.setEnabled(isIncluded);
+			if(minZText != null && !minZText.isDisposed())
+				minZText.setEnabled(isIncluded);
+			if(maxZLabel != null && !maxZLabel.isDisposed())
+				maxZLabel.setEnabled(isIncluded);
+			if(maxZText != null && !maxZText.isDisposed())
+				maxZText.setEnabled(isIncluded);
 		}		
 	}
 
@@ -393,32 +393,15 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	@Override
 	public void completePage() throws Exception {
 		try{
-		isCurrentPage = false;		
-		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();		
-		for(SensorData data: sensorData.values()) {
-			String dataType = data.sensorType;
-			sensorSettings.put(dataType, data);
-		}	
-		data.setupSensors(false, sensorSettings);
-		
-		//TODO: remove this hard-coded z check
-		for(String scenario: data.getScenarioSet().getAllPossibleDataTypes()){
-			if(data.getSet().getSensorSettings(scenario) == null) continue;
-			float trueDepth = data.getSet().getSensorSettings(scenario).getTrueDepth();
-			float minDepth = sensorSettings.get(scenario).minDepth;
-			float maxDepth = sensorSettings.get(scenario).maxDepth;
-			//Set these just in case we need them later
-			data.getSet().getSensorSettings(scenario).setMaxDepth(maxDepth);
-			data.getSet().getSensorSettings(scenario).setMinDepth(minDepth);
-			//Find the nodes that fit this z restriction
-			HashSet<Integer> temp = new HashSet<Integer>();
-			for(Integer node: data.getSet().getSensorSettings(scenario).getValidNodes()){
-				Point3d test = data.getScenarioSet().getNodeStructure().getXYZFromIJK(data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(node));
-				if (minDepth <= trueDepth - test.getZ() && trueDepth - test.getZ() <= maxDepth)
-					temp.add(node);
-			}
-			data.getSet().getSensorSettings(scenario).setValidNodes(temp);
-		}
+			isCurrentPage = false;		
+			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();		
+			for(SensorData data: sensorData.values()) {
+				String dataType = data.sensorType;
+				sensorSettings.put(dataType, data);
+			}	
+			data.setupSensors(false, sensorSettings);
+			
+
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -468,22 +451,22 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		Label costPerSensor = new Label(container, SWT.LEFT);
 		Label detectionCriteria = new Label(container, SWT.LEFT);
 		Label valueLabel = new Label(container, SWT.LEFT);
-		Label minDepthLabel = new Label(container, SWT.LEFT);
-		Label maxDepthLabel = new Label(container, SWT.LEFT);
+		Label minZLabel = new Label(container, SWT.LEFT);
+		Label maxZLabel = new Label(container, SWT.LEFT);
 		
 		monitorParams.setText("Monitoring Parameter");		
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		valueLabel.setText("Value");
-		minDepthLabel.setText("Min Depth");
-		maxDepthLabel.setText("Max Depth");
+		minZLabel.setText("Minimum Z");
+		maxZLabel.setText("Maximum Z");
 		
 		monitorParams.setFont(boldFont);
 		costPerSensor.setFont(boldFont);
 		detectionCriteria.setFont(boldFont);
 		valueLabel.setFont(boldFont);
-		minDepthLabel.setFont(boldFont);
-		maxDepthLabel.setFont(boldFont);
+		minZLabel.setFont(boldFont);
+		maxZLabel.setFont(boldFont);
 				
 		for(SensorData data: sensorData.values()) {
 			data.buildUI();
@@ -577,25 +560,25 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 								temp.nodeLabel.setText(temp.sensorType+ ": Not set");
 						}
 					}
-					
+					/*
 					//TODO: remove this hard-coded z check
 					for(String scenario: data.getScenarioSet().getAllPossibleDataTypes()){
 						if(data.getSet().getSensorSettings(scenario) == null) continue;
-						float trueDepth = data.getSet().getSensorSettings(scenario).getTrueDepth();
-						float minDepth = sensorSettings.get(scenario).minDepth;
-						float maxDepth = sensorSettings.get(scenario).maxDepth;
+						float minZ = sensorSettings.get(scenario).minZ;
+						float maxZ = sensorSettings.get(scenario).maxZ;
 						//Set these just in case we need them later
-						data.getSet().getSensorSettings(scenario).setMaxDepth(maxDepth);
-						data.getSet().getSensorSettings(scenario).setMinDepth(minDepth);
+						data.getSet().getSensorSettings(scenario).setMaxZ(maxZ);
+						data.getSet().getSensorSettings(scenario).setMinZ(minZ);
 						//Find the nodes that fit this z restriction
 						HashSet<Integer> temp = new HashSet<Integer>();
 						for(Integer node: data.getSet().getSensorSettings(scenario).getValidNodes()){
 							Point3d test = data.getScenarioSet().getNodeStructure().getXYZFromIJK(data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(node));
-							if (minDepth <= trueDepth - test.getZ() && trueDepth - test.getZ() <= maxDepth)
+							if (minZ <= test.getZ() && test.getZ() <= maxZ)
 								temp.add(node);
 						}
 						data.getSet().getSensorSettings(scenario).setValidNodes(temp);
 					}
+					*/
 					
 				} catch (Exception e1) {
 					e1.printStackTrace();

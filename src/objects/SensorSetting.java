@@ -65,9 +65,8 @@ public class SensorSetting {
 	private float upperThreshold;
 
 	private Set<Integer> validNodes;
-	private float trueDepth;
-	private float minDepth;
-	private float maxDepth;
+	private float minZ;
+	private float maxZ;
 
 	private Color color;
 
@@ -97,9 +96,8 @@ public class SensorSetting {
 
 		this.validNodes = new TreeSet<Integer>(); // None yet
 		
-		this.setTrueDepth(Collections.max(this.nodeStructure.getZ()));
-		this.setMaxDepth(Collections.max(this.nodeStructure.getZ()));
-		this.setMinDepth(Collections.min(this.nodeStructure.getZ()));
+		this.setMaxZ(Collections.max(this.nodeStructure.getZ()));
+		this.setMinZ(Collections.min(this.nodeStructure.getZ()));
 		this.color = Color.GREEN;	
 
 		this.isReady = false;
@@ -156,8 +154,8 @@ public class SensorSetting {
 		builder.append("\t\tMax value: " + max + "\n");
 		builder.append("\t\tTriggering on: " + getTrigger().toString()  + "\n");
 		
-		builder.append("\t\tminDepth: " + minDepth + "\n");
-		builder.append("\t\tmaxDepth: " + maxDepth + "\n");
+		builder.append("\t\tminZ: " + minZ + "\n");
+		builder.append("\t\tmaxZ: " + maxZ + "\n");
 
 		if(areNodesReady()) {
 			builder.append("\t"+validNodes.size()+" Valid nodes: " + validNodes.toString() + "\n");
@@ -169,7 +167,8 @@ public class SensorSetting {
 	}
 	
 
-	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset, DeltaType deltaType) {
+	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
+			DeltaType deltaType, float minZ, float maxZ) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
 		
@@ -202,6 +201,16 @@ public class SensorSetting {
 		
 		if(this.getDeltaType() != deltaType) {
 			this.deltaType = deltaType;
+			changeOccured = true;
+		}
+		
+		if(this.getMinZ() != minZ) {
+			this.minZ = minZ;
+			changeOccured = true;
+		}
+		
+		if(this.getMaxZ() != maxZ) {
+			this.maxZ = maxZ;
 			changeOccured = true;
 		}
 		
@@ -442,28 +451,20 @@ public class SensorSetting {
 		this.deltaType = deltaType;
 	}
 
-	public float getMinDepth() {
-		return minDepth;
+	public float getMinZ() {
+		return minZ;
 	}
 
-	public void setMinDepth(float minDepth) {
-		this.minDepth = minDepth;
+	public void setMinZ(float minZ) {
+		this.minZ = minZ;
 	}
 
-	public float getMaxDepth() {
-		return maxDepth;
+	public float getMaxZ() {
+		return maxZ;
 	}
 
-	public void setMaxDepth(float maxDepth) {
-		this.maxDepth = maxDepth;
-	}
-
-	public float getTrueDepth() {
-		return trueDepth;
-	}
-
-	public void setTrueDepth(float trueDepth) {
-		this.trueDepth = trueDepth;
+	public void setMaxZ(float maxZ) {
+		this.maxZ = maxZ;
 	}
 
 }

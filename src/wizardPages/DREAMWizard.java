@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
 import utilities.Constants;
+import utilities.Point3d;
 import utilities.Constants.ModelOption;
 import visualization.MultiDomainViewer;
 import wizardPages.Page_SensorSetup.SensorData;
@@ -123,17 +125,17 @@ public class DREAMWizard extends Wizard {
 	}
 
 	public static void main(String[] args) {
-		
+
 		try {
 			UIManager.setLookAndFeel(
-					 UIManager.getCrossPlatformLookAndFeelClassName());
+					UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
-		
+
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display); 
-		
+
 		// Pop up the disclaimer, exit on cancel
 		MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL );
 		messageBox.setMessage("The Software was produced by Battelle under Contract No. DE-AC05-76RL01830 with the Department of Energy.  The U.S. Government is granted for itself and others acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license in this data to reproduce, prepare derivative works, distribute copies to the public, perform publicly and display publicly, and to permit others to do so.  The specific term of the license can be identified by inquiry made to Battelle or DOE."
@@ -171,7 +173,7 @@ public class DREAMWizard extends Wizard {
 						browser.setVisible(true); 
 					} 
 				}); 
-				
+
 				Button visLauncher = new Button(parent, SWT.PUSH); 	
 				visLauncher.setText("Launch Visualization"); 	
 				visLauncher.addSelectionListener(new SelectionListener() 
@@ -186,8 +188,8 @@ public class DREAMWizard extends Wizard {
 						widgetSelected(e); 
 					} 
 				}); 
-				
-				
+
+
 				super.createButtonsForButtonBar(parent);
 
 				// Hide the buttons we don't use
@@ -293,8 +295,8 @@ public class DREAMWizard extends Wizard {
 			});		
 		}
 
-/*
- * if(data.isIncluded) {
+		/*
+		 * if(data.isIncluded) {
 						settings.add(data.cost);
 						settings.add(data.trigger == Trigger.THRESHOLD);
 						settings.add(data.asPercent);
@@ -304,7 +306,7 @@ public class DREAMWizard extends Wizard {
 						settings.add(-1);
 						settings.add(data.delta);
 					} 
- */
+		 */
 		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorSettings) throws Exception {
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
@@ -324,12 +326,17 @@ public class DREAMWizard extends Wizard {
 									data.max,
 									data.trigger, 
 									reset,
-									data.deltaType);
+									data.deltaType,
+									data.maxZ,
+									data.minZ);
 							monitor.worked(1);
 							if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
 								monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
 								set.getSensorSettings(sensorType).getValidNodes(); // This should re-query for the valid nodes
 							}
+
+
+
 							monitor.worked(1);
 						} else {
 							monitor.subTask(sensorType.toLowerCase() + " - removing");
@@ -337,7 +344,22 @@ public class DREAMWizard extends Wizard {
 							set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
 							monitor.worked(2);
 						}
+						//TODO: remove this hard-coded z check
+
+						float minZ = data.minZ;
+						float maxZ = data.maxZ;
+						//Find the nodes that fit this z restriction
+						HashSet<Integer> temp = new HashSet<Integer>();
+						if(set.getSensorSettings(sensorType) != null){
+							for(Integer node: set.getSensorSettings(sensorType).getValidNodes()){
+								Point3d test = set.getNodeStructure().getXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+								if (minZ <= test.getZ() && test.getZ() <= maxZ)
+									temp.add(node);
+							}
+							set.getSensorSettings(sensorType).setValidNodes(temp);
+						}
 					}
+
 				}
 			});
 		}
@@ -395,7 +417,7 @@ public class DREAMWizard extends Wizard {
 		public float runObjective(ExtendedConfiguration configuration) {
 			return runner.objective(configuration, set);
 		}
-		
+
 		public void randomEnumeration(final int max) throws Exception {			
 			wizard.launchVisWindow();
 			runner.setDomainViewer(wizard.domainViewer);
