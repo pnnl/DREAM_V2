@@ -159,14 +159,48 @@ public class Constants {
 		System.out.println("#Floats stored in memory: " + floatCount);
 	}
 	
+	/*	
+	 *  Example of node number vs. index. Each cell has: 
+	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
+	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
+	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
+	 *  _________________________    _________________________    _________________________    
+	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
+	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
+	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
+	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
+	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
+	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
+	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
+	 * 
+	 */
+	
+	/*
+	 * This function takes a 0-indexed index and returns a 1-indexed node number. (See above)
+	 */
+	public static int getNodeNumber(Point3i ijkDimensions, int index) {
+		return getNodeNumber(ijkDimensions.getI(), ijkDimensions.getJ(), ijkDimensions.getK(), index);
+	}
+	
 	public static Integer getNodeNumber(int iMax, int jMax, int kMax, int index) {
-		// We need to convert an index to an ijk... hmm should be able to do this with mod operator
-		int kLoops = index;
-		int jLoops = index/kMax;
-		int iLoops = index/(kMax*jMax);		
-		int nodeId = (kLoops % kMax) * iMax * jMax + (jLoops % jMax) * iMax + (iLoops % iMax + 1);
-		return nodeId;
-	}	
+		return (index % kMax) * iMax * jMax + (index/kMax % jMax) * iMax + (index/(kMax*jMax) % iMax + 1);
+	}
+	
+	/*
+	 * This function takes a 1-indexed node number and returns a 0-indexed index. (See above)
+	 */
+	public static int getIndex(Point3i ijkDimensions, int nodeNumber) {
+		return getIndex(ijkDimensions.getI(), ijkDimensions.getJ(), ijkDimensions.getK(), nodeNumber);
+	}
+	
+	public static Integer getIndex(int iMax, int jMax, int kMax, int nodeNumber){
+		return ((nodeNumber-1)%iMax)*jMax*kMax + (((nodeNumber-1)/iMax)%jMax)*kMax + (((nodeNumber-1)/(iMax*jMax))%kMax);
+	}
 
 	public static void initializeLogger(String homeDirectory, String className) throws SecurityException, IOException {
 		//getInstance().

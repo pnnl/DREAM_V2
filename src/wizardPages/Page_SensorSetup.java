@@ -534,21 +534,21 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						for(String dataType: data.getSet().getDataTypes()) {
 							if(!data.getSet().getSensorSettings(dataType).isSet())
 								continue;
-							for(Integer nodeId: data.getSet().getSensorSettings(dataType).getValidNodes()) {
+							for(Integer nodeNumber: data.getSet().getSensorSettings(dataType).getValidNodes()) {
 								boolean shared = true;
 								for(String otherDataType: data.getSet().getDataTypes()) {
 									if(dataType.equals(otherDataType))
 										continue; // Don't need to check this one
 									if(!data.getSet().getSensorSettings(otherDataType).isSet())
 										continue;
-									if(!data.getSet().getSensorSettings(otherDataType).getValidNodes().contains(nodeId)) {
+									if(!data.getSet().getSensorSettings(otherDataType).getValidNodes().contains(nodeNumber)) {
 										shared = false;
 									}
 									if(!shared)
 										break;
 								}		
 								if(shared)
-									intersection.add(nodeId);
+									intersection.add(nodeNumber);
 							}
 						}
 						System.out.println("Intersection: (" + intersection.size() + ") " + intersection);

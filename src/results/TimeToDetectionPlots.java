@@ -64,7 +64,11 @@ public class TimeToDetectionPlots extends JFrame {
 	protected double maxYear = 0.0;
 	
 	
-	public TimeToDetectionPlots(int iterations, double maxYear) {
+	public TimeToDetectionPlots(int iterations, double maxyear){
+		this(iterations, maxyear, 1);
+	}
+	
+	public TimeToDetectionPlots(int iterations, double maxYear, int run) {
 		
 		this.maxYear = maxYear;
 		this.iterations = iterations;
@@ -73,7 +77,7 @@ public class TimeToDetectionPlots extends JFrame {
 		perScenarioTTD = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
 		scenariosDetected = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
 			
-		this.setTitle("Time to detection plots");
+		this.setTitle("Time to detection plots - Run " + run);
 
 		this.setSize(800, 900);
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);

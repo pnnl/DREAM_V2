@@ -37,6 +37,11 @@ public class ResultPrinter {
 	public static void clearResults(ScenarioSet set) {
 		results = new Results(set);
 	}
+	
+	public static void newTTDPlots(ScenarioSet set, int run) {
+		if(results.ttdPlots != null) results.ttdPlots.dispose(); //only display the current run
+		results.ttdPlots = new TimeToDetectionPlots(set.getIterations(), set.getNodeStructure().getTimeSteps().get(set.getNodeStructure().getTimeSteps().size()-1).getRealTime(), run);
+	}
 
 	public static void storeResults(int run, int iteration, ExtendedConfiguration newConfiguration,
 			ExtendedConfiguration bestConfiguration, ExtendedConfiguration currentConfiguration, ScenarioSet set) {

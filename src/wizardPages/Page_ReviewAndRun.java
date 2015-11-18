@@ -322,8 +322,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
-						int nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
-						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeId) ? "1" : "0");		
+						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
+						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
 						text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n";	
 					}}}
 					text += "\n";
@@ -331,76 +331,76 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				text += "\n";
 				// Connection list
 				for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
-					int nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
+					int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
 					int var1, var2, var3, var4, var5, var6, var7, var8;
-					var1 = (nodeId-1)*8+1;
-					var2 = (nodeId-1)*8+2;
-					var3 = (nodeId-1)*8+3;
-					var4 = (nodeId-1)*8+4;
-					var5 = (nodeId-1)*8+5;
-					var6 = (nodeId-1)*8+6;
-					var7 = (nodeId-1)*8+7;
-					var8 = (nodeId-1)*8+8;
+					var1 = (nodeNumber-1)*8+1;
+					var2 = (nodeNumber-1)*8+2;
+					var3 = (nodeNumber-1)*8+3;
+					var4 = (nodeNumber-1)*8+4;
+					var5 = (nodeNumber-1)*8+5;
+					var6 = (nodeNumber-1)*8+6;
+					var7 = (nodeNumber-1)*8+7;
+					var8 = (nodeNumber-1)*8+8;
 					if(i != 1 && j == 1 && k == 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
-						var1 = (nodeId-1)*8+2;
-						var3 = (nodeId-1)*8+4;
-						var5 = (nodeId-1)*8+6;
-						var7 = (nodeId-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
+						var1 = (nodeNumber-1)*8+2;
+						var3 = (nodeNumber-1)*8+4;
+						var5 = (nodeNumber-1)*8+6;
+						var7 = (nodeNumber-1)*8+8;
 					}
 
 					if(i == 1 && j != 1 && k == 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
-						var1 = (nodeId-1)*8+3;
-						var2 = (nodeId-1)*8+4;
-						var5 = (nodeId-1)*8+7;
-						var6 = (nodeId-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
+						var1 = (nodeNumber-1)*8+3;
+						var2 = (nodeNumber-1)*8+4;
+						var5 = (nodeNumber-1)*8+7;
+						var6 = (nodeNumber-1)*8+8;
 					}
 
 					if(i == 1 && j == 1 && k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var1 = (nodeId-1)*8+5;
-						var2 = (nodeId-1)*8+6;
-						var3 = (nodeId-1)*8+7;
-						var4 = (nodeId-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var1 = (nodeNumber-1)*8+5;
+						var2 = (nodeNumber-1)*8+6;
+						var3 = (nodeNumber-1)*8+7;
+						var4 = (nodeNumber-1)*8+8;
 					}
 
 					if(i != 1 && j != 1 && k == 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k));
-						var1 = (nodeId-1)*8+4;
-						var5 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
-						var2 = (nodeId-1)*8+4;
-						var6 = (nodeId-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k));
+						var1 = (nodeNumber-1)*8+4;
+						var5 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
+						var2 = (nodeNumber-1)*8+4;
+						var6 = (nodeNumber-1)*8+8;
 					}
 					
 					if(i != 1 && j == 1 && k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
-						var1 = (nodeId-1)*8+7;
-						var2 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var3 = (nodeId-1)*8+7;
-						var4 = (nodeId-1)*8+8;						
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
+						var1 = (nodeNumber-1)*8+7;
+						var2 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var3 = (nodeNumber-1)*8+7;
+						var4 = (nodeNumber-1)*8+8;						
 					}
 					
 					if(i == 1 && j != 1 && k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
-						var1 = (nodeId-1)*8+7;
-						var2 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var3 = (nodeId-1)*8+7;
-						var4 = (nodeId-1)*8+8;						
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
+						var1 = (nodeNumber-1)*8+7;
+						var2 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var3 = (nodeNumber-1)*8+7;
+						var4 = (nodeNumber-1)*8+8;						
 					}
 					
 					if(i != 1 && j != 1 && k != 1) {
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k-1));
-						var1 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
-						var2 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
-						var3 = (nodeId-1)*8+8;
-						nodeId = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var4 = (nodeId-1)*8+8;						
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k-1));
+						var1 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
+						var2 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
+						var3 = (nodeNumber-1)*8+8;
+						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
+						var4 = (nodeNumber-1)*8+8;						
 					}
 					text += var1 + " " + var2 + " " + var4 + " " + var3 + " " + var5 + " " + var6 + " " + var8 + " " + var7 + "\n";
 					
@@ -424,8 +424,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			public void handleEvent(Event arg0) {
 				ExtendedConfiguration configuration = new ExtendedConfiguration();
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-					for(int nodeId: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
-						configuration.addSensor(new ExtendedSensor(nodeId, sensorType, data.getSet().getNodeStructure()));
+					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
+						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
 					}
 				}
 				data.runObjective(configuration);
@@ -504,8 +504,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				for(String individualSensor: individualSensors) {
 					String[] parts = individualSensor.split(":");
 					if(parts.length == 3) {
-						int nodeID = Integer.parseInt(parts[0].trim());
-						Point3d xyz = data.getSet().getNodeStructure().getXYZFromIJK(data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeID));
+						int nodeNumber = Integer.parseInt(parts[0].trim());
+						Point3d xyz = data.getSet().getNodeStructure().getXYZFromIJK(data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber));
 						nodesToReplace.put(parts[0], xyz.toString());
 					} 
 				}

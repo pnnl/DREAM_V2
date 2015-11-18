@@ -101,6 +101,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, int sets) {
 		ResultPrinter.clearResults(set);
 		for(int i = 0; i < sets; i++) {
+			if(i !=0) ResultPrinter.newTTDPlots(set, i+1); //already set up for the first iteration
 			currentRun = i;
 			if(monitor != null) 
 				monitor.setTaskName("Running iterative procedure " + (i+1) + "/" + sets);
