@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import utilities.Constants;
+import utilities.Point3d;
 import utilities.Point3i;
 
 
@@ -368,8 +369,57 @@ public class ScenarioSet {
 				}
 			}
 		}
-		return validNodes;
-
+		
+		//TODO: Decide whether or not we're going to keep this.
+		// if you want to run the "old" way, comment out everything below this until the matching comment
+		//CATHERINE - Here are the two things to change.
+		float exclusionRadius = 0; //this is the minimum distance between distinct wells. Set to 0 for old behavior.
+		boolean allowMultipleSensorsInWell = true; //If this is set to true, this should behave just like it used to.
+		//Find all well locations
+		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();
+		//Initialize all (i,j)s to be allowed
+		for(int i=0; i <= getNodeStructure().getIJKDimensions().getI(); i++)
+			for(int j=0; j<= getNodeStructure().getIJKDimensions().getJ(); j++)
+				locations.put(new Point3i(i, j, 1), true);
+		//Set everything within exclusionRadius to false for each well
+		//Note that we don't have to check to make sure that a point to be set false isn't a well, because there should be no way that it was there in the first place.
+		for(Well well : configuration.getWells()){
+			if(well.i == 0 || well.j == 0){
+				continue;
+			}
+			Point3d wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
+			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
+				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
+					Point3d otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
+					if(otherxyz.euclideanDistance(wellxyz) <= exclusionRadius){
+						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
+							if(allowMultipleSensorsInWell) continue; //if we're allowing multiple, then we don't want to exclude this location no matter what
+							for(ExtendedSensor sensor : well.sensors){ //we need to determine if this well already has a sensor of this type
+								if(sensor.type.equals(sensorType)){
+									locations.put(new Point3i(i,j,1), false); //it does, so exclude it
+									continue;
+								}
+								//it doesn't, so allow it (do nothing)
+							}
+						}
+						else{
+							//if not, reject it by default
+							locations.put(new Point3i(i,j,1), false);
+						}
+					}
+				}
+			}
+		}
+		List<Integer> tempValidNodes = new ArrayList<Integer>();
+		for(Integer node: validNodes){
+			if(locations.get(new Point3i(getNodeStructure().getIJKFromNodeNumber(node).getI(),getNodeStructure().getIJKFromNodeNumber(node).getJ(),1))){
+				tempValidNodes.add(node);
+			}
+		}
+		return tempValidNodes;
+		
+		//This is the matching comment. Uncomment the line below this two for it to work like it used to.
+		//return validNodes;
 	}
 	
 	public List<String> getValidSwitchTypes(String currentType, ExtendedConfiguration configuration){

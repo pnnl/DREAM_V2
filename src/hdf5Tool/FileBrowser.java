@@ -780,9 +780,9 @@ public class FileBrowser extends javax.swing.JFrame {
 							// If we're out of bounds, use the fill number?
 							if(shiftedI > 0 && shiftedJ > 0 && shiftedI <= iMax && shiftedJ <= jMax) {
 								int shiftedNodeNumber = (k-1) * iMax * jMax + (shiftedJ-1) * iMax + (shiftedI);
-								if((shiftedNodeNumber - 1) != counter) {
-									System.out.println("Problem...");
-								}
+								//if((shiftedNodeNumber - 1) != counter) {
+								//	System.out.println("Problem...");
+								//}
 								tempForShift[counter] = Math.abs(dataAsFloats[shiftedNodeNumber-1]);
 							}
 							counter++;

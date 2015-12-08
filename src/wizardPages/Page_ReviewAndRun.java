@@ -36,6 +36,7 @@ import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.Sensor;
+import objects.TecplotNode;
 import utilities.Constants;
 import utilities.Point3d;
 import utilities.Point3i;
@@ -59,7 +60,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		//	setDescription("Review");
 		this.data = data;			
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
@@ -329,82 +330,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					text += "\n";
 				}
 				text += "\n";
-				// Connection list
-				for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
-					int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i,   j,   k));
-					int var1, var2, var3, var4, var5, var6, var7, var8;
-					var1 = (nodeNumber-1)*8+1;
-					var2 = (nodeNumber-1)*8+2;
-					var3 = (nodeNumber-1)*8+3;
-					var4 = (nodeNumber-1)*8+4;
-					var5 = (nodeNumber-1)*8+5;
-					var6 = (nodeNumber-1)*8+6;
-					var7 = (nodeNumber-1)*8+7;
-					var8 = (nodeNumber-1)*8+8;
-					if(i != 1 && j == 1 && k == 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k));
-						var1 = (nodeNumber-1)*8+2;
-						var3 = (nodeNumber-1)*8+4;
-						var5 = (nodeNumber-1)*8+6;
-						var7 = (nodeNumber-1)*8+8;
-					}
 
-					if(i == 1 && j != 1 && k == 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
-						var1 = (nodeNumber-1)*8+3;
-						var2 = (nodeNumber-1)*8+4;
-						var5 = (nodeNumber-1)*8+7;
-						var6 = (nodeNumber-1)*8+8;
-					}
-
-					if(i == 1 && j == 1 && k != 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var1 = (nodeNumber-1)*8+5;
-						var2 = (nodeNumber-1)*8+6;
-						var3 = (nodeNumber-1)*8+7;
-						var4 = (nodeNumber-1)*8+8;
-					}
-
-					if(i != 1 && j != 1 && k == 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k));
-						var1 = (nodeNumber-1)*8+4;
-						var5 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k));
-						var2 = (nodeNumber-1)*8+4;
-						var6 = (nodeNumber-1)*8+8;
-					}
-					
-					if(i != 1 && j == 1 && k != 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
-						var1 = (nodeNumber-1)*8+7;
-						var2 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var3 = (nodeNumber-1)*8+7;
-						var4 = (nodeNumber-1)*8+8;						
-					}
-					
-					if(i == 1 && j != 1 && k != 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
-						var1 = (nodeNumber-1)*8+7;
-						var2 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var3 = (nodeNumber-1)*8+7;
-						var4 = (nodeNumber-1)*8+8;						
-					}
-					
-					if(i != 1 && j != 1 && k != 1) {
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j-1, k-1));
-						var1 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j-1, k-1));
-						var2 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i-1, j, k-1));
-						var3 = (nodeNumber-1)*8+8;
-						nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k-1));
-						var4 = (nodeNumber-1)*8+8;						
-					}
-					text += var1 + " " + var2 + " " + var4 + " " + var3 + " " + var5 + " " + var6 + " " + var8 + " " + var7 + "\n";
-					
-				}}}
+				//Connection List
+				text += TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK());
 				
 				text += "\n";
 				

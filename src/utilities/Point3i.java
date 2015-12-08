@@ -44,6 +44,15 @@ public class Point3i {
 		return false;
 	}
 	
+	@Override
+	public int hashCode(){
+		int[] array = new int[3];
+		array[0] = i;
+		array[1] = j;
+		array[2] = k;
+		return java.util.Arrays.hashCode(array);
+	}
+	
 	public int getI() {
 		return i;
 	}
