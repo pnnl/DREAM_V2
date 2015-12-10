@@ -215,6 +215,7 @@ public class Well
 			System.out.println("Well before move: " + toString());
 		}
 		
+		if(validKs.isEmpty()) return false; //no way that we can shuffle this - it is full of all sensor types that it has.
 		// Do a quick check to make sure we can shuffle this well...
 		
 		Map<String, List<Integer>> typeCount =  getSensorCountByType();

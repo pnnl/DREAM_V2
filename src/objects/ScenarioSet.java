@@ -317,14 +317,15 @@ public class ScenarioSet {
 		List<Well> wells = configuration.getWells();	
 		
 		int tempMaxWells = maxWells;
-		
+				
 		List<Integer> cloudNodes = new ArrayList<Integer>();
 		for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
 			cloudNodes.add(node);
 		
-		if(withAddPoint)
-			cloudNodes.add(getNodeStructure().getNodeNumber(addPoint));
-
+		//old addpoint logic
+//		if(withAddPoint)
+//			cloudNodes.add(getNodeStructure().getNodeNumber(addPoint));
+		
 		// Remove all but edges
 		if(edgeMovesOnly) {
 			List<Integer> tempNodes = new ArrayList<Integer>();
@@ -350,8 +351,9 @@ public class ScenarioSet {
 //		System.out.println("Cloud nodes after occupied check: " + cloudNodes.size());
 		for(Integer node: cloudNodes) {
 			// Sensor is unoccupied
-			if(!occupiedNodes.contains(node) || (withAddPoint && node.equals(getNodeStructure().getNodeNumber(addPoint)))) {
-				if(wellConstraint) {
+//			if(!occupiedNodes.contains(node) || (withAddPoint && node.equals(getNodeStructure().getNodeNumber(addPoint)))) { //old addpoint logic
+			if(!occupiedNodes.contains(node)) {
+			if(wellConstraint) {
 					if(wells.size() < tempMaxWells) // We can add a new well
 						validNodes.add(node);
 					else {
@@ -371,6 +373,7 @@ public class ScenarioSet {
 		}
 		
 		//TODO: Decide whether or not we're going to keep this.
+		
 		// if you want to run the "old" way, comment out everything below this until the matching comment
 		//CATHERINE - Here are the two things to change.
 		float exclusionRadius = 0; //this is the minimum distance between distinct wells. Set to 0 for old behavior.
@@ -393,6 +396,7 @@ public class ScenarioSet {
 					Point3d otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
 					if(otherxyz.euclideanDistance(wellxyz) <= exclusionRadius){
 						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
+							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
 							if(allowMultipleSensorsInWell) continue; //if we're allowing multiple, then we don't want to exclude this location no matter what
 							for(ExtendedSensor sensor : well.sensors){ //we need to determine if this well already has a sensor of this type
 								if(sensor.type.equals(sensorType)){

@@ -416,7 +416,8 @@ public class ExtendedConfiguration extends Configuration {
 		if(movedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);
 			return true;
-		}	
+		}
+		
 		// Prioritize shuffling a well
 		if(ModelOption.INDIVIDUAL_SENSORS_2 == modelOption) {
 			Object shuffledWell = shuffleWell(scenarioSet);
@@ -491,7 +492,8 @@ public class ExtendedConfiguration extends Configuration {
 		for(String type: scenarioSet.getDataTypes()) {
 			List<Integer> validNodes = scenarioSet.getValidNodes(type, this, true, true, true);
 			if(!validNodes.isEmpty()) {
-				affordableSensors.put(type, scenarioSet.getValidNodes(type, this, true, true, true));
+//				affordableSensors.put(type, scenarioSet.getValidNodes(type, this, true, true, true));
+				affordableSensors.put(type, validNodes);
 				types.add(type);
 				if(validNodes.contains(addPoint)) {
 					atAddPoint = true; // We can add a sensor at the add point
