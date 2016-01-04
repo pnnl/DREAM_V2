@@ -2,7 +2,9 @@ package wizardPages;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -32,11 +34,34 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+//maybe these should move elsewhere?
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.Range;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.category.SlidingCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RectangleInsets;
+//These.
+
+
+
+
+import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.Sensor;
 import objects.TecplotNode;
+import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Point3d;
 import utilities.Point3i;
@@ -388,13 +413,126 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});		
 
+		/*
+		 *Uncomment for the new plot button and functionality 
+		 
+		Button scatterplotButton = new Button(container, SWT.BALLOON);
+		scatterplotButton.setSelection(true);
+		scatterplotButton.setText("Build Scatterplot");
+		scatterplotButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				//these will be an ordered list corresponding to x and y coordinates on the scatterplots
+				List<Float> configurationCosts = new ArrayList<Float>();
+				List<Float> configurationAverageTTDs = new ArrayList<Float>();
+				List<Float> configurationPercentDetected = new ArrayList<Float>();
+				List<Float> configurationTTDs = new ArrayList<Float>();
+				List<Float> budgets = new ArrayList<Float>();
+				List<Integer> wells = new ArrayList<Integer>();
+				float budget = data.getSet().getCostConstraint();
+				int well = data.getSet().getMaxWells();
+				//Generate the set of budges and well numbers to run over
+				float budgetIncrement = budget/3;
+				int wellIncrement = well/3;
+				for(int i=1; i<=5; i++){
+					budgets.add(budgetIncrement*i);
+					wells.add(wellIncrement*i);
+				}
+				float minCost = Float.MAX_VALUE;
+				float maxCost = 0;
+				for(Float budgeti: budgets){
+					for(Integer wellj: wells){
+						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
+						System.out.println(budgeti + " " + wellj);
+						data.getSet().setUserSettings(data.getSet().getAddPoint(), wellj, budgeti);String numRuns = runs.getText();
+						int ittr = Integer.parseInt(iterations.getText());
+						data.setWorkingDirectory(outputFolder.getText());
+						data.getSet().setIterations(ittr);
+						try {
+							data.run(1);
+							//get the best TTD
+							float ttd = ResultPrinter.results.bestObjValue;
+							HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
+							for(Configuration config: bestConfigs){
+								configurationTTDs.add(ttd);
+								float cost = costOfConfiguration(config);
+								if(cost < minCost) minCost = cost;
+								if(cost > maxCost) maxCost = cost;
+								configurationCosts.add(cost);
+								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
+								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config));
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+				//Set this back to what it was so we don't mess up future runs
+				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget);
+				
+				//Make the plot with our points
+				XYSeriesCollection result = new XYSeriesCollection();
+				XYSeries highSeries = new XYSeries("High Cost");
+				XYSeries mediumSeries = new XYSeries("Medium Cost");
+				XYSeries lowSeries = new XYSeries("Low Cost");
+				for(int i=0; i<configurationTTDs.size(); i++){
+					if(configurationCosts.get(i) < (maxCost - minCost)/3 + minCost) lowSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
+					else if(configurationCosts.get(i) > -(maxCost - minCost)/3 + maxCost) highSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i)); 
+					else mediumSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
+					System.out.println(configurationCosts.get(i) + "\t" + configurationTTDs.get(i));
+				}
+				result.addSeries(highSeries);
+				result.addSeries(mediumSeries);
+				result.addSeries(lowSeries);
+				
+				JFreeChart chart = ChartFactory.createScatterPlot(
+						"Average TTD of Detecting Scenarios as a Function of the Percent of Scenarios Detected", //title
+						"Percent of Scenarios Detected", //x axis label
+						"Average Time to Detection of Detecting Scenarios", //y axis label
+						result, //data
+						PlotOrientation.VERTICAL, //orientation
+						true, //legend
+						false, //tooltips 
+						false); //urls
+				ChartFrame frame = new ChartFrame("Cost-TTD Scatter", chart);
+				frame.pack();
+				frame.setVisible(true);
+				
+			}
+			});
+		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-
+		*/
+		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.layout();	
+		sc.layout();
+		
 
+	}
+	
+	//TODO: This belongs somewhere else
+	private float costOfConfiguration(Configuration config){
+		float cost = 0;
+		List<Sensor> sensors = config.getSensors();
+		List<Point3i> locations = new ArrayList<Point3i>();
+		boolean newWell = true;
+		for(Sensor sensor: sensors){
+			cost += 1;
+			Point3i point = sensor.getIJK();
+			for(Point3i location: locations){
+				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
+					newWell = false;
+					break;
+				}
+			}
+			if(newWell){
+				cost += 10;
+				locations.add(point);
+			}
+		}
+		return cost;
 	}
 
 	public void convertFile(File file) throws IOException {

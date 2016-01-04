@@ -34,6 +34,8 @@ public class Results {
 	public boolean bestConfigSum = true;
 	public float bestObjValue;
 	public HashSet<Configuration> bestConfigSumList;
+	public HashMap<Configuration, Float> bestConfigSumTTDs;
+	public HashMap<Configuration, Float> bestConfigSumPercents;
 
 	/*
 	 * Print a file (one for new, current, best) for creating plots 
@@ -63,6 +65,8 @@ public class Results {
 	public Results(ScenarioSet set) {
 		this.set = set;
 		bestConfigSumList = new HashSet<Configuration>();
+		bestConfigSumTTDs = new HashMap<Configuration, Float>();
+		bestConfigSumPercents = new HashMap<Configuration, Float>();
 		bestObjValue = Float.MAX_VALUE;
 		
 		objPerIterSumMap = new HashMap<Type, Map<Integer, Map<Integer, ObjectiveResult>>>();
@@ -90,13 +94,19 @@ public class Results {
 	public void storeResult(int run, int iteration, Type type, ExtendedConfiguration configuration, ScenarioSet set) {
 
 		if(bestConfigSum) {
-			float ttd = configuration.getTimeToDetection();	
-			if(Float.compare(ttd, bestObjValue) < 0) {
+//			float ttd = configuration.getTimeToDetection();	
+			float ttd = configuration.getNormalizedAverageTimeToDetection(set.getScenarioWeights());
+			float percent = configuration.getNormalizedPercentScenariosDetected(set.getScenarioWeights(), set.getTotalScenarioWeight());
+			float global_ttd = ttd + (1-percent)*1000000; //penalty
+			//float ttd = configuration.getObjectiveValue();
+			if(Float.compare(global_ttd, bestObjValue) < 0) {
 				// Clear the list and set this as our new best objective value
 				bestConfigSumList.clear();
-				bestObjValue = ttd;
+				bestConfigSumTTDs.clear();
+				bestConfigSumPercents.clear();
+				bestObjValue = global_ttd;
 			}
-			if(Float.compare(ttd, bestObjValue) == 0) {
+			if(Float.compare(global_ttd, bestObjValue) == 0) {
 				Configuration newConfiguration = new Configuration();
 				for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
 					if(sensor.isInferred())
@@ -105,6 +115,8 @@ public class Results {
 				newConfiguration.setTimesToDetection(configuration.getTimesToDetection());
 				newConfiguration.setTimeToDetection(configuration.getTimeToDetection());	
 				bestConfigSumList.add(newConfiguration);
+				bestConfigSumTTDs.put(newConfiguration, ttd);
+				bestConfigSumPercents.put(newConfiguration, percent);
 			}
 		}
 		
