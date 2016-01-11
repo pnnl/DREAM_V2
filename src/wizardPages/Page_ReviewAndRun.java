@@ -55,11 +55,13 @@ import org.jfree.ui.RectangleInsets;
 
 
 
+
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.Sensor;
+import objects.SensorSetting;
 import objects.TecplotNode;
 import results.ResultPrinter;
 import utilities.Constants;
@@ -414,7 +416,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		});		
 
 		/*
-		 *Uncomment for the new plot button and functionality 
+		// *Uncomment for the new plot button and functionality 
 		 
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
 		scatterplotButton.setSelection(true);
@@ -432,9 +434,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				float budget = data.getSet().getCostConstraint();
 				int well = data.getSet().getMaxWells();
 				//Generate the set of budges and well numbers to run over
-				float budgetIncrement = budget/3;
-				int wellIncrement = well/3;
-				for(int i=1; i<=5; i++){
+				float budgetIncrement = budget/2;
+				int wellIncrement = well/2;
+				for(int i=1; i<=3; i++){
 					budgets.add(budgetIncrement*i);
 					wells.add(wellIncrement*i);
 				}
@@ -503,8 +505,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-		*/
 		
+		*/
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
@@ -517,20 +519,29 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		float cost = 0;
 		List<Sensor> sensors = config.getSensors();
 		List<Point3i> locations = new ArrayList<Point3i>();
-		boolean newWell = true;
+		boolean foundWell = false;
 		for(Sensor sensor: sensors){
-			cost += 1;
+			foundWell = false;
 			Point3i point = sensor.getIJK();
 			for(Point3i location: locations){
 				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
-					newWell = false;
+					//this is at least the second sensor in the well
+					// k=0 is the lowest point!
+					if(point.getK() < location.getK()){
+						locations.remove(location);
+						locations.add(point);
+					}
+					foundWell = true;
 					break;
 				}
 			}
-			if(newWell){
-				cost += 10;
+			if(!foundWell){
 				locations.add(point);
 			}
+		}
+		float cost_per_foot = 20;
+		for(Point3i location: locations){
+			cost += (SensorSetting.minZ - data.getSet().getNodeStructure().getXYZFromIJK(location).getZ()) * cost_per_foot;
 		}
 		return cost;
 	}

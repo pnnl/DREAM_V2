@@ -117,7 +117,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		iterations.setLayoutData(costGD);
 		 */
 		Label costLabel = new Label(container, SWT.NULL);
-		costLabel.setText("Cost");
+		costLabel.setText("Sensor Cost");
 		costConstraint= new Text(container, SWT.BORDER | SWT.SINGLE);
 		costConstraint.setText(String.valueOf(data.getSet().getCostConstraint()));
 		GridData iterGD = new GridData(GridData.FILL_HORIZONTAL);

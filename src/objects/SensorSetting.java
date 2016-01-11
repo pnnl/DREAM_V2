@@ -65,8 +65,8 @@ public class SensorSetting {
 	private float upperThreshold;
 
 	private Set<Integer> validNodes;
-	private float minZ;
-	private float maxZ;
+	public static float minZ;
+	public static float maxZ;
 
 	private Color color;
 
