@@ -52,10 +52,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 //These.
 
-
-
-
-
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
