@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -410,6 +411,104 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				temp.setVisible(true);
 			}	       
 		});		
+		
+		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
+		bestTTDTableButton.setSelection(true);
+		bestTTDTableButton.setText("Best TTD Table");
+		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+
+				List<List<String>> sensorsToTest = new ArrayList<List<String>>();
+				
+				// Run once with each sensor type
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+					List<String> justThisOne = new ArrayList<String>();
+					justThisOne.add(sensorType);
+					sensorsToTest.add(justThisOne);
+				}
+				// Run once with all sensor types
+				sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
+				
+				Map<String, Float> sensorTestedToTTD = new HashMap<String, Float>();
+				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
+				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new TreeMap<String, Map<String, Float>>();
+				
+				for(List<String> sensors: sensorsToTest) {
+					ExtendedConfiguration configuration = new ExtendedConfiguration();
+					for(String sensorType: sensors) {	
+						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
+							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+						}
+					}
+					
+					data.runObjective(configuration);
+					String text = "";
+					
+					float totalTimeToDetection = 0.0f;
+					int detectedScenarios = 0;
+					int totalScenarios = 0;
+					List<String> scenariosDetected = new ArrayList<String>();
+					Map<String, Float> ttdForEachDetected = new HashMap<String, Float>();
+					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+						float timeToDetection = configuration.getTimesToDetection().get(scenario);
+						if(timeToDetection == 1000000) {
+							text += scenario.getScenario() + ": did not detect\n";
+						} else {
+							detectedScenarios++;
+							totalTimeToDetection += timeToDetection;
+							text += scenario.getScenario() + ":" + timeToDetection + "\n";
+							scenariosDetected.add(scenario.getScenario());
+							ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
+						}
+						totalScenarios++;
+					}
+					
+					text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
+					     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
+					     + text;
+					
+					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "All";
+					sensorTestedToTTD.put(sensorTested, (totalTimeToDetection/detectedScenarios));
+					sensorTestedScenariosDetected.put(sensorTested, scenariosDetected);
+					
+					ttdPerSensorPerScenarioDetected.put(sensorTested, ttdForEachDetected);
+					
+					
+				}
+				
+				String text = "";
+				
+				// Heading
+				text += "Sensor,Average TTD in detected scenarios, detected scenarios";
+				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+					text+= "," + scenario.getScenario();
+				}
+				text+="\n";
+				
+				
+				for(String sensorType: sensorTestedToTTD.keySet()) {
+					
+					text += sensorType + ",";
+					text += sensorTestedToTTD.get(sensorType) + ",";
+					text += sensorTestedScenariosDetected.get(sensorType).size();
+					for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+						text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
+								 ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario()) : "");			
+					}
+					text += "\n";
+				}				
+				
+				JFrame temp = new JFrame();
+				temp.setTitle("Best possible times to detection");
+				JTextArea textArea = new JTextArea();
+				textArea.setText(text);
+				temp.add(new JScrollPane(textArea));
+				temp.setSize(800, 400);
+				temp.setVisible(true);
+			}	       
+		});		
+		
 
 		/*
 		// *Uncomment for the new plot button and functionality 
