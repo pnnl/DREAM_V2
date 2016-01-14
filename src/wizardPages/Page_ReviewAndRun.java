@@ -480,7 +480,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				String text = "";
 				
 				// Heading
-				text += "Sensor,Average TTD in detected scenarios, detected scenarios";
+				text += "Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios";
 				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 					text+= "," + scenario.getScenario();
 				}
@@ -491,7 +491,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					
 					text += sensorType + ",";
 					text += sensorTestedToTTD.get(sensorType) + ",";
-					text += sensorTestedScenariosDetected.get(sensorType).size();
+					text += sensorTestedScenariosDetected.get(sensorType).size() + ",";
+					text += data.getScenarioSet().getScenarios().size();
 					for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 						text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
 								 ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario()) : "");			
