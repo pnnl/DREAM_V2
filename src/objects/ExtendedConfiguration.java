@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 
 import utilities.Constants;
@@ -138,22 +139,37 @@ public class ExtendedConfiguration extends Configuration {
 		}
 
 		toString.append("\n");
-
+		
+		Map<String, Scenario> sorted = new TreeMap<String, Scenario>();
 		for(Scenario key: getTimesToDetection().keySet()) {
-			float ttd = getTimesToDetection().get(key);
+			sorted.put(key.getScenario(), key);
+		}
+
+		for(String scenario: sorted.keySet()) {
+			float ttd = getTimesToDetection().get(sorted.get(scenario));
 			String ttdStr = ttd > 10000 ? Constants.exponentialFormat.format(ttd) : Constants.decimalFormat.format(ttd);
-			toString.append("\tTime to detection for " + key.toString() + ": " + ttdStr + "\n");
+			toString.append("\tTime to detection for " + sorted.get(scenario).toString() + ": " + ttdStr + "\n");
 		}
-
+		
+		sorted.clear();
 		for(Scenario key: objectiveValues.keySet()) {
-			float obj = objectiveValues.get(key);
-			String objStr = obj > 10000 ? Constants.exponentialFormat.format(obj) : Constants.decimalFormat.format(obj);			
-			toString.append("\tObjective value for " + key.toString() + ": " + objStr + "\n");
+			sorted.put(key.getScenario(), key);
 		}
 
-		for(Scenario key: inferenceResults.keySet()) {
+		for(String scenario: sorted.keySet()) {
+			float obj = objectiveValues.get(sorted.get(scenario));
+			String objStr = obj > 10000 ? Constants.exponentialFormat.format(obj) : Constants.decimalFormat.format(obj);			
+			toString.append("\tObjective value for " + sorted.get(scenario).toString() + ": " + objStr + "\n");
+		}
 
-			toString.append("\tInference result for " + key.toString() + ": " + inferenceResults.get(key).toString() + "\n");
+		sorted.clear();
+		for(Scenario key: inferenceResults.keySet()) {
+			sorted.put(key.getScenario(), key);
+		}
+		
+		for(String scenario: sorted.keySet()) {
+
+			toString.append("\tInference result for " + sorted.get(scenario).toString() + ": " + inferenceResults.get(sorted.get(scenario)).toString() + "\n");
 		}
 
 		return toString.toString();
@@ -369,7 +385,7 @@ public class ExtendedConfiguration extends Configuration {
 				wells.add(newWell);
 			}
 		}
-
+		
 	}
 
 	public synchronized boolean mutateWell(ScenarioSet set) {
@@ -568,7 +584,7 @@ public class ExtendedConfiguration extends Configuration {
 			return null; // No wells to move
 		// Otherwise randomize and try to move the well
 		List<Well> wells = getWells();
-		Collections.shuffle(wells);
+		Collections.shuffle(wells, Constants.random);
 		for(Well well: wells) {
 			if(well.move(this, scenarioSet)) {
 				updateWells(scenarioSet);
@@ -584,7 +600,7 @@ public class ExtendedConfiguration extends Configuration {
 
 		// Otherwise randomize and try to move the well
 		List<Well> wells = getWells();
-		Collections.shuffle(wells);
+		Collections.shuffle(wells, Constants.random);
 		for(Well well: wells) {
 			if(well.shuffle(this, scenarioSet)) {
 				updateWells(scenarioSet);
@@ -599,7 +615,7 @@ public class ExtendedConfiguration extends Configuration {
 	// level 2
 	private Object moveSensor(List<Sensor> sensors, ScenarioSet scenarioSet) {
 		// Randomize the list
-		Collections.shuffle(sensors);
+		Collections.shuffle(sensors, Constants.random);
 		for(Sensor sensor: sensors) {
 			if(!(sensor instanceof ExtendedSensor)) 
 				continue;
@@ -614,7 +630,7 @@ public class ExtendedConfiguration extends Configuration {
 
 	private Object moveRealizedWell(List<Well> wellsToMove, ScenarioSet scenarioSet) {
 		// Randomize the list
-		Collections.shuffle(wellsToMove);
+		Collections.shuffle(wellsToMove, Constants.random);
 		for(Well well: wellsToMove) {
 			if(well.move(this, scenarioSet)) {
 				return well;

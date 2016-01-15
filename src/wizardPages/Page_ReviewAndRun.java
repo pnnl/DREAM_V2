@@ -197,6 +197,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				data.setWorkingDirectory(outputFolder.getText());
 				data.getSet().setIterations(ittr);
 				try {
+					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					data.run(runs);
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");

@@ -302,8 +302,10 @@ public class HDF5Wrapper {
 							// Also add to the cloud?
 							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
 							//		System.out.println("Found value: " + nodeNumber + ", " + timeStep);
-							addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
-							nodes.add(nodeNumber);
+							if(!nodes.contains(nodeNumber)) {
+								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
+								nodes.add(nodeNumber);
+							}
 						} else {
 							//System.out.println("Skipping");
 						}
@@ -380,23 +382,27 @@ public class HDF5Wrapper {
 						valueAtTime0 == 0 ? 0 : ((valueAtCurrentTime - valueAtTime0) / valueAtTime0) :
 							// This is the calculation for non percentage (not checked)
 							valueAtCurrentTime - valueAtTime0;
-
-						
 						// Max change is what the user entered
 						if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {						
 							exceededInThis = true;
-							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							if(!nodes.contains(nodeNumber)) {
+								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							}
 							break; // Done after we find one time step
 						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
 							exceededInThis = true;
-							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							if(!nodes.contains(nodeNumber)) {
+								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							}
 							break; // Done after we find one time step
 						} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
 							exceededInThis = true;
-							addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-							addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							if(!nodes.contains(nodeNumber)) {
+								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+							}
 							break; // Done after we find one time step
 						}			
 			}
@@ -436,7 +442,7 @@ public class HDF5Wrapper {
 		hdf5File.close();
 		return 0f;
 	}
-/*
+	/*
 	public static Integer getNodeNumber(Point3i max, int index) {
 		return getNodeNumber(max.getI(), max.getJ(), max.getK(), index);
 	}
@@ -474,5 +480,5 @@ public class HDF5Wrapper {
 		}
 		return 0;
 	}
-*/
+	 */
 }

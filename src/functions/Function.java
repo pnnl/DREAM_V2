@@ -60,7 +60,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		iterative = false;
 		List<ExtendedSensor> sensors =  getAllPossibleSensors(set);
 		this.max = max;
-		Collections.shuffle(sensors);// Randomize
+		Collections.shuffle(sensors, Constants.random);// Randomize
 		generateConfigurations(new ArrayList<ExtendedSensor>(),  sensors, set);
 		ResultPrinter.printAll();
 	}

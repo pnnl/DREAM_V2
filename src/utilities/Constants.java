@@ -49,7 +49,38 @@ public class Constants {
 	// "Diana Bacon Runs 03"; 
 	public static String RUN_TEST =  "STORM";//"Bacon Base Case with Flux 3-D";//"120517_small_domain_STOMP_runs";//"Bacon Base Case with Flux 3-D";
 
-	public static Random random = new Random();
+	public static Random random = new Random(1) {
+
+		private static final long serialVersionUID = 1L;
+		
+		@Override 
+		public float nextFloat() {
+			float nextFloat = super.nextFloat();
+			System.out.println(nextFloat);
+			return nextFloat;
+		}
+		@Override 
+		public double nextDouble() {
+			double nextDouble = super.nextDouble();
+			System.out.println(nextDouble);
+			return nextDouble;
+		}
+		@Override 
+		public int nextInt() {
+			int nextInt = super.nextInt();
+			System.out.println(nextInt);
+			return nextInt;
+		}
+		@Override 
+		public int nextInt(int max) {
+			int nextInt = super.nextInt(max);
+			if(nextInt == 102 || nextInt == 2 || nextInt == 55) {
+				System.out.println("This one");
+			}
+			System.out.println(nextInt);
+			return nextInt;
+		}
+	};
 
 	public static DecimalFormat decimalFormat = new DecimalFormat("###.###");
 	public static DecimalFormat exponentialFormat = new DecimalFormat("0.00000000E00");

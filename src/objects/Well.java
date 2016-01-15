@@ -157,14 +157,14 @@ public class Well
 
 		// Chose a neighbor to move to 80% of the time
 		if(neighboringWells.size() > 0 && Double.compare(Constants.random.nextDouble(), .8) < 0) {
-			Collections.shuffle(neighboringWells);
+			Collections.shuffle(neighboringWells, Constants.random);
 			Well toMove = neighboringWells.get(0);
 			//System.out.println("Moving "+toString()+" to a neighbor: " + toMove.toString());
 			return move(configuration, scenarioSet, toMove); // This shouldn't fail, we're only considering valid wells
 		}
 
 		if(validWells.size() > 0) {
-			Collections.shuffle(validWells);
+			Collections.shuffle(validWells, Constants.random);
 			Well toMove = validWells.get(0);
 			//System.out.println("Moving "+toString()+" to a valid well: " + toMove.toString());
 			return move(configuration, scenarioSet, toMove); // This shouldn't fail, we're only considering valid wells
@@ -231,7 +231,7 @@ public class Well
 		}
 		for(String type: validKs.keySet()) {
 			List<Integer> nodes = validKs.get(type);
-			Collections.shuffle(nodes); // Shuffle up  the nodes to get a random order
+			Collections.shuffle(nodes, Constants.random); // Shuffle up  the nodes to get a random order
 			if(debug) {
 				System.out.println(nodes.size() + " valid nodes for " + type + ": " + nodes.toString());		
 			}

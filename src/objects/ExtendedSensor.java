@@ -169,7 +169,7 @@ public class ExtendedSensor extends Sensor {
 		
 		// Get all sensor types that we can afford to switch to
 		List<String> validTypes = set.getValidSwitchTypes(getSensorType(), configuration);
-		Collections.shuffle(validTypes);
+		Collections.shuffle(validTypes, Constants.random);
 		
 		for(String type : validTypes){
 			// Get all the nodes we can afford to move to that are in the cloud and unoccupied
