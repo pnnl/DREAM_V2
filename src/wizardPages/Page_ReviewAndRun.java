@@ -1,5 +1,6 @@
 package wizardPages;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -360,6 +361,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				text += TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK());
 				
 				text += "\n";
+			
 				
 				textArea.setText(text);
 				temp.add(new JScrollPane(textArea));
@@ -500,14 +502,17 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					}
 					text += "\n";
 				}				
-				
-				JFrame temp = new JFrame();
-				temp.setTitle("Best possible times to detection");
-				JTextArea textArea = new JTextArea();
-				textArea.setText(text);
-				temp.add(new JScrollPane(textArea));
-				temp.setSize(800, 400);
-				temp.setVisible(true);
+								
+				try {
+					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
+					if(!csvOutput.exists())
+						csvOutput.createNewFile();
+					FileUtils.writeStringToFile(csvOutput, text);
+					Desktop.getDesktop().open(csvOutput);
+				} catch (IOException e) {		
+					JOptionPane.showMessageDialog(null, "Could not write to best_ttd_table.csv, make sure the file is not currently open");
+					e.printStackTrace();
+				}
 			}	       
 		});		
 		
