@@ -155,7 +155,7 @@ public class HDF5Wrapper {
 	}
 
 	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
-		int years = timestep.getTimeStep();
+		int years = timestep.getRealTimeAsInt();
 		if(
 				Constants.hdf5CloudData.containsKey(scenario) && 
 				Constants.hdf5CloudData.get(scenario).containsKey(years) &&
@@ -284,12 +284,18 @@ public class HDF5Wrapper {
 		H5File hdf5File = Constants.hdf5Files.get(scenario); // For the given scenario
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+		TreeMap<Integer, Group> sortedTimes = new TreeMap<Integer, Group>();
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
 			Object group =  root.getMemberList().get(rootIndex);
 			String name = ((Group)group).getName().replaceAll("plot", "");
 			if(name.contains("data"))
 				continue;
 			int timeStep = Integer.parseInt(name);
+			// These have to be in order...
+			sortedTimes.put(timeStep, (Group)group);
+		}
+		for(Integer timeStep: sortedTimes.keySet()) {
+			Group group = sortedTimes.get(timeStep);			
 			for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 				Object child = ((Group)group).getMemberList().get(groupIndex);
 				if(child instanceof Dataset && ((Dataset)child).getName().equals(dataType)) { // If this is the data type we're interested in
@@ -318,16 +324,16 @@ public class HDF5Wrapper {
 		return nodes;
 	}
 
-	private static void addNodeToCloud(String scenario, int timeStep, String dataType, int nodeNumber, float value) {
+	private static void addNodeToCloud(String scenario, int timeInYears, String dataType, int nodeNumber, float value) {
 		if(Constants.hdf5CloudData == null)
 			Constants.hdf5CloudData = new HashMap<String, Map<Integer, Map<String, Map<Integer, Float>>>>();
 		if(!Constants.hdf5CloudData.containsKey(scenario))
 			Constants.hdf5CloudData.put(scenario, new HashMap<Integer, Map<String, Map<Integer, Float>>>());
-		if(!Constants.hdf5CloudData.get(scenario).containsKey(timeStep))
-			Constants.hdf5CloudData.get(scenario).put(timeStep, new HashMap<String, Map<Integer, Float>>());
-		if(!Constants.hdf5CloudData.get(scenario).get(timeStep).containsKey(dataType))
-			Constants.hdf5CloudData.get(scenario).get(timeStep).put(dataType, new HashMap<Integer, Float>());
-		Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).put(nodeNumber, value);	
+		if(!Constants.hdf5CloudData.get(scenario).containsKey(timeInYears))
+			Constants.hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
+		if(!Constants.hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
+			Constants.hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
+		Constants.hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);	
 	}
 
 	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {

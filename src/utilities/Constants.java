@@ -49,7 +49,7 @@ public class Constants {
 	// "Diana Bacon Runs 03"; 
 	public static String RUN_TEST =  "STORM";//"Bacon Base Case with Flux 3-D";//"120517_small_domain_STOMP_runs";//"Bacon Base Case with Flux 3-D";
 
-	public static Random random = new Random(1) {
+	public static Random random = new Random(1);/* {
 
 		private static final long serialVersionUID = 1L;
 		
@@ -80,7 +80,7 @@ public class Constants {
 			System.out.println(nextInt);
 			return nextInt;
 		}
-	};
+	};*/
 
 	public static DecimalFormat decimalFormat = new DecimalFormat("###.###");
 	public static DecimalFormat exponentialFormat = new DecimalFormat("0.00000000E00");
