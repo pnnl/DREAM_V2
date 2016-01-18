@@ -237,6 +237,41 @@ public class ScenarioSet {
 		return getSensorSettings(type).getCost();
 	}
 	
+	/*
+	 * This returns the cost for post-processing cost-analysis.
+	 * TODO: eliminate any redundancy that might be in place with above getCost functions.
+	 */
+	public float costOfConfiguration(Configuration configuration){
+		float cost = 0;
+		List<Sensor> sensors = configuration.getSensors();
+		List<Point3i> locations = new ArrayList<Point3i>();
+		boolean foundWell = false;
+		for(Sensor sensor: sensors){
+			foundWell = false;
+			Point3i point = sensor.getIJK();
+			for(Point3i location: locations){
+				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
+					//this is at least the second sensor in the well
+					// k=0 is the lowest point!
+					if(point.getK() < location.getK()){
+						locations.remove(location);
+						locations.add(point);
+					}
+					foundWell = true;
+					break;
+				}
+			}
+			if(!foundWell){
+				locations.add(point);
+			}
+		}
+		float cost_per_foot = 20;
+		for(Point3i location: locations){
+			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZFromIJK(location).getZ()) * cost_per_foot;
+		}
+		return cost;
+	}
+	
 	public float getCostConstraint() {
 		return costConstraint;
 	}

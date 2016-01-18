@@ -139,7 +139,7 @@ public class ResultPrinter {
 			return;
 		String fileName = "best_configurations";
 		List<String> lines = new ArrayList<String>();	
-		lines.add("Scenarios with Leak Detected %, Average ETFD of Successful Scenarios, Range of ETFD over Successful Scenarios, Scenarios with No Leak Detected, Sensor Types (x y z)");
+		lines.add("Scenarios with Leak Detected %, Average ETFD of Successful Scenarios, Range of ETFD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
 
 		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
 		for(Configuration configuration: results.bestConfigSumList) {
@@ -205,7 +205,7 @@ public class ResultPrinter {
 						}
 					}								
 				}
-				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected;
+				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected + ", " + results.set.costOfConfiguration(configuration); 
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";

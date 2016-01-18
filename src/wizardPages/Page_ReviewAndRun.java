@@ -421,7 +421,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-
 				List<List<String>> sensorsToTest = new ArrayList<List<String>>();
 				
 				// Run once with each sensor type
@@ -516,7 +515,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});		
 		
-
 		/*
 		// *Uncomment for the new plot button and functionality 
 		 
@@ -559,7 +557,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 							HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
 							for(Configuration config: bestConfigs){
 								configurationTTDs.add(ttd);
-								float cost = costOfConfiguration(config);
+								float cost = data.getScenarioSet().costOfConfiguration(config);
 								if(cost < minCost) minCost = cost;
 								if(cost > maxCost) maxCost = cost;
 								configurationCosts.add(cost);
@@ -607,8 +605,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-		
 		*/
+		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
@@ -616,37 +614,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 	}
 	
-	//TODO: This belongs somewhere else
-	private float costOfConfiguration(Configuration config){
-		float cost = 0;
-		List<Sensor> sensors = config.getSensors();
-		List<Point3i> locations = new ArrayList<Point3i>();
-		boolean foundWell = false;
-		for(Sensor sensor: sensors){
-			foundWell = false;
-			Point3i point = sensor.getIJK();
-			for(Point3i location: locations){
-				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
-					//this is at least the second sensor in the well
-					// k=0 is the lowest point!
-					if(point.getK() < location.getK()){
-						locations.remove(location);
-						locations.add(point);
-					}
-					foundWell = true;
-					break;
-				}
-			}
-			if(!foundWell){
-				locations.add(point);
-			}
-		}
-		float cost_per_foot = 20;
-		for(Point3i location: locations){
-			cost += (SensorSetting.minZ - data.getSet().getNodeStructure().getXYZFromIJK(location).getZ()) * cost_per_foot;
-		}
-		return cost;
-	}
+
 
 	public void convertFile(File file) throws IOException {
 		/*
