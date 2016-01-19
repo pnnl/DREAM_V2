@@ -104,6 +104,7 @@ public class ScenarioSet {
 		builder.append("\t\tMax wells: " + maxWells + "\r\n");
 		builder.append("\t\tIterations: " + iterations + "\r\n");
 		builder.append("\t\tCost constraint: " + costConstraint + "\r\n");
+		builder.append(getInferenceTest());
 
 		return builder.toString();
 

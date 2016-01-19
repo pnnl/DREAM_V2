@@ -3,6 +3,7 @@ package results;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -138,6 +139,7 @@ public class ResultPrinter {
 		if(!results.bestConfigSum)
 			return;
 		String fileName = "best_configurations";
+		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected %, Average ETFD of Successful Scenarios, Range of ETFD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
 
@@ -213,9 +215,16 @@ public class ResultPrinter {
 					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
 				}
-
-				lines.add(line);
+				linesToSort.put(costOfConfig, line);
+				//lines.add(line);
 			}
+		}
+		
+		List<Float> keySet = new ArrayList<Float>();
+		keySet.addAll(linesToSort.keySet());
+		java.util.Collections.sort(keySet);
+		for(float key: keySet){
+			lines.add(linesToSort.get(key));
 		}
 
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);

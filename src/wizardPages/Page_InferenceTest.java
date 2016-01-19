@@ -106,13 +106,13 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 			dataLabel.setText(dataType);			
 			
 			Text minText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
+				minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
 			if(minText.getText().isEmpty() ||minText.getText().trim().equals("0")) {
 				(dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
 			} else {
 				(dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
 			}
-			if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
-				minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
 			minText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
