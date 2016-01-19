@@ -205,7 +205,10 @@ public class ResultPrinter {
 						}
 					}								
 				}
-				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected + ", " + results.set.costOfConfiguration(configuration); 
+				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected;
+				float costOfConfig = results.set.costOfConfiguration(configuration);
+				if(costOfConfig < 1000) line += ", " + Constants.decimalFormat.format(costOfConfig);
+				else line += ", " + Constants.exponentialFormat.format(costOfConfig);
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
