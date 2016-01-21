@@ -243,8 +243,8 @@ public class ResultPrinter {
 				String line = String.valueOf(iteration);
 
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : objRes.timeToDetectionInDetected) + ", " + 
-								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : objRes.percentScenariosDetected);
+					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected)) + ", " + 
+								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected));
 				}
 				lines.add(line);
 			}	
