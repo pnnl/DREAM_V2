@@ -485,12 +485,12 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					
 					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
 						text += sensorType + ",";
-						text += sensorTestedToTTD.get(sensorType) + ",";
+						text += Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",";
 						text += sensorTestedScenariosDetected.get(sensorType).size() + ",";
 						text += data.getScenarioSet().getScenarios().size();
 						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 							text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
-									 ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario()) : "");			
+									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : "");			
 						}
 						text += "\n";
 					}
@@ -506,7 +506,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					}
 				}
 				
-				text += "\nWeighted percent of scenarios that are detectable:," + percentDetectable*100;
+				text += "\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100);
 								
 				try {
 					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
