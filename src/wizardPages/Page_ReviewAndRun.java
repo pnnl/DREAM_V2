@@ -417,7 +417,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
-		bestTTDTableButton.setText("Best TTD Table");
+		bestTTDTableButton.setText("Best TTD by Scenario");
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -432,6 +432,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				// Run once with all sensor types
 				sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
 				
+				float percentDetectable = 0;
+				
 				Map<String, Float> sensorTestedToTTD = new HashMap<String, Float>();
 				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
 				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new TreeMap<String, Map<String, Float>>();
@@ -445,32 +447,23 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					}
 					
 					data.runObjective(configuration);
-					String text = "";
 					
 					float totalTimeToDetection = 0.0f;
 					int detectedScenarios = 0;
-					int totalScenarios = 0;
 					List<String> scenariosDetected = new ArrayList<String>();
 					Map<String, Float> ttdForEachDetected = new HashMap<String, Float>();
 					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
 						float timeToDetection = configuration.getTimesToDetection().get(scenario);
-						if(timeToDetection == 1000000) {
-							text += scenario.getScenario() + ": did not detect\n";
-						} else {
-							detectedScenarios++;
-							totalTimeToDetection += timeToDetection;
-							text += scenario.getScenario() + ":" + timeToDetection + "\n";
-							scenariosDetected.add(scenario.getScenario());
-							ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
+						detectedScenarios++;
+						totalTimeToDetection += timeToDetection;
+						scenariosDetected.add(scenario.getScenario());
+						ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
+						if(sensors.size() > 1){
+							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
 						}
-						totalScenarios++;
 					}
 					
-					text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
-					     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
-					     + text;
-					
-					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "All";
+					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "Any";
 					sensorTestedToTTD.put(sensorTested, (totalTimeToDetection/detectedScenarios));
 					sensorTestedScenariosDetected.put(sensorTested, scenariosDetected);
 					
@@ -482,25 +475,38 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				String text = "";
 				
 				// Heading
-				text += "Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios,";
+				text += "Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios";
 				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 					text+= "," + scenario.getScenario();
 				}
 				text+="\n";
-				
-				
+								
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					
-					text += sensorType + ",";
-					text += sensorTestedToTTD.get(sensorType) + ",";
-					text += sensorTestedScenariosDetected.get(sensorType).size() + ",";
-					text += data.getScenarioSet().getScenarios().size() + ",";
-					for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-						text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
-								 ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario()) : "");			
+					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
+						text += sensorType + ",";
+						text += sensorTestedToTTD.get(sensorType) + ",";
+						text += sensorTestedScenariosDetected.get(sensorType).size() + ",";
+						text += data.getScenarioSet().getScenarios().size();
+						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+							text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
+									 ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario()) : "");			
+						}
+						text += "\n";
 					}
-					text += "\n";
-				}				
+					else{
+						text += sensorType + ",";
+						text += "N/A" + ",";
+						text += "N/A" + ",";
+						text += "N/A";
+						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+							text += ",N/A";
+						}
+						text += "\n";
+					}
+				}
+				
+				text += "\nWeighted percent of scenarios that are detectable:," + percentDetectable*100;
 								
 				try {
 					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");

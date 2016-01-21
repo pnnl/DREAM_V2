@@ -141,7 +141,7 @@ public class ResultPrinter {
 		String fileName = "best_configurations";
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
-		lines.add("Scenarios with Leak Detected %, Average ETFD of Successful Scenarios, Range of ETFD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
+		lines.add("Scenarios with Leak Detected %, Average TTD of Successful Scenarios, Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
 
 		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
 		for(Configuration configuration: results.bestConfigSumList) {
@@ -170,7 +170,7 @@ public class ResultPrinter {
 						} else {
 							ttd.add(timeToDetection);
 							weights.add(results.set.getScenarioWeights().get(scenario));
-							scenariosDetected += 100*results.set.getScenarioWeights().get(scenario)/results.set.getTotalScenarioWeight();
+							scenariosDetected += 100*results.set.getGloballyNormalizedScenarioWeight(scenario);
 							//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
 						}
 					} else {
@@ -242,14 +242,19 @@ public class ResultPrinter {
 				if(lines.isEmpty()) { // Add the heading
 					String line = "Iteration";
 					for(Integer run: results.objPerIterSumMap.get(type).get(iteration).keySet()) {
-						line += ", run" + run + " ETFD" + ", run" + run + " % scenarios detected";
+						line += ", run" + run + " TTD" + ", run" + run + " % scenarios detected";
 					}
 					lines.add(line);
 				}	
 				String line = String.valueOf(iteration);
+				float percentDetected = 0;
+				for(Scenario scenario: results.set.getScenarios()) {
+					percentDetected += 100*results.set.getGloballyNormalizedScenarioWeight(scenario);
+				}
+
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
 					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : objRes.timeToDetectionInDetected) + ", " + 
-								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : objRes.percentScenariosDetected);
+								   (Double.isNaN(percentDetected) ? "" : percentDetected);
 				}
 				lines.add(line);
 			}	
