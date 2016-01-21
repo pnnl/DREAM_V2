@@ -130,7 +130,7 @@ public class ResultPrinter {
 		String fileName = "best_configurations";
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
-		lines.add("Scenarios with Leak Detected %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
+		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
 				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
 
 		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
@@ -148,6 +148,7 @@ public class ResultPrinter {
 				
 				float scenariosDetected = configuration.countScenariosDetected();
 				float totalScenarios = results.set.getScenarios().size();
+				float globallyWeightedPercentage = 0;
 				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
 				float costOfConfig = results.set.costOfConfiguration(configuration);
 				float totalWeightsForDetectedScenarios = 0.0f;
@@ -162,10 +163,14 @@ public class ResultPrinter {
 				}	
 				
 				// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+				// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
 				for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
 					float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
 					weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
+					globallyWeightedPercentage += results.set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
 				}
+				
+				
 						
 				
 				float minYear = Float.MAX_VALUE;
@@ -191,7 +196,8 @@ public class ResultPrinter {
 					}								
 				}
 				
-				String line = Constants.percentageFormat.format(scenariosDetected/totalScenarios) + ", " + 
+				String line = Constants.percentageFormat.format(globallyWeightedPercentage) + ", " +
+						  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + ", " + 
 						  Constants.percentageFormat.format(weightedAverageTTD) + ", " + 
 						  Constants.percentageFormat.format(unweightedAverageTTD);	
 				
