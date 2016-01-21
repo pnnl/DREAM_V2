@@ -113,7 +113,6 @@ public class Results {
 						newConfiguration.addSensor(sensor.makeCopy());
 				}
 				newConfiguration.setTimesToDetection(configuration.getTimesToDetection());
-				newConfiguration.setTimeToDetection(configuration.getTimeToDetection());	
 				bestConfigSumList.add(newConfiguration);
 				bestConfigSumTTDs.put(newConfiguration, ttd);
 				bestConfigSumPercents.put(newConfiguration, percent);
@@ -125,23 +124,21 @@ public class Results {
 				objPerIterSumMap.get(type).put(iteration, new LinkedHashMap<Integer, ObjectiveResult>());
 			}	
 			
-			float ttd = 0;
-//			ArrayList<Float> ttd = new ArrayList<Float>();
-//			ArrayList<Float> weights = new ArrayList<Float>();
-			float scenariosDetected = 0;
-			for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-				float timeToDetection = configuration.getTimesToDetection().get(scenario);
-				ttd += timeToDetection*set.getGloballyNormalizedScenarioWeight(scenario);
-				if(timeToDetection == 1000000) {
-					// Do nothing...
-				} else {
-					scenariosDetected += 100*set.getGloballyNormalizedScenarioWeight(scenario);
-					//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-				}	
-			}
-			//float percentScenariosDetected = ((float)scenariosDetected)/((float)totalScenarios) * 100;
+			float scenariosDetected = configuration.countScenariosDetected();
+			float totalWeightsForDetectedScenarios = 0.0f;
+			float weightedAverageTTD = 0.0f;
+
+			// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+				totalWeightsForDetectedScenarios += set.getScenarioWeights().get(detectingScenario);
+			}	
 			
-			objPerIterSumMap.get(type).get(iteration).put(run, new ObjectiveResult(ttd, scenariosDetected));
+			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+				float scenarioWeight = set.getScenarioWeights().get(detectingScenario);
+				weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
+			}
+
+			objPerIterSumMap.get(type).get(iteration).put(run, new ObjectiveResult(weightedAverageTTD, scenariosDetected));
 		}
 		
 		if(allConfigs) {

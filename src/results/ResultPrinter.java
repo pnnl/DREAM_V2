@@ -93,33 +93,22 @@ public class ResultPrinter {
 				List<String> lines = new ArrayList<String>();
 				for(Integer iteration: results.allConfigsMap.get(type).get(run).keySet()) {
 					Configuration configuration = results.allConfigsMap.get(type).get(run).get(iteration);
-					// Compute ttd for only detecting scenarios
-					ArrayList<Float> ttd = new ArrayList<Float>();
-					ArrayList<Float> weights = new ArrayList<Float>();
-					float scenariosDetected = 0;
-					for(Scenario scenario: results.set.getScenarios()) {
-						if(configuration.getTimesToDetection().containsKey(scenario)) {
-							float timeToDetection = configuration.getTimesToDetection().get(scenario);
-							if(timeToDetection == 1000000) {
-								// Do nothing...
-							} else {
-								ttd.add(timeToDetection);
-								weights.add(results.set.getScenarioWeights().get(scenario));
-								scenariosDetected += 100*results.set.getScenarioWeights().get(scenario)/results.set.getTotalScenarioWeight();
-								//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-							}
-						} else {
-							// It didn't detect, do nothing.
-						}
-						
-					}
-					float weightedAverageTTD = 0;
-					float sum = 0;
-					for(float value: weights) sum += value;
-					for(int i=0; i<ttd.size(); i++) weightedAverageTTD += ttd.get(i)*weights.get(i)/sum;
+				
+					float scenariosDetected = configuration.countScenariosDetected();
+					float totalWeightsForDetectedScenarios = 0.0f;
+					float weightedAverageTTD = 0.0f;
+
+					// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(detectingScenario);
+					}	
 					
-					String timeToDetection =  Constants.decimalFormat.format((weightedAverageTTD));	
-					String line = iteration + ", " + timeToDetection + ", " + scenariosDetected;
+					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+						float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
+						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
+					}
+					
+					String line = iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected;
 					for(Sensor sensor: configuration.getSensors()) {
 						line += ", " + sensor.getNodeNumber() + ": " + sensor.getSensorType();
 					}
@@ -141,7 +130,8 @@ public class ResultPrinter {
 		String fileName = "best_configurations";
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
-		lines.add("Scenarios with Leak Detected %, Average TTD of Successful Scenarios, Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
+		lines.add("Scenarios with Leak Detected %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
+				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Configuration, Sensor Types (x y z)");
 
 		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
 		for(Configuration configuration: results.bestConfigSumList) {
@@ -155,32 +145,31 @@ public class ResultPrinter {
 		for(List<Configuration> configurations: resultsByNumSensors.values()) {
 			for(Configuration configuration: configurations) {
 				String scenariosNotDetected = "";
-				float ttd = 0;
-				// float scenariosDetected = 0; // Uniform distribution among scenarios
-				float scenariosDetected = 0;
+				
+				float scenariosDetected = configuration.countScenariosDetected();
+				float totalScenarios = results.set.getScenarios().size();
+				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
+				float costOfConfig = results.set.costOfConfiguration(configuration);
+				float totalWeightsForDetectedScenarios = 0.0f;
+				float weightedAverageTTD = 0.0f;
 
 				for(Scenario scenario: results.set.getScenarios()) {
-					if(configuration.getTimesToDetection().containsKey(scenario)) {
-						float timeToDetection = configuration.getTimesToDetection().get(scenario);
-						if(timeToDetection == 1000000) {
-							if(!scenariosThatDidNotDetect.contains(scenario))
-								scenariosThatDidNotDetect.add(scenario);
-							scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
-						} else {
-							ttd += timeToDetection*results.set.getGloballyNormalizedScenarioWeight(scenario);
-							scenariosDetected += 100*results.set.getGloballyNormalizedScenarioWeight(scenario);
-							//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
-						}
+					if(configuration.getTimesToDetection().containsKey(scenario)) {	
+						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(scenario);
 					} else {
-						// DId not detect
-						if(!scenariosThatDidNotDetect.contains(scenario))
-							scenariosThatDidNotDetect.add(scenario);
-						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
+						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;	
 					}
+				}	
+				
+				// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+				for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+					float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
+					weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 				}
+						
+				
 				float minYear = Float.MAX_VALUE;
 				float maxYear = -Float.MAX_VALUE;			
-				String line = scenariosDetected + ", " + ttd;	
 				for(Sensor sensor: configuration.getSensors()) {
 					if(sensor instanceof ExtendedSensor) {
 						for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
@@ -201,16 +190,21 @@ public class ResultPrinter {
 						}
 					}								
 				}
-				line += ",[" + minYear + " " + maxYear + "]," + scenariosNotDetected;
-				float costOfConfig = results.set.costOfConfiguration(configuration);
-				if(costOfConfig < 1000) line += ", " + Constants.decimalFormat.format(costOfConfig);
-				else line += ", " + Constants.exponentialFormat.format(costOfConfig);
+				
+				String line = Constants.percentageFormat.format(scenariosDetected/totalScenarios) + ", " + 
+						  Constants.percentageFormat.format(weightedAverageTTD) + ", " + 
+						  Constants.percentageFormat.format(unweightedAverageTTD);	
+				
+				line += ",[" + Constants.percentageFormat.format(minYear) + " " + Constants.percentageFormat.format(maxYear) + "]," + scenariosNotDetected;
+				
+				line += ", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig));
+				
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
 				}
+				
 				linesToSort.put(costOfConfig, line);
-				//lines.add(line);
 			}
 		}
 		

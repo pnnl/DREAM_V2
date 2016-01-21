@@ -83,8 +83,9 @@ public class Constants {
 	};*/
 
 	public static DecimalFormat decimalFormat = new DecimalFormat("###.###");
+	public static DecimalFormat percentageFormat = new DecimalFormat("###.##");
 	public static DecimalFormat exponentialFormat = new DecimalFormat("0.00000000E00");
-
+	
 	private static Logger LOGGER;
 	private static boolean loggerOn;
 	

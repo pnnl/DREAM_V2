@@ -44,7 +44,7 @@ public class Result implements Comparable<Result> {
 			}
 		}
 		inferenceResult = configuration.getInferenceResults();
-		timeToDetection = configuration.getTimeToDetection();
+		timeToDetection = configuration.getUnweightedTimeToDetectionInDetectingScenarios();
 		duplicateCount = 0;
 	}
 
@@ -78,7 +78,7 @@ public class Result implements Comparable<Result> {
 			}
 		}
 		inferenceResult = configuration.getInferenceResults();
-		timeToDetection = configuration.getTimeToDetection();
+		timeToDetection = configuration.getUnweightedTimeToDetectionInDetectingScenarios();
 		duplicateCount = 0;
 	}
 

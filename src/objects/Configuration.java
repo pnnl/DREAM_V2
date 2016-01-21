@@ -5,17 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import results.Results.Type;
-
 public class Configuration {
 
 	protected List<Sensor> sensors = new ArrayList<Sensor>();	
 	
 	private Map<Scenario, Float> timesToDetection;
-
-	// Used just for results
-	// private float objectiveValue;
-	private float timeToDetection;
 
 	public Configuration() {
 		sensors = new ArrayList<Sensor>();
@@ -27,8 +21,6 @@ public class Configuration {
 		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
 			sensors.add(sensor.makeCopy());
 		}
-		// objectiveValue = configuration.get...;
-		timeToDetection = configuration.getTimeToDetection();	
 		
 		timesToDetection = new HashMap<Scenario, Float>(configuration.getTimesToDetection());
 		
@@ -46,8 +38,11 @@ public class Configuration {
 		return sensors;
 	}
 
-	public float getTimeToDetection() {
-		return timeToDetection;
+	public float getUnweightedTimeToDetectionInDetectingScenarios() {
+		float ttd = 0.0f;
+		for(float ttdPerScenario: timesToDetection.values()) 
+			ttd += ttdPerScenario;
+		return ttd;
 	}	
 
 	@Override
@@ -80,13 +75,13 @@ public class Configuration {
 		}
 		return hash;
 	}
+	
+	public int countScenariosDetected() {
+		return timesToDetection == null ? 0 : timesToDetection.keySet().size();
+	}
 
 	public Map<Scenario, Float> getTimesToDetection() {
 		return timesToDetection;
-	}
-
-	public void setTimeToDetection(float timeToDetection) {
-		this.timeToDetection = timeToDetection;
 	}
 	
 	public void setTimesToDetection(Map<Scenario, Float> map) {

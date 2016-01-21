@@ -238,7 +238,7 @@ public class Vortex extends Function {
 			}
 		}
 		
-		return configuration.getTimeToDetection();
+		return configuration.getObjectiveValue();
 	}
 
 
