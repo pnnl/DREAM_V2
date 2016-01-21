@@ -39,7 +39,6 @@ public class ScenarioSet {
 	private float costConstraint;
 	
 	private Map<Scenario, Float> scenarioWeights;
-	private float totalScenarioWeight;
 	private Map<String, SensorSetting> sensorSettings;
 	
 	private InferenceTest inferenceTest;
@@ -59,7 +58,6 @@ public class ScenarioSet {
 		
 		scenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
-		setTotalScenarioWeight(0);
 		sensorSettings = new HashMap<String, SensorSetting>();
 
 		addPoint = new Point3i(1,1,1);
@@ -146,7 +144,6 @@ public class ScenarioSet {
 			}
 			for(Scenario scenario: this.scenarios) {
 				scenarioWeights.put(scenario, (float)1);
-				setTotalScenarioWeight(getTotalScenarioWeight() + 1);
 			}
 		} 
 		
@@ -180,7 +177,7 @@ public class ScenarioSet {
 	}
 
 	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
-		return scenarioWeights.get(scenario) / totalScenarioWeight;
+		return scenarioWeights.get(scenario) / getTotalScenarioWeight();
 	}
 	
 	public Map<Scenario, Float> getScenarioWeights() {
@@ -189,8 +186,6 @@ public class ScenarioSet {
 
 	public void setScenarioWeights(Map<Scenario, Float> scenarioWeights) {
 		this.scenarioWeights = scenarioWeights;
-		this.totalScenarioWeight = 0;
-		for(float value: scenarioWeights.values()) this.totalScenarioWeight += value;
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
@@ -517,8 +512,6 @@ public class ScenarioSet {
 			return; // Nothing new
 		defaultWeights = false;
 		scenarioWeights.put(scenario, weight);
-		setTotalScenarioWeight(0);
-		for(float value: scenarioWeights.values()) setTotalScenarioWeight(getTotalScenarioWeight() + value);
 	}
 
 	public void removeScenario(Scenario scenario) {
@@ -552,11 +545,9 @@ public class ScenarioSet {
 	}
 
 	public float getTotalScenarioWeight() {
+		float totalScenarioWeight = 0;
+		for(float value: scenarioWeights.values()) totalScenarioWeight += value;
 		return totalScenarioWeight;
-	}
-
-	public void setTotalScenarioWeight(float totalScenarioWeight) {
-		this.totalScenarioWeight = totalScenarioWeight;
 	}
 
 	

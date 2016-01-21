@@ -155,8 +155,7 @@ public class ResultPrinter {
 		for(List<Configuration> configurations: resultsByNumSensors.values()) {
 			for(Configuration configuration: configurations) {
 				String scenariosNotDetected = "";
-				ArrayList<Float> ttd = new ArrayList<Float>();
-				ArrayList<Float> weights = new ArrayList<Float>();
+				float ttd = 0;
 				// float scenariosDetected = 0; // Uniform distribution among scenarios
 				float scenariosDetected = 0;
 
@@ -168,8 +167,7 @@ public class ResultPrinter {
 								scenariosThatDidNotDetect.add(scenario);
 							scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
 						} else {
-							ttd.add(timeToDetection);
-							weights.add(results.set.getScenarioWeights().get(scenario));
+							ttd += timeToDetection*results.set.getGloballyNormalizedScenarioWeight(scenario);
 							scenariosDetected += 100*results.set.getGloballyNormalizedScenarioWeight(scenario);
 							//		scenariosDetected += results.set.getScenarioProbabilities().get(scenario);					
 						}
@@ -180,13 +178,9 @@ public class ResultPrinter {
 						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;
 					}
 				}
-				float weightedAverageTTD = 0;
-				float sum = 0;
-				for(float value: weights) sum += value;
-				for(int i=0; i<ttd.size(); i++) weightedAverageTTD += ttd.get(i)*weights.get(i)/sum;
 				float minYear = Float.MAX_VALUE;
 				float maxYear = -Float.MAX_VALUE;			
-				String line = scenariosDetected + ", " + weightedAverageTTD;	
+				String line = scenariosDetected + ", " + ttd;	
 				for(Sensor sensor: configuration.getSensors()) {
 					if(sensor instanceof ExtendedSensor) {
 						for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
@@ -247,14 +241,10 @@ public class ResultPrinter {
 					lines.add(line);
 				}	
 				String line = String.valueOf(iteration);
-				float percentDetected = 0;
-				for(Scenario scenario: results.set.getScenarios()) {
-					percentDetected += 100*results.set.getGloballyNormalizedScenarioWeight(scenario);
-				}
 
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
 					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : objRes.timeToDetectionInDetected) + ", " + 
-								   (Double.isNaN(percentDetected) ? "" : percentDetected);
+								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : objRes.percentScenariosDetected);
 				}
 				lines.add(line);
 			}	

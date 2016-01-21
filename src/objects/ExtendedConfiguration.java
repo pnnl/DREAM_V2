@@ -103,7 +103,11 @@ public class ExtendedConfiguration extends Configuration {
 				copy.addSensor(set, sensorCopy);
 			}
 		}
-
+		
+		copy.timesToDetection = new HashMap<Scenario, Float>(timesToDetection);
+		copy.objectiveValues = new HashMap<Scenario, Float>(objectiveValues);
+		copy.inferenceResults = new HashMap<Scenario, InferenceResult>(inferenceResults);
+/*
 		// Copy in ttd and objective values?
 		for(Scenario key: getTimesToDetection().keySet()) {
 			copy.addTimeToDetection(key, timesToDetection.get(key));
@@ -116,7 +120,7 @@ public class ExtendedConfiguration extends Configuration {
 		for(Scenario key: inferenceResults.keySet()) {
 			copy.addInferenceResult(key, inferenceResults.get(key));
 		}
-
+*/
 		return copy;		
 	}
 

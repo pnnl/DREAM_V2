@@ -137,11 +137,11 @@ public class CCS9_1 extends Function {
 	{
 		if (set.getScenarioWeights().get(scenario) > 0)
 		{
-			int maxTime = 0;
+			TimeStep ts = null;
 			InferenceResult inferenceResult = null;
 			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps())
 			{
-				maxTime = timeStep.getTimeStep();
+				ts = timeStep;
 				long startTime = System.currentTimeMillis();	
 				inferenceResult = runOneTime(con, set, timeStep, scenario, true);
 				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
@@ -151,10 +151,12 @@ public class CCS9_1 extends Function {
 
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
-			if (inferenceResult.isInferred()) {
-				timeInYears = set.getNodeStructure().getTimeAt(maxTime); 
+			if (ts != null && inferenceResult.isInferred()) {
+				timeInYears = ts.getRealTimeAsInt();
 				// Only keep track if we've hit inference
 				con.addTimeToDetection(scenario, timeInYears);
+			} else {
+				con.getTimesToDetection().remove(scenario);
 			}
 
 			con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
