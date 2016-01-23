@@ -407,7 +407,7 @@ public class ScenarioSet {
 		
 		// if you want to run the "old" way, comment out everything below this until the matching comment
 		//CATHERINE - Here are the two things to change.
-		float exclusionRadius = 0; //this is the minimum distance between distinct wells. Set to 0 for old behavior.
+		float exclusionRadius = 10; //this is the minimum distance between distinct wells. Set to 0 for old behavior.
 		boolean allowMultipleSensorsInWell = true; //If this is set to true, this should behave just like it used to.
 		//Find all well locations
 		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();

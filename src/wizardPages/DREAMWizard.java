@@ -308,60 +308,78 @@ public class DREAMWizard extends Wizard {
 					} 
 		 */
 		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorSettings) throws Exception {
-			dialog.run(true, false, new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					monitor.beginTask("Sensor settings", sensorSettings.size()*2);				
-					for(String sensorType: sensorSettings.keySet()) {
-						SensorData data = sensorSettings.get(sensorType);
-						if(data.isIncluded) {
-							monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
-							if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-								set.resetSensorSettings(sensorType, data.min, data.max);
+			try {
+				dialog.run(true, false, new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						monitor.beginTask("Sensor settings", sensorSettings.size()*2);				
+						for(String sensorType: sensorSettings.keySet()) {
+							SensorData data = sensorSettings.get(sensorType);
+							if(data.isIncluded) {
+								monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
+								if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
+									set.resetSensorSettings(sensorType, data.min, data.max);
+								}
+								set.getSensorSettings().get(sensorType).setUserSettings(
+										data.cost, 
+										Color.BLUE,
+										data.min,
+										data.max,
+										data.trigger, 
+										reset,
+										data.deltaType,
+										data.maxZ,
+										data.minZ);
+								monitor.worked(1);
+								if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
+									monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
+									set.getSensorSettings(sensorType).getValidNodes(); // This should re-query for the valid nodes
+								}
+
+
+
+								monitor.worked(1);
+							} else {
+								monitor.subTask(sensorType.toLowerCase() + " - removing");
+								set.removeSensorSettings(sensorType);
+								set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
+								monitor.worked(2);
 							}
-							set.getSensorSettings().get(sensorType).setUserSettings(
-									data.cost, 
-									Color.BLUE,
-									data.min,
-									data.max,
-									data.trigger, 
-									reset,
-									data.deltaType,
-									data.maxZ,
-									data.minZ);
-							monitor.worked(1);
-							if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
-								monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
-								set.getSensorSettings(sensorType).getValidNodes(); // This should re-query for the valid nodes
+							//TODO: remove this hard-coded z check
+
+							float minZ = data.minZ;
+							float maxZ = data.maxZ;
+							//Find the nodes that fit this z restriction
+							HashSet<Integer> temp = new HashSet<Integer>();
+							if(set.getSensorSettings(sensorType) != null){
+								for(Integer node: set.getSensorSettings(sensorType).getValidNodes()){
+									Point3d test = set.getNodeStructure().getXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+									if (minZ <= test.getZ() && test.getZ() <= maxZ)
+										temp.add(node);
+								}
+								set.getSensorSettings(sensorType).setValidNodes(temp);
 							}
-
-
-
-							monitor.worked(1);
-						} else {
-							monitor.subTask(sensorType.toLowerCase() + " - removing");
-							set.removeSensorSettings(sensorType);
-							set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
-							monitor.worked(2);
 						}
-						//TODO: remove this hard-coded z check
 
-						float minZ = data.minZ;
-						float maxZ = data.maxZ;
-						//Find the nodes that fit this z restriction
-						HashSet<Integer> temp = new HashSet<Integer>();
-						if(set.getSensorSettings(sensorType) != null){
-							for(Integer node: set.getSensorSettings(sensorType).getValidNodes()){
-								Point3d test = set.getNodeStructure().getXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
-								if (minZ <= test.getZ() && test.getZ() <= maxZ)
-									temp.add(node);
-							}
-							set.getSensorSettings(sensorType).setValidNodes(temp);
+					}
+				});
+			} catch (Exception e) {
+				float totalNodes = 0;
+				for(String sc : Constants.hdf5CloudData.keySet()) {
+					for(int ts: Constants.hdf5CloudData.get(sc).keySet()) {
+						for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
+							totalNodes += Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
+							if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
+								System.out.println(sc + ", " + ts + ", " + dt + " , " + Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
 						}
 					}
-
 				}
-			});
+				System.out.print("Cloud currently has: ");
+				System.out.println(totalNodes);
+				JOptionPane.showMessageDialog(null, "Dream is out of memory!  Please reduce your solution space, current space: " + totalNodes);
+				e.printStackTrace();
+
+			}
 		}
 
 		public void setupInferenceTest(final Map<String, Integer> requiredSensors, final int totalMinimum) throws Exception {

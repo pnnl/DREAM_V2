@@ -249,7 +249,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				temperature= temperature * 0.99f;
 				calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
 				//calculatedValue = 1;
-				randomValue = Constants.random.nextFloat();
+				//randomValue = Constants.random.nextFloat();
+				randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
 					temp = System.currentTimeMillis();					
@@ -269,7 +270,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				temperature= temperature * 0.99f;
 				float fiftyAtNinetyNine = (float)(-99*Math.log(.5));
 				calculatedValue = (float)Math.exp(-(fiftyAtNinetyNine) / temperature);
-				randomValue = Constants.random.nextFloat();
+				//randomValue = Constants.random.nextFloat();
+				randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
 					temp = System.currentTimeMillis();

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JOptionPane;
+
 import objects.NodeStructure;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
@@ -325,6 +327,7 @@ public class HDF5Wrapper {
 	}
 
 	private static void addNodeToCloud(String scenario, int timeInYears, String dataType, int nodeNumber, float value) {
+		try {
 		if(Constants.hdf5CloudData == null)
 			Constants.hdf5CloudData = new HashMap<String, Map<Integer, Map<String, Map<Integer, Float>>>>();
 		if(!Constants.hdf5CloudData.containsKey(scenario))
@@ -334,6 +337,22 @@ public class HDF5Wrapper {
 		if(!Constants.hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
 			Constants.hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
 		Constants.hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);	
+		} catch (Exception e) {
+			float totalNodes = 0;
+			for(String sc : Constants.hdf5CloudData.keySet()) {
+				for(int ts: Constants.hdf5CloudData.get(sc).keySet()) {
+					for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
+						totalNodes = Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
+						if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
+							System.out.println(sc + ", " + ts + ", " + dt + " , " + Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
+					}
+				}
+			}
+			System.out.print("Cloud currently has: ");
+			System.out.println(totalNodes);
+			JOptionPane.showMessageDialog(null, "Dream is out of memory!  Please reduce your solution space, current space: " + totalNodes);
+			e.printStackTrace();
+		}
 	}
 
 	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {

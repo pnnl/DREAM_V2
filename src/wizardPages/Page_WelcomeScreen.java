@@ -100,7 +100,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		GridData aboutInfoData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		aboutInfoData.horizontalSpan = 2;
 		aboutInfoData.widthHint = 500;
-		String text = "The DREAM tool is a post-processor that optimizes monitoring configurations across user-provided numerically modeled subsurface leakage simulations. DREAM works to minimize the time to first detection of CO2 leakage based on specified monitoring requirements and budgetary constraints. \n\nDREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
+		String text = "The DREAM tool is a post-processor that optimizes monitoring configurations across user-provided numerically modeled subsurface leakage simulations. DREAM identifies monitoring configurations that minimize the time to first detection of CO2 leakage based on specified monitoring requirements and budgetary constraints. \n\nDREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
 		Label aboutInfo = new Label(container,SWT.WRAP);
 		aboutInfo.setText(text);
 		aboutInfo.setLayoutData(aboutInfoData);
@@ -123,7 +123,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 
 		
 		new Label(container, SWT.WRAP).setText("\tPrimary contact: Yonkofski, C.");
-		new Label(container, SWT.WRAP).setText("\tEmail: catherine.ruprecht@pnnl.gov");
+		new Label(container, SWT.WRAP).setText("\tEmail: catherine.yonkofski@pnnl.gov");
 		new Label(container, SWT.WRAP).setText("\tVersion 1.0");
 		new Label(container, SWT.WRAP).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
 		//	new Label(container, SWT.WRAP).setText(""); // Space

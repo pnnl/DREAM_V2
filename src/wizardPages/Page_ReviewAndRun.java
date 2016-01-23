@@ -200,6 +200,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				try {
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
+					Constants.random.setSeed(10);
 					data.run(runs);
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
 				} catch (Exception e) {
@@ -270,7 +271,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 		Button cloudButton = new Button(container, SWT.BALLOON);
 		cloudButton.setSelection(true);
-		cloudButton.setText("Cloud data");
+		cloudButton.setText("Solution Space");
 		cloudButton.addListener(SWT.Selection, new Listener() {
 
 			@Override
@@ -278,7 +279,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				JFrame temp = new JFrame();
 				JTextArea textArea = new JTextArea();
 
-				String text = "TITLE = Cloud nodes\n";
+				String text = "TITLE = Solution Space of Each Monitoring Parameter\n";
 				text += "VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"";
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
 					text += "\t\"" + sensorType + "\"";
@@ -371,53 +372,53 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		});		
 		
 
-		Button bestTTDButton = new Button(container, SWT.BALLOON);
-		bestTTDButton.setSelection(true);
-		bestTTDButton.setText("Best TTD");
-		bestTTDButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				ExtendedConfiguration configuration = new ExtendedConfiguration();
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
-						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-					}
-				}
-				data.runObjective(configuration);
-				String text = "";
-				
-				float totalTimeToDetection = 0.0f;
-				int detectedScenarios = 0;
-				int totalScenarios = 0;
-				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-					float timeToDetection = configuration.getTimesToDetection().get(scenario);
-					if(timeToDetection == 1000000) {
-						text += scenario.getScenario() + ": did not detect\n";
-					} else {
-						detectedScenarios++;
-						totalTimeToDetection += timeToDetection;
-						text += scenario.getScenario() + ":" + timeToDetection + "\n";
-					}
-					totalScenarios++;
-				}
-				
-				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
-				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
-				     + text;
-				
-				JFrame temp = new JFrame();
-				temp.setTitle("Best possible time to detection");
-				JTextArea textArea = new JTextArea();
-				textArea.setText(text);
-				temp.add(new JScrollPane(textArea));
-				temp.setSize(400, 400);
-				temp.setVisible(true);
-			}	       
-		});		
+//		Button bestTTDButton = new Button(container, SWT.BALLOON);
+//		bestTTDButton.setSelection(true);
+//		bestTTDButton.setText("Best TTD Possible");
+//		bestTTDButton.addListener(SWT.Selection, new Listener() {
+//			@Override
+//			public void handleEvent(Event arg0) {
+//				ExtendedConfiguration configuration = new ExtendedConfiguration();
+//				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+//					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
+//						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+//					}
+//				}
+//				data.runObjective(configuration);
+//				String text = "";
+//				
+//				float totalTimeToDetection = 0.0f;
+//				int detectedScenarios = 0;
+//				int totalScenarios = 0;
+//				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+//					float timeToDetection = configuration.getTimesToDetection().get(scenario);
+//					if(timeToDetection == 1000000) {
+//						text += scenario.getScenario() + ": did not detect\n";
+//					} else {
+//						detectedScenarios++;
+//						totalTimeToDetection += timeToDetection;
+//						text += scenario.getScenario() + ":" + timeToDetection + "\n";
+//					}
+//					totalScenarios++;
+//				}
+//				
+//				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
+//				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
+//				     + text;
+//				
+//				JFrame temp = new JFrame();
+//				temp.setTitle("Best possible time to detection");
+//				JTextArea textArea = new JTextArea();
+//				textArea.setText(text);
+//				temp.add(new JScrollPane(textArea));
+//				temp.setSize(400, 400);
+//				temp.setVisible(true);
+//			}	       
+//		});		
 		
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
-		bestTTDTableButton.setText("Best TTD by Scenario");
+		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
