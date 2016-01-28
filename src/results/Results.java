@@ -62,7 +62,7 @@ public class Results {
 	public ScenarioSet set;
 	
 	
-	public Results(ScenarioSet set) {
+	public Results(ScenarioSet set, boolean makePlots) {
 		this.set = set;
 		bestConfigSumList = new HashSet<Configuration>();
 		bestConfigSumTTDs = new HashMap<Configuration, Float>();
@@ -79,6 +79,8 @@ public class Results {
 		allConfigsMap.put(Type.Best, new LinkedHashMap<Integer, Map<Integer, Configuration>>());
 		allConfigsMap.put(Type.Current, new LinkedHashMap<Integer, Map<Integer, Configuration>>());
 
+		resultsPlots = makePlots;
+		
 		if(resultsPlots) {
 			ttdPlots = new TimeToDetectionPlots(set.getIterations(), set.getNodeStructure().getTimeSteps().get(set.getNodeStructure().getTimeSteps().size()-1).getRealTime());
 		}

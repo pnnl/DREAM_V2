@@ -35,20 +35,22 @@ public class ResultPrinter {
 	// The results object
 	public static Results results;
 
-	public static void clearResults(ScenarioSet set) {
-		results = new Results(set);
+	public static void clearResults(ScenarioSet set, boolean makePlots) {
+		results = new Results(set, makePlots);
 	}
 	
 	public static void newTTDPlots(ScenarioSet set, int run) {
-		if(results.ttdPlots != null) results.ttdPlots.dispose(); //only display the current run
-		results.ttdPlots = new TimeToDetectionPlots(set.getIterations(), set.getNodeStructure().getTimeSteps().get(set.getNodeStructure().getTimeSteps().size()-1).getRealTime(), run);
+		if(results.resultsPlots){
+			if(results.ttdPlots != null) results.ttdPlots.dispose(); //only display the current run
+			results.ttdPlots = new TimeToDetectionPlots(set.getIterations(), set.getNodeStructure().getTimeSteps().get(set.getNodeStructure().getTimeSteps().size()-1).getRealTime(), run);
+		}
 	}
 
 	public static void storeResults(int run, int iteration, ExtendedConfiguration newConfiguration,
 			ExtendedConfiguration bestConfiguration, ExtendedConfiguration currentConfiguration, ScenarioSet set) {
 
 		if(results == null)
-			clearResults(set);
+			clearResults(set, true);
 
 		results.storeResult(run, iteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 	}
@@ -252,4 +254,20 @@ public class ResultPrinter {
 		}
 	}
 
+	public static void printPlotData(List<Float> percentScenariosDetected, List<Float> averageTTDInDetecting, List<Float> costOfConfig, List<Integer> numberOfSensors) throws IOException{
+		String fileName = "plot_data.csv";
+		List<String> lines = new ArrayList<String>();
+		lines.add("Percent of Scenarios Detected, Average TTD in Detecting Scenarios, Cost, Total Number of Sensors");
+		int numConfigs = costOfConfig.size();
+		for(int i=0; i<numConfigs; ++i){
+			String line = "";
+			line += percentScenariosDetected.get(i) + ",";
+			line += averageTTDInDetecting.get(i) + ",";
+			line += costOfConfig.get(i) + ",";
+			line += numberOfSensors.get(i);
+			lines.add(line);
+		}
+		FileUtils.writeLines(new File(resultsDirectory, fileName), lines);
+	}
+	
 }

@@ -56,7 +56,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * @param monitor 
 	 */
 	public void fullEnumeration(ExtendedConfiguration initialConfiguration, ScenarioSet set, int max) {
-		ResultPrinter.clearResults(set);
+		ResultPrinter.clearResults(set, false);
 		iterative = false;
 		List<ExtendedSensor> sensors =  getAllPossibleSensors(set);
 		this.max = max;
@@ -72,7 +72,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * @param set
 	 */
 	public void fullEnumeration(ExtendedConfiguration initialConfiguration, ScenarioSet set) {
-		ResultPrinter.clearResults(set);
+		ResultPrinter.clearResults(set, false);
 		iterative = false;
 		generateConfigurations(new ArrayList<ExtendedSensor>(),  getAllPossibleSensors(set), set);
 		ResultPrinter.printAll();
@@ -83,7 +83,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	public void run(ExtendedConfiguration initialConfiguration, List<ScenarioSet> sets) {
 		if(!sets.isEmpty()) {
-			ResultPrinter.clearResults(sets.get(0));
+			ResultPrinter.clearResults(sets.get(0), false);
 			for(ScenarioSet set: sets) {
 				runInternal(initialConfiguration, set);
 			}
@@ -98,8 +98,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	
 	
-	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, int sets) {
-		ResultPrinter.clearResults(set);
+	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
+		ResultPrinter.clearResults(set, showPlots);
 		for(int i = 0; i < sets; i++) {
 			if(i !=0) ResultPrinter.newTTDPlots(set, i+1); //already set up for the first iteration
 			currentRun = i;
@@ -124,8 +124,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	//	run(initialConfiguration, set, null);
 	//}
 
-	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set) {
-		ResultPrinter.clearResults(set);
+	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
+		ResultPrinter.clearResults(set, showPlots);
 		this.modelOption = modelOption;
 		runInternal(initialConfiguration, set);
 		ResultPrinter.printAll();
@@ -133,7 +133,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 
 	public void run(ExtendedConfiguration initialConfiguration, ScenarioSet set, String resultTag) {
-		ResultPrinter.clearResults(set);
+		ResultPrinter.clearResults(set, false);
 		runInternal(initialConfiguration, set);
 		ResultPrinter.printAll();
 	}

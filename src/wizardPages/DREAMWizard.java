@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
+import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Point3d;
 import utilities.Constants.ModelOption;
@@ -414,19 +415,21 @@ public class DREAMWizard extends Wizard {
 			return initialConfiguration;
 		}
 
-		public void run(final int runs) throws Exception {		
-			wizard.launchVisWindow();	
-			runner.setDomainViewer(wizard.domainViewer);
+		public void run(final int runs, final boolean showPlots) throws Exception {		
+			if(showPlots){
+				wizard.launchVisWindow();	
+				runner.setDomainViewer(wizard.domainViewer);
+			}
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Running iterative procedure ", set.getIterations()*runs);	
 					runner.setMonitor(monitor);
 					if(runs > 1) {
-						runner.run(data.modelOption, initialConfiguration, set, runs);	
+						runner.run(data.modelOption, initialConfiguration, set, showPlots, runs);	
 					} else {
 
-						runner.run(data.modelOption, initialConfiguration, set);	
+						runner.run(data.modelOption, initialConfiguration, set, showPlots);	
 					}					
 				}
 			});

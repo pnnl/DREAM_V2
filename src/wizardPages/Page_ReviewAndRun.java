@@ -78,6 +78,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	private Text samples;
 	private Text iterations;
 
+	private Button showPlots;
+	
 	private boolean isCurrentPage = false;
 
 	protected Page_ReviewAndRun(STORMData data) {
@@ -201,7 +203,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					Constants.random.setSeed(10);
-					data.run(runs);
+					data.run(runs, showPlots.getSelection()); //TODO: Fix boolean to var
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -209,6 +211,10 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});
 
+		showPlots = new Button(container, SWT.CHECK);
+		showPlots.setText("Show Plots");
+		new Label(container, SWT.NULL);
+		showPlots.setSelection(true);
 
 		Button button3 = new Button(container, SWT.BALLOON);
 		button3.setSelection(true);
@@ -522,7 +528,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});		
 		
-		/*
+		
 		// *Uncomment for the new plot button and functionality 
 		 
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
@@ -536,6 +542,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				List<Float> configurationAverageTTDs = new ArrayList<Float>();
 				List<Float> configurationPercentDetected = new ArrayList<Float>();
 				List<Float> configurationTTDs = new ArrayList<Float>();
+				List<Integer> numberOfSensors = new ArrayList<Integer>();
 				List<Float> budgets = new ArrayList<Float>();
 				List<Integer> wells = new ArrayList<Integer>();
 				float budget = data.getSet().getCostConstraint();
@@ -549,16 +556,21 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				}
 				float minCost = Float.MAX_VALUE;
 				float maxCost = 0;
-				for(Float budgeti: budgets){
-					for(Integer wellj: wells){
+//				for(Float budgeti: budgets){
+//					for(Integer wellj: wells){
+				for(int i=1; i<=15; ++i){
+					for(int j=0; j<5; ++j){
 						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
-						System.out.println(budgeti + " " + wellj);
-						data.getSet().setUserSettings(data.getSet().getAddPoint(), wellj, budgeti);String numRuns = runs.getText();
+						int innerWells = i;
+						int innerSensors = i*100;
+						System.out.println(innerSensors + " " + innerWells);
+						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors);
+						String numRuns = runs.getText();
 						int ittr = Integer.parseInt(iterations.getText());
 						data.setWorkingDirectory(outputFolder.getText());
 						data.getSet().setIterations(ittr);
 						try {
-							data.run(1);
+							data.run(1, false); //This should never show plots, we are running too many iterations.
 							//get the best TTD
 							float ttd = ResultPrinter.results.bestObjValue;
 							HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
@@ -567,17 +579,27 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								float cost = data.getScenarioSet().costOfConfiguration(config);
 								if(cost < minCost) minCost = cost;
 								if(cost > maxCost) maxCost = cost;
+								numberOfSensors.add(config.getSensors().size());
 								configurationCosts.add(cost);
 								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
-								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config));
+								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 				}
+//					}
+//				}
 				//Set this back to what it was so we don't mess up future runs
 				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget);
+				
+				//Print our results in a csv file
+				try {
+					ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, numberOfSensors);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				
 				//Make the plot with our points
 				XYSeriesCollection result = new XYSeriesCollection();
@@ -612,7 +634,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-		*/
+		
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
