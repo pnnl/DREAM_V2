@@ -203,7 +203,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					Constants.random.setSeed(10);
-					data.run(runs, showPlots.getSelection()); //TODO: Fix boolean to var
+					data.run(runs, showPlots.getSelection());
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -558,13 +558,13 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				float maxCost = 0;
 //				for(Float budgeti: budgets){
 //					for(Integer wellj: wells){
-				for(int i=1; i<=15; ++i){
+				for(int i=1; i<=30; ++i){
 					for(int j=0; j<5; ++j){
 						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
 						int innerWells = i;
 						int innerSensors = i*100;
 						System.out.println(innerSensors + " " + innerWells);
-						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors);
+						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getAllowMultipleSensorsInWell());
 						String numRuns = runs.getText();
 						int ittr = Integer.parseInt(iterations.getText());
 						data.setWorkingDirectory(outputFolder.getText());
@@ -592,7 +592,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 //					}
 //				}
 				//Set this back to what it was so we don't mess up future runs
-				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget);
+				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getAllowMultipleSensorsInWell());
 				
 				//Print our results in a csv file
 				try {

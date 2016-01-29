@@ -37,6 +37,8 @@ public class ScenarioSet {
 	private int maxWells;
 	private int iterations;
 	private float costConstraint;
+	private float exclusionRadius;
+	private boolean allowMultipleSensorsInWell;
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
@@ -64,6 +66,8 @@ public class ScenarioSet {
 		maxWells = 10;
 		iterations = 1000;
 		costConstraint = 300;
+		exclusionRadius = 0;
+		allowMultipleSensorsInWell = true;
 		
 		wells = new ArrayList<Well>();
 		
@@ -102,19 +106,23 @@ public class ScenarioSet {
 		builder.append("\t\tMax wells: " + maxWells + "\r\n");
 		builder.append("\t\tIterations: " + iterations + "\r\n");
 		builder.append("\t\tCost constraint: " + costConstraint + "\r\n");
+		builder.append("\t\tExclusion radius: " + exclusionRadius + "\r\n");
+		builder.append("\t\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 		builder.append(getInferenceTest());
 
 		return builder.toString();
 
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, boolean allowMultipleSensorsInWell) {
 	
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
 		this.addPoint = addPoint;
 		this.maxWells = maxWells;
 		this.costConstraint = costConstraint;
+		this.exclusionRadius = exclusionRadius;
+		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 		isReady = true;
 		
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
@@ -202,6 +210,22 @@ public class ScenarioSet {
 
 	public void setMaxWells(int maxWells) {
 		this.maxWells = maxWells;
+	}
+	
+	public float getExclusionRadius() {
+		return exclusionRadius;
+	}
+
+	public void setExclusionRadius(float exclusionRadius) {
+		this.exclusionRadius = exclusionRadius;
+	}
+
+	public boolean getAllowMultipleSensorsInWell() {
+		return allowMultipleSensorsInWell;
+	}
+
+	public void setAllowMultipleSensorsInWell(boolean allowMultipleSensorsInWell) {
+		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 	}
 
 	public int getIterations() {
@@ -403,12 +427,8 @@ public class ScenarioSet {
 			}
 		}
 		
-		//TODO: Decide whether or not we're going to keep this.
 		
 		// if you want to run the "old" way, comment out everything below this until the matching comment
-		//CATHERINE - Here are the two things to change.
-		float exclusionRadius = 10; //this is the minimum distance between distinct wells. Set to 0 for old behavior.
-		boolean allowMultipleSensorsInWell = true; //If this is set to true, this should behave just like it used to.
 		//Find all well locations
 		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();
 		//Initialize all (i,j)s to be allowed
@@ -420,7 +440,7 @@ public class ScenarioSet {
 		for(Well well : configuration.getWells()){
 			if(well.i == 0 || well.j == 0){
 				continue;
-			}
+			} //makes sure we're not looking at the add point. Can probably remove.
 			Point3d wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
 			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
 				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){

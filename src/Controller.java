@@ -60,7 +60,7 @@ public class Controller {
 			System.out.println("\tSetting probability of scenario " + scenario + " to: " + weight);
 		}
 		
-		set.setUserSettings(new Point3i(1, 1, 1), wells, sensors);
+		set.setUserSettings(new Point3i(1, 1, 1), wells, sensors, 0, true);
 		set.setIterations(iterations);
 		
 		// Remove all but one time step

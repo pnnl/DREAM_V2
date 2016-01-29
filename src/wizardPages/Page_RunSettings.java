@@ -35,6 +35,8 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 	private Text costConstraint;
 	private Text addPoint;
 	private Text maxWells;
+	private Text exclusionRadius;
+	private Button allowMultipleSensorsInWell;
 	private Button averageTTD;
 
 	private boolean isCurrentPage = false;
@@ -156,6 +158,26 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			}				
 		});
 
+		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
+		exclusionRadiusLabel.setText("Minimum Distance Between Wells");
+		exclusionRadius= new Text(container, SWT.BORDER | SWT.SINGLE);
+		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
+		GridData exclusionRadiusGD = new GridData(GridData.FILL_HORIZONTAL);
+		exclusionRadius.setLayoutData(exclusionRadiusGD);
+		exclusionRadius.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				try {
+					Float.parseFloat(((Text)e.getSource()).getText());	
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					testReady();
+				} catch (NumberFormatException ne) {
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					testReady();
+				}
+			}				
+		});
+
 		Label addLabel = new Label(container, SWT.NULL);
 		addLabel.setText("Add point");
 		addPoint= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -167,6 +189,11 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		averageTTD.setText("Use average time to detection");
 		new Label(container, SWT.NULL);
 		averageTTD.setSelection(true);
+
+		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
+		allowMultipleSensorsInWell.setText("Allow Multiple Sensors in a Well");
+		new Label(container, SWT.NULL);
+		allowMultipleSensorsInWell.setSelection(data.getSet().getAllowMultipleSensorsInWell());
 
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -209,11 +236,19 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		}
 	}
 
+	public float getExclusionRadius() {
+		try {
+			return Float.parseFloat(exclusionRadius.getText());
+		} catch(Exception e) {
+			return 0;
+		}
+	}
+
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 		Constants.returnAverageTTD = averageTTD.getSelection();
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), allowMultipleSensorsInWell.getSelection());
 	}
 
 	@Override
