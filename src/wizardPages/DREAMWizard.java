@@ -59,6 +59,9 @@ public class DREAMWizard extends Wizard {
 	private STORMData data;
 	private MultiDomainViewer domainViewer;
 	private WizardDialog dialog;
+	
+	public static Button convertDataButton;
+	public static Button visLauncher;
 
 	public DREAMWizard() {
 		super();
@@ -155,7 +158,7 @@ public class DREAMWizard extends Wizard {
 			protected void createButtonsForButtonBar(Composite parent) {		
 
 
-				Button convertDataButton = new Button(parent, SWT.PUSH); 	
+				convertDataButton = new Button(parent, SWT.PUSH); 	
 				convertDataButton.setText("Launch Converter");
 				convertDataButton.setToolTipText("Convert simulation data to DREAM h5 format"); 	
 				convertDataButton.addSelectionListener(new SelectionListener() 
@@ -175,7 +178,7 @@ public class DREAMWizard extends Wizard {
 					} 
 				}); 
 
-				Button visLauncher = new Button(parent, SWT.PUSH); 	
+				visLauncher = new Button(parent, SWT.PUSH); 	
 				visLauncher.setText("Launch Visualization"); 	
 				visLauncher.addSelectionListener(new SelectionListener() 
 				{ 

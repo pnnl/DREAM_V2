@@ -138,7 +138,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		JLabel jLabel_timesteps = new JLabel();
 		JLabel jLabel_data = new JLabel();
 		JPanel jPanel_scenarios = new JPanel();
-		JButton jButton_done = new JButton("Done");
+		JButton jButton_done = new JButton("Run...");
 		JLabel jLabel_outputDir = new JLabel("Output directory:");
 		JLabel jLabel_inputDir = new JLabel("Input directory:");
 		jTextField_inputDir = new JTextField();

@@ -37,7 +37,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	private STORMData data;
 	
 	private boolean isCurrentPage;
-	
+		
 	protected Page_ScenarioSetup(STORMData data) {
 		super("Scenario Set");
 		this.data = data;	
@@ -76,10 +76,10 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	    });
 		
         container = new Composite(sc, SWT.NULL);
-		GridLayout layout = new GridLayout();
+        GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
-		layout.numColumns = 6;
+		layout.numColumns = 2;
 		container.setLayout(layout);
 		
 		sc.setContent(container);
@@ -118,17 +118,25 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		
 		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getScenarios());
 		Collections.sort(scenarios);
+
+		if(scenarios.size() > 1) {
+			Label setLabel2 = new Label(container, SWT.NULL);
+			setLabel2.setText("Realization");
+			Label probabilityLabel2 = new Label(container, SWT.NULL);
+			probabilityLabel2.setText("Weight");
+			((GridLayout)container.getLayout()).numColumns = 4;
+			infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		}
+
+		if(scenarios.size() > 2) {
+			Label setLabel3 = new Label(container, SWT.NULL);
+			setLabel3.setText("Realization");
+			Label probabilityLabel3 = new Label(container, SWT.NULL);
+			probabilityLabel3.setText("Weight");
+			((GridLayout)container.getLayout()).numColumns = 6;
+			infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		}
 		
-		Label setLabel2 = new Label(container, SWT.NULL);
-		setLabel2.setText("Realization");
-		Label probabilityLabel2 = new Label(container, SWT.NULL);
-		probabilityLabel2.setText("Weight");
-		
-		Label setLabel3 = new Label(container, SWT.NULL);
-		setLabel3.setText("Realization");
-		Label probabilityLabel3 = new Label(container, SWT.NULL);
-		probabilityLabel3.setText("Weight");
-		 
 		for(Scenario scenario: scenarios) {
 			Button button = new Button(container, SWT.CHECK);
 			button.setSelection(true);
@@ -142,7 +150,10 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		}
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.layout();
+		sc.layout();		
+
+		DREAMWizard.visLauncher.setEnabled(false);
+		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 
 	@Override

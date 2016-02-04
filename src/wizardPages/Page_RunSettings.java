@@ -185,10 +185,15 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		GridData addGD = new GridData(GridData.FILL_HORIZONTAL);
 		addPoint.setLayoutData(addGD);
 
+		addPoint.setVisible(Constants.buildDev);
+		addLabel.setVisible(Constants.buildDev);		
+		
 		averageTTD = new Button(container, SWT.CHECK);
 		averageTTD.setText("Use average time to detection");
 		new Label(container, SWT.NULL);
 		averageTTD.setSelection(true);
+
+		averageTTD.setVisible(Constants.buildDev);
 
 		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
 		allowMultipleSensorsInWell.setText("Allow Multiple Sensors in a Well");
@@ -198,6 +203,9 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
+		
+		DREAMWizard.visLauncher.setEnabled(true);
+		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 
 	/*

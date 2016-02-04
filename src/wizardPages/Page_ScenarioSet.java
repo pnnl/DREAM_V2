@@ -177,8 +177,8 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		modelOption = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
 		
 		modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
-		modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS.toString());
-		modelOption.add(Constants.ModelOption.REALIZED__WELLS.toString());
+		if(Constants.buildDev) modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS.toString());
+		if(Constants.buildDev) modelOption.add(Constants.ModelOption.REALIZED__WELLS.toString());
 		modelOption.setText(modelOption.getItem(0));
 		GridData modelgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		modelOption.setLayoutData(modelgd);
@@ -195,7 +195,10 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.layout();
+		sc.layout();		
+
+		DREAMWizard.visLauncher.setEnabled(false);
+		DREAMWizard.convertDataButton.setEnabled(true);
 	}
 	
 	@Override

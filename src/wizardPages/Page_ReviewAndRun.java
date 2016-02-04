@@ -152,6 +152,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);
 
+		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("Select an output directory");
@@ -164,266 +165,18 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					outputFolder.setText(dir);
 				}
 			}
-		});
-		new Label(container, SWT.NULL); // Spacer
-
+		});		
+	
 		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
-		outputFolder.setText(new File(new File(Constants.homeDirectory).getParent(), "_results").getAbsolutePath());
+		File resultsFolder = new File(new File(".").getParent(), "_results");
+		if(!resultsFolder.exists())
+			resultsFolder.mkdir();		
+		outputFolder.setText(resultsFolder.getAbsolutePath());
+	
 		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
-		costGD.horizontalSpan = 2;
+		costGD.horizontalSpan = 1;
 		outputFolder.setLayoutData(costGD);
 
-		Button button = new Button(container, SWT.BALLOON);
-		button.setSelection(true);
-		button.setText("Run Iterative Procedure");
-
-		//Label temp2 = new Label(container, SWT.NULL);
-		runs= new Text(container, SWT.BORDER | SWT.SINGLE);
-		runs.setText("1");		
-		GridData runsGD = new GridData(GridData.FILL_HORIZONTAL);
-		runs.setLayoutData(runsGD);
-
-		Label iterationLabel = new Label(container, SWT.NULL);
-		iterationLabel.setText("Configurations to test");
-		iterations = new Text(container, SWT.BORDER | SWT.SINGLE);
-		iterations.setText(String.valueOf(data.getSet().getIterations()));
-		GridData iterationGD = new GridData(GridData.FILL_HORIZONTAL);
-		iterations.setLayoutData(iterationGD);
-
-		button.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				String numRuns = runs.getText();
-				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
-				int ittr = Integer.parseInt(iterations.getText());
-				data.setWorkingDirectory(outputFolder.getText());
-				data.getSet().setIterations(ittr);
-				try {
-					Constants.random.setSeed(1);
-					long startTime = System.currentTimeMillis();
-					Constants.random.setSeed(10);
-					data.run(runs, showPlots.getSelection());
-					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}				
-			}	       
-		});
-
-		showPlots = new Button(container, SWT.CHECK);
-		showPlots.setText("Show Plots");
-		new Label(container, SWT.NULL);
-		showPlots.setSelection(true);
-
-		Button button3 = new Button(container, SWT.BALLOON);
-		button3.setSelection(true);
-		button3.setText(" Run Full Enumeration  ");
-
-		button3.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				data.setWorkingDirectory(outputFolder.getText());
-				// TODO: Calculate iterations here
-				try {
-					data.runEnumeration();	
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}	       
-		});
-
-		Button button4 = new Button(container, SWT.BALLOON);
-		button4.setSelection(true);
-		button4.setText("IJK to XYZ");
-		button4.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				data.setWorkingDirectory(outputFolder.getText());
-				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
-				String path = dialog.open();
-				if (path != null) {
-					try {
-						convertFile(new File(path));
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}	       
-		});
-
-		//	Label temp = new Label(container, SWT.NULL);
-		//	Label temp3 = new Label(container, SWT.NULL);
-		Button button2 = new Button(container, SWT.BALLOON);
-		button2.setSelection(true);
-		button2.setText("  Run Random Sample   ");
-		samples= new Text(container, SWT.BORDER | SWT.SINGLE);
-		samples.setText("20");
-		button2.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				int numSamples = Integer.parseInt(samples.getText());
-				data.setWorkingDirectory(outputFolder.getText());
-				try {
-					data.randomEnumeration(numSamples);
-				} catch (Exception e) {
-
-				}
-			}	       
-		});		
-
-		Button cloudButton = new Button(container, SWT.BALLOON);
-		cloudButton.setSelection(true);
-		cloudButton.setText("Solution Space");
-		cloudButton.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event arg0) {
-				JFrame temp = new JFrame();
-				JTextArea textArea = new JTextArea();
-
-				StringBuilder text = new StringBuilder();
-				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
-				text.append("VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"");
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					text.append("\t\"" + sensorType + "\"");
-				}
-				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
-				int numNodes = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
-				int numElements = 8*numNodes;
-				text.append("\n");
-				text.append("ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n");
-				
-				StringBuilder varRanks = new StringBuilder();
-				varRanks.append("[1, 2, 3, ");
-				int rank = 4;
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					varRanks.append((rank++) + ", ");
-				}
-				
-				text.append("VARLOCATION = (" + varRanks.toString().substring(0, varRanks.length() - 2) + "]" + " = NODAL)\n");
-
-				// X values
-				for(int k = 0; k < ijk.getK(); k++) { 			
-					for(int j = 0; j < ijk.getJ(); j++) { 
-						float prevValue = 0.0f; // Assume center is at 0	
-						for(int i = 0; i < ijk.getI(); i++) { 
-							float nextValue = data.getSet().getNodeStructure().getX().get(i);	
-							float var0f = prevValue;
-							float var1f = prevValue + ((nextValue-prevValue)*2);
-							prevValue = var1f;	
-							String var0 = utilities.Constants.exponentialFormat.format(var0f);
-							String var1 = utilities.Constants.exponentialFormat.format(var0f);							
-							text.append(var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n");	
-						}
-					}
-				}
-				text.append("\n");
-				// Y values	
-				for(int k = 0; k < ijk.getK(); k++) { 
-					float prevValue = 0.0f; // Assume center is at 0
-					for(int j = 0; j < ijk.getJ(); j++) {
-						float nextValue = data.getSet().getNodeStructure().getY().get(j);					
-						float var0f = prevValue;
-						float var1f = prevValue + ((nextValue-prevValue)*2);
-						prevValue = var1f;	
-						String var0 = utilities.Constants.exponentialFormat.format(var0f);
-						String var1 = utilities.Constants.exponentialFormat.format(var0f);
-						for(int i = 0; i < ijk.getI(); i++) { 
-							text.append(var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n");	
-						}
-					}
-				}
-				text.append("\n");
-				// Z values
-				float prevValue = 0.0f; // Assume center is at 0				
-				for(int k = 0; k < ijk.getK(); k++) { 
-					float nextValue = data.getSet().getNodeStructure().getZ().get(k);					
-					float var0f = prevValue;
-					float var1f = prevValue + ((nextValue-prevValue)*2);
-					prevValue = var1f;
-					String var0 = utilities.Constants.exponentialFormat.format(var0f);
-					String var1 = utilities.Constants.exponentialFormat.format(var0f);	
-					for(int j = 0; j < ijk.getJ(); j++) {		
-						for(int i = 0; i < ijk.getI(); i++) {				
-							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");	
-						}
-					}
-				}
-				text.append("\n");
-				
-				// Variables
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
-						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
-						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
-						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
-					}}}
-					text.append("\n");
-				}
-				text.append("\n");
-
-				//Connection List
-				text.append(TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK()));
-				
-				text.append("\n");
-			
-				
-				textArea.setText(text.toString());
-				temp.add(new JScrollPane(textArea));
-				temp.setSize(400, 400);
-				temp.setVisible(true);
-			}	       
-		});		
-		
-
-//		Button bestTTDButton = new Button(container, SWT.BALLOON);
-//		bestTTDButton.setSelection(true);
-//		bestTTDButton.setText("Best TTD Possible");
-//		bestTTDButton.addListener(SWT.Selection, new Listener() {
-//			@Override
-//			public void handleEvent(Event arg0) {
-//				ExtendedConfiguration configuration = new ExtendedConfiguration();
-//				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-//					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
-//						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-//					}
-//				}
-//				data.runObjective(configuration);
-//				String text = "";
-//				
-//				float totalTimeToDetection = 0.0f;
-//				int detectedScenarios = 0;
-//				int totalScenarios = 0;
-//				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-//					float timeToDetection = configuration.getTimesToDetection().get(scenario);
-//					if(timeToDetection == 1000000) {
-//						text += scenario.getScenario() + ": did not detect\n";
-//					} else {
-//						detectedScenarios++;
-//						totalTimeToDetection += timeToDetection;
-//						text += scenario.getScenario() + ":" + timeToDetection + "\n";
-//					}
-//					totalScenarios++;
-//				}
-//				
-//				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
-//				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
-//				     + text;
-//				
-//				JFrame temp = new JFrame();
-//				temp.setTitle("Best possible time to detection");
-//				JTextArea textArea = new JTextArea();
-//				textArea.setText(text);
-//				temp.add(new JScrollPane(textArea));
-//				temp.setSize(400, 400);
-//				temp.setVisible(true);
-//			}	       
-//		});		
-		
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
@@ -530,6 +283,270 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}	       
 		});		
 		
+		Label spacer = new Label(container, SWT.NONE);
+
+
+		Button button = new Button(container, SWT.BALLOON);
+		button.setSelection(true);
+		button.setText("Run Iterative Procedure");
+
+		//Label temp2 = new Label(container, SWT.NULL);
+		runs= new Text(container, SWT.BORDER | SWT.SINGLE);
+		runs.setText("1");		
+		GridData runsGD = new GridData(GridData.FILL_HORIZONTAL);
+		runs.setLayoutData(runsGD);
+
+		Label iterationLabel = new Label(container, SWT.NULL);
+		iterationLabel.setText("Configurations to test");
+		iterations = new Text(container, SWT.BORDER | SWT.SINGLE);
+		iterations.setText(String.valueOf(data.getSet().getIterations()));
+		GridData iterationGD = new GridData(GridData.FILL_HORIZONTAL);
+		iterations.setLayoutData(iterationGD);
+
+		button.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				String numRuns = runs.getText();
+				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
+				int ittr = Integer.parseInt(iterations.getText());
+				data.setWorkingDirectory(outputFolder.getText());
+				data.getSet().setIterations(ittr);
+				try {
+					Constants.random.setSeed(1);
+					long startTime = System.currentTimeMillis();
+					Constants.random.setSeed(10);
+					data.run(runs, showPlots.getSelection());
+					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}				
+			}	       
+		});
+
+		showPlots = new Button(container, SWT.CHECK);
+		showPlots.setText("Show Plots");
+		new Label(container, SWT.NULL);
+		showPlots.setSelection(true);
+
+		Button button3 = new Button(container, SWT.BALLOON);
+		button3.setSelection(true);
+		button3.setText(" Run Full Enumeration  ");
+
+		button3.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				data.setWorkingDirectory(outputFolder.getText());
+				// TODO: Calculate iterations here
+				try {
+					data.runEnumeration();	
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}	       
+		});
+		
+		button3.setVisible(Constants.buildDev);
+
+		Button button4 = new Button(container, SWT.BALLOON);
+		button4.setSelection(true);
+		button4.setText("IJK to XYZ");
+		button4.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				data.setWorkingDirectory(outputFolder.getText());
+				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
+				String path = dialog.open();
+				if (path != null) {
+					try {
+						convertFile(new File(path));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}	       
+		});
+
+		button4.setVisible(Constants.buildDev);
+
+		//	Label temp = new Label(container, SWT.NULL);
+		//	Label temp3 = new Label(container, SWT.NULL);
+		Button button2 = new Button(container, SWT.BALLOON);
+		button2.setSelection(true);
+		button2.setText("  Run Random Sample   ");
+		samples= new Text(container, SWT.BORDER | SWT.SINGLE);
+		samples.setText("20");
+		button2.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				int numSamples = Integer.parseInt(samples.getText());
+				data.setWorkingDirectory(outputFolder.getText());
+				try {
+					data.randomEnumeration(numSamples);
+				} catch (Exception e) {
+
+				}
+			}	       
+		});		
+
+		button2.setVisible(Constants.buildDev);
+		samples.setVisible(Constants.buildDev);
+
+		Button cloudButton = new Button(container, SWT.BALLOON);
+		cloudButton.setSelection(true);
+		cloudButton.setText("Solution Space");
+		cloudButton.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				JFrame temp = new JFrame();
+				JTextArea textArea = new JTextArea();
+
+				StringBuilder text = new StringBuilder();
+				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
+				text.append("VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"");
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
+					text.append("\t\"" + sensorType + "\"");
+				}
+				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
+				int numNodes = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
+				int numElements = 8*numNodes;
+				text.append("\n");
+				text.append("ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n");
+				
+				StringBuilder varRanks = new StringBuilder();
+				varRanks.append("[1, 2, 3, ");
+				int rank = 4;
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
+					varRanks.append((rank++) + ", ");
+				}
+				
+				text.append("VARLOCATION = (" + varRanks.toString().substring(0, varRanks.length() - 2) + "]" + " = NODAL)\n");
+
+				// X values
+				for(int k = 0; k < ijk.getK(); k++) { 			
+					for(int j = 0; j < ijk.getJ(); j++) { 
+						float prevValue = 0.0f; // Assume center is at 0	
+						for(int i = 0; i < ijk.getI(); i++) { 
+							float nextValue = data.getSet().getNodeStructure().getX().get(i);	
+							float var0f = prevValue;
+							float var1f = prevValue + ((nextValue-prevValue)*2);
+							prevValue = var1f;	
+							String var0 = utilities.Constants.exponentialFormat.format(var0f);
+							String var1 = utilities.Constants.exponentialFormat.format(var0f);							
+							text.append(var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n");	
+						}
+					}
+				}
+				text.append("\n");
+				// Y values	
+				for(int k = 0; k < ijk.getK(); k++) { 
+					float prevValue = 0.0f; // Assume center is at 0
+					for(int j = 0; j < ijk.getJ(); j++) {
+						float nextValue = data.getSet().getNodeStructure().getY().get(j);					
+						float var0f = prevValue;
+						float var1f = prevValue + ((nextValue-prevValue)*2);
+						prevValue = var1f;	
+						String var0 = utilities.Constants.exponentialFormat.format(var0f);
+						String var1 = utilities.Constants.exponentialFormat.format(var0f);
+						for(int i = 0; i < ijk.getI(); i++) { 
+							text.append(var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n");	
+						}
+					}
+				}
+				text.append("\n");
+				// Z values
+				float prevValue = 0.0f; // Assume center is at 0				
+				for(int k = 0; k < ijk.getK(); k++) { 
+					float nextValue = data.getSet().getNodeStructure().getZ().get(k);					
+					float var0f = prevValue;
+					float var1f = prevValue + ((nextValue-prevValue)*2);
+					prevValue = var1f;
+					String var0 = utilities.Constants.exponentialFormat.format(var0f);
+					String var1 = utilities.Constants.exponentialFormat.format(var0f);	
+					for(int j = 0; j < ijk.getJ(); j++) {		
+						for(int i = 0; i < ijk.getI(); i++) {				
+							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");	
+						}
+					}
+				}
+				text.append("\n");
+				
+				// Variables
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
+						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
+						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
+						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
+					}}}
+					text.append("\n");
+				}
+				text.append("\n");
+
+				//Connection List
+				text.append(TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK()));
+				
+				text.append("\n");
+			
+				
+				textArea.setText(text.toString());
+				temp.add(new JScrollPane(textArea));
+				temp.setSize(400, 400);
+				temp.setVisible(true);
+			}	       
+		});
+		
+		cloudButton.setVisible(Constants.buildDev);
+		
+
+//		Button bestTTDButton = new Button(container, SWT.BALLOON);
+//		bestTTDButton.setSelection(true);
+//		bestTTDButton.setText("Best TTD Possible");
+//		bestTTDButton.addListener(SWT.Selection, new Listener() {
+//			@Override
+//			public void handleEvent(Event arg0) {
+//				ExtendedConfiguration configuration = new ExtendedConfiguration();
+//				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+//					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
+//						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+//					}
+//				}
+//				data.runObjective(configuration);
+//				String text = "";
+//				
+//				float totalTimeToDetection = 0.0f;
+//				int detectedScenarios = 0;
+//				int totalScenarios = 0;
+//				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+//					float timeToDetection = configuration.getTimesToDetection().get(scenario);
+//					if(timeToDetection == 1000000) {
+//						text += scenario.getScenario() + ": did not detect\n";
+//					} else {
+//						detectedScenarios++;
+//						totalTimeToDetection += timeToDetection;
+//						text += scenario.getScenario() + ":" + timeToDetection + "\n";
+//					}
+//					totalScenarios++;
+//				}
+//				
+//				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
+//				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
+//				     + text;
+//				
+//				JFrame temp = new JFrame();
+//				temp.setTitle("Best possible time to detection");
+//				JTextArea textArea = new JTextArea();
+//				textArea.setText(text);
+//				temp.add(new JScrollPane(textArea));
+//				temp.setSize(400, 400);
+//				temp.setVisible(true);
+//			}	       
+//		});		
+		
+		
 		
 		// *Uncomment for the new plot button and functionality 
 		 
@@ -634,6 +651,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			}
 			});
 		
+		scatterplotButton.setVisible(Constants.buildDev);
+		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
 		
@@ -642,6 +661,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		
+		DREAMWizard.visLauncher.setEnabled(true);
+		DREAMWizard.convertDataButton.setEnabled(false);
 
 	}
 	

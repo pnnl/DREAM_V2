@@ -121,6 +121,10 @@ public class Page_InitialConfiguraiton extends WizardPage implements AbstractWiz
 
 		    container.layout();	
 		    
+
+			DREAMWizard.visLauncher.setEnabled(true);
+			DREAMWizard.convertDataButton.setEnabled(false);
+		    
 	}
 
 	@Override

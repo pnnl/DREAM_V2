@@ -579,7 +579,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						data.getSet().getSensorSettings(scenario).setValidNodes(temp);
 					}
 					*/
-					
+
+					DREAMWizard.visLauncher.setEnabled(true);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -650,6 +651,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
+		boolean enableVis  = false;
+		for(SensorData temp: sensorData.values()) {
+			if(temp.isIncluded &&  data.getSet().getSensorSettings(temp.sensorType).isSet())
+				enableVis = true;
+		}
+
+		DREAMWizard.visLauncher.setEnabled(enableVis);
+		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 	
 	@Override

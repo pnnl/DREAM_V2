@@ -251,6 +251,10 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
+		
+
+		DREAMWizard.visLauncher.setEnabled(true);
+		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 
 	@Override

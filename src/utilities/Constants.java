@@ -22,6 +22,8 @@ import ncsa.hdf.object.h5.H5File;
 
 public class Constants {
 	
+	// Catherine change this to true when you want ot build production version!!!
+	public static boolean buildDev = false;
 	
 	public enum ModelOption { 
 		
@@ -44,7 +46,7 @@ public class Constants {
 			return alias;
 		}
 		
-	}
+	}	
 
 	// "Diana Bacon Runs 03"; 
 	public static String RUN_TEST =  "STORM";//"Bacon Base Case with Flux 3-D";//"120517_small_domain_STOMP_runs";//"Bacon Base Case with Flux 3-D";

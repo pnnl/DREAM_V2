@@ -173,6 +173,9 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);
+	
+		DREAMWizard.visLauncher.setEnabled(false);
+		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 
 	@Override
