@@ -285,24 +285,26 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				JFrame temp = new JFrame();
 				JTextArea textArea = new JTextArea();
 
-				String text = "TITLE = Solution Space of Each Monitoring Parameter\n";
-				text += "VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"";
+				StringBuilder text = new StringBuilder();
+				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
+				text.append("VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"");
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					text += "\t\"" + sensorType + "\"";
+					text.append("\t\"" + sensorType + "\"");
 				}
 				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
 				int numNodes = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
 				int numElements = 8*numNodes;
-				text += "\n";
-				text += "ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n";
+				text.append("\n");
+				text.append("ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n");
 				
-				String varRanks = "[1, 2, 3, ";
+				StringBuilder varRanks = new StringBuilder();
+				varRanks.append("[1, 2, 3, ");
 				int rank = 4;
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					varRanks += (rank++) + ", ";
+					varRanks.append((rank++) + ", ");
 				}
-				varRanks = varRanks.substring(0, varRanks.length() - 2) + "]";
-				text += "VARLOCATION = (" + varRanks + " = NODAL)\n";
+				
+				text.append("VARLOCATION = (" + varRanks.toString().substring(0, varRanks.length() - 2) + "]" + " = NODAL)\n");
 
 				// X values
 				for(int k = 0; k < ijk.getK(); k++) { 			
@@ -315,11 +317,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 							prevValue = var1f;	
 							String var0 = utilities.Constants.exponentialFormat.format(var0f);
 							String var1 = utilities.Constants.exponentialFormat.format(var0f);							
-							text += var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n";	
+							text.append(var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n");	
 						}
 					}
 				}
-				text += "\n";
+				text.append("\n");
 				// Y values	
 				for(int k = 0; k < ijk.getK(); k++) { 
 					float prevValue = 0.0f; // Assume center is at 0
@@ -331,11 +333,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						String var0 = utilities.Constants.exponentialFormat.format(var0f);
 						String var1 = utilities.Constants.exponentialFormat.format(var0f);
 						for(int i = 0; i < ijk.getI(); i++) { 
-							text += var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n";	
+							text.append(var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n");	
 						}
 					}
 				}
-				text += "\n";
+				text.append("\n");
 				// Z values
 				float prevValue = 0.0f; // Assume center is at 0				
 				for(int k = 0; k < ijk.getK(); k++) { 
@@ -347,30 +349,30 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					String var1 = utilities.Constants.exponentialFormat.format(var0f);	
 					for(int j = 0; j < ijk.getJ(); j++) {		
 						for(int i = 0; i < ijk.getI(); i++) {				
-							text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n";	
+							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");	
 						}
 					}
 				}
-				text += "\n";
+				text.append("\n");
 				
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
 						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
 						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
-						text += var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n";	
+						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
 					}}}
-					text += "\n";
+					text.append("\n");
 				}
-				text += "\n";
+				text.append("\n");
 
 				//Connection List
-				text += TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK());
+				text.append(TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK()));
 				
-				text += "\n";
+				text.append("\n");
 			
 				
-				textArea.setText(text);
+				textArea.setText(text.toString());
 				temp.add(new JScrollPane(textArea));
 				temp.setSize(400, 400);
 				temp.setVisible(true);

@@ -67,11 +67,11 @@ public class TecplotNode {
 	
 	public static String getStringOutput(int iDim, int jDim, int kDim){
 		TecplotNode t = new TecplotNode(iDim, jDim, kDim);
-		String output = "";
+		StringBuilder output = new StringBuilder();
 		for(int i=0; i<iDim*jDim*kDim; i++){
-			output += t.nodes[i].toString() + "\n";
+			output.append(t.nodes[i].toString() + "\n");
 		}
-		return output;
+		return output.toString();
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException{
