@@ -287,7 +287,7 @@ public class ScenarioSet {
 		}
 		float cost_per_unit = 65; //input is currently in meters, so this is about $20 per foot.
 		for(Point3i location: locations){
-			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZFromIJK(location).getZ()) * cost_per_unit;
+			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * cost_per_unit;
 		}
 		return cost;
 	}

@@ -118,17 +118,28 @@ public class NodeStructure {
 		return k;
 	}
 
+	public Point3d getXYZCenterFromIJK(Point3i node) {
+		
+		// We have to compute the cell center
+		if(ijkDimensions.getI() != x.size()) {
+			System.err.println("Implement this!!! NodeStructure: 125");
+			return null;
+		}
+		
+		return new Point3d(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));	
+	}
 
-	public Point3d getXYZFromIJK(Point3i node) {
+	public Point3d getXYZEdgeFromIJK(Point3i node) {
 		try {
+			
+			// We just have to return the right xyz, probably xyz at ijk-1?
+			if(ijkDimensions.getI() != x.size()) {
+				System.err.println("Implement this!!! NodeStructure: 137");
+				return null;
+			}
 			// Calculate half the distance between this node and the next
 			// Actual:  0______1______2______3______5
 			// We have:     1      2     3      4
-			
-			boolean nodeCentered = false;
-			// If its node centered, then we already know the result
-			if(nodeCentered)
-				return  new Point3d(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));	
 			
 			// TODO: This assumes the problem starts at 0, 0, 0 -> some stomp files
 			// start at other values and that would be indicated in the header of the plot files
@@ -286,7 +297,7 @@ public class NodeStructure {
 
 		int nodeNumber = 651;
 		Point3i startNode = structure.getIJKFromNodeNumber(nodeNumber);
-		Point3d point = structure.getXYZFromIJK(startNode);
+		Point3d point = structure.getXYZEdgeFromIJK(startNode);
 
 
 		System.out.println("Node: " + startNode.toString());
@@ -298,7 +309,7 @@ public class NodeStructure {
 		System.out.println("\tFrom startNode: " + structure.getNodeNumber(startNode));
 		System.out.println("\tFrom point: " + structure.getNodeNumber(point));
 		System.out.println("Point: " + point.toString());
-		System.out.println("\tFrom startNode: " + structure.getXYZFromIJK(startNode));
+		System.out.println("\tFrom startNode: " + structure.getXYZEdgeFromIJK(startNode));
 
 
 

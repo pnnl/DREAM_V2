@@ -142,7 +142,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		}
 		container.layout();	
 
-
 		Text summary = new Text(container, SWT.MULTI | SWT.WRAP| SWT.BORDER | SWT.V_SCROLL );
 		summary.setEditable(false);
 		GridData summaryGD = new GridData(GridData.FILL_BOTH);
@@ -151,7 +150,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		summaryGD.grabExcessVerticalSpace = true;
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);
-
 		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
@@ -704,7 +702,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					String[] parts = individualSensor.split(":");
 					if(parts.length == 3) {
 						int nodeNumber = Integer.parseInt(parts[0].trim());
-						Point3d xyz = data.getSet().getNodeStructure().getXYZFromIJK(data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber));
+						Point3d xyz = data.getSet().getNodeStructure().getXYZEdgeFromIJK(data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber));
 						nodesToReplace.put(parts[0], xyz.toString());
 					} 
 				}

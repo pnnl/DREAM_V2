@@ -244,7 +244,7 @@ public class ExtendedSensor extends Sensor {
 	private void move(int nodeNumber, NodeStructure domain) {
     	this.nodeNumber = nodeNumber;
     	node = domain.getIJKFromNodeNumber(nodeNumber);
-    	point = domain.getXYZFromIJK(node);
+    	point = domain.getXYZEdgeFromIJK(node);
     	
     	clearScenariosUsed();
     	clearHistory();
@@ -263,7 +263,7 @@ public class ExtendedSensor extends Sensor {
 		
 		node = new Point3i(i, j, node.getK());
     	nodeNumber = domain.getNodeNumber(node);    	
-    	point = domain.getXYZFromIJK(node);
+    	point = domain.getXYZEdgeFromIJK(node);
     	
     	clearScenariosUsed();
     	clearHistory();

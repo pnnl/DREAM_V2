@@ -22,7 +22,7 @@ import ncsa.hdf.object.h5.H5File;
 
 public class Constants {
 	
-	// Catherine change this to true when you want ot build production version!!!
+	// Catherine change this to true when you want to build production version!!!
 	public static boolean buildDev = false;
 	
 	public enum ModelOption { 

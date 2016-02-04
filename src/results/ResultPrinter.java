@@ -208,7 +208,7 @@ public class ResultPrinter {
 				line += ", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig));
 				
 				for(Sensor sensor: configuration.getSensors()) {		
-					Point3d xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
+					Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
 					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
 				}
 				

@@ -60,7 +60,7 @@ public class Vortex extends Function {
 			Point3i ijk = set.getNodeStructure().getIJKFromNodeNumber(node);
 			//Vector3D P = new Vector3D(ijk.getI(), ijk.getJ(), ijk.getK());
 
-			Point3d p = set.getNodeStructure().getXYZFromIJK(ijk);
+			Point3d p = set.getNodeStructure().getXYZEdgeFromIJK(ijk);
 			Vector3D P = new Vector3D(p.getX(), p.getY(), p.getZ());
 			
 			for(Point3i pt: triangles) {	
@@ -69,9 +69,9 @@ public class Vortex extends Function {
 				Point3i ijk_b = set.getNodeStructure().getIJKFromNodeNumber(surfacePoints.get(pt.getJ()));
 				Point3i ijk_c = set.getNodeStructure().getIJKFromNodeNumber(surfacePoints.get(pt.getK()));
 
-				Point3d a = set.getNodeStructure().getXYZFromIJK(ijk_a);
-				Point3d b = set.getNodeStructure().getXYZFromIJK(ijk_b);
-				Point3d c = set.getNodeStructure().getXYZFromIJK(ijk_c);
+				Point3d a = set.getNodeStructure().getXYZEdgeFromIJK(ijk_a);
+				Point3d b = set.getNodeStructure().getXYZEdgeFromIJK(ijk_b);
+				Point3d c = set.getNodeStructure().getXYZEdgeFromIJK(ijk_c);
 
 				Vector3D A = new Vector3D(a.getX(), a.getY(), a.getZ());
 				Vector3D B = new Vector3D(b.getX(), b.getY(), b.getZ());

@@ -357,7 +357,7 @@ public class DREAMWizard extends Wizard {
 							HashSet<Integer> temp = new HashSet<Integer>();
 							if(set.getSensorSettings(sensorType) != null){
 								for(Integer node: set.getSensorSettings(sensorType).getValidNodes()){
-									Point3d test = set.getNodeStructure().getXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+									Point3d test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
 									if (minZ <= test.getZ() && test.getZ() <= maxZ)
 										temp.add(node);
 								}

@@ -26,7 +26,7 @@ public class Sensor {
     	
     	node =  new Point3i(i,j,k);
     	nodeNumber = domain.getNodeNumber(node);
-    	point = domain.getXYZFromIJK(node);
+    	point = domain.getXYZEdgeFromIJK(node);
     	
     	this.type = type;
     }
@@ -35,7 +35,7 @@ public class Sensor {
     	
     	this.nodeNumber = nodeNumber;
     	node = domain.getIJKFromNodeNumber(nodeNumber);
-    	point = domain.getXYZFromIJK(node);
+    	point = domain.getXYZEdgeFromIJK(node);
     	
     	this.type = type;
     }
