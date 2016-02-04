@@ -101,6 +101,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
 		ResultPrinter.clearResults(set, showPlots);
 		for(int i = 0; i < sets; i++) {
+			if(monitor.isCanceled())
+				return;
 			if(i !=0) ResultPrinter.newTTDPlots(set, i+1); //already set up for the first iteration
 			currentRun = i;
 			if(monitor != null) 
