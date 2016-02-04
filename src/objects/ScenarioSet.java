@@ -323,7 +323,7 @@ public class ScenarioSet {
 	public Map<Integer, List<Integer>> getAllPossibleWells() {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
 		for(String sensorType: this.getSensorSettings().keySet()) {
-			for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
+			for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
 				cloudNodes.add(node);
 		}
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
@@ -374,7 +374,7 @@ public class ScenarioSet {
 		int tempMaxWells = maxWells;
 				
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-		for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
+		for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
 			cloudNodes.add(node);
 		
 		//old addpoint logic

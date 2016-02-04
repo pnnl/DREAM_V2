@@ -400,6 +400,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				sensorSettings.put(dataType, data);
 			}	
 			data.setupSensors(false, sensorSettings);
+			DREAMWizard.visLauncher.setEnabled(true);
 			
 
 		}
@@ -489,7 +490,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			if(data.getSet().getSensorSettings(temp.sensorType) == null)
 				data.getSet().resetSensorSettings(temp.sensorType, temp.min, temp.max);
 			if( data.getSet().getSensorSettings(temp.sensorType).isSet())
-				temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes().size());
+				temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
 			else 
 				temp.nodeLabel.setText(temp.sensorType+ ": Not set");
 			count+=2;
@@ -521,9 +522,10 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						}
 					}
 					data.setupSensors(reset, sensorSettings);
+					DREAMWizard.visLauncher.setEnabled(true);
 					for(SensorData temp: sensorData.values()) {
 						if(temp.isIncluded &&  data.getSet().getSensorSettings(temp.sensorType).isSet())
-							temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes().size());
+							temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
 						else
 							temp.nodeLabel.setText(temp.sensorType+ ": Not set");
 					}			
@@ -534,14 +536,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						for(String dataType: data.getSet().getDataTypes()) {
 							if(!data.getSet().getSensorSettings(dataType).isSet())
 								continue;
-							for(Integer nodeNumber: data.getSet().getSensorSettings(dataType).getValidNodes()) {
+							for(Integer nodeNumber: data.getSet().getSensorSettings(dataType).getValidNodes(null)) {
 								boolean shared = true;
 								for(String otherDataType: data.getSet().getDataTypes()) {
 									if(dataType.equals(otherDataType))
 										continue; // Don't need to check this one
 									if(!data.getSet().getSensorSettings(otherDataType).isSet())
 										continue;
-									if(!data.getSet().getSensorSettings(otherDataType).getValidNodes().contains(nodeNumber)) {
+									if(!data.getSet().getSensorSettings(otherDataType).getValidNodes(null).contains(nodeNumber)) {
 										shared = false;
 									}
 									if(!shared)
@@ -555,7 +557,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 						for(SensorData temp: sensorData.values()) {
 							if(data.getSet().getSensorSettings(temp.sensorType) != null && data.getSet().getSensorSettings(temp.sensorType).isSet()) {
 								data.getSet().getSensorSettings(temp.sensorType).setValidNodes(intersection);
-								temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes().size());
+								temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
 							} else
 								temp.nodeLabel.setText(temp.sensorType+ ": Not set");
 						}
@@ -580,7 +582,6 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 					}
 					*/
 
-					DREAMWizard.visLauncher.setEnabled(true);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}

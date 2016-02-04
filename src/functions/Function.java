@@ -374,7 +374,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		List<ExtendedSensor> sensors = new ArrayList<ExtendedSensor>();
 		for (String type : set.getDataTypes()) {
 			for (Integer nodePosition : set.getSensorSettings(type)
-					.getValidNodes()) {
+					.getValidNodes(null)) {
 				sensors.add(new ExtendedSensor(nodePosition, type, set
 						.getNodeStructure()));
 			}

@@ -10,6 +10,8 @@ import java.util.TreeMap;
 
 import javax.swing.JOptionPane;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import objects.NodeStructure;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
@@ -53,11 +55,12 @@ public class HDF5Wrapper {
 		return max;		
 	}
 
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float threshold) {
-		return queryNodesFromMemory(nodeStructure, scenario, dataType, threshold, Float.MAX_VALUE);
+	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float threshold, IProgressMonitor monitor) {
+		return queryNodesFromMemory(nodeStructure, scenario, dataType, threshold, Float.MAX_VALUE, monitor);
 	}
 
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold) {
+	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, 
+			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) {
 		HashSet<Integer> nodes = new HashSet<Integer>();		
 		int i = nodeStructure.getIJKDimensions().getI();
 		int j = nodeStructure.getIJKDimensions().getJ();
@@ -66,6 +69,9 @@ public class HDF5Wrapper {
 		for(int index = 0; index < totalNodes; index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
 			for(int timeStep: Constants.hdf5Data.get(scenario).keySet()) {
+
+				if(monitor.isCanceled()) return nodes;
+				
 				float value = Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
 				if(value >= lowerThreshold && value < upperThreshold) {
 					//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
@@ -77,7 +83,8 @@ public class HDF5Wrapper {
 		return nodes;
 	}
 
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {
+	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, 
+			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 
 		HashSet<Integer> nodes = new HashSet<Integer>();		
 		int i = nodeStructure.getIJKDimensions().getI();
@@ -90,6 +97,9 @@ public class HDF5Wrapper {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
 			boolean exceededInThis = false;							
 			for(int startTimeIndex = 0; startTimeIndex < timeSteps.size(); startTimeIndex++) {
+
+				if(monitor.isCanceled()) return nodes;
+				
 				float valueAtStartTime = Constants.hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTimeAsInt()).get(dataType)[index];	
 
 				// Always compare from 0 in this case, end is then actually beginning
@@ -281,7 +291,8 @@ public class HDF5Wrapper {
 		return max;	
 	}
 
-	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold) throws Exception {
+	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, 
+			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) throws Exception {
 		HashSet<Integer> nodes = new HashSet<Integer>();		
 		H5File hdf5File = Constants.hdf5Files.get(scenario); // For the given scenario
 		hdf5File.open();
@@ -306,6 +317,9 @@ public class HDF5Wrapper {
 					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
 					((Dataset)child).close(dataset_id);
 					for(int i = 0; i < dataRead.length; i++) {
+
+						if(monitor.isCanceled()) return nodes;
+						
 						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) { // Or >=
 							// Also add to the cloud?
 							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
@@ -355,7 +369,8 @@ public class HDF5Wrapper {
 		}
 	}
 
-	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType) throws Exception {
+	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, 
+			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 
 		H5File h5file = Constants.hdf5Files.get(scenario);
 		h5file.open();
@@ -378,6 +393,7 @@ public class HDF5Wrapper {
 					float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
 					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);						
 					valuesByScenarioAndTime.put(Integer.parseInt(group.getName().replaceAll("plot", "")), dataRead);
+
 				}
 			}
 		}
@@ -390,6 +406,8 @@ public class HDF5Wrapper {
 			boolean exceededInThis = false;	
 			int startTimeIndex = 0;
 			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
+				if(monitor.isCanceled()) return nodes;
+				
 				int startTime = (Integer) orderedTimes[startTimeIndex];
 				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[index];
 				//	int valueAtStartTimeInt = (int)(valueAtStartTime * epsilon);

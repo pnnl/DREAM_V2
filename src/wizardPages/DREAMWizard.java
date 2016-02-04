@@ -59,7 +59,7 @@ public class DREAMWizard extends Wizard {
 	private STORMData data;
 	private MultiDomainViewer domainViewer;
 	private WizardDialog dialog;
-	
+
 	public static Button convertDataButton;
 	public static Button visLauncher;
 
@@ -313,56 +313,87 @@ public class DREAMWizard extends Wizard {
 		 */
 		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorSettings) throws Exception {
 			try {
-				dialog.run(true, false, new IRunnableWithProgress() {
+				dialog.run(true, true, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-						monitor.beginTask("Sensor settings", sensorSettings.size()*2);				
-						for(String sensorType: sensorSettings.keySet()) {
-							SensorData data = sensorSettings.get(sensorType);
-							if(data.isIncluded) {
-								monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
-								if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-									set.resetSensorSettings(sensorType, data.min, data.max);
+						try {
+							monitor.beginTask("Sensor settings", sensorSettings.size()*2);	
+							for(String sensorType: sensorSettings.keySet()) {							
+								if(monitor.isCanceled()) break;							
+								SensorData data = sensorSettings.get(sensorType);
+								if(data.isIncluded) {
+									monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
+									if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
+										set.resetSensorSettings(sensorType, data.min, data.max);
+									}
+									set.getSensorSettings().get(sensorType).setUserSettings(
+											data.cost, 
+											Color.BLUE,
+											data.min,
+											data.max,
+											data.trigger, 
+											reset,
+											data.deltaType,
+											data.maxZ,
+											data.minZ);
+									monitor.worked(1);
+									if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
+										monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
+										set.getSensorSettings(sensorType).getValidNodes(monitor); // This should re-query for the valid nodes
+									}
+									monitor.worked(1);
+								} else {
+									monitor.subTask(sensorType.toLowerCase() + " - removing");
+									set.removeSensorSettings(sensorType);
+									set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
+									monitor.worked(2);
 								}
-								set.getSensorSettings().get(sensorType).setUserSettings(
-										data.cost, 
-										Color.BLUE,
-										data.min,
-										data.max,
-										data.trigger, 
-										reset,
-										data.deltaType,
-										data.maxZ,
-										data.minZ);
-								monitor.worked(1);
-								if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
-									monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
-									set.getSensorSettings(sensorType).getValidNodes(); // This should re-query for the valid nodes
+								//TODO: remove this hard-coded z check
+
+								float minZ = data.minZ;
+								float maxZ = data.maxZ;
+								//Find the nodes that fit this z restriction
+								HashSet<Integer> temp = new HashSet<Integer>();
+								if(set.getSensorSettings(sensorType) != null){
+									for(Integer node: set.getSensorSettings(sensorType).getValidNodes(monitor)){
+										if(monitor.isCanceled()) break;
+										Point3d test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+										if (minZ <= test.getZ() && test.getZ() <= maxZ)
+											temp.add(node);
+									}
+									set.getSensorSettings(sensorType).setValidNodes(temp);
 								}
-
-
-
-								monitor.worked(1);
-							} else {
-								monitor.subTask(sensorType.toLowerCase() + " - removing");
-								set.removeSensorSettings(sensorType);
-								set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
-								monitor.worked(2);
 							}
-							//TODO: remove this hard-coded z check
 
-							float minZ = data.minZ;
-							float maxZ = data.maxZ;
-							//Find the nodes that fit this z restriction
-							HashSet<Integer> temp = new HashSet<Integer>();
-							if(set.getSensorSettings(sensorType) != null){
-								for(Integer node: set.getSensorSettings(sensorType).getValidNodes()){
-									Point3d test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
-									if (minZ <= test.getZ() && test.getZ() <= maxZ)
-										temp.add(node);
+							// If the user canceled, should we clear the data????
+							if(monitor.isCanceled()) {
+								// TODO: We're probably in an invalid state? clear everything???
+								for(String sensorType: sensorSettings.keySet()) {							
+									SensorData data = sensorSettings.get(sensorType);
+									if(data.isIncluded) {
+										if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
+											set.resetSensorSettings(sensorType, data.min, data.max);
+											set.getSensorSettings().get(sensorType).setUserSettings(
+													data.cost, 
+													Color.BLUE,
+													data.min,
+													data.max,
+													data.trigger, 
+													reset,
+													data.deltaType,
+													data.maxZ,
+													data.minZ);
+										}
+										set.getSensorSettings().get(sensorType).setNodesReady(false);
+									} else {
+										set.removeSensorSettings(sensorType);
+										set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);							
+									}
 								}
-								set.getSensorSettings(sensorType).setValidNodes(temp);
-							}
+							} 
+						} catch (Exception e) {
+							System.out.println(monitor.isCanceled());
+							e.printStackTrace();
 						}
 
 					}
@@ -382,7 +413,6 @@ public class DREAMWizard extends Wizard {
 				System.out.println(totalNodes);
 				JOptionPane.showMessageDialog(null, "Dream is out of memory!  Please reduce your solution space, current space: " + totalNodes);
 				e.printStackTrace();
-
 			}
 		}
 
@@ -400,10 +430,6 @@ public class DREAMWizard extends Wizard {
 
 				}
 			});			
-		}
-
-		public String getValidNodes(String sensorType) {
-			return String.valueOf(set.getSensorSettings(sensorType).getValidNodes().size());
 		}
 
 		public ScenarioSet getSet() {

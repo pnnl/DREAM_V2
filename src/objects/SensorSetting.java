@@ -12,6 +12,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import objects.SensorSetting.Trigger;
 import utilities.Constants;
 
@@ -228,7 +230,7 @@ public class SensorSetting {
 	}
 
 	// Update the valid nodes based on current settings 
-	private void setValidNodes() {
+	private void setValidNodes(IProgressMonitor monitor) {
 
 		validNodes.clear();
 
@@ -242,8 +244,8 @@ public class SensorSetting {
 				// Query for valid nodes per scenario
 				try {
 					HashSet<Integer> nodes = Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold) : 
-								HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold);
+							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor) : 
+								HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
 							validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -277,8 +279,8 @@ public class SensorSetting {
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = !Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType()) :
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType());
+							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor) :
+							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
 					if(first) {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
@@ -373,19 +375,16 @@ public class SensorSetting {
 	public boolean isReady() {
 		return isReady;
 	}
-
-	public synchronized Set<Integer> getValidNodes() {
-		if(!areNodesReady())
-			setValidNodes();
-		/*
-		List<Integer> validNodeNumbers = new ArrayList<Integer>();
-		for(Integer itgr: validNodes) {
-			validNodeNumbers.add(itgr);
-		}*/
-		return validNodes;//validNodeNumbers;
+	
+	public synchronized Set<Integer> getValidNodes(IProgressMonitor monitor) {
+		if(!areNodesReady() && monitor != null)
+			setValidNodes(monitor);
+		if(!areNodesReady() && monitor == null) {
+			System.err.println("Nodes are not ready and we didn't provide a progress monitor, fix this.");
+		}
+		return validNodes;
 	}
-
-
+	
 	public Color getColor() {
 		return color;
 	}

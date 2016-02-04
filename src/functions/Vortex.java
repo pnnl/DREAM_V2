@@ -25,7 +25,7 @@ public class Vortex extends Function {
 	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, Scenario scenario) {
 
 		String sensorType = set.getSensorSettings().keySet().toArray()[0].toString();
-		Set<Integer> cloudNodes = set.getSensorSettings(sensorType).getValidNodes();
+		Set<Integer> cloudNodes = set.getSensorSettings(sensorType).getValidNodes(null);
 		List<Integer> sensorPositions = configuration.getSensorPositions(sensorType);
 		
 		int totalSensors = sensorPositions.size();

@@ -273,7 +273,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 					// Not selected, remove this from the spaces we can go
 					for(SensorSetting setting: data.getSet().getSensorSettings().values()) {
 						List<Integer> nodes = new ArrayList<Integer>();
-						for(Integer nodeNumber: setting.getValidNodes()) {
+						for(Integer nodeNumber: setting.getValidNodes(null)) {
 							Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
 							if(ijk.getI() == i && ijk.getJ() == j) {
 								nodes.add(nodeNumber);

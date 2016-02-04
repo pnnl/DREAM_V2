@@ -798,7 +798,7 @@ public class MultiDomainViewer {
 			for (String type: scenarioSet.getDataTypes())   // May not have any
 			{
 				// Color all these cells transparent
-				for (int nodeNumber: scenarioSet.getSensorSettings(type).getValidNodes())
+				for (int nodeNumber: scenarioSet.getSensorSettings(type).getValidNodes(null))
 				{
 					if (!cloudNodes.containsKey(nodeNumber))
 						cloudNodes.put(nodeNumber, 0);
@@ -1281,13 +1281,13 @@ public class MultiDomainViewer {
 			// Fill the nodes array
 			if(this.colorByType) {
 				for(String type: scenarioSet.getDataTypes()) {
-					for(int nodeNumber: scenarioSet.getSensorSettings(type).getValidNodes()) {
+					for(int nodeNumber: scenarioSet.getSensorSettings(type).getValidNodes(null)) {
 						ExtendedSensor cloudSensor = sensorsMap.get(nodeNumber);						
 						boolean mix = false;
 						for(String type2: scenarioSet.getDataTypes()) {
 							if(type.equals(type2))
 								continue;
-							if(scenarioSet.getSensorSettings(type2).getValidNodes().contains(nodeNumber)) {
+							if(scenarioSet.getSensorSettings(type2).getValidNodes(null).contains(nodeNumber)) {
 								mix = true;
 							}
 						}
