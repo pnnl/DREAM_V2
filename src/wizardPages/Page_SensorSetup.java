@@ -399,6 +399,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				String dataType = data.sensorType;
 				sensorSettings.put(dataType, data);
 			}	
+			DREAMWizard.visLauncher.setEnabled(false);			
 			data.setupSensors(false, sensorSettings);
 			DREAMWizard.visLauncher.setEnabled(true);
 			
@@ -521,6 +522,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 							data.getSet().getSensorSettings(dataType).setNodesReady(false);
 						}
 					}
+					DREAMWizard.visLauncher.setEnabled(false);	
 					data.setupSensors(reset, sensorSettings);
 					DREAMWizard.visLauncher.setEnabled(true);
 					for(SensorData temp: sensorData.values()) {
