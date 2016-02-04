@@ -75,7 +75,7 @@ public class DREAMWizard extends Wizard {
 	}
 
 	public void setDialog(WizardDialog dialog) {
-		this.dialog = dialog;
+		this.dialog = dialog;		
 	}
 
 	public void linkViewer(MultiDomainViewer domainViewer) {
@@ -153,7 +153,11 @@ public class DREAMWizard extends Wizard {
 
 		WizardDialog.setDefaultImage(new Image(Display.getDefault(),"./img/icon.png"));
 
-		WizardDialog wizardDialog = new WizardDialog(shell, wizard) {
+		WizardDialog wizardDialog = new WizardDialog(null, wizard) {
+			{
+				setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.MODELESS | SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.ICON);
+			}
+			
 			@Override
 			protected void createButtonsForButtonBar(Composite parent) {		
 
@@ -449,7 +453,7 @@ public class DREAMWizard extends Wizard {
 				wizard.launchVisWindow();	
 				runner.setDomainViewer(wizard.domainViewer);
 			}
-			dialog.run(true, false, new IRunnableWithProgress() {
+			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Running iterative procedure ", set.getIterations()*runs);	

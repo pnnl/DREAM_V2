@@ -44,7 +44,7 @@ public class MultiDomainViewer {
 
 	public MultiDomainViewer(Display display, ScenarioSet set) {
 		displayTools = new HashMap<SensorConfigType, DisplayTool>();
-		shell = new Shell(display, SWT.DIALOG_TRIM|SWT.APPLICATION_MODAL); 
+		shell = new Shell(display, SWT.DIALOG_TRIM | SWT.MODELESS); 
 		shell.setText("3D Multi-Domain Viewer"); 
 		shell.setLayout(new FillLayout());
 		Composite comp = new Composite(shell, SWT.NONE);

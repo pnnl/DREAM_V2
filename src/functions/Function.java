@@ -193,6 +193,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		
 		for(int iteration = 0; iteration < set.getIterations(); iteration++) {
 			
+			if(monitor.isCanceled())
+				return;
 			
 			long timeToStoreResults = 0;
 			long timeToMatchConfig = 0;
