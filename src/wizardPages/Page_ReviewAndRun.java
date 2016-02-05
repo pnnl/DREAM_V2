@@ -54,9 +54,11 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 //These.
 
+
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
+import objects.InferenceTest;
 import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
@@ -559,7 +561,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				List<Float> configurationAverageTTDs = new ArrayList<Float>();
 				List<Float> configurationPercentDetected = new ArrayList<Float>();
 				List<Float> configurationTTDs = new ArrayList<Float>();
-				List<Integer> numberOfSensors = new ArrayList<Integer>();
+				List<Float> averageVolumeDegraded = new ArrayList<Float>();
+				List<Configuration> configs = new ArrayList<Configuration>();
 				List<Float> budgets = new ArrayList<Float>();
 				List<Integer> wells = new ArrayList<Integer>();
 				float budget = data.getSet().getCostConstraint();
@@ -596,10 +599,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								float cost = data.getScenarioSet().costOfConfiguration(config);
 								if(cost < minCost) minCost = cost;
 								if(cost > maxCost) maxCost = cost;
-								numberOfSensors.add(config.getSensors().size());
 								configurationCosts.add(cost);
 								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
 								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
+								averageVolumeDegraded.add(volumeOfAquiferDegraded(config.getTimesToDetection()));
+								configs.add(config);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -613,7 +617,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				
 				//Print our results in a csv file
 				try {
-					ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, numberOfSensors);
+					ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, configs, averageVolumeDegraded);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -664,7 +668,58 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 	}
 	
-
+	public float volumeOfAquiferDegraded(Map<Scenario, Float> thresholdTTD){
+		
+		int detectionCriteriaStorage = data.getSet().getInferenceTest().getOverallMinimum();
+		InferenceTest test = data.getSet().getInferenceTest();
+		test.setMinimum(1);
+		data.getSet().setInferenceTest(test);
+		
+		
+		float volumeDegraded = 0;
+		
+		HashMap<Scenario, Float> volumeDegradedByScenario = new HashMap<Scenario, Float>();
+		HashSet<Integer> nodes = new HashSet<Integer>();
+		
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){
+			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
+		}
+			
+		for(Integer nodeNumber: nodes){
+			ExtendedConfiguration configuration = new ExtendedConfiguration();
+			for(String sensorType: data.getSet().getSensorSettings().keySet()){
+				configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+			}
+			data.runObjective(configuration);
+			for(Scenario scenario: configuration.getTimesToDetection().keySet()){
+				Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
+				if(thresholdTTD.containsKey(scenario)){
+					if(configuration.getTimesToDetection().get(scenario) <= thresholdTTD.get(scenario)){
+						if(volumeDegradedByScenario.containsKey(scenario)) volumeDegradedByScenario.put(scenario, volumeDegradedByScenario.get(scenario) + data.getSet().getNodeStructure().getVolumeOfNode(location)); //TODO: Change this to a getVolumeOfNode function
+						else volumeDegradedByScenario.put(scenario, data.getSet().getNodeStructure().getVolumeOfNode(location));
+					}
+				}
+				else{
+					if(configuration.getTimesToDetection().get(scenario) > 0){ //This was never detected by our configuration, but it still might trigger sometime
+						if(volumeDegradedByScenario.containsKey(scenario)) volumeDegradedByScenario.put(scenario, volumeDegradedByScenario.get(scenario) + data.getSet().getNodeStructure().getVolumeOfNode(location)); //TODO: Change this to a getVolumeOfNode function
+						else volumeDegradedByScenario.put(scenario, data.getSet().getNodeStructure().getVolumeOfNode(location));
+					}
+				}
+			}
+		}
+		
+		//set the set back to the original parameters (not 1 overall)
+		test.setMinimum(detectionCriteriaStorage);
+		data.getSet().setInferenceTest(test);
+		
+		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
+		
+		for(Scenario scenario: volumeDegradedByScenario.keySet()){
+			volumeDegraded += volumeDegradedByScenario.get(scenario);
+		}
+		
+		return volumeDegraded / data.getSet().getScenarios().size(); //currently averaged over all scenarios
+	}
 
 	public void convertFile(File file) throws IOException {
 		/*

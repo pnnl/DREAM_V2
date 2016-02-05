@@ -254,17 +254,22 @@ public class ResultPrinter {
 		}
 	}
 
-	public static void printPlotData(List<Float> percentScenariosDetected, List<Float> averageTTDInDetecting, List<Float> costOfConfig, List<Integer> numberOfSensors) throws IOException{
+	public static void printPlotData(List<Float> percentScenariosDetected, List<Float> averageTTDInDetecting, List<Float> costOfConfig, List<Configuration> configs, List<Float> volumeDegraded) throws IOException{
 		String fileName = "plot_data.csv";
 		List<String> lines = new ArrayList<String>();
-		lines.add("Percent of Scenarios Detected, Average TTD in Detecting Scenarios, Cost, Total Number of Sensors");
+		lines.add("Percent of Scenarios Detected, Average TTD in Detecting Scenarios, Cost, Average Volume Degraded, Total Number of Sensors, Sensor Locations");
 		int numConfigs = costOfConfig.size();
 		for(int i=0; i<numConfigs; ++i){
 			String line = "";
 			line += percentScenariosDetected.get(i) + ",";
 			line += averageTTDInDetecting.get(i) + ",";
 			line += costOfConfig.get(i) + ",";
-			line += numberOfSensors.get(i);
+			line += volumeDegraded.get(i) + ",";
+			line += configs.get(i).getSensors().size();
+			for(Sensor sensor: configs.get(i).getSensors()){
+				Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+				line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+			}
 			lines.add(line);
 		}
 		FileUtils.writeLines(new File(resultsDirectory, fileName), lines);

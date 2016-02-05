@@ -118,11 +118,23 @@ public class NodeStructure {
 		return k;
 	}
 
+	public float getVolumeOfNode(Point3i location){
+		Point3i nextCorner = new Point3i(location.getI()+1, location.getJ()+1, location.getK()+1);
+		Point3d lowerxyz = getXYZEdgeFromIJK(location);
+		Point3d upperxyz = getXYZEdgeFromIJK(nextCorner);
+		float lengthx = upperxyz.getX() - lowerxyz.getX();
+		float lengthy = upperxyz.getY() - lowerxyz.getY();
+		float lengthz = upperxyz.getZ() - lowerxyz.getZ();
+		return Math.abs(lengthx*lengthy*lengthz);
+	}
+	
+
+
 	public Point3d getXYZCenterFromIJK(Point3i node) {
 		
 		// We have to compute the cell center
 		if(ijkDimensions.getI() != x.size()) {
-			System.err.println("Implement this!!! NodeStructure: 125");
+			System.err.println("Implement this!!! NodeStructure: 139");
 			return null;
 		}
 		
@@ -134,7 +146,7 @@ public class NodeStructure {
 			
 			// We just have to return the right xyz, probably xyz at ijk-1?
 			if(ijkDimensions.getI() != x.size()) {
-				System.err.println("Implement this!!! NodeStructure: 137");
+				System.err.println("Implement this!!! NodeStructure: 151");
 				return null;
 			}
 			// Calculate half the distance between this node and the next

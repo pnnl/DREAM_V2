@@ -75,9 +75,9 @@ public class TecplotNode {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException{
-		int iDim = 38;
-		int jDim = 35;
-		int kDim = 10;
+		int iDim = 2;
+		int jDim = 1;
+		int kDim = 2;
 		TecplotNode t = new TecplotNode(iDim, jDim, kDim);
 		PrintWriter writer = new PrintWriter("TecplotTest.txt", "UTF-8");
 		for(int i=0; i<iDim*jDim*kDim; i++){
