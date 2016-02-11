@@ -138,11 +138,8 @@ public class DREAMWizard extends Wizard {
 			e.printStackTrace();
 		} 
 
-		PrintStream ignoreError = System.err;
-		System.setErr(null);
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display); 
-		System.setErr(ignoreError);
 
 		// Pop up the disclaimer, exit on cancel
 		MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL );
