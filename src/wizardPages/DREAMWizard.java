@@ -63,7 +63,7 @@ public class DREAMWizard extends Wizard {
 
 	public static Button convertDataButton;
 	public static Button visLauncher;
-
+	
 	public DREAMWizard() {
 		super();
 		setWindowTitle(null);
@@ -128,18 +128,19 @@ public class DREAMWizard extends Wizard {
 	public boolean performFinish() {
 		return true;
 	}
-
+	
+	
 	public static void main(String[] args) {
 
 		try {
-			UIManager.setLookAndFeel(
-					UIManager.getCrossPlatformLookAndFeelClassName());
+//			UIManager.setLookAndFeel(
+//					UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
 
 		final Display display = Display.getDefault();
-		final Shell shell = new Shell(display); 
+		final Shell shell = new Shell(display);
 
 		// Pop up the disclaimer, exit on cancel
 		MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL );
@@ -158,6 +159,13 @@ public class DREAMWizard extends Wizard {
 			{
 				setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.MODELESS | SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.ICON);
 			}
+			
+			@Override
+			protected void finishPressed(){
+				//On a mac, this was being "pressed" when enter was hit. This way it does nothing and does not exit.
+			}
+			
+			
 			
 			@Override
 			protected void createButtonsForButtonBar(Composite parent) {		
@@ -203,7 +211,7 @@ public class DREAMWizard extends Wizard {
 
 				// Hide the buttons we don't use
 				Button cancel = super.getButton(IDialogConstants.CANCEL_ID);	
-				Button finish = super.getButton(IDialogConstants.FINISH_ID);	
+				Button finish = super.getButton(IDialogConstants.FINISH_ID);
 				((GridData)cancel.getLayoutData()).exclude = true;
 				((GridData)finish.getLayoutData()).exclude = true;
 			}
@@ -216,8 +224,21 @@ public class DREAMWizard extends Wizard {
 
 	public void launchVisWindow() {
 		System.out.println("Main Shell handling Button press, about to create child Shell");
+		try {
 		MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
 		linkViewer(domainViewer);
+		} catch (Exception e) {
+			try {
+				Thread.sleep(1000);
+
+				MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
+				linkViewer(domainViewer);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+		}
 	}
 
 	public ScenarioSet getScenarioSet() {

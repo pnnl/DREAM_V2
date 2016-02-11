@@ -154,7 +154,7 @@ public class MultiDomainViewer {
 		private int lookat = 0;
 
 		private Point pt;
-		final GLContext context;
+		GLContext context;
 
 		private Map<String, List<Vector3f[]>> nodesByType;
 		private Map<String, List<Vector3f[]>> cloudsByType;
@@ -318,9 +318,13 @@ public class MultiDomainViewer {
 			}
 
 			setCurrent();
+			try {
 			context = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
-			context.makeCurrent();
+			
+			}catch(Exception e) {
+			}
 
+			context.makeCurrent();
 			/*
 			 *      }
 

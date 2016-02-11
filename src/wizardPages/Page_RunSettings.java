@@ -267,6 +267,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
 	}
+	
 
 
 	private void testReady() {
@@ -278,7 +279,10 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
 		if(maxWells.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
 			isReady = false;
+		}
 
+		if(exclusionRadius.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
+			isReady = false;
 		}
 
 
