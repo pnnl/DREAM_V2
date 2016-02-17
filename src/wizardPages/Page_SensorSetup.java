@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import objects.Sensor;
 import objects.SensorSetting;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
@@ -62,7 +63,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
 	public class SensorData {
 				
-		public String sensorType;		
+		public String sensorType;
+		public String alias;
 		public boolean isIncluded;
 		public float cost;
 		public float maxZ;
@@ -81,6 +83,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		
 		// A couple of these need to be global
 		private Label sensorTypeLabel;
+		private Text aliasText;
 		private Text costText;
 		private Combo thresholdCombo;
 		private Label valueLabel;
@@ -95,7 +98,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		
 		public SensorData(SensorSetting sensorSettings) {
 			
-			sensorType = sensorSettings.getType();			
+			sensorType = sensorSettings.getType();
+			alias = "";
 			isIncluded = false; // By default	
 			cost = sensorSettings.getCost();
 			maxZ = sensorSettings.getMaxZ();
@@ -161,6 +165,21 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			if(maxStr.length() > 8) maxStr = Constants.exponentialFormat.format(dataMax);			
 			
 			includeButton.setText(sensorType);
+			
+			aliasText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			aliasText.setText(alias);
+			aliasText.addModifyListener(new ModifyListener(){
+				@Override
+				public void modifyText(ModifyEvent e){
+					alias = ((Text)e.getSource()).getText();
+					if(alias.contains(",")) ((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					else ((Text)e.getSource()).setForeground(new Color(container.getDisplay(),0,0,0));
+				}
+			});
+			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
+			aliasTextData.widthHint = 60;
+			aliasText.setLayoutData(aliasTextData);
+			
 			
 			// Cost
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -321,6 +340,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		private void toggleEnabled() {
 			if(sensorTypeLabel != null && !sensorTypeLabel.isDisposed())
 				sensorTypeLabel.setEnabled(isIncluded);
+			if(aliasText != null && !aliasText.isDisposed())
+				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
 			if(thresholdCombo != null && !thresholdCombo.isDisposed())
@@ -381,7 +402,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
-		layout.numColumns = 6;
+		layout.numColumns = 7;
 		
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -394,12 +415,16 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	public void completePage() throws Exception {
 		try{
 			isCurrentPage = false;		
-			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();		
+			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
+			Map<String, String> sensorAliases = new HashMap<String, String>();
 			for(SensorData data: sensorData.values()) {
 				String dataType = data.sensorType;
+				String alias = data.alias;
 				sensorSettings.put(dataType, data);
-			}	
+				sensorAliases.put(dataType, alias.equals("") ? dataType: alias);
+			}
 			DREAMWizard.visLauncher.setEnabled(false);			
+			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
 			DREAMWizard.visLauncher.setEnabled(true);
 			
@@ -450,13 +475,15 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				
 		// Headers
 		Label monitorParams = new Label(container, SWT.LEFT);
+		Label aliasLabel = new Label(container, SWT.LEFT);
 		Label costPerSensor = new Label(container, SWT.LEFT);
 		Label detectionCriteria = new Label(container, SWT.LEFT);
 		Label valueLabel = new Label(container, SWT.LEFT);
 		Label minZLabel = new Label(container, SWT.LEFT);
 		Label maxZLabel = new Label(container, SWT.LEFT);
 		
-		monitorParams.setText("Monitoring Parameter");		
+		monitorParams.setText("Monitoring Parameter");
+		aliasLabel.setText("Alias for Monitoring Technology");
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		valueLabel.setText("Value");
@@ -464,6 +491,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		maxZLabel.setText("Maximum Z");
 		
 		monitorParams.setFont(boldFont);
+		aliasLabel.setFont(boldFont);
 		costPerSensor.setFont(boldFont);
 		detectionCriteria.setFont(boldFont);
 		valueLabel.setFont(boldFont);

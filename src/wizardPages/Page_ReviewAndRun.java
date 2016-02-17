@@ -271,6 +271,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				text += "\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100);
 								
 				try {
+					File outFolder = new File(outputFolder.getText());
+					if(!outFolder.exists())
+						outFolder.mkdirs();
 					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
 					if(!csvOutput.exists())
 						csvOutput.createNewFile();
@@ -402,9 +405,10 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 			@Override
 			public void handleEvent(Event arg0) {
+				/*
 				JFrame temp = new JFrame();
 				JTextArea textArea = new JTextArea();
-
+				*/
 				StringBuilder text = new StringBuilder();
 				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
 				text.append("VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"");
@@ -412,8 +416,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					text.append("\t\"" + sensorType + "\"");
 				}
 				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
-				int numNodes = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
-				int numElements = 8*numNodes;
+				//Catherine said we had these backwards, switched for now
+				int numElements = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
+				int numNodes = 8*numElements;
 				text.append("\n");
 				text.append("ZONE NODES = " + numNodes + ", ELEMENTS = " + numElements + ", DATAPACKING = BLOCK, ZONETYPE = FEBRICK\n");
 				
@@ -441,7 +446,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						}
 					}
 				}
-				text.append("\n");
+//				text.append("\n");
 				// Y values	
 				for(int k = 0; k < ijk.getK(); k++) { 
 					float prevValue = 0.0f; // Assume center is at 0
@@ -457,7 +462,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						}
 					}
 				}
-				text.append("\n");
+//				text.append("\n");
 				// Z values
 				float prevValue = 0.0f; // Assume center is at 0				
 				for(int k = 0; k < ijk.getK(); k++) { 
@@ -473,7 +478,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						}
 					}
 				}
-				text.append("\n");
+				//text.append("\n");
 				
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
@@ -482,20 +487,34 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes(null).contains(nodeNumber) ? "1" : "0");		
 						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
 					}}}
-					text.append("\n");
+					//text.append("\n");
 				}
-				text.append("\n");
+				//text.append("\n");
 
 				//Connection List
 				text.append(TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK()));
 				
-				text.append("\n");
+				//text.append("\n");
 			
-				
+				try{
+					File outFolder = new File(outputFolder.getText());
+					if(!outFolder.exists())
+						outFolder.mkdirs();
+					File outFile = new File(new File(outputFolder.getText()), "solution_space.dat");
+					if(!outFile.exists())
+						outFile.createNewFile();
+					FileUtils.writeStringToFile(outFile, text.toString());
+					Desktop.getDesktop().open(outFile);
+				}catch (IOException e) {		
+					JOptionPane.showMessageDialog(null, "Could not write to solution_space.dat, make sure the file is not currently open");
+					e.printStackTrace();
+				}
+				/*
 				textArea.setText(text.toString());
 				temp.add(new JScrollPane(textArea));
 				temp.setSize(400, 400);
 				temp.setVisible(true);
+				*/
 			}	       
 		});
 		
@@ -547,9 +566,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 //		});		
 		
 		
-		
-		// *Uncomment for the new plot button and functionality 
-		 
+				 
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
 		scatterplotButton.setSelection(true);
 		scatterplotButton.setText("Build Scatterplot");
@@ -578,7 +595,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				float maxCost = 0;
 //				for(Float budgeti: budgets){
 //					for(Integer wellj: wells){
-				for(int i=1; i<=30; ++i){
+				for(int i=1; i<=50; ++i){
 					for(int j=0; j<5; ++j){
 						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
 						int innerWells = i;

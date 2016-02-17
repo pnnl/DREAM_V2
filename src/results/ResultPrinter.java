@@ -112,7 +112,7 @@ public class ResultPrinter {
 					
 					String line = iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected;
 					for(Sensor sensor: configuration.getSensors()) {
-						line += ", " + sensor.getNodeNumber() + ": " + sensor.getSensorType();
+						line += ", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType());
 					}
 					lines.add(line);
 				}
@@ -209,7 +209,7 @@ public class ResultPrinter {
 				
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-					line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+					line += "," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
 				}
 				
 				linesToSort.put(costOfConfig, line);
@@ -268,7 +268,7 @@ public class ResultPrinter {
 			line += configs.get(i).getSensors().size();
 			for(Sensor sensor: configs.get(i).getSensors()){
 				Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-				line += "," + sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+				line += "," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
 			}
 			lines.add(line);
 		}

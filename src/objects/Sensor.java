@@ -1,9 +1,15 @@
 package objects;
 
+import java.util.Map;
+
 import utilities.Point3d;
 import utilities.Point3i;
 
 public class Sensor {
+	
+	//Static functions for accessing the aliases
+	
+	static public Map<String, String> sensorAliases;
 	
 	// About the sensors location
 	protected Point3i node;
