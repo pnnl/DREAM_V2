@@ -40,7 +40,7 @@ public class GridParser {
 		VARIABLES("VARIABLES"),
 		X("x"), Y("y"), Z("z"),
 		ZONE("ZONE"),
-		T("T"),
+		SOLUTE_TIME("SOLUTIONTIME"),
 		NODES("NODES"),
 		ELEMENTS("ELEMENTS"),
 		VARLOCATION("VARLOCATION"),
@@ -53,7 +53,7 @@ public class GridParser {
 			return key;
 		}		
 	}
-	
+
 	private static enum Ntab {
 		INDEX("index"), I("i"), J("j"), K("k"), 
 		ELEMENT_REF("element reference"), 
@@ -112,19 +112,19 @@ public class GridParser {
 			return integer;
 		}
 	}
-	
+
 	public class DataStructure {
-		
+
 		public float[] x;
 		public float[] y;
 		public float[] z;
-		
+
 		public int i;
 		public int j;
 		public int k;
 
 		public Map<String, float[][]> data;
-		
+
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class GridParser {
 		fileType = FileType.NTAB;	
 		this.timeStep = timeStep;
 	}
-	
+
 	public GridParser(String fileName, FileType fileType, int timeStep) {
 		dataFile = new File(fileName);
 		this.fileType = fileType;	
@@ -267,7 +267,7 @@ public class GridParser {
 				// Ignore empty lines
 				if(line.contains("pH"))
 					System.out.println("This one");
-								
+
 				if (line.isEmpty() || line.trim().isEmpty()) {
 					nextLine = true;
 					continue;
@@ -335,7 +335,7 @@ public class GridParser {
 						}
 					}
 				}
-				
+
 			}	
 			dataScanner.close();
 		} catch (Exception err) {
@@ -348,7 +348,7 @@ public class GridParser {
 
 		if(dataScanner != null)
 			dataScanner.close();
-		
+
 		// A bit of extra work for 2d meshes.
 		if(grid.is2D()) {
 			// Fetch the value set for the given field
@@ -379,9 +379,9 @@ public class GridParser {
 		DataStructure structure = new DataStructure();
 		Map<Integer, Tecplot> indexOf = new HashMap<Integer, Tecplot>();
 		Map<Integer, String> dataTypes = new HashMap<Integer, String>();
-	
-		Map<Integer, Map<String, List<Float>>> data = new HashMap<Integer, Map<String, List<Float>>>();
-		
+
+		Map<Float, Map<String, List<Float>>> data = new HashMap<Float, Map<String, List<Float>>>();
+
 		// Need unique xyz's only
 		HashSet<Float> uniqueXs = new HashSet<Float>();
 		HashSet<Float> uniqueYs = new HashSet<Float>();
@@ -390,21 +390,22 @@ public class GridParser {
 		if(!filesToMerge.contains(dataFile)) {
 			filesToMerge.add(dataFile);
 		}
-		
+
 		for(File file: filesToMerge) {
 
 			// Open the file
 			Scanner sc = new Scanner(file);
 			String firstLine = "";			
-			
+
 			int nodes = 0;
 			int elements = 0;
-			int timestep = 0;
-						
+			float timestep = 0;
+			
 			// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
 			while(sc.hasNextLine()) {
-				
-				
+
+				indexOf.clear(); // We won't have xyz second time around probably
+
 				// Read until we find the variables
 				while(!(firstLine = sc.nextLine()).startsWith(Tecplot.VARIABLES.key) && sc.hasNextLine());
 
@@ -434,8 +435,8 @@ public class GridParser {
 						nodes = Integer.parseInt(variable.split("=")[1]);
 					} else if(variable.startsWith(Tecplot.ELEMENTS.key)) {
 						elements = Integer.parseInt(variable.split("=")[1]);
-					} else if(variable.startsWith(Tecplot.T.key)) {
-						timestep = Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", ""));
+					} else if(variable.startsWith(Tecplot.SOLUTE_TIME.key)) {
+						timestep = Float.parseFloat(variable.split("=")[1].trim());
 					}
 				}
 
@@ -445,16 +446,17 @@ public class GridParser {
 
 				// Read until we find varlocation
 				while(!(firstLine = sc.nextLine()).startsWith(Tecplot.VARLOCATION.key) && sc.hasNextLine());
+				/*
 				if(!firstLine.contains(Tecplot.NODAL.key)) {
 					sc.close();
 					throw new Exception("Only nodal format supported");
-				}
-								
+				} */
+
 				for(int i = 0; i < dataTypes.size()+indexOf.size(); i++) {
-					
+
 					// Reading x y or z: will have 1 per node
 					if(indexOf.containsKey(i)) {
-				
+
 						for(int j = 0; j < nodes; j++) {
 							if(indexOf.get(i).equals(Tecplot.X)) {
 								uniqueXs.add(sc.nextFloat());
@@ -464,13 +466,13 @@ public class GridParser {
 								uniqueZs.add(sc.nextFloat());
 							}
 						}
-						
-						
-					// Reading data, will have 1 per element
+
+
+						// Reading data, will have 1 per element
 					} else {
-						
+
 						String variable = dataTypes.get(i);
-						
+
 						if(!data.containsKey(timestep)) {
 							data.put(timestep, new HashMap<String, List<Float>>());
 						}
@@ -487,12 +489,12 @@ public class GridParser {
 			// Read the file?
 			sc.close();
 		}
-		
+
 		// Build the structure
 		ArrayList<Float> xs = new ArrayList<Float>(uniqueXs);
 		ArrayList<Float> ys = new ArrayList<Float>(uniqueYs);
 		ArrayList<Float> zs = new ArrayList<Float>(uniqueZs);
-		
+
 		Collections.sort(xs);
 		Collections.sort(ys);
 		Collections.sort(zs);
@@ -509,31 +511,55 @@ public class GridParser {
 		for(int i = 0; i < zs.size(); i++) {
 			z[i] = zs.get(i);
 		}
-		
+
 		structure.x = x;
 		structure.y = y;
 		structure.z = z;
 		structure.i = x.length; // Or is it plus 1?
 		structure.j = y.length;
 		structure.k = z.length;
-		
+
 
 		List<String> sortedDataTypes = new ArrayList<String>(dataTypes.values());
 		Collections.sort(sortedDataTypes);
 		float[][] dataDoubleArray = new float[data.size()][dataTypes.size()];
-		
-		for(Integer timestep: data.keySet()) {
-						
+
+		for(Float timestep: data.keySet()) {
 			for(String variable: sortedDataTypes) {
 				List<Float> vars = data.get(timestep).get(variable);
 				for(int i = 0; i < vars.size(); i++)
-					dataDoubleArray[timestep][i] = vars.get(i);				
+					dataDoubleArray[timestep.intValue()][i] = vars.get(i);				
 			}
 		}		
-		
+
 		return structure;
 	}
-	
+
+	public static int getTecplotTimestep(File file) throws Exception {
+
+		// Open the file
+		Scanner sc = new Scanner(file);
+		String firstLine = "";			
+		
+		// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
+		while(sc.hasNextLine()) {
+
+			// Read until we find the zone 
+			while(!(firstLine = sc.nextLine()).startsWith(Tecplot.ZONE.key) && sc.hasNextLine());
+
+			for(String variable: firstLine.split(",")) {
+				if(variable.startsWith(Tecplot.SOLUTE_TIME.key)) {
+					sc.close();
+					return Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", ""));
+				}
+			}	
+		}
+
+		// didn't find it
+		sc.close();
+		return -1;
+	}
+
 	public DataStructure extractNTABData() throws Exception {
 
 		DataStructure structure = new DataStructure();
@@ -619,29 +645,29 @@ public class GridParser {
 		for(File fileToMerge: filesToMerge) {			
 			appendNTABData(fileToMerge, structure, false, dataIndex, dataValues, lines, indexOf);
 		}	
-		
+
 		return structure;
 	}
-		
+
 
 	private void appendNTABData(File file, DataStructure structure, boolean appendMetaData, int metaDataLength, int timeSteps, int lineCount, Map<Ntab, Integer> indexOf) throws FileNotFoundException {
 
 		System.out.println(file); //TODO: Delete
 		Scanner sc = new Scanner(file); // Skip index line
 		while(!sc.nextLine().startsWith("index") && sc.hasNextLine());
-		
+
 		float[][] dataDoubleArray = new float[timeSteps][lineCount];
 		// Need unique xyz's only
 		HashSet<Float> uniqueXs = new HashSet<Float>();
 		HashSet<Float> uniqueYs = new HashSet<Float>();
 		HashSet<Float> uniqueZs = new HashSet<Float>();
-		
+
 		int[][] ijks = new int[3][lineCount];
 
 		int maxis = 0;
 		int maxjs = 0;
 		int maxks = 0;
-		
+
 		for(int i = 0; i < lineCount; i++) {
 			// Meta data, only need to do this once
 			if(appendMetaData) {
@@ -671,13 +697,13 @@ public class GridParser {
 									maxks = nextInt;
 							} else if(key == Ntab.X) {
 								uniqueXs.add(isInt ? nextInt: nextFloat);
-							//  xyzs[0][i] = isInt ? nextInt: nextFloat;
+								//  xyzs[0][i] = isInt ? nextInt: nextFloat;
 							} else if(key == Ntab.Y) {
 								uniqueYs.add(isInt ? nextInt: nextFloat);
-							//	xyzs[1][i] = isInt ? nextInt: nextFloat;
+								//	xyzs[1][i] = isInt ? nextInt: nextFloat;
 							} else if(key == Ntab.Z) {
 								uniqueZs.add(isInt ? nextInt: nextFloat);
-							//	xyzs[2][i] = isInt ? nextInt: nextFloat;						
+								//	xyzs[2][i] = isInt ? nextInt: nextFloat;						
 							}								
 						}
 					}
@@ -696,7 +722,7 @@ public class GridParser {
 			}				
 		}
 		sc.close();		
-		
+
 		// Get a nice name for this files data set
 		String fieldKey = "unknown";
 		// Need to figure out the key -> file is named scenario.variable.extension
@@ -705,16 +731,16 @@ public class GridParser {
 			fieldKey = fileName[1];
 		else 
 			fieldKey = fileName[0].split("\\d+")[0];
-		
+
 		if(structure.data == null) {
 			structure.data = new HashMap<String, float[][]>();
 		}
 		structure.data.put(fieldKey, dataDoubleArray);
-		
+
 		ArrayList<Float> xs = new ArrayList<Float>(uniqueXs);
 		ArrayList<Float> ys = new ArrayList<Float>(uniqueYs);
 		ArrayList<Float> zs = new ArrayList<Float>(uniqueZs);
-		
+
 		Collections.sort(xs);
 		Collections.sort(ys);
 		Collections.sort(zs);
@@ -731,11 +757,11 @@ public class GridParser {
 		for(int i = 0; i < zs.size(); i++) {
 			z[i] = zs.get(i);
 		}
-		
+
 		if(appendMetaData) {
-		//	structure.i = ijks[0];
-		//	structure.j = ijks[1];
-		//	structure.k = ijks[2];
+			//	structure.i = ijks[0];
+			//	structure.j = ijks[1];
+			//	structure.k = ijks[2];
 			structure.x = x;
 			structure.y = y;
 			structure.z = z;
@@ -744,7 +770,7 @@ public class GridParser {
 			structure.k = maxks;
 		}			
 	}
-	
+
 	public Object[] getDataTypes(boolean singleFolder) throws GridError {
 		if(!singleFolder) {
 			return extractData().getFieldNames().toArray();
@@ -763,7 +789,7 @@ public class GridParser {
 			}
 			// Use the file names
 			return fieldNames.toArray();
-			
+
 		}
 	}
 }

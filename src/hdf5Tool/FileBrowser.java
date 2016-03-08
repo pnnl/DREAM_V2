@@ -22,8 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -666,7 +668,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				if(!gridsByTimeAndScenario.containsKey(name))
 					gridsByTimeAndScenario.put(name, new TreeMap<Integer, GridParser>());
 				try {
-					int yrs = 1;
+					int yrs = GridParser.getTecplotTimestep(subFile);
 					GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), yrs); 
 					if(gridsByTimeAndScenario.get(name).containsKey(yrs)) {
 						// In this case we really want to merge the two files...
@@ -678,10 +680,14 @@ public class FileBrowser extends javax.swing.JFrame {
 					}
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
 	}	
+	
 
 	private void parseNtabFile(File subFile) {
 		try {
