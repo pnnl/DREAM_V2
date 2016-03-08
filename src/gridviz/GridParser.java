@@ -18,6 +18,8 @@ import javax.vecmath.Vector3f;
 
 import org.apache.commons.io.FileUtils;
 
+import hdf5Tool.FileBrowser;
+
 /**
  * @brief  Provides a parser to extract DataGrid objects from Stomp data files
  * @author Tucker Beck
@@ -38,9 +40,9 @@ public class GridParser {
 	private static enum Tecplot {
 		TITLE("TITLE"),
 		VARIABLES("VARIABLES"),
-		X("x"), Y("y"), Z("z"),
+		X("X"), Y("Y"), Z("Z"),
 		ZONE("ZONE"),
-		SOLUTE_TIME("SOLUTIONTIME"),
+		SOLUTION_TIME("SOLUTIONTIME"),
 		NODES("NODES"),
 		ELEMENTS("ELEMENTS"),
 		VARLOCATION("VARLOCATION"),
@@ -400,43 +402,65 @@ public class GridParser {
 			int nodes = 0;
 			int elements = 0;
 			float timestep = 0;
-			
+
 			// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
 			while(sc.hasNextLine()) {
 
 				indexOf.clear(); // We won't have xyz second time around probably
 
 				// Read until we find the variables
-				while(!(firstLine = sc.nextLine()).startsWith(Tecplot.VARIABLES.key) && sc.hasNextLine());
+				while(sc.hasNextLine()) {
+					firstLine = sc.nextLine();
+					if(firstLine.startsWith(Tecplot.VARIABLES.key)) break;
+					if(firstLine.startsWith(Tecplot.ZONE.key)) break;
+					if(sc.hasNextFloat()) break; // Or we hit a numeric value
+				}
 
 				int index = 0;
-				for(String variable: firstLine.split("\"")) {
-					variable = variable.split(",")[0]; // Remove commas
-					if(variable.equals(Tecplot.X.key)) {
-						indexOf.put(index, Tecplot.X);
-					} else if(variable.equals(Tecplot.Y.key)) {
-						indexOf.put(index, Tecplot.Y);
-					} else if(variable.equals(Tecplot.Z.key)) {
-						indexOf.put(index, Tecplot.Z);
-					} else {
-						dataTypes.put(index, variable);
+				if(firstLine.startsWith(Tecplot.VARIABLES.key)) {
+					for(String variable: firstLine.split("\"")) {
+						variable = variable.split(",")[0].trim(); // Remove commas
+						if(variable.isEmpty())
+							continue;
+
+						if(variable.startsWith(Tecplot.VARIABLES.key)) {
+
+						} else if(variable.equalsIgnoreCase(Tecplot.X.key)) {
+							indexOf.put(index, Tecplot.X);
+							index++;
+						} else if(variable.equalsIgnoreCase(Tecplot.Y.key)) {
+							indexOf.put(index, Tecplot.Y);
+							index++;
+						} else if(variable.equalsIgnoreCase(Tecplot.Z.key)) {
+							indexOf.put(index, Tecplot.Z);
+							index++;
+						} else {
+							dataTypes.put(index, variable.replaceAll(" ", "_"));
+							index++;
+						}
 					}
-					index++;
 				}
 
 				System.out.println("Index: " + indexOf);
 				System.out.println("Variables: " + dataTypes);
 
 				// Read until we find the zone 
-				while(!(firstLine = sc.nextLine()).startsWith(Tecplot.ZONE.key) && sc.hasNextLine());
+				while(sc.hasNextLine()) {
+					firstLine = sc.nextLine();
+					if(firstLine.startsWith(Tecplot.ZONE.key)) break;
+					if(sc.hasNextFloat()) break;
+				}
 
-				for(String variable: firstLine.split(",")) {
-					if(variable.startsWith(Tecplot.NODES.key)) {
-						nodes = Integer.parseInt(variable.split("=")[1]);
-					} else if(variable.startsWith(Tecplot.ELEMENTS.key)) {
-						elements = Integer.parseInt(variable.split("=")[1]);
-					} else if(variable.startsWith(Tecplot.SOLUTE_TIME.key)) {
-						timestep = Float.parseFloat(variable.split("=")[1].trim());
+				if(firstLine.startsWith(Tecplot.ZONE.key)) {
+					for(String variable: firstLine.split(",")) {
+						variable = variable.trim();
+						if(variable.startsWith(Tecplot.NODES.key)) {
+							nodes = Integer.parseInt(variable.split("=")[1].trim());
+						} else if(variable.startsWith(Tecplot.ELEMENTS.key)) {
+							elements = Integer.parseInt(variable.split("=")[1].trim());
+						} else if(variable.startsWith(Tecplot.SOLUTION_TIME.key)) {
+							timestep = Float.parseFloat(variable.split("=")[1].trim());
+						}
 					}
 				}
 
@@ -444,44 +468,47 @@ public class GridParser {
 				System.out.println("Elements: " + elements);
 				System.out.println("Timestep: " + timestep);
 
-				// Read until we find varlocation
-				while(!(firstLine = sc.nextLine()).startsWith(Tecplot.VARLOCATION.key) && sc.hasNextLine());
+				// Read until we find a float
+				while(sc.hasNextLine() && !sc.hasNextFloat()) { sc.nextLine(); }
+
 				/*
 				if(!firstLine.contains(Tecplot.NODAL.key)) {
 					sc.close();
 					throw new Exception("Only nodal format supported");
 				} */
 
-				for(int i = 0; i < dataTypes.size()+indexOf.size(); i++) {
+				if(sc.hasNextFloat()) {
+					for(int i = 0; i < dataTypes.size()+indexOf.size(); i++) {
 
-					// Reading x y or z: will have 1 per node
-					if(indexOf.containsKey(i)) {
+						// Reading x y or z: will have 1 per node
+						if(indexOf.containsKey(i)) {
 
-						for(int j = 0; j < nodes; j++) {
-							if(indexOf.get(i).equals(Tecplot.X)) {
-								uniqueXs.add(sc.nextFloat());
-							} else if(indexOf.get(i).equals(Tecplot.X)) {
-								uniqueYs.add(sc.nextFloat());
-							} else if(indexOf.get(i).equals(Tecplot.X)) {
-								uniqueZs.add(sc.nextFloat());
+							for(int j = 0; j < nodes; j++) {
+								if(indexOf.get(i).equals(Tecplot.X)) {
+									uniqueXs.add(sc.nextFloat());
+								} else if(indexOf.get(i).equals(Tecplot.Y)) {
+									uniqueYs.add(sc.nextFloat());
+								} else if(indexOf.get(i).equals(Tecplot.Z)) {
+									uniqueZs.add(sc.nextFloat());
+								}
 							}
+
+
+							// Reading data, will have 1 per element
+						} else {
+
+							String variable = dataTypes.get(i);
+
+							if(!data.containsKey(timestep)) {
+								data.put(timestep, new HashMap<String, List<Float>>());
+							}
+							if(!data.get(timestep).containsKey(variable)) {
+								data.get(timestep).put(variable, new ArrayList<Float>());
+							}
+							for(int j = 0; j < elements; j++) {
+								data.get(timestep).get(variable).add(sc.nextFloat());
+							}						
 						}
-
-
-						// Reading data, will have 1 per element
-					} else {
-
-						String variable = dataTypes.get(i);
-
-						if(!data.containsKey(timestep)) {
-							data.put(timestep, new HashMap<String, List<Float>>());
-						}
-						if(!data.get(timestep).containsKey(variable)) {
-							data.get(timestep).put(variable, new ArrayList<Float>());
-						}
-						for(int j = 0; j < nodes; j++) {
-							data.get(timestep).get(variable).add(sc.nextFloat());
-						}						
 					}
 				}
 			}
@@ -518,17 +545,22 @@ public class GridParser {
 		structure.i = x.length; // Or is it plus 1?
 		structure.j = y.length;
 		structure.k = z.length;
-
+		structure.data = new HashMap<String, float[][]>();
 
 		List<String> sortedDataTypes = new ArrayList<String>(dataTypes.values());
 		Collections.sort(sortedDataTypes);
-		float[][] dataDoubleArray = new float[data.size()][dataTypes.size()];
 
-		for(Float timestep: data.keySet()) {
+		List<Float> sortedTimes = new ArrayList<Float>(data.keySet());
+		Collections.sort(sortedTimes);
+
+		
+		for(int t = 0; t < sortedTimes.size(); t++) {
 			for(String variable: sortedDataTypes) {
-				List<Float> vars = data.get(timestep).get(variable);
+				List<Float> vars = data.get(sortedTimes.get(t)).get(variable);
+				float[][] dataDoubleArray = new float[sortedTimes.size()][vars.size()];
 				for(int i = 0; i < vars.size(); i++)
-					dataDoubleArray[timestep.intValue()][i] = vars.get(i);				
+					dataDoubleArray[t][i] = vars.get(i);	
+				structure.data.put(variable, dataDoubleArray);
 			}
 		}		
 
@@ -540,7 +572,7 @@ public class GridParser {
 		// Open the file
 		Scanner sc = new Scanner(file);
 		String firstLine = "";			
-		
+
 		// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
 		while(sc.hasNextLine()) {
 
@@ -548,9 +580,10 @@ public class GridParser {
 			while(!(firstLine = sc.nextLine()).startsWith(Tecplot.ZONE.key) && sc.hasNextLine());
 
 			for(String variable: firstLine.split(",")) {
-				if(variable.startsWith(Tecplot.SOLUTE_TIME.key)) {
+				variable = variable.trim();
+				if(variable.startsWith(Tecplot.SOLUTION_TIME.key)) {
 					sc.close();
-					return Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", ""));
+					return Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", "").trim());
 				}
 			}	
 		}
@@ -558,6 +591,38 @@ public class GridParser {
 		// didn't find it
 		sc.close();
 		return -1;
+	}
+
+
+	public static List<String> getTecplotVariables(File file) throws Exception {
+
+		// Open the file
+		List<String> dataTypes = new ArrayList<String>();
+		Scanner sc = new Scanner(file);
+		String firstLine = "";			
+
+		// Read until we find the zone 
+		while(!(firstLine = sc.nextLine()).startsWith(Tecplot.VARIABLES.key) && sc.hasNextLine());
+
+		for(String variable: firstLine.split("\"")) {
+			variable = variable.split(",")[0].trim(); // Remove commas
+			if(variable.isEmpty())
+				continue;
+			if(variable.startsWith(Tecplot.VARIABLES.key)) {
+
+			} else if(variable.equalsIgnoreCase(Tecplot.X.key)) {
+
+			} else if(variable.equalsIgnoreCase(Tecplot.Y.key)) {
+
+			} else if(variable.equalsIgnoreCase(Tecplot.Z.key)) {
+
+			} else {
+				dataTypes.add(variable.replaceAll(" ", "_"));
+			}
+		}
+
+		sc.close();
+		return dataTypes;
 	}
 
 	public DataStructure extractNTABData() throws Exception {
@@ -771,10 +836,10 @@ public class GridParser {
 		}			
 	}
 
-	public Object[] getDataTypes(boolean singleFolder) throws GridError {
-		if(!singleFolder) {
+	public Object[] getDataTypes(String fileType) throws GridError {
+		if(fileType.equals(FileBrowser.STOMP)) {
 			return extractData().getFieldNames().toArray();
-		} else {
+		} else if(fileType.equals(FileBrowser.NTAB)) {
 			List<String> fieldNames = new ArrayList<String>();			
 			List<File> allFiles = new ArrayList<File>(filesToMerge);
 			allFiles.add(dataFile);
@@ -789,7 +854,14 @@ public class GridParser {
 			}
 			// Use the file names
 			return fieldNames.toArray();
-
+		} else if(fileType.equals(FileBrowser.TECPLOT)){
+			try {
+				return getTecplotVariables(dataFile).toArray();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		return new Object[]{};
 	}
 }
