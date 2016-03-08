@@ -36,6 +36,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 	private Text addPoint;
 	private Text maxWells;
 	private Text exclusionRadius;
+	private Text wellCost;
 	private Button allowMultipleSensorsInWell;
 	private Button averageTTD;
 
@@ -178,8 +179,30 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			}				
 		});
 
+		if(Constants.buildDev){
+			Label wellCostLabel = new Label(container, SWT.NULL);
+			wellCostLabel.setText("Cost of Well Per Unit Depth");
+			wellCost= new Text(container, SWT.BORDER | SWT.SINGLE);
+			wellCost.setText(String.valueOf(data.getSet().getWellCost()));
+			GridData wellCostGD = new GridData(GridData.FILL_HORIZONTAL);
+			wellCost.setLayoutData(wellCostGD);
+			wellCost.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					try {
+						Float.parseFloat(((Text)e.getSource()).getText());	
+						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						testReady();
+					} catch (NumberFormatException ne) {
+						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+						testReady();
+					}
+				}				
+			});
+		}
+
 		Label addLabel = new Label(container, SWT.NULL);
-		addLabel.setText("Add point");
+		addLabel.setText("Add Point");
 		addPoint= new Text(container, SWT.BORDER | SWT.SINGLE);
 		addPoint.setText(data.getSet().getAddPoint().toString());
 		GridData addGD = new GridData(GridData.FILL_HORIZONTAL);
@@ -252,11 +275,19 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		}
 	}
 
+	public float getWellCost() {
+		try {
+			return Float.parseFloat(wellCost.getText());
+		} catch(Exception e) {
+			return 0;
+		}
+	}
+
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 		Constants.returnAverageTTD = averageTTD.getSelection();
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), allowMultipleSensorsInWell.getSelection());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), allowMultipleSensorsInWell.getSelection());
 	}
 
 	@Override
@@ -282,6 +313,10 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		}
 
 		if(exclusionRadius.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
+			isReady = false;
+		}
+
+		if(Constants.buildDev && wellCost.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
 			isReady = false;
 		}
 

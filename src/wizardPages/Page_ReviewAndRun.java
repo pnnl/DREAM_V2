@@ -234,41 +234,41 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					
 				}
 				
-				String text = "";
+				StringBuilder text = new StringBuilder();
 				
 				// Heading
-				text += "Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios";
+				text.append("Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios");
 				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-					text+= "," + scenario.getScenario();
+					text.append("," + scenario.getScenario());
 				}
-				text+="\n";
+				text.append("\n");
 								
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					
 					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
-						text += sensorType + ",";
-						text += Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",";
-						text += sensorTestedScenariosDetected.get(sensorType).size() + ",";
-						text += data.getScenarioSet().getScenarios().size();
+						text.append(sensorType + ",");
+						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
+						text.append(sensorTestedScenariosDetected.get(sensorType).size() + ",");
+						text.append(data.getScenarioSet().getScenarios().size());
 						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-							text+= "," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
-									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : "");			
+							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
+									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
 						}
-						text += "\n";
+						text.append("\n");
 					}
 					else{
-						text += sensorType + ",";
-						text += "N/A" + ",";
-						text += "N/A" + ",";
-						text += "N/A";
+						text.append(sensorType + ",");
+						text.append("N/A" + ",");
+						text.append("N/A" + ",");
+						text.append("N/A");
 						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-							text += ",N/A";
+							text.append(",N/A");
 						}
-						text += "\n";
+						text.append("\n");
 					}
 				}
 				
-				text += "\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100);
+				text.append("\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100));
 								
 				try {
 					File outFolder = new File(outputFolder.getText());
@@ -277,7 +277,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
 					if(!csvOutput.exists())
 						csvOutput.createNewFile();
-					FileUtils.writeStringToFile(csvOutput, text);
+					FileUtils.writeStringToFile(csvOutput, text.toString());
 					Desktop.getDesktop().open(csvOutput);
 				} catch (IOException e) {		
 					JOptionPane.showMessageDialog(null, "Could not write to best_ttd_table.csv, make sure the file is not currently open");
@@ -601,7 +601,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						int innerWells = i;
 						int innerSensors = i*100;
 						System.out.println(innerSensors + " " + innerWells);
-						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getAllowMultipleSensorsInWell());
+						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
 						String numRuns = runs.getText();
 						int ittr = Integer.parseInt(iterations.getText());
 						data.setWorkingDirectory(outputFolder.getText());
@@ -619,7 +619,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								configurationCosts.add(cost);
 								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
 								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
-								averageVolumeDegraded.add(volumeOfAquiferDegraded(config.getTimesToDetection()));
+								averageVolumeDegraded.add(SensorSetting.getVolumeDegraded(config.getTimesToDetection(), data.getSet().getScenarios().size()));
 								configs.add(config);
 							}
 						} catch (Exception e) {
@@ -630,7 +630,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 //					}
 //				}
 				//Set this back to what it was so we don't mess up future runs
-				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getAllowMultipleSensorsInWell());
+				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
 				
 				//Print our results in a csv file
 				try {
@@ -685,58 +685,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 	}
 	
-	public float volumeOfAquiferDegraded(Map<Scenario, Float> thresholdTTD){
-		
-		int detectionCriteriaStorage = data.getSet().getInferenceTest().getOverallMinimum();
-		InferenceTest test = data.getSet().getInferenceTest();
-		test.setMinimum(1);
-		data.getSet().setInferenceTest(test);
-		
-		
-		float volumeDegraded = 0;
-		
-		HashMap<Scenario, Float> volumeDegradedByScenario = new HashMap<Scenario, Float>();
-		HashSet<Integer> nodes = new HashSet<Integer>();
-		
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
-		}
-			
-		for(Integer nodeNumber: nodes){
-			ExtendedConfiguration configuration = new ExtendedConfiguration();
-			for(String sensorType: data.getSet().getSensorSettings().keySet()){
-				configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-			}
-			data.runObjective(configuration);
-			for(Scenario scenario: configuration.getTimesToDetection().keySet()){
-				Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
-				if(thresholdTTD.containsKey(scenario)){
-					if(configuration.getTimesToDetection().get(scenario) <= thresholdTTD.get(scenario)){
-						if(volumeDegradedByScenario.containsKey(scenario)) volumeDegradedByScenario.put(scenario, volumeDegradedByScenario.get(scenario) + data.getSet().getNodeStructure().getVolumeOfNode(location)); //TODO: Change this to a getVolumeOfNode function
-						else volumeDegradedByScenario.put(scenario, data.getSet().getNodeStructure().getVolumeOfNode(location));
-					}
-				}
-				else{
-					if(configuration.getTimesToDetection().get(scenario) > 0){ //This was never detected by our configuration, but it still might trigger sometime
-						if(volumeDegradedByScenario.containsKey(scenario)) volumeDegradedByScenario.put(scenario, volumeDegradedByScenario.get(scenario) + data.getSet().getNodeStructure().getVolumeOfNode(location)); //TODO: Change this to a getVolumeOfNode function
-						else volumeDegradedByScenario.put(scenario, data.getSet().getNodeStructure().getVolumeOfNode(location));
-					}
-				}
-			}
-		}
-		
-		//set the set back to the original parameters (not 1 overall)
-		test.setMinimum(detectionCriteriaStorage);
-		data.getSet().setInferenceTest(test);
-		
-		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
-		
-		for(Scenario scenario: volumeDegradedByScenario.keySet()){
-			volumeDegraded += volumeDegradedByScenario.get(scenario);
-		}
-		
-		return volumeDegraded / data.getSet().getScenarios().size(); //currently averaged over all scenarios
-	}
 
 	public void convertFile(File file) throws IOException {
 		/*

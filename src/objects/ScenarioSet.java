@@ -38,6 +38,7 @@ public class ScenarioSet {
 	private int iterations;
 	private float costConstraint;
 	private float exclusionRadius;
+	private float wellCost;
 	private boolean allowMultipleSensorsInWell;
 	
 	private Map<Scenario, Float> scenarioWeights;
@@ -67,6 +68,7 @@ public class ScenarioSet {
 		iterations = 1000;
 		costConstraint = 300;
 		exclusionRadius = 0;
+		wellCost = 65;
 		allowMultipleSensorsInWell = true;
 		
 		wells = new ArrayList<Well>();
@@ -107,6 +109,9 @@ public class ScenarioSet {
 		builder.append("\t\tIterations: " + iterations + "\r\n");
 		builder.append("\t\tCost constraint: " + costConstraint + "\r\n");
 		builder.append("\t\tExclusion radius: " + exclusionRadius + "\r\n");
+		if(Constants.buildDev){
+			builder.append("\t\tCost per unit depth of well: " + wellCost + "\r\n");
+		}
 		builder.append("\t\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 		builder.append(getInferenceTest());
 
@@ -114,7 +119,7 @@ public class ScenarioSet {
 
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, boolean allowMultipleSensorsInWell) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, boolean allowMultipleSensorsInWell) {
 	
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
@@ -219,6 +224,14 @@ public class ScenarioSet {
 	public void setExclusionRadius(float exclusionRadius) {
 		this.exclusionRadius = exclusionRadius;
 	}
+	
+	public float getWellCost() {
+		return wellCost;
+	}
+
+	public void setWellCost(float wellCost) {
+		this.wellCost = wellCost;
+	}
 
 	public boolean getAllowMultipleSensorsInWell() {
 		return allowMultipleSensorsInWell;
@@ -285,9 +298,8 @@ public class ScenarioSet {
 				locations.add(point);
 			}
 		}
-		float cost_per_unit = 65; //input is currently in meters, so this is about $20 per foot.
 		for(Point3i location: locations){
-			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * cost_per_unit;
+			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
 		}
 		return cost;
 	}

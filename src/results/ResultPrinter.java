@@ -16,6 +16,7 @@ import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.ScenarioSet;
 import objects.Sensor;
+import objects.SensorSetting;
 import objects.TimeStep;
 import results.Results.ObjectiveResult;
 import results.Results.Type;
@@ -70,6 +71,8 @@ public class ResultPrinter {
 		try {
 			printBestConfigSum();	
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 			System.out.println("Failed to print best configuration summary");
 		}
 
@@ -110,11 +113,12 @@ public class ResultPrinter {
 						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 					}
 					
-					String line = iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected;
+					StringBuilder line = new StringBuilder();
+					line.append(iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected);
 					for(Sensor sensor: configuration.getSensors()) {
-						line += ", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType());
+						line.append(", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
 					}
-					lines.add(line);
+					lines.add(line.toString());
 				}
 				FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 			}	
@@ -133,7 +137,7 @@ public class ResultPrinter {
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
-				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Well Configuration ($20/ft), Sensor Types (x y z)");
+				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Well Configuration ($20/ft), Volume of Aquifer Degraded, Sensor Types (x y z)");
 
 		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
 		for(Configuration configuration: results.bestConfigSumList) {
@@ -153,6 +157,7 @@ public class ResultPrinter {
 				float globallyWeightedPercentage = 0;
 				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
 				float costOfConfig = results.set.costOfConfiguration(configuration);
+				float volumeDegraded = SensorSetting.getVolumeDegraded(configuration.getTimesToDetection(), results.set.getScenarios().size());
 				float totalWeightsForDetectedScenarios = 0.0f;
 				float weightedAverageTTD = 0.0f;
 
@@ -198,21 +203,24 @@ public class ResultPrinter {
 					}								
 				}
 				
-				String line = Constants.percentageFormat.format(globallyWeightedPercentage) + ", " +
+				StringBuilder line = new StringBuilder();
+				line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + ", " +
 						  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + ", " + 
 						  Constants.percentageFormat.format(weightedAverageTTD) + ", " + 
-						  Constants.percentageFormat.format(unweightedAverageTTD);	
+						  Constants.percentageFormat.format(unweightedAverageTTD));	
 				
-				line += ",[" + Constants.percentageFormat.format(minYear) + " " + Constants.percentageFormat.format(maxYear) + "]," + scenariosNotDetected;
+				line.append(",[" + Constants.percentageFormat.format(minYear) + " " + Constants.percentageFormat.format(maxYear) + "]," + scenariosNotDetected);
 				
-				line += ", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig));
+				line.append(", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
+				
+				line.append(", " + volumeDegraded);
 				
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-					line += "," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 				}
 				
-				linesToSort.put(costOfConfig, line);
+				linesToSort.put(costOfConfig, line.toString());
 			}
 		}
 		
@@ -236,19 +244,21 @@ public class ResultPrinter {
 			List<String> lines = new ArrayList<String>();
 			for(Integer iteration: results.objPerIterSumMap.get(type).keySet()) {
 				if(lines.isEmpty()) { // Add the heading
-					String line = "Iteration";
+					StringBuilder line = new StringBuilder();
+					line.append("Iteration");
 					for(Integer run: results.objPerIterSumMap.get(type).get(iteration).keySet()) {
-						line += ", run" + run + " TTD" + ", run" + run + " % scenarios detected";
+						line.append(", run" + run + " TTD" + ", run" + run + " % scenarios detected");
 					}
-					lines.add(line);
+					lines.add(line.toString());
 				}	
-				String line = String.valueOf(iteration);
+				StringBuilder line = new StringBuilder();
+				line.append(String.valueOf(iteration));
 
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line += ", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected)) + ", " + 
-								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected));
+					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected)) + ", " + 
+								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)));
 				}
-				lines.add(line);
+				lines.add(line.toString());
 			}	
 			FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 		}
@@ -260,17 +270,18 @@ public class ResultPrinter {
 		lines.add("Percent of Scenarios Detected, Average TTD in Detecting Scenarios, Cost, Average Volume Degraded, Total Number of Sensors, Sensor Locations");
 		int numConfigs = costOfConfig.size();
 		for(int i=0; i<numConfigs; ++i){
-			String line = "";
-			line += percentScenariosDetected.get(i) + ",";
-			line += averageTTDInDetecting.get(i) + ",";
-			line += costOfConfig.get(i) + ",";
-			line += volumeDegraded.get(i) + ",";
-			line += configs.get(i).getSensors().size();
+			StringBuilder line = new StringBuilder();
+			line.append("");
+			line.append(percentScenariosDetected.get(i) + ",");
+			line.append(averageTTDInDetecting.get(i) + ",");
+			line.append(costOfConfig.get(i) + ",");
+			line.append(volumeDegraded.get(i) + ",");
+			line.append(configs.get(i).getSensors().size());
 			for(Sensor sensor: configs.get(i).getSensors()){
 				Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-				line += "," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")";
+				line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 			}
-			lines.add(line);
+			lines.add(line.toString());
 		}
 		FileUtils.writeLines(new File(resultsDirectory, fileName), lines);
 	}

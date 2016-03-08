@@ -3,6 +3,7 @@ package objects;
 import hdf5Tool.HDF5Wrapper;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,8 @@ public class SensorSetting {
 	private float upperThreshold;
 
 	private Set<Integer> validNodes;
+	private static Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear;
+	private static List<Float> years;
 	public static float minZ;
 	public static float maxZ;
 
@@ -137,6 +140,32 @@ public class SensorSetting {
 
 	}
 
+	public static void setVolumeDegradedByYear(Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
+		years = yearList;
+		volumeDegradedByYear = volumeDegradedByYear2;
+	}
+	
+	public static float getVolumeDegraded(Map<Scenario, Float> ttdMap, int numScenarios){ //TODO: might want to make this take weighted averages.
+		float volume = 0;
+		//Note that this only loops over scenarios in which some volume of aquifer is degraded
+		for(Scenario scenario: volumeDegradedByYear.keySet()){
+			if(!ttdMap.containsKey(scenario)){
+				volume += volumeDegradedByYear.get(scenario).get(years.get(years.size()-1));
+				continue;
+			}
+			int i=1;
+			while(i <= years.size()){
+				if(i == years.size()) volume += volumeDegradedByYear.get(scenario).get(years.get(i-1)); // I don't think this should ever happen, but just making sure.
+				else if(ttdMap.get(scenario) <= years.get(i)){
+					volume += volumeDegradedByYear.get(scenario).get(years.get(i));
+					break;
+				}
+				i++;
+			}
+		}
+		return volume/numScenarios;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
