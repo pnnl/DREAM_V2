@@ -404,6 +404,7 @@ public class GridParser {
 			float timestep = 0;
 
 			// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
+			boolean first = true;
 			while(sc.hasNextLine()) {
 
 				indexOf.clear(); // We won't have xyz second time around probably
@@ -446,9 +447,9 @@ public class GridParser {
 
 				// Read until we find the zone 
 				while(sc.hasNextLine()) {
-					firstLine = sc.nextLine();
 					if(firstLine.startsWith(Tecplot.ZONE.key)) break;
 					if(sc.hasNextFloat()) break;
+					firstLine = sc.nextLine();
 				}
 
 				if(firstLine.startsWith(Tecplot.ZONE.key)) {
@@ -497,7 +498,7 @@ public class GridParser {
 							// Reading data, will have 1 per element
 						} else {
 
-							String variable = dataTypes.get(i);
+							String variable = dataTypes.get(first ? i : i + 3);
 
 							if(!data.containsKey(timestep)) {
 								data.put(timestep, new HashMap<String, List<Float>>());
@@ -511,6 +512,8 @@ public class GridParser {
 						}
 					}
 				}
+				
+				first = false;
 			}
 
 			// Read the file?
@@ -567,11 +570,12 @@ public class GridParser {
 		return structure;
 	}
 
-	public static int getTecplotTimestep(File file) throws Exception {
+	public static List<Integer> getTecplotTimestep(File file) throws Exception {
 
 		// Open the file
 		Scanner sc = new Scanner(file);
 		String firstLine = "";			
+		List<Integer> timesteps = new ArrayList<Integer>();
 
 		// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
 		while(sc.hasNextLine()) {
@@ -582,15 +586,14 @@ public class GridParser {
 			for(String variable: firstLine.split(",")) {
 				variable = variable.trim();
 				if(variable.startsWith(Tecplot.SOLUTION_TIME.key)) {
-					sc.close();
-					return Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", "").trim());
+					timesteps.add(Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", "").trim()));
 				}
 			}	
 		}
 
 		// didn't find it
 		sc.close();
-		return -1;
+		return timesteps;
 	}
 
 

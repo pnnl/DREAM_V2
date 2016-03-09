@@ -669,15 +669,17 @@ public class FileBrowser extends javax.swing.JFrame {
 				if(!gridsByTimeAndScenario.containsKey(name))
 					gridsByTimeAndScenario.put(name, new TreeMap<Integer, GridParser>());
 				try {
-					int yrs = GridParser.getTecplotTimestep(subFile);
-					GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), yrs); 
-					if(gridsByTimeAndScenario.get(name).containsKey(yrs)) {
-						// In this case we really want to merge the two files...
-						gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile);
-						//	System.out.println("Merging time step = " + yrs + " to map at " + name);
-					} else {
-						gridsByTimeAndScenario.get(name).put(yrs, thisTimeStep);
-						//	System.out.println("Adding time step = " + yrs + " to map at " + name);
+					List<Integer> years = GridParser.getTecplotTimestep(subFile);
+					for(int year: years) {
+						GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), year); 
+						if(gridsByTimeAndScenario.get(name).containsKey(year)) {
+							// In this case we really want to merge the two files...
+							gridsByTimeAndScenario.get(name).get(year).mergeFile(subFile);
+							//	System.out.println("Merging time step = " + yrs + " to map at " + name);
+						} else {
+							gridsByTimeAndScenario.get(name).put(year, thisTimeStep);
+							//	System.out.println("Adding time step = " + yrs + " to map at " + name);
+						}
 					}
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
@@ -818,11 +820,19 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		// Get the dimensions of the grid
 		long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
+		
+		// At some point we need to fix these...
+		if(jComboBox_fileType.getSelectedItem().equals(TECPLOT)) {
+			dims3D[0] -= 1;
+			dims3D[1] -= 1;
+			dims3D[2] -= 1;
+		}
 
 		JCheckBox[] dataFields = checkList_dataFields.getListData();
 
 		int iMax = new Long(dims3D[0]).intValue();
 		int jMax = new Long(dims3D[1]).intValue();
+		int kMax = new Long(dims3D[2]).intValue();
 
 		int shiftI = 0;
 		int shiftJ = 0;
@@ -868,14 +878,14 @@ public class FileBrowser extends javax.swing.JFrame {
 				for(int i = 0; i < dataAsFloats.length; i++) {
 					tempForShift[i] = fill;
 				}
-
+			
 				System.out.println("Time to convert to absolute value: " + (System.currentTimeMillis() - getDataStartTime));
 
 				int counter = 0;
 				// Ordering is different for ntab, i's, j's, then k's?
 				for(int i = 1; i <= iMax; i++) {		
 					for(int j = 1; j <= jMax; j++) {			
-						for(int k = 1; k <= dims3D[2]; k++) {	
+						for(int k = 1; k <= kMax; k++) {	
 							// Apply the shift (if one exists)						
 							int shiftedI = i-shiftI;
 							int shiftedJ = j-shiftJ;
