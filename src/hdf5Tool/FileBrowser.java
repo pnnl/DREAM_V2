@@ -820,13 +820,6 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		// Get the dimensions of the grid
 		long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
-		
-		// At some point we need to fix these...
-		if(jComboBox_fileType.getSelectedItem().equals(TECPLOT)) {
-			dims3D[0] -= 1;
-			dims3D[1] -= 1;
-			dims3D[2] -= 1;
-		}
 
 		JCheckBox[] dataFields = checkList_dataFields.getListData();
 

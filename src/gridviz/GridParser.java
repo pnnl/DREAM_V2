@@ -507,6 +507,9 @@ public class GridParser {
 								data.get(timestep).put(variable, new ArrayList<Float>());
 							}
 							for(int j = 0; j < elements; j++) {
+								if(Float.compare(timestep, 40) == 0 && j == 5045) {
+									System.out.println("HERE2");
+								}
 								data.get(timestep).get(variable).add(sc.nextFloat());
 							}						
 						}
@@ -529,17 +532,17 @@ public class GridParser {
 		Collections.sort(ys);
 		Collections.sort(zs);
 
-		float[] x = new float[xs.size()];
-		for(int i = 0; i < xs.size(); i++) {
-			x[i] = xs.get(i);
+		float[] x = new float[xs.size() - 1];
+		for(int i = 0; i < xs.size() - 1; i++) {
+			x[i] = (xs.get(i+1) - xs.get(i))/2 + xs.get(i);
 		}
-		float[] y = new float[ys.size()];
-		for(int i = 0; i < ys.size(); i++) {
-			y[i] = ys.get(i);
+		float[] y = new float[ys.size() - 1];
+		for(int i = 0; i < ys.size() - 1; i++) {
+			y[i] = (ys.get(i+1) - ys.get(i))/2 + ys.get(i);
 		}
-		float[] z = new float[zs.size()];
-		for(int i = 0; i < zs.size(); i++) {
-			z[i] = zs.get(i);
+		float[] z = new float[zs.size() - 1];
+		for(int i = 0; i < zs.size() - 1; i++) {
+			z[i] = (zs.get(i+1) - zs.get(i))/2 + zs.get(i);
 		}
 
 		structure.x = x;
@@ -559,8 +562,12 @@ public class GridParser {
 		
 		for(int t = 0; t < sortedTimes.size(); t++) {
 			for(String variable: sortedDataTypes) {
+				if(t == 39)
+					System.out.println("Here");
 				List<Float> vars = data.get(sortedTimes.get(t)).get(variable);
 				float[][] dataDoubleArray = new float[sortedTimes.size()][vars.size()];
+				if(structure.data.containsKey(variable))
+						dataDoubleArray = structure.data.get(variable);
 				for(int i = 0; i < vars.size(); i++)
 					dataDoubleArray[t][i] = vars.get(i);	
 				structure.data.put(variable, dataDoubleArray);
