@@ -171,34 +171,41 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		spacerGridData.verticalSpan = 4;
 		spacer.setLayoutData(spacerGridData);
 		
+		
 		Label corner = new Label(container, SWT.NULL);
-		corner.setText("Y | X");
-		for(int i = minI; i <= maxI; i++) {			
-			Label label = new Label(container, SWT.NULL);
-			label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
+		if((maxJ-minJ)*(maxI-minI) > 9000){
+			corner.setText("Domain is too large for individual well exclusion.");
 		}
-		for(int j = minJ; j <= maxJ; j++) {
-			Label label = new Label(container, SWT.NULL);
-			label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
-			for(int i = minI; i <= maxI; i++) {		
-				// Wells
-				if(wells.containsKey(i) && wells.get(i).contains(j)) {
-					Button wellButton = new Button(container, SWT.CHECK);
-					wellButton.setSelection(true);
-					if(selection.containsKey(i) && selection.get(i).containsKey(j)) {
-						// Already have a button here, save the state of it
-						wellButton.setSelection(selection.get(i).get(j));
-						if(!selection.get(i).get(j))
-							System.out.println("Restoring the state of a previously saved button selection: " + selection.get(i).get(j));
-					}
-					if(!buttons.containsKey(i)) {
-						buttons.put(i, new HashMap<Integer, Button>());
-					}
-					buttons.get(i).put(j, wellButton);
-				} else {
-					Label empty = new Label(container, SWT.NULL);
-					empty.setText(" ");
-				}				
+		else{
+			corner.setText("Y | X");
+			for(int i = minI; i <= maxI; i++) {			
+				Label label = new Label(container, SWT.NULL);
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
+			}
+			for(int j = minJ; j <= maxJ; j++) {
+				Label label = new Label(container, SWT.NULL);
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
+				for(int i = minI; i <= maxI; i++) {		
+					// Wells
+					if(wells.containsKey(i) && wells.get(i).contains(j)) {
+						System.out.println(i + " " + j);
+						Button wellButton = new Button(container, SWT.CHECK);
+						wellButton.setSelection(true);
+						if(selection.containsKey(i) && selection.get(i).containsKey(j)) {
+							// Already have a button here, save the state of it
+							wellButton.setSelection(selection.get(i).get(j));
+							if(!selection.get(i).get(j))
+								System.out.println("Restoring the state of a previously saved button selection: " + selection.get(i).get(j));
+						}
+						if(!buttons.containsKey(i)) {
+							buttons.put(i, new HashMap<Integer, Button>());
+						}
+						buttons.get(i).put(j, wellButton);
+					} else {
+						Label empty = new Label(container, SWT.NULL);
+						empty.setText(" ");
+					}				
+				}
 			}
 		}
 		
