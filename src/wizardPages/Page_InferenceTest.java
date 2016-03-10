@@ -3,6 +3,7 @@ package wizardPages;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -17,7 +18,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
@@ -77,6 +80,25 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 			control.dispose(); // Remove the children.
 		}
 		container.layout();	
+		
+		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		GridData spacerLabelData = new GridData(GridData.FILL_HORIZONTAL);
+		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		spacerLabelData.verticalSpan = 2;
+		spacerLabel.setLayoutData(spacerLabelData);
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Fix the minimum required number of triggered sensors to signify a leak.");

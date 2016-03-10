@@ -18,6 +18,7 @@ import objects.SensorSetting;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -460,16 +461,30 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}		
+	
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Leakage Criteria");
 		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData1.verticalSpan = 4;
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData1.verticalSpan = 2;
 		infoLabel1.setLayoutData(infoGridData1);
-		
 		infoLabel1.setFont(boldFont);
+
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum and maximum values are read from the first realization read by DREAM. These are provided to give the user an idea of the values present.");

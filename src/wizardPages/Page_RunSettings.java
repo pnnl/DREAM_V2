@@ -1,5 +1,6 @@
 package wizardPages;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -105,12 +106,26 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Configuration Settings");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData.verticalSpan = 4;
+		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData.verticalSpan = 2;
 		infoLabel.setLayoutData(infoGridData);
 
 		infoLabel.setFont(boldFont);
 
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
+		
 		/* Moving iterations to review and run page
 		Label iterationLabel = new Label(container, SWT.NULL);
 		iterationLabel.setText("Iterations");

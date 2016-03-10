@@ -5,6 +5,7 @@ import java.util.List;
 
 import objects.ExtendedSensor;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -59,6 +60,25 @@ public class Page_InitialConfiguraiton extends WizardPage implements AbstractWiz
 			control.dispose(); // Remove the children.
 		}
 		container.layout();	
+		
+		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		GridData spacerLabelData = new GridData(GridData.FILL_HORIZONTAL);
+		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		spacerLabelData.verticalSpan = 2;
+		spacerLabel.setLayoutData(spacerLabelData);
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Details about the tool.");

@@ -2,6 +2,7 @@ package wizardPages;
 
 import java.io.File;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -18,6 +19,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
@@ -129,18 +131,34 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Input Directory");
 		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData1.verticalSpan = 4;
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData1.verticalSpan = 2;
 		infoLabel1.setLayoutData(infoGridData1);
 		
 		infoLabel1.setFont(boldFont);
 		
-		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
+				
+		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
 		infoLabel.setText("Provide the path to a single directory containing hdf5 formatted files of all subsurface simulation output at specified plot times.");
+		
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 4;
 		infoLabel.setLayoutData(infoGridData);
+			
 		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);

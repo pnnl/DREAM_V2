@@ -15,6 +15,7 @@ import mapView.DREAMMap;
 import mapView.IJ;
 import objects.SensorSetting;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -117,7 +118,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
-
+		
 		container.layout();			
 		buttons.clear();
 
@@ -146,10 +147,24 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Exclude Locations");
 		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		infoGridData1.verticalSpan = 4;
 		infoLabel1.setLayoutData(infoGridData1);
 		infoLabel1.setFont(boldFont);
+		
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
 
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Deselect unapproved or infeasible monitoring locations.");

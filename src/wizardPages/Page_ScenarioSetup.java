@@ -8,6 +8,7 @@ import java.util.Map;
 
 import objects.Scenario;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -95,6 +96,25 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
+		
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData1.verticalSpan = 2;
+		infoLabel1.setLayoutData(infoGridData1);
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		infoLinkData.horizontalSpan = 1;
+		infoLinkData.verticalSpan = 2;
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				// TODO: Catherine edit text here!
+				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+			}			
+		});
+		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Weight the included realizations based on the probability of occurrence. By default, all realizations are equally weighted.");
