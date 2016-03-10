@@ -194,27 +194,28 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			}				
 		});
 
-		if(Constants.buildDev){
-			Label wellCostLabel = new Label(container, SWT.NULL);
-			wellCostLabel.setText("Cost of Well Per Unit Depth");
-			wellCost= new Text(container, SWT.BORDER | SWT.SINGLE);
-			wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-			GridData wellCostGD = new GridData(GridData.FILL_HORIZONTAL);
-			wellCost.setLayoutData(wellCostGD);
-			wellCost.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					try {
-						Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-						testReady();
-					}
-				}				
-			});
-		}
+		Label wellCostLabel = new Label(container, SWT.NULL);
+		wellCostLabel.setText("Cost of Well Per Unit Depth");
+		wellCost= new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
+		GridData wellCostGD = new GridData(GridData.FILL_HORIZONTAL);
+		wellCost.setLayoutData(wellCostGD);
+		wellCost.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				try {
+					Float.parseFloat(((Text)e.getSource()).getText());	
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					testReady();
+				} catch (NumberFormatException ne) {
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					testReady();
+				}
+			}				
+		});
+		
+		wellCost.setVisible(Constants.buildDev);
+		wellCostLabel.setVisible(Constants.buildDev);
 
 		Label addLabel = new Label(container, SWT.NULL);
 		addLabel.setText("Add Point");
