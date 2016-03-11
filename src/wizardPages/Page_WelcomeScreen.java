@@ -10,6 +10,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -67,7 +68,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 2;
 		layout.numColumns = 3;
-		layout.makeColumnsEqualWidth = true;
+		layout.makeColumnsEqualWidth = false;
 		container.setLayout(layout);
 
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 480).create());
@@ -81,21 +82,6 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		GridData aboutInfoData1 = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-		aboutInfoData1.horizontalSpan = 2;
-		aboutInfoData1.widthHint = 500;
-		String text1 = "";
-		Label aboutInfo1 = new Label(container,SWT.WRAP);
-		aboutInfo1.setText(text1);
-		aboutInfo1.setLayoutData(aboutInfoData1);
-		
-		GridData aboutInfoData2 = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
-		aboutInfoData2.horizontalSpan = 2;
-		aboutInfoData2.widthHint = 500;
-		String text2 = "";
-		Label aboutInfo2 = new Label(container,SWT.WRAP);
-		aboutInfo2.setText(text2);
-		aboutInfo2.setLayoutData(aboutInfoData2);
 		
 		GridData aboutInfoData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		aboutInfoData.horizontalSpan = 2;
@@ -104,10 +90,9 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		Label aboutInfo = new Label(container,SWT.WRAP);
 		aboutInfo.setText(text);
 		aboutInfo.setLayoutData(aboutInfoData);
-
 		
-		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
-		Image dreamImage = new Image(container.getDisplay(), "./img/outputpic.png");
+				GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
+		Image dreamImage = new Image(container.getDisplay(), "./img/DreamConcept.jpg");
 		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
 		dreamImageLabel.setImage(dreamImage);
 		dreamImageLabel.setLayoutData(dreamImageData);
