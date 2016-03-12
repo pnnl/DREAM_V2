@@ -105,7 +105,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Configuration Settings");
-		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
+		GridData infoGridData = new GridData(GridData.BEGINNING);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		infoGridData.verticalSpan = 2;
 		infoLabel.setLayoutData(infoGridData);

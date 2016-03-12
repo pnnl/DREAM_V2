@@ -82,7 +82,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		container.layout();	
 		
 		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		GridData spacerLabelData = new GridData(GridData.FILL_HORIZONTAL);
+		GridData spacerLabelData = new GridData(GridData.BEGINNING);
 		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		spacerLabelData.verticalSpan = 2;
 		spacerLabel.setLayoutData(spacerLabelData);
@@ -104,7 +104,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		infoLabel.setText("Fix the minimum required number of triggered sensors to signify a leak.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData.verticalSpan = 4;
+		infoGridData.verticalSpan = 2;
 		infoLabel.setLayoutData(infoGridData);
 		// TODO
 		

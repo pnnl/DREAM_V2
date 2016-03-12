@@ -137,7 +137,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		
 		infoLabel1.setFont(boldFont);
 		
-		GridData infoLinkData = new GridData(GridData.BEGINNING);
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);

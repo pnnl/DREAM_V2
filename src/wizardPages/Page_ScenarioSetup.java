@@ -110,7 +110,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		
 		infoLabel1.setFont(boldFont);
 		
-		GridData infoLinkData = new GridData(GridData.BEGINNING);
+		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
@@ -154,6 +154,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			probabilityLabel2.setText("Weight");
 			((GridLayout)container.getLayout()).numColumns = 4;
 			infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+			infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		}
 
 		if(scenarios.size() > 2) {
@@ -163,6 +164,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			probabilityLabel3.setText("Weight");
 			((GridLayout)container.getLayout()).numColumns = 6;
 			infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+			infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		}
 		
 		for(Scenario scenario: scenarios) {

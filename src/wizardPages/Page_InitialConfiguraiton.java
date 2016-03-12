@@ -62,7 +62,7 @@ public class Page_InitialConfiguraiton extends WizardPage implements AbstractWiz
 		container.layout();	
 		
 		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		GridData spacerLabelData = new GridData(GridData.FILL_HORIZONTAL);
+		GridData spacerLabelData = new GridData(GridData.BEGINNING);
 		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		spacerLabelData.verticalSpan = 2;
 		spacerLabel.setLayoutData(spacerLabelData);
