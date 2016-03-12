@@ -68,7 +68,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 2;
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		layout.makeColumnsEqualWidth = false;
 		container.setLayout(layout);
 
@@ -89,16 +89,17 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Welcome");
-		GridData infoGridData1 = new GridData(GridData.BEGINNING);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
-		infoGridData1.verticalSpan = 2;
+		GridData infoGridData1 = new GridData(GridData.FILL);
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData1.heightHint = 20;
 		infoLabel1.setLayoutData(infoGridData1);
 		
 		infoLabel1.setFont(boldFont);	
 		
 		GridData aboutInfoData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		aboutInfoData.horizontalSpan = 2;
-		aboutInfoData.widthHint = 500;
+		aboutInfoData.widthHint = 440;
+		aboutInfoData.heightHint = 260;
 		String text = "The DREAM tool is an optimization software that determines subsurface monitoring configurations which detect carbon dioxide (CO2) leakage in the least amount of time. DREAM reads ensembles of CO2 leakage scenarios and determines optimal monitoring locations and techniques to deploy based on user-identified constraints. These data result in well configurations with the highest potential to detect leakage and minimize aquifer degradation in the shortest amount of time.  \n\nDREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
 		Label aboutInfo = new Label(container,SWT.WRAP);
 		FontData[] fd = aboutInfo.getFont().getFontData();
@@ -107,8 +108,10 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		aboutInfo.setText(text);
 		aboutInfo.setLayoutData(aboutInfoData);
 		
-				GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
+		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
 		Image dreamImage = new Image(container.getDisplay(), "./img/DreamConcept.jpg");
+		dreamImageData.horizontalSpan = 2;
+		dreamImageData.heightHint = 260;
 		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
 		dreamImageLabel.setImage(dreamImage);
 		dreamImageLabel.setLayoutData(dreamImageData);
@@ -116,22 +119,20 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		// NRAP logo at the bottom
 		GridData nrapImageData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		nrapImageData.horizontalSpan = 2;
-		nrapImageData.verticalSpan = 10;
+		nrapImageData.verticalSpan = 8;
+		nrapImageData.heightHint = 110;
 		Image nrapLogo = new Image(container.getDisplay(), "./img/NRAP.png");
 		CLabel nrapLogoLabel = new CLabel(container, SWT.BORDER_SOLID);
 		nrapLogoLabel.setImage(nrapLogo);
 		nrapLogoLabel.setLayoutData(nrapImageData);
 
 		
-		new Label(container, SWT.WRAP).setText("\tPrimary contact: Yonkofski, C.");
-		new Label(container, SWT.WRAP).setText("\tEmail: catherine.yonkofski@pnnl.gov");
-		new Label(container, SWT.WRAP).setText("\tVersion 1.0");
-		new Label(container, SWT.WRAP).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
-		//	new Label(container, SWT.WRAP).setText(""); // Space
-
-		new Label(container, SWT.WRAP);
 		
-		Link acknowledgements = new Link(container, SWT.WRAP);
+		new Label(container, SWT.BEGINNING).setText("\tPrimary contact: Yonkofski, C.");
+		new Label(container, SWT.BEGINNING);
+
+		new Label(container, SWT.BEGINNING).setText("\tEmail: catherine.yonkofski@pnnl.gov");
+		Link acknowledgements = new Link(container, SWT.BEGINNING);
 		acknowledgements.setText("                   <A>Acknowledgements</A>");
 		acknowledgements.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {			
@@ -143,7 +144,8 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 			}
 		});
 		
-		Link userManual = new Link(container, SWT.WRAP);
+		new Label(container, SWT.BEGINNING).setText("\tVersion 1.0");
+		Link userManual = new Link(container, SWT.BEGINNING);
 		userManual.setText("                   <A>User manual</A>");
 		userManual.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -155,8 +157,9 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 				}
 			}
 		});
-
-		Link references = new Link(container, SWT.WRAP);
+		
+		new Label(container, SWT.BEGINNING).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
+		Link references = new Link(container, SWT.BEGINNING);
 		references.setText("                   <A>References</A>");
 		references.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -166,21 +169,16 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 				messageBox.open();
 			}
 		});
+
 		
 		// Lab logo at the bottom
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
-		imageData.horizontalSpan = 3;
+		imageData.horizontalSpan = 4;
+		imageData.heightHint = 100;
 		Image labLogos = new Image(container.getDisplay(), "./img/DOE-LABS_S.png");
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);
-		
-		GridData spacerData = new GridData(SWT.CENTER | SWT.BEGINNING);
-		Label spacer = new Label(container, SWT.CENTER);
-		spacerData.minimumHeight = 200;
-		spacerData.heightHint = 200;
-		spacerData.horizontalSpan = 3;
-		spacer.setLayoutData(spacerData);
 		
 	
 		DREAMWizard.visLauncher.setEnabled(false);
