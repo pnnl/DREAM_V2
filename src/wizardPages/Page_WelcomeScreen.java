@@ -152,12 +152,20 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		});
 		
 		// Lab logo at the bottom
-		GridData imageData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_END);
+		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
 		imageData.horizontalSpan = 3;
 		Image labLogos = new Image(container.getDisplay(), "./img/DOE-LABS_S.png");
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);
+		
+		GridData spacerData = new GridData(SWT.CENTER | SWT.BEGINNING);
+		Label spacer = new Label(container, SWT.CENTER);
+		spacerData.minimumHeight = 200;
+		spacerData.heightHint = 200;
+		spacerData.horizontalSpan = 3;
+		spacer.setLayoutData(spacerData);
+		
 	
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);

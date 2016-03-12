@@ -582,8 +582,7 @@ public class FileBrowser extends javax.swing.JFrame {
 						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
 						Object[] timeSteps = gridsByTimeAndScenario.get(scenarios[0]).keySet().toArray();
 						Object[] data;
-						try {
-							
+						try {							
 							data = gridsByTimeAndScenario.get(scenarios[0]).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
 						} catch (GridError e) {
 							e.printStackTrace(); // Can't continue
