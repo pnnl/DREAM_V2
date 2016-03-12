@@ -14,6 +14,8 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -97,12 +99,18 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			control.dispose(); // Remove the children.
 		}
 		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
+		infoLabel1.setText("Scenario Weighting");
+		GridData infoGridData1 = new GridData(GridData.BEGINNING);
 		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		infoGridData1.verticalSpan = 2;
 		infoLabel1.setLayoutData(infoGridData1);
-		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		
+		infoLabel1.setFont(boldFont);
+		
+		GridData infoLinkData = new GridData(GridData.BEGINNING);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
@@ -111,7 +119,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 files for all leakage simulations to be considered. If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. Read more about the DREAM HDF5 Converter tool in the user manual. Note: The HDF5 files must be directly available within the directory provided; they may not be in subdirectories within the root directory.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

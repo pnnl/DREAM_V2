@@ -11,6 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -83,11 +84,26 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	public void loadPage() {
 		isCurrentPage = true;
 		
+		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
+
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel1.setText("Welcome");
+		GridData infoGridData1 = new GridData(GridData.BEGINNING);
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData1.verticalSpan = 2;
+		infoLabel1.setLayoutData(infoGridData1);
+		
+		infoLabel1.setFont(boldFont);	
+		
 		GridData aboutInfoData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
 		aboutInfoData.horizontalSpan = 2;
 		aboutInfoData.widthHint = 500;
-		String text = "The DREAM tool is a post-processor that optimizes monitoring configurations across user-provided numerically modeled subsurface leakage simulations. DREAM identifies monitoring configurations that minimize the time to first detection of CO2 leakage based on specified monitoring requirements and budgetary constraints. \n\nDREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
+		String text = "The DREAM tool is an optimization software that determines subsurface monitoring configurations which detect carbon dioxide (CO2) leakage in the least amount of time. DREAM reads ensembles of CO2 leakage scenarios and determines optimal monitoring locations and techniques to deploy based on user-identified constraints. These data result in well configurations with the highest potential to detect leakage and minimize aquifer degradation in the shortest amount of time.  \n\nDREAM  was developed as part of the National Risk Assessment Partnership. For more information see: www.netl.doe.gov";
 		Label aboutInfo = new Label(container,SWT.WRAP);
+		FontData[] fd = aboutInfo.getFont().getFontData();
+		fd[0].setHeight(11);
+		aboutInfo.setFont(new Font(container.getDisplay(), fd)); 
 		aboutInfo.setText(text);
 		aboutInfo.setLayoutData(aboutInfoData);
 		
@@ -112,7 +128,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		new Label(container, SWT.WRAP).setText("\tVersion 1.0");
 		new Label(container, SWT.WRAP).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
 		//	new Label(container, SWT.WRAP).setText(""); // Space
-		
+
 		new Label(container, SWT.WRAP);
 		
 		Link acknowledgements = new Link(container, SWT.WRAP);
@@ -145,7 +161,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		references.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				MessageBox messageBox = new MessageBox(Page_WelcomeScreen.this.getShell(), SWT.OK );
-				messageBox.setMessage("Yonkofski, C.R., Gastelum, J.A.,  M., Porter, E.A., Rodriguez, L.R., Bacon, D.H., and Brown, C. F. An Optimization Approach to Design Monitoring Schemes for CO2 Leakage Detection. IJGGC NRAP Special Issue.(2015). In Review. ");
+				messageBox.setMessage("Yonkofski, C.M., Gastelum, J.A., Porter, E.A., Rodriguez, L.R., Bacon, D.H. and Brown, C.F., 2016. An optimization approach to design monitoring schemes for CO2 leakage detection. International Journal of Greenhouse Gas Control, 47, pp.233-239.");
 				messageBox.setText("References");
 				messageBox.open();
 			}
