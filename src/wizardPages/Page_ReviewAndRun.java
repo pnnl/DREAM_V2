@@ -24,6 +24,8 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -54,6 +56,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 //These.
+
 
 
 import objects.Configuration;
@@ -144,12 +147,17 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			control.dispose(); // Remove the children.
 		}
 		container.layout();	
+		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
 
 		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		spacerLabel.setText("Run DREAM");
 		GridData spacerLabelData = new GridData(GridData.FILL_HORIZONTAL);
 		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		spacerLabelData.verticalSpan = 2;
 		spacerLabel.setLayoutData(spacerLabelData);
+		spacerLabel.setFont(boldFont);
+		
 		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
@@ -159,7 +167,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Best TTD Possible per Sensor-type button allows the user to generate a summary of the average times to detection for all scenarios and all sensor-types individually and as a whole. The “Weighted percent of scenarios that are detectable” is also presented, giving the user an idea for how many of the leakage scenarios read into DREAM had leaks detected according to the leakage criteria specified. The algorithm behind this button assumes an unlimited budget and an unlimited number of wells to achieve this goal. In other words, a monitoring point is placed in every node in the solution space; therefore, the results give no indication of optimal monitoring configurations. The purpose of this button is to allow the user to have an understanding of the problem before running the iterative procedure. Results identify the best possible time to detection and highest percent of scenarios detecting a leak possible.\nThe Run Iterative Procedure button will run the simulated annealing optimization algorithm the number of times specified on the number of configurations specified.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

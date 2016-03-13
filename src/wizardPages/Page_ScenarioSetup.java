@@ -99,7 +99,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			control.dispose(); // Remove the children.
 		}
 		
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Scenario Weighting");
@@ -119,7 +119,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 files for all leakage simulations to be considered. If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. Read more about the DREAM HDF5 Converter tool in the user manual. Note: The HDF5 files must be directly available within the directory provided; they may not be in subdirectories within the root directory.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Scenario Weighting window lists realizations by the naming convention used in the leakage simulation input files. If the user has prior knowledge of leakage probabilities or would like to choose to weight leakage scenarios unequally, they may do so in the Scenario Weighting window. By default all scenarios are considered equally likely.\nDREAM works to minimize the average time to leakage detection across all scenarios. Weighting scenarios non-uniformly has the effect of altering the average time to detection; therefore, monitoring configurations that solve for scenarios with higher weights will be given priority while DREAM iterates over monitoring configurations. Ultimately, results show both the unweighted and weighted times to detection to provide the user with an understanding of the impact scenario weighting has on each particular problem.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

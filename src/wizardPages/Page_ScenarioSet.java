@@ -126,15 +126,13 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 12, SWT.BOLD ) );
-
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Input Directory");
 		GridData infoGridData1 = new GridData(GridData.BEGINNING);
 		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		infoGridData1.verticalSpan = 2;
 		infoLabel1.setLayoutData(infoGridData1);
-		
 		infoLabel1.setFont(boldFont);
 		
 		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);

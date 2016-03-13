@@ -101,7 +101,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			control.dispose(); // Remove the children.
 		}
 		container.layout();	
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
 
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Configuration Settings");
@@ -121,7 +121,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The configuration settings specify hard constraints for the optimization algorithm. The solutions may not exceed the maximum cost or the maximum number of wells defined. The user must be careful to provide a high enough cost to meet the specified minimum requirements given in the previous window. The “Add starting point” field is the coordinate where the algorithm begins searching for new monitoring device placement. The Use average time to detection checkbox averages the time to first detection of leakage across all realizations using the same monitoring configuration.\nNote: DREAM assumes that wells span the entire z-axis of simulation grids and multiple detection devices may be placed within a single well.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

@@ -79,13 +79,15 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
-		container.layout();	
+		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel1.setText("Detection Criteria");
+		GridData infoGridData1 = new GridData(GridData.BEGINNING);
+		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
+		infoGridData1.verticalSpan = 2;
+		infoLabel1.setLayoutData(infoGridData1);
+		infoLabel1.setFont(boldFont1);
 		
-		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		GridData spacerLabelData = new GridData(GridData.BEGINNING);
-		spacerLabelData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
-		spacerLabelData.verticalSpan = 2;
-		spacerLabel.setLayoutData(spacerLabelData);
 		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
@@ -95,7 +97,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Detection Criteria window prompts the user to specify how many monitoring devices must be triggered to signify a leak has occurred. A leak may be defined in two ways. DREAM reads input provided as an “or”-statement, where it will determine a leak has occurred if (1) the specified value for any specific parameter has been met or (2) the overall number of locations exceeding the detection criteria is equal to or greater than the provided value. This allows for various combinations of monitoring device configurations to be tested.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

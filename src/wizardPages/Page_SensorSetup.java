@@ -457,7 +457,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			control.dispose(); // Remove the children.
 		}		
 	
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Leakage Criteria");
@@ -476,7 +476,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the “Alias for Monitoring Technology” box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
@@ -490,6 +490,9 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		infoLabel.setLayoutData(infoGridData);
 				
 		// Headers
+		
+		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
+			
 		Label monitorParams = new Label(container, SWT.LEFT);
 		Label aliasLabel = new Label(container, SWT.LEFT);
 		Label costPerSensor = new Label(container, SWT.LEFT);
@@ -505,14 +508,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		valueLabel.setText("Value");
 		minZLabel.setText("Minimum Z");
 		maxZLabel.setText("Maximum Z");
-		
-		monitorParams.setFont(boldFont);
-		aliasLabel.setFont(boldFont);
-		costPerSensor.setFont(boldFont);
-		detectionCriteria.setFont(boldFont);
-		valueLabel.setFont(boldFont);
-		minZLabel.setFont(boldFont);
-		maxZLabel.setFont(boldFont);
+			
+		monitorParams.setFont(boldFont1);
+		aliasLabel.setFont(boldFont1);
+		costPerSensor.setFont(boldFont1);
+		detectionCriteria.setFont(boldFont1);
+		valueLabel.setFont(boldFont1);
+		minZLabel.setFont(boldFont1);
+		maxZLabel.setFont(boldFont1);
 				
 		for(SensorData data: sensorData.values()) {
 			data.buildUI();
@@ -635,10 +638,13 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			}	       
 		});	
 				
+
+		//new Label(container, SWT.NULL);
+
+		new Label(container, SWT.NULL);
 		Label col = new Label(container, SWT.NULL);
 		col.setText("Set up the solution space using ...");
-		new Label(container, SWT.NULL);
-		new Label(container, SWT.NULL);
+		col.setFont(boldFont1);
 		new Label(container, SWT.NULL);
 		
 	    scenarioUnionButton = new Button(container, SWT.CHECK);

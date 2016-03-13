@@ -61,7 +61,6 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		super("Inference Test");
 		this.data = data;		
 	}
-
 	@Override
 	public void createControl(Composite parent) {
 		
@@ -143,7 +142,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		}
 		layout.numColumns = maxI-minI+2;
 
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Arial", 10, SWT.BOLD ) );		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Exclude Locations");
 		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
@@ -161,7 +160,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information!", "TODO");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The user may need to exclude (x,y) locations from the monitoring configuration that are infeasible or unapproved. This window allows the user to manually deselect nodes that should not be used in the optimization algorithm.\nIf the user has an internet connection, the Launch Google map button will pop-up a map which the user can use to overlay the realization grid over the location of interest. The input coordinates should align with the upper left corner of the simulation grid (in plan view). The toolbar allows the user to zoom in or out and pivot the google map to achieve the appropriate view. Nodes that exceed one or more of the threshold criteria are shown in gray and may be de-selected by clicking on the (x,y) location.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
