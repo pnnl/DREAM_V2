@@ -202,7 +202,6 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 				for(int i = minI; i <= maxI; i++) {		
 					// Wells
 					if(wells.containsKey(i) && wells.get(i).contains(j)) {
-						System.out.println(i + " " + j);
 						Button wellButton = new Button(container, SWT.CHECK);
 						wellButton.setSelection(true);
 						if(selection.containsKey(i) && selection.get(i).containsKey(j)) {
