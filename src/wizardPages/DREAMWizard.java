@@ -490,8 +490,8 @@ public class DREAMWizard extends Wizard {
 			});
 		}
 
-		public float runObjective(ExtendedConfiguration configuration) {
-			return runner.objective(configuration, set);
+		public float runObjective(ExtendedConfiguration configuration, boolean runThreaded) {
+			return runner.objective(configuration, set, runThreaded);
 		}
 
 		public void randomEnumeration(final int max) throws Exception {			

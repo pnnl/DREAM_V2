@@ -161,7 +161,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		final ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy(set);
 		final ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy(set);
 		final ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy(set);
-		float currentValue = objective(currentConfiguration, set);
+		float currentValue = objective(currentConfiguration, set, true);
 		float newValue = currentValue;
 		float bestValue = currentValue;
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
@@ -174,11 +174,11 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 		Constants.log(Level.FINER, "Function: running - new configuration", newConfiguration);
 		currentIteration = -2;
-		currentValue = objective(currentConfiguration, set);
+		currentValue = objective(currentConfiguration, set, true);
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 	
 		currentIteration = -1;
-		newValue = objective(newConfiguration, set);
+		newValue = objective(newConfiguration, set, true);
 		bestValue = currentValue;
 		float temperature = 100;
 
@@ -310,7 +310,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			ttmStart = System.currentTimeMillis();
 
 			temp = System.currentTimeMillis();
-			newValue = objective(newConfiguration, set);
+			newValue = objective(newConfiguration, set, true);
 			timeForObjective = System.currentTimeMillis() - temp;
 
 			float tto = System.currentTimeMillis()-ttmStart;
@@ -404,7 +404,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			for (ExtendedSensor sensor : sensors)
 				configuration.addSensor(set, sensor);
 
-			objective(configuration, set);
+			objective(configuration, set, true);
 			//storeResult(configuration);
 			bruteForceEnumCount++;
 			if(monitor != null)
@@ -541,7 +541,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	}
 
 	@Override
-	public Float objective(ExtendedConfiguration configuration, ScenarioSet set) {
+	public Float objective(ExtendedConfiguration configuration, ScenarioSet set, boolean runThreaded) {
 		// Where will run the algorithm...
 		Constants.log(Level.WARNING, "Function: inference - no child objective function defined",  null);
 		return null;

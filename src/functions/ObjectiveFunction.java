@@ -6,5 +6,5 @@ import objects.ScenarioSet;
 
 public interface ObjectiveFunction {
 
-	public Float objective(ExtendedConfiguration configuration, ScenarioSet set); 
+	public Float objective(ExtendedConfiguration configuration, ScenarioSet set, boolean runThreaded); 
 }

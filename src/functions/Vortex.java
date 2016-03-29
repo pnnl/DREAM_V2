@@ -207,7 +207,7 @@ public class Vortex extends Function {
 	/*** Objective is same as CCS9_1 ***/
 
 	@Override
-	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set) {
+	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set, boolean runThreaded) {
 		List<Thread> threads = new ArrayList<Thread>();
 		// Clear out previous information
 		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {

@@ -85,8 +85,8 @@ public class CCS9_1 extends Function {
 	}
 	 */
 	@Override
-	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set) {
-		
+	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set, boolean runThreaded) {
+
 		// Start a timer	
 		long startTime = System.currentTimeMillis();		
 		List<Thread> threads = new ArrayList<Thread>();
@@ -97,30 +97,45 @@ public class CCS9_1 extends Function {
 		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
 		for (final Scenario scenario : set.getScenarios())
 		{
-			Thread thread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						long startTime = System.currentTimeMillis();	
-						innerLoopParallel(configuration, set, scenario);
-						Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
-					} catch (Exception e) {
-						e.printStackTrace();
+			if(runThreaded) {
+				Thread thread = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							long startTime = System.currentTimeMillis();	
+							innerLoopParallel(configuration, set, scenario);
+							Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
-				}
-			});
+				});
 
-			thread.start();
-			threads.add(thread);
-		}
-		for (Thread thread: threads)
-		{
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				thread.start();
+				threads.add(thread);
+			} else {
+				startTime = System.currentTimeMillis();	
+				try {
+					innerLoopParallel(configuration, set, scenario);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
+
 			}
 		}
+
+		if(runThreaded) {
+			for (Thread thread: threads)
+			{
+				try {
+					thread.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
 
 		return configuration.getObjectiveValue();
@@ -166,7 +181,7 @@ public class CCS9_1 extends Function {
 
 	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
 	{
-		
+
 		int time = timeStep.getTimeStep();
 
 		for (ExtendedSensor sensor : con.getExtendedSensors())
@@ -185,7 +200,7 @@ public class CCS9_1 extends Function {
 					// Get the value at the current time step
 					Float currentValue = 0.0f;
 					Float valueAtTime0 = 0.0f;
-					
+
 					if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
 						currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, sensor.getSensorType(), sensor.getNodeNumber());
 						valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensor.getSensorType(), sensor.getNodeNumber());
@@ -196,7 +211,7 @@ public class CCS9_1 extends Function {
 						currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, sensor.getSensorType(), sensor.getNodeNumber());		
 						valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensor.getSensorType(), sensor.getNodeNumber());				
 					}
-										
+
 					// See if we exceeded threshold
 					if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
 						triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
@@ -214,8 +229,8 @@ public class CCS9_1 extends Function {
 						triggered = false;
 					}
 				}		
-				
-				
+
+
 				// Store the result, set the sensor to triggered or not
 				storeHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType(), triggered);
 				sensor.setTriggered(triggered, scenario, timeStep, 0.0); // TODO, we won't have the triggered value anymore, do we need it?
