@@ -23,7 +23,7 @@ import ncsa.hdf.object.h5.H5File;
 public class Constants {
 	
 	// Catherine change this to true when you want to build production version!!!
-	public static boolean buildDev = false;
+	public static boolean buildDev = true;
 	
 	public enum ModelOption { 
 		
@@ -99,9 +99,9 @@ public class Constants {
 	public static Map<String, H5File> hdf5Files;
 	
 	// If we can store this in memory, try it?
-	public static Map<String, Map<Integer, Map<String, float[]>>> hdf5Data = new HashMap<String, Map<Integer, Map<String, float[]>>>();
+	public static Map<String, Map<Float, Map<String, float[]>>> hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>();
 	
-	public static Map<String, Map<Integer, Map<String, Map<Integer, Float>>>> hdf5CloudData = new HashMap<String, Map<Integer, Map<String, Map<Integer, Float>>>>();
+	public static Map<String, Map<Float, Map<String, Map<Integer, Float>>>> hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
 	
 	public static Timer timer = new Constants().new Timer();
 			
@@ -147,9 +147,9 @@ public class Constants {
 					
 					// Try and store it into memory?
 					if(hdf5Data == null)
-						hdf5Data = new HashMap<String, Map<Integer, Map<String, float[]>>>(hdf5Folder.listFiles().length, 0.9f);
+						hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>(hdf5Folder.listFiles().length, 0.9f);
 					if(!hdf5Data.containsKey(scenario))
-						hdf5Data.put(scenario, new HashMap<Integer, Map<String, float[]>>(nodeStructure.getTimeSteps().size(), 0.9f));
+						hdf5Data.put(scenario, new HashMap<Float, Map<String, float[]>>(nodeStructure.getTimeSteps().size(), 0.9f));
 					
 					// Get the root node:
 					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
@@ -162,7 +162,7 @@ public class Constants {
 						Object group =  root.getMemberList().get(ts); // timesteps	
 						
 						if(!hdf5Data.get(scenario).containsKey(timeStep))
-							hdf5Data.get(scenario).put(timeStep, new HashMap<String, float[]>(((Group)group).getMemberList().size(), 0.9f));
+							hdf5Data.get(scenario).put(nodeStructure.getTimeAt(timeStep), new HashMap<String, float[]>(((Group)group).getMemberList().size(), 0.9f));
 						//Object group =  root.getMemberList().get(timestep+1); // timesteps
 						for(int i = 0; i < ((Group)group).getMemberList().size(); i++) {
 							Object child = ((Group)group).getMemberList().get(i);// z is index 0

@@ -13,21 +13,12 @@ public class TimeStep implements Comparable<TimeStep> {
 		this.realTime = realTime;
 	}
 
-	public TimeStep(int timeStep, int realTime) {
-		this.timeStep = timeStep;
-		this.realTimeInt = realTime;
-	}
-
 	public synchronized int getTimeStep() {
 		return timeStep;
 	}
 
 	public synchronized float getRealTime() {
 		return realTime == null ? new Float(realTimeInt) : realTime;
-	}
-
-	public synchronized int getRealTimeAsInt() {
-		return realTimeInt;
 	}
 
 	@Override

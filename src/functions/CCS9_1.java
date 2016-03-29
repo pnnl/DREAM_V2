@@ -167,7 +167,7 @@ public class CCS9_1 extends Function {
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
 			if (ts != null && inferenceResult.isInferred()) {
-				timeInYears = ts.getRealTimeAsInt();
+				timeInYears = ts.getRealTime();
 				// Only keep track if we've hit inference
 				con.addTimeToDetection(scenario, timeInYears);
 			} else {
@@ -182,7 +182,7 @@ public class CCS9_1 extends Function {
 	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
 	{
 
-		int time = timeStep.getTimeStep();
+		float realTime = timeStep.getRealTime();
 
 		for (ExtendedSensor sensor : con.getExtendedSensors())
 		{
@@ -232,7 +232,7 @@ public class CCS9_1 extends Function {
 
 
 				// Store the result, set the sensor to triggered or not
-				storeHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType(), triggered);
+				storeHistory(scenario, sensor.getNodeNumber(), realTime, sensor.getSensorType(), triggered);
 				sensor.setTriggered(triggered, scenario, timeStep, 0.0); // TODO, we won't have the triggered value anymore, do we need it?
 			}
 		}

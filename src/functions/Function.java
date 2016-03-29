@@ -36,7 +36,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	
 	// Keep some history for nodes, will be faster to look here for values then from the database/file
 	// Scenario, node #, time step, data type, value
-	protected volatile Map<Scenario, Map<Integer, Map<Integer, Map<String, Boolean>>>> history;
+	protected volatile Map<Scenario, Map<Integer, Map<Float, Map<String, Boolean>>>> history;
 
 	private IProgressMonitor monitor; // So we can update the status
 	private MultiDomainViewer viewer; // Graphical representation of the run
@@ -568,20 +568,20 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * Helper Methods	 *
 	\* 					 */
 
-	protected synchronized void storeHistory(Scenario scenario, Integer nodeNumber, Integer timeStep, String dataType, Boolean triggered) {
+	protected synchronized void storeHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType, Boolean triggered) {
 
 		if(!Constants.hdf5Data.isEmpty())
 			return; // Don't need this
 		
 		if(history == null)
-			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Map<Integer, Map<String, Boolean>>>>());
+			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Map<Float, Map<String, Boolean>>>>());
 
 		if(!history.containsKey(scenario)) {
-			history.put(scenario, Collections.synchronizedMap(new HashMap<Integer, Map<Integer, Map<String, Boolean>>>()));
+			history.put(scenario, Collections.synchronizedMap(new HashMap<Integer, Map<Float, Map<String, Boolean>>>()));
 		}
 
 		if(!history.get(scenario).containsKey(nodeNumber)) {
-			history.get(scenario).put(nodeNumber, Collections.synchronizedMap(new HashMap<Integer, Map<String, Boolean>>()));
+			history.get(scenario).put(nodeNumber, Collections.synchronizedMap(new HashMap<Float, Map<String, Boolean>>()));
 		}
 
 		if(!history.get(scenario).get(nodeNumber).containsKey(timeStep)) {
@@ -595,7 +595,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	}
 
 
-	protected synchronized Boolean getHistory(Scenario scenario, Integer nodeNumber, Integer timeStep, String dataType) {
+	protected synchronized Boolean getHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType) {
 
 		if(!Constants.hdf5Data.isEmpty())
 			return null; // Don't need this

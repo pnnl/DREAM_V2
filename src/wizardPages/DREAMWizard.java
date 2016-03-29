@@ -427,7 +427,7 @@ public class DREAMWizard extends Wizard {
 			} catch (Exception e) {
 				float totalNodes = 0;
 				for(String sc : Constants.hdf5CloudData.keySet()) {
-					for(int ts: Constants.hdf5CloudData.get(sc).keySet()) {
+					for(float ts: Constants.hdf5CloudData.get(sc).keySet()) {
 						for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
 							totalNodes += Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
 							if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)

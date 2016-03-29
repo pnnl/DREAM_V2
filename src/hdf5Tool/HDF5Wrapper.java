@@ -30,7 +30,7 @@ public class HDF5Wrapper {
 	public static float queryMinFromMemory(String dataType) {
 		float min = Float.MAX_VALUE;
 		for(String scenario: Constants.hdf5Data.keySet()) {
-			for(int timeStep: Constants.hdf5Data.get(scenario).keySet()) {
+			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
 				for(float value: Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)) {
 					if(value < min)
 						min = value;
@@ -44,7 +44,7 @@ public class HDF5Wrapper {
 	public static float queryMaxFromMemory(String dataType) {
 		float max = -Float.MAX_VALUE;
 		for(String scenario: Constants.hdf5Data.keySet()) {
-			for(int timeStep: Constants.hdf5Data.get(scenario).keySet()) {
+			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
 				for(float value: Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)) {
 					if(value > max)
 						max = value;
@@ -68,7 +68,7 @@ public class HDF5Wrapper {
 		int totalNodes = i*j*k;		
 		for(int index = 0; index < totalNodes; index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
-			for(int timeStep: Constants.hdf5Data.get(scenario).keySet()) {
+			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
 
 				if(monitor.isCanceled()) return nodes;
 				
@@ -100,12 +100,12 @@ public class HDF5Wrapper {
 
 				if(monitor.isCanceled()) return nodes;
 				
-				float valueAtStartTime = Constants.hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTimeAsInt()).get(dataType)[index];	
+				float valueAtStartTime = Constants.hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTime()).get(dataType)[index];	
 
 				// Always compare from 0 in this case, end is then actually beginning
 				if(startTimeIndex == 0)
 					continue; // Not this one...
-				float valueAtTime0 = Constants.hdf5Data.get(scenario).get(timeSteps.get(0).getRealTimeAsInt()).get(dataType)[index];
+				float valueAtTime0 = Constants.hdf5Data.get(scenario).get(timeSteps.get(0).getRealTime()).get(dataType)[index];
 				float valueAtCurrentTime = valueAtStartTime;
 
 				float change = trigger == Trigger.RELATIVE_DELTA ? 
@@ -134,14 +134,14 @@ public class HDF5Wrapper {
 	}
 
 	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
-		int years = timestep.getRealTimeAsInt(); // TODO this may actually be a float at some point
+		float years = timestep.getRealTime();
 		return Constants.hdf5Data.get(scenario).get(years).get(dataType)[index-1];
 	}
 
 	public static float queryMinFromCloud(String dataType) {
 		float min = Float.MAX_VALUE;
 		for(String scenario: Constants.hdf5CloudData.keySet()) {
-			for(int timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
+			for(float timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
 				for(float value: Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
 					if(value < min)
 						min = value;
@@ -155,7 +155,7 @@ public class HDF5Wrapper {
 	public static float queryMaxFromCloud(String dataType) {
 		float max = -Float.MAX_VALUE;
 		for(String scenario: Constants.hdf5CloudData.keySet()) {
-			for(int timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
+			for(float timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
 				for(float value: Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
 					if(value > max)
 						max = value;
@@ -167,7 +167,7 @@ public class HDF5Wrapper {
 	}
 
 	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
-		int years = timestep.getRealTimeAsInt();
+		float years = timestep.getRealTime();
 		if(
 				Constants.hdf5CloudData.containsKey(scenario) && 
 				Constants.hdf5CloudData.get(scenario).containsKey(years) &&
@@ -205,10 +205,7 @@ public class HDF5Wrapper {
 				for(float y: yValues) nodeStructure.getY().add(y);
 				for(float z: zValues) nodeStructure.getZ().add(z);
 				for(int i = 0; i < times.length; i++) {
-					if(((Float)times[i]).intValue() == times[i])
-						nodeStructure.getTimeSteps().add(new TimeStep(i, ((Float)times[i]).intValue()));
-					else
-						nodeStructure.getTimeSteps().add(new TimeStep(i, times[i]));
+					nodeStructure.getTimeSteps().add(new TimeStep(i, times[i]));
 				}
 			} else if(root.getMemberList().get(rootIndex).getName().startsWith("plot")) { // Need to get the data types from this one
 				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
@@ -297,17 +294,17 @@ public class HDF5Wrapper {
 		H5File hdf5File = Constants.hdf5Files.get(scenario); // For the given scenario
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-		TreeMap<Integer, Group> sortedTimes = new TreeMap<Integer, Group>();
+		TreeMap<Float, Group> sortedTimes = new TreeMap<Float, Group>();
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
 			Object group =  root.getMemberList().get(rootIndex);
 			String name = ((Group)group).getName().replaceAll("plot", "");
 			if(name.contains("data"))
 				continue;
-			int timeStep = Integer.parseInt(name);
+			int timeIndex = Integer.parseInt(name);
 			// These have to be in order...
-			sortedTimes.put(timeStep, (Group)group);
+			sortedTimes.put(nodeStructure.getTimeAt(timeIndex), (Group)group);
 		}
-		for(Integer timeStep: sortedTimes.keySet()) {
+		for(Float timeStep: sortedTimes.keySet()) {
 			Group group = sortedTimes.get(timeStep);			
 			for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 				Object child = ((Group)group).getMemberList().get(groupIndex);
@@ -319,12 +316,17 @@ public class HDF5Wrapper {
 					for(int i = 0; i < dataRead.length; i++) {
 
 						if(monitor.isCanceled()) return nodes;
+
 						
 						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) { // Or >=
 							// Also add to the cloud?
+
+							
 							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
-							//		System.out.println("Found value: " + nodeNumber + ", " + timeStep);
+							if(nodeNumber == 1521 || nodeNumber == 1597)	System.out.println("Found value: " + scenario + "\t" + nodeNumber + "\t" + timeStep + "\t" 
+									+ lowerThreshold + "\t" + upperThreshold + "\t" + dataRead[i]);
 							if(!nodes.contains(nodeNumber)) {
+								if(nodeNumber == 1521 || nodeNumber == 1597) System.out.println("Detected at " + timeStep);
 								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
 								nodes.add(nodeNumber);
 							}
@@ -340,12 +342,12 @@ public class HDF5Wrapper {
 		return nodes;
 	}
 
-	private static void addNodeToCloud(String scenario, int timeInYears, String dataType, int nodeNumber, float value) {
+	private static void addNodeToCloud(String scenario, float timeInYears, String dataType, int nodeNumber, float value) {
 		try {
 		if(Constants.hdf5CloudData == null)
-			Constants.hdf5CloudData = new HashMap<String, Map<Integer, Map<String, Map<Integer, Float>>>>();
+			Constants.hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
 		if(!Constants.hdf5CloudData.containsKey(scenario))
-			Constants.hdf5CloudData.put(scenario, new HashMap<Integer, Map<String, Map<Integer, Float>>>());
+			Constants.hdf5CloudData.put(scenario, new HashMap<Float, Map<String, Map<Integer, Float>>>());
 		if(!Constants.hdf5CloudData.get(scenario).containsKey(timeInYears))
 			Constants.hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
 		if(!Constants.hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
@@ -354,7 +356,7 @@ public class HDF5Wrapper {
 		} catch (Exception e) {
 			float totalNodes = 0;
 			for(String sc : Constants.hdf5CloudData.keySet()) {
-				for(int ts: Constants.hdf5CloudData.get(sc).keySet()) {
+				for(float ts: Constants.hdf5CloudData.get(sc).keySet()) {
 					for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
 						totalNodes = Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
 						if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
@@ -375,7 +377,7 @@ public class HDF5Wrapper {
 		H5File h5file = Constants.hdf5Files.get(scenario);
 		h5file.open();
 
-		Map<Integer, float[]> valuesByScenarioAndTime = new TreeMap<Integer, float[]>();
+		Map<Float, float[]> valuesByScenarioAndTime = new TreeMap<Float, float[]>();
 
 		int totalNodes = nodeStructure.getTotalNodes();
 
@@ -392,7 +394,9 @@ public class HDF5Wrapper {
 					int dataset_id = dataset.open();
 					float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
 					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);						
-					valuesByScenarioAndTime.put(Integer.parseInt(group.getName().replaceAll("plot", "")), dataRead);
+					String name = ((Group)group).getName().replaceAll("plot", "");
+					int timeIndex = Integer.parseInt(name);
+					valuesByScenarioAndTime.put(nodeStructure.getTimeAt(timeIndex), dataRead);
 
 				}
 			}
@@ -408,7 +412,7 @@ public class HDF5Wrapper {
 			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
 				if(monitor.isCanceled()) return nodes;
 				
-				int startTime = (Integer) orderedTimes[startTimeIndex];
+				float startTime = (Float) orderedTimes[startTimeIndex];
 				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[index];
 				//	int valueAtStartTimeInt = (int)(valueAtStartTime * epsilon);
 
@@ -417,7 +421,7 @@ public class HDF5Wrapper {
 					continue; // Not this one...
 				float valueAtCurrentTime = valueAtStartTime;
 				// Grab the first time step
-				int timeStepAt0 = (Integer) orderedTimes[0];
+				float timeStepAt0 = (Float) orderedTimes[0];
 				float valueAtTime0 = valuesByScenarioAndTime.get(timeStepAt0)[index]; // Get the value there
 				// Catherine, edit here!!!!
 				float change = trigger == Trigger.RELATIVE_DELTA ? 
@@ -467,7 +471,7 @@ public class HDF5Wrapper {
 			// Found the right time step
 			if(root.getMemberList().get(rootIndex).getName().contains("data"))
 				continue;
-			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == timestep.getRealTimeAsInt()) {
+			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == timestep.getTimeStep()) {
 				Object group =  root.getMemberList().get(rootIndex);
 				for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 					Object child = ((Group)group).getMemberList().get(groupIndex);

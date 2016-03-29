@@ -85,6 +85,7 @@ public class NodeStructure {
 		// otherwise we have to search for it
 		for(TimeStep step: timeSteps) {
 			if(step.getTimeStep() == index)
+				System.out.println("Index: " + index + "\tMaps to: " + step.getRealTime());
 				return step.getRealTime();
 		}
 

@@ -450,7 +450,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 								
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType)));
 				
-			}		
+			}
 		}
 		
 		for(Control control: container.getChildren()) {
