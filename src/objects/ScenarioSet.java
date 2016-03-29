@@ -510,7 +510,11 @@ public class ScenarioSet {
 	public void resetSensorSettings(String type, float min, float max) {
 		if(sensorSettings.containsKey(type))
 			return; // Keep those
-		Constants.hdf5CloudData.clear();
+		for(Scenario scenario: scenarios) {
+			if(Constants.hdf5CloudData.containsKey(scenario) && Constants.hdf5CloudData.get(scenario).containsKey(type)) {
+				Constants.hdf5CloudData.get(scenario).get(type).clear();
+			}
+		}
 		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type, this.scenarios, min, max));	// User should adjust these settings
 	}
 
