@@ -259,8 +259,23 @@ public class ResultPrinter {
 								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)));
 				}
 				lines.add(line.toString());
-			}	
-			FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
+			}
+			File fileToWrite = new File(resultsDirectory, fileName + ".csv");
+			FileUtils.writeLines(fileToWrite, lines);
+			
+			//Try running Kayuum's script
+			File script = new File("./scripts/plot_dreamout01.py");
+			Runtime runtime = Runtime.getRuntime();
+			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
+			runtime.exec(command);
+			/* This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
+			Process p = runtime.exec(command);
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line = null;
+			while((line = in.readLine()) != null){
+				System.out.println(line);
+			}
+			*/
 		}
 	}
 

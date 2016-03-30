@@ -739,7 +739,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			for(String sensorType: data.getSet().getSensorSettings().keySet()){
 				configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
 			}
-			data.runObjective(configuration, false);
+			data.runObjective(configuration, true);
 			for(Scenario scenario: configuration.getTimesToDetection().keySet()){
 				if(!timeToDegradationPerNode.containsKey(scenario)) timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
 				timeToDegradationPerNode.get(scenario).put(nodeNumber, configuration.getTimesToDetection().get(scenario));
