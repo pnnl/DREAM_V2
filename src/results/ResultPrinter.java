@@ -264,10 +264,15 @@ public class ResultPrinter {
 			FileUtils.writeLines(fileToWrite, lines);
 			
 			//Try running Kayuum's script
+			try{
 			File script = new File("./scripts/plot_dreamout01.py");
 			Runtime runtime = Runtime.getRuntime();
 			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
 			runtime.exec(command);
+			}
+			catch(Exception e){
+				System.out.println("Install python and required libraries to create a PDF visualization");
+			}
 			/* This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
 			Process p = runtime.exec(command);
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));

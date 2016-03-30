@@ -83,6 +83,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	private Text runs;
 	private Text samples;
 	private Text iterations;
+	private Text minNumSensors;
+	private Text maxNumSensors;
+	private Text iterationsPerSensorNumber;
 
 	private Button showPlots;
 	
@@ -175,7 +178,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		Text summary = new Text(container, SWT.MULTI | SWT.WRAP| SWT.BORDER | SWT.V_SCROLL );
 		summary.setEditable(false);
 		GridData summaryGD = new GridData(GridData.FILL_BOTH);
-		summaryGD.verticalSpan = 10;
+		summaryGD.verticalSpan = 20;
 		summaryGD.widthHint = 260;
 		summaryGD.grabExcessVerticalSpace = true;
 		summary.setText(data.getSet().toString());
@@ -593,7 +596,32 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 //			}	       
 //		});		
 		
+		//TODO: These!!
+		Label spacer2 = new Label(container, SWT.NULL);
 		
+		Label minNumSensorsLabel = new Label(container, SWT.NULL);
+		minNumSensorsLabel.setText("Smallest number of sensors to test in scatterplot");
+		minNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
+		minNumSensors.setText("1");
+		GridData minNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
+		minNumSensors.setLayoutData(minNumSensorsGD);
+		minNumSensors.setVisible(Constants.buildDev);
+
+		Label maxNumSensorsLabel = new Label(container, SWT.NULL);
+		maxNumSensorsLabel.setText("Largest number of sensors to test in scatterplot");
+		maxNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
+		maxNumSensors.setText("10");
+		GridData maxNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
+		maxNumSensors.setLayoutData(maxNumSensorsGD);
+		maxNumSensors.setVisible(Constants.buildDev);
+
+		Label iterationsPerSensorNumberLabel = new Label(container, SWT.NULL);
+		iterationsPerSensorNumberLabel.setText("Iterations per number of sensors in scatterplot");
+		iterationsPerSensorNumber = new Text(container, SWT.BORDER | SWT.SINGLE);
+		iterationsPerSensorNumber.setText("5");
+		GridData iterationsPerSensorNumberGD = new GridData(GridData.FILL_HORIZONTAL);
+		iterationsPerSensorNumber.setLayoutData(iterationsPerSensorNumberGD);
+		iterationsPerSensorNumber.setVisible(Constants.buildDev);
 				 
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
 		scatterplotButton.setSelection(true);
@@ -601,6 +629,10 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		scatterplotButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
+				int minNum = Integer.parseInt(minNumSensors.getText());
+				int maxNum = Integer.parseInt(maxNumSensors.getText());
+				int its = Integer.parseInt(iterationsPerSensorNumber.getText());
+				
 				//these will be an ordered list corresponding to x and y coordinates on the scatterplots
 				List<Float> configurationCosts = new ArrayList<Float>();
 				List<Float> configurationAverageTTDs = new ArrayList<Float>();
@@ -623,14 +655,13 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				float maxCost = 0;
 //				for(Float budgeti: budgets){
 //					for(Integer wellj: wells){
-				for(int i=1; i<=50; ++i){
-					for(int j=0; j<5; ++j){
+				for(int i=minNum; i<=maxNum; ++i){
+					for(int j=0; j<its; ++j){
 						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
 						int innerWells = i;
 						int innerSensors = i*100;
 						System.out.println(innerSensors + " " + innerWells);
 						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
-						String numRuns = runs.getText();
 						int ittr = Integer.parseInt(iterations.getText());
 						data.setWorkingDirectory(outputFolder.getText());
 						data.getSet().setIterations(ittr);
