@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import hdf5Tool.HDF5Wrapper;
 import objects.NodeStructure;
 import ncsa.hdf.hdf5lib.H5;
 import ncsa.hdf.hdf5lib.HDF5Constants;
@@ -159,6 +160,8 @@ public class Constants {
 						if(!name.startsWith("plot"))
 							continue;
 						Integer timeStep = Integer.parseInt(name.replaceAll("plot", ""));
+						boolean plotsAreTimeIndices = HDF5Wrapper.plotFileHack(nodeStructure, root);
+						timeStep = plotsAreTimeIndices ? nodeStructure.getTimeAt(timeStep).intValue() : timeStep;
 						Object group =  root.getMemberList().get(ts); // timesteps	
 						
 						if(!hdf5Data.get(scenario).containsKey(timeStep))

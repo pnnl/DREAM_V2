@@ -295,6 +295,8 @@ public class HDF5Wrapper {
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		TreeMap<Float, Group> sortedTimes = new TreeMap<Float, Group>();
+		boolean plotAreTimeIndices = plotFileHack(nodeStructure, root);
+	
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
 			Object group =  root.getMemberList().get(rootIndex);
 			String name = ((Group)group).getName().replaceAll("plot", "");
@@ -302,7 +304,8 @@ public class HDF5Wrapper {
 				continue;
 			int timeIndex = Integer.parseInt(name);
 			// These have to be in order...
-			sortedTimes.put(nodeStructure.getTimeAt(timeIndex), (Group)group);
+			sortedTimes.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, (Group)group);
+				
 		}
 		for(Float timeStep: sortedTimes.keySet()) {
 			Group group = sortedTimes.get(timeStep);			
@@ -376,13 +379,16 @@ public class HDF5Wrapper {
 
 		H5File h5file = Constants.hdf5Files.get(scenario);
 		h5file.open();
-
+		
+		// Get the root node:
+		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)h5file.getRootNode()).getUserObject();
+	
 		Map<Float, float[]> valuesByScenarioAndTime = new TreeMap<Float, float[]>();
 
 		int totalNodes = nodeStructure.getTotalNodes();
 
-		// Get the root node:
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)h5file.getRootNode()).getUserObject();
+		boolean plotAreTimeIndices = plotFileHack(nodeStructure, root);
+	
 		// Get the data group
 		for(int timestep = 0; timestep < root.getMemberList().size(); timestep++) {
 			Group group =  (Group)root.getMemberList().get(timestep); // time steps
@@ -396,7 +402,7 @@ public class HDF5Wrapper {
 					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);						
 					String name = ((Group)group).getName().replaceAll("plot", "");
 					int timeIndex = Integer.parseInt(name);
-					valuesByScenarioAndTime.put(nodeStructure.getTimeAt(timeIndex), dataRead);
+					valuesByScenarioAndTime.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, dataRead);
 
 				}
 			}
@@ -467,11 +473,12 @@ public class HDF5Wrapper {
 		H5File hdf5File = Constants.hdf5Files.get(scenario); // Get the correct file for the scenario
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+		boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
 			// Found the right time step
 			if(root.getMemberList().get(rootIndex).getName().contains("data"))
 				continue;
-			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == timestep.getTimeStep()) {
+			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == (plotsAreTimeIndices ? timestep.getTimeStep(): (int) timestep.getRealTime())) {
 				Object group =  root.getMemberList().get(rootIndex);
 				for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 					Object child = ((Group)group).getMemberList().get(groupIndex);
@@ -489,6 +496,31 @@ public class HDF5Wrapper {
 		hdf5File.close();
 		return 0f;
 	}
+	
+	
+	public static boolean plotFileHack(NodeStructure nodeStructure, Group root) {
+		// plotxyz is inconsitent between h5 files, it will either be plot[timeIndex] or plot[realTime]
+		// For backwards compatibility, we're putting in a hack here to handle both cases... it will probably work...
+		// most of the time...
+		List<Integer> realTimeOrTimeIndex = new ArrayList<Integer>();
+		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
+			Object group =  root.getMemberList().get(rootIndex);
+			String name = ((Group)group).getName().replaceAll("plot", "");
+			if(name.contains("data"))
+				continue;
+			realTimeOrTimeIndex.add(Integer.parseInt(name));
+		}
+		
+		boolean plotsAreTimeIndices = false;
+		for(TimeStep timeStep: nodeStructure.getTimeSteps()) {
+			if(!realTimeOrTimeIndex.contains((int)timeStep.getRealTime())) {
+				plotsAreTimeIndices = true;
+				break;
+			}
+		}
+		return plotsAreTimeIndices;
+	}
+	
 	/*
 	public static Integer getNodeNumber(Point3i max, int index) {
 		return getNodeNumber(max.getI(), max.getJ(), max.getK(), index);
