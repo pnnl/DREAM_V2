@@ -601,6 +601,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		Label minNumSensorsLabel = new Label(container, SWT.NULL);
 		minNumSensorsLabel.setText("Smallest number of sensors to test in scatterplot");
+		minNumSensorsLabel.setVisible(Constants.buildDev);
 		minNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
 		minNumSensors.setText("1");
 		GridData minNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
@@ -609,6 +610,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 		Label maxNumSensorsLabel = new Label(container, SWT.NULL);
 		maxNumSensorsLabel.setText("Largest number of sensors to test in scatterplot");
+		maxNumSensorsLabel.setVisible(Constants.buildDev);
 		maxNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
 		maxNumSensors.setText("10");
 		GridData maxNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
@@ -617,6 +619,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 		Label iterationsPerSensorNumberLabel = new Label(container, SWT.NULL);
 		iterationsPerSensorNumberLabel.setText("Iterations per number of sensors in scatterplot");
+		iterationsPerSensorNumberLabel.setVisible(Constants.buildDev);
 		iterationsPerSensorNumber = new Text(container, SWT.BORDER | SWT.SINGLE);
 		iterationsPerSensorNumber.setText("5");
 		GridData iterationsPerSensorNumberGD = new GridData(GridData.FILL_HORIZONTAL);
