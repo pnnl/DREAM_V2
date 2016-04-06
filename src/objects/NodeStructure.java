@@ -3,6 +3,7 @@ package objects;
 import hdf5Tool.HDF5Wrapper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -26,6 +27,8 @@ public class NodeStructure {
 	private List<TimeStep> timeSteps;
 	private List<String> dataTypes;
 	private Point3i ijkDimensions;
+	
+	private HashMap<Point3i, Float> porosityOfNode;
 
 	/**
 	 * Loads a node structure from the database
@@ -42,9 +45,24 @@ public class NodeStructure {
 		x = new ArrayList<Float>();
 		y = new ArrayList<Float>();
 		z = new ArrayList<Float>();
+		
+		porosityOfNode = new HashMap<Point3i, Float>();
 
 		loadRun(run);
 
+		//GET RID OF THIS!!!!!
+		/*
+		for(int i=1; i<= ijkDimensions.getI(); i++){
+			for(int j=1; j<=ijkDimensions.getJ(); j++){
+				for(int k=1; k<=ijkDimensions.getK(); k++){
+					Point3i point = new Point3i(i,j,k);
+					porosityOfNode.put(point, 0.1f);
+				}
+			}
+		}
+		*/
+		//BUT REALLY!
+		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
 	}
@@ -126,7 +144,9 @@ public class NodeStructure {
 		float lengthx = upperxyz.getX() - lowerxyz.getX();
 		float lengthy = upperxyz.getY() - lowerxyz.getY();
 		float lengthz = upperxyz.getZ() - lowerxyz.getZ();
-		return Math.abs(lengthx*lengthy*lengthz);
+		float totalVolume = Math.abs(lengthx*lengthy*lengthz);
+		float porosity = porosityOfNode.get(location);
+		return totalVolume*porosity;
 	}
 	
 
@@ -252,6 +272,26 @@ public class NodeStructure {
 
 	public List<Float> getZ() {
 		return z;
+	}
+
+	public HashMap<Point3i, Float> getPorosityOfNode() {
+		return porosityOfNode;
+	}
+	
+	public boolean porosityOfNodeIsSet(){
+		if(porosityOfNode.size() == 0) return false;
+		return true;
+	}
+	
+	public void setDefaultPorosityOfNode(Float porosity){
+		for(int i=1; i<=ijkDimensions.getI(); i++){
+			for(int j=1; j<=ijkDimensions.getJ(); j++){
+				for(int k=1; k<=ijkDimensions.getK(); k++){
+					Point3i point = new Point3i(i,j,k);
+					porosityOfNode.put(point, porosity);
+				}
+			}
+		}
 	}
 
 	public List<String> getDataTypes() {

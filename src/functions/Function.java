@@ -253,8 +253,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				temperature= temperature * 0.99f;
 				calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
 				//calculatedValue = 1;
-				//randomValue = Constants.random.nextFloat();
-				randomValue = 1;
+				randomValue = Constants.random.nextFloat();
+				//randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
 					temp = System.currentTimeMillis();					
@@ -317,6 +317,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			Constants.log(Level.FINE, "Function: running - time taken to run objective", (tto) + " ms");		
 			totalObjectiveTime += tto;
 			Constants.log(Level.FINER, "Function: running - iteration", iteration + "\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
+			
 			
 			ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 			

@@ -273,7 +273,7 @@ public class ResultPrinter {
 			catch(Exception e){
 				System.out.println("Install python and required libraries to create a PDF visualization");
 			}
-			/* This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
+			/* ---- This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
 			Process p = runtime.exec(command);
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line = null;

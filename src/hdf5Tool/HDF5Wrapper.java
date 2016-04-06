@@ -1,5 +1,6 @@
 package hdf5Tool;
 
+import java.awt.Dialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +12,10 @@ import java.util.TreeMap;
 import javax.swing.JOptionPane;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import objects.NodeStructure;
 import objects.SensorSetting.DeltaType;
@@ -194,7 +199,10 @@ public class HDF5Wrapper {
 					if(dataset.getName().equals("times")) {	times =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("x")) {	xValues =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("y")) {	yValues =  (float[])dataset.read(); }					
-					if(dataset.getName().equals("z")) {	zValues =  (float[])dataset.read(); }		
+					if(dataset.getName().equals("z")) {	zValues =  (float[])dataset.read(); }	
+					if(dataset.getName().equals("porosities")){
+						//TODO: fill this.
+					}
 					dataset.close(dataset_id);
 				}
 				// Should have all the info we need now

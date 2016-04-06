@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -28,6 +29,7 @@ import functions.Function;
 import functions.MutationFunction.MUTATE;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
+import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
@@ -118,6 +120,11 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 			modelOption = ModelOption.REALIZED__WELLS;
 		
 		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensors") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
+		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
+			PorosityDialog dialog = new PorosityDialog(container.getShell());
+			dialog.open();
+			data.getScenarioSet().getNodeStructure().setDefaultPorosityOfNode(dialog.getPorosity());
+		}
 	}
 
 	@Override
