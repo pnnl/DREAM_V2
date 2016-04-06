@@ -190,8 +190,10 @@ public class HDF5Wrapper {
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // Search for the data node (should be first)
 			if(root.getMemberList().get(rootIndex).getName().equals("data")) {	// We can get the node structure data from this one
-				float[] steps, times, xValues, yValues, zValues;
-				steps = times = xValues = yValues = zValues = null;				
+				float[] steps, times, xValues, yValues, zValues, porosities;
+				steps = times = xValues = yValues = zValues = porosities = null;		
+				Dataset porosityDataset = null;
+				boolean porosityFound = false;
 				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
 					Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
 					int dataset_id = dataset.open();
@@ -200,18 +202,47 @@ public class HDF5Wrapper {
 					if(dataset.getName().equals("x")) {	xValues =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("y")) {	yValues =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("z")) {	zValues =  (float[])dataset.read(); }	
-					if(dataset.getName().equals("porosities")){
-						//TODO: fill this.
-					}
+					if(dataset.getName().equals("porosities")){ 
+						porosityDataset = dataset; 
+						porosityFound = true;
+					} //Need to store these for later, we need to know the xyz dimensions
+
 					dataset.close(dataset_id);
 				}
-				// Should have all the info we need now
-				nodeStructure.getIJKDimensions().setI(xValues.length);
-				nodeStructure.getIJKDimensions().setJ(yValues.length);
-				nodeStructure.getIJKDimensions().setK(zValues.length);
+				
 				for(float x: xValues) nodeStructure.getX().add(x);
 				for(float y: yValues) nodeStructure.getY().add(y);
 				for(float z: zValues) nodeStructure.getZ().add(z);
+				
+				nodeStructure.getIJKDimensions().setI(xValues.length);
+				nodeStructure.getIJKDimensions().setJ(yValues.length);
+				nodeStructure.getIJKDimensions().setK(zValues.length);
+				
+				// Should have all the info we need now to read the porosities
+				if(porosityFound){
+					int dataset_id = porosityDataset.open();
+					porosities = new float[xValues.length*yValues.length*zValues.length];
+					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, porosities);	
+					
+					//Now we can get the porosities
+					/*
+					for(int i=0; i<porosities.length; i++){
+						nodeStructure.getPorosityOfNode().put(nodeStructure.getIJKFromNodeNumber(i), porosities[i]);
+					}
+					*/
+					int testcounter = 0;
+					for(int i=0; i<xValues.length; i++){
+						for(int j=0; j<yValues.length; j++){
+							for(int k = 0; k<zValues.length; k++){
+								nodeStructure.getPorosityOfNode().put(new Point3i(i+1, j+1, k+1), porosities[testcounter]);
+								testcounter++;
+							}
+						}
+					}
+					
+					porosityDataset.close(dataset_id);
+				}
+				
 				for(int i = 0; i < times.length; i++) {
 					nodeStructure.getTimeSteps().add(new TimeStep(i, times[i]));
 				}
@@ -334,10 +365,7 @@ public class HDF5Wrapper {
 
 							
 							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
-							if(nodeNumber == 1521 || nodeNumber == 1597)	System.out.println("Found value: " + scenario + "\t" + nodeNumber + "\t" + timeStep + "\t" 
-									+ lowerThreshold + "\t" + upperThreshold + "\t" + dataRead[i]);
 							if(!nodes.contains(nodeNumber)) {
-								if(nodeNumber == 1521 || nodeNumber == 1597) System.out.println("Detected at " + timeStep);
 								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
 								nodes.add(nodeNumber);
 							}

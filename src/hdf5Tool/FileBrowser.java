@@ -780,6 +780,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			List<Float> timeStepsInYears = new ArrayList<Float>();
 			JCheckBox[] timeSteps = checkList_timesteps.getListData();
 			
+			
 			// Time steps are already in years ...
 			for(JCheckBox cb: timeSteps) {	    		
 				if(!cb.isSelected())
@@ -930,9 +931,28 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		long startTime = System.currentTimeMillis();
 
+		// Get the dimensions of the grid
+		long[] dims3D = {grid.getSize().getX(), grid.getSize().getY(), grid.getSize().getZ()};
+
+		JCheckBox[] dataFields = checkList_dataFields.getListData();
+
+		int iMax = new Long(dims3D[0]).intValue();
+		int jMax = new Long(dims3D[1]).intValue();
+
+		int shiftI = 0;
+		int shiftJ = 0;
+		float fill = 0;
+
+		// In case the user wants to shift the data
+		try { shiftI = Integer.parseInt(jTextField_shiftI.getText()); } catch (NumberFormatException e) {}
+		try { shiftJ = Integer.parseInt(jTextField_shiftJ.getText()); } catch (NumberFormatException e) {}
+		try { fill = Float.parseFloat(jTextField_fillField.getText()); } catch (NumberFormatException e) {}
+		
 		if(addGridInfo) {
 			// Times/Timesteps
 			int timeStep = 0;
+			
+			
 			List<Float> timeStepsAsInts = new ArrayList<Float>();
 			List<Float> timeStepsInYears = new ArrayList<Float>();
 			JCheckBox[] scenarios = checkList_scenarios.getListData();
@@ -989,7 +1009,66 @@ public class FileBrowser extends javax.swing.JFrame {
 			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{zCoordinates.length}, null, null, 0, zCoordinates);	
 
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
-			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);			
+			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
+		
+
+			
+			//TODO Here - make a float array to add the porosity info through, should be flat
+			
+			File inputFile = new File(file_inputDir, scenario +"\\input");	
+			if(inputFile.exists()){
+				BufferedReader fileReader = new BufferedReader(new FileReader(inputFile));
+				String line = "";
+				while(!(line = fileReader.readLine()).startsWith("~Mechanical Properties Card") && line != null);
+				while((line = fileReader.readLine()).startsWith("#") && line != null);
+				fileReader.close();
+				System.out.println(line);
+				String[] parts = line.split(",");
+				parts = parts[3].split(":");
+				File porosityFile = new File(file_inputDir, scenario + "\\" + parts[1]);
+				if(porosityFile.exists()){
+					BufferedReader porosityReader = new BufferedReader(new FileReader(porosityFile));
+					line = "";
+					int index=0;
+					float[] dataAsDoubles = new float[(int)(dims3D[0]*dims3D[1]*dims3D[2])];
+					while((line = porosityReader.readLine()) != null){
+						try{
+							dataAsDoubles[index] = Float.parseFloat(line);
+							index++;
+						} catch(NumberFormatException ne){
+							System.out.println("Error in reading the porosity input files - there seems to be something that is not a float");
+						}
+					}
+					porosityReader.close();
+					float[] dataAsFloats = new float[dataAsDoubles.length];
+
+					// Fill the data with the fill value
+					fill = Math.abs(fill);
+					for(int i = 0; i < dataAsDoubles.length; i++) {
+						dataAsFloats[i] = fill;
+					}
+
+					int counter = 0;	
+					for(int i = 1; i <= iMax; i++) {
+						for(int j = 1; j <= jMax; j++) {	
+							for(int k = 1; k <= dims3D[2]; k++) {				
+								// Apply the shift (if one exists)						
+								int shiftedI = i-shiftI;
+								int shiftedJ = j-shiftJ;
+
+								// If we're out of bounds, use the fill number?
+								if(shiftedI > 0 && shiftedJ > 0 && shiftedI <= iMax && shiftedJ <= jMax) {
+									int shiftedNodeNumber = (k-1) * iMax * jMax + (shiftedJ-1) * iMax + (shiftedI);
+									dataAsFloats[counter] = Math.abs(dataAsDoubles[shiftedNodeNumber-1]);
+								}
+
+								counter++;
+							}
+						}	
+					}
+					hdf5File.createScalarDS("porosities", dataGroup, dtype, dims3D, null, null, 0, dataAsFloats);
+				}
+			}
 		}
 
 		System.out.println("Time to add grid info" + (System.currentTimeMillis() - startTime));
@@ -997,22 +1076,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		// Create a group for each time in the set
 		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
 
-		// Get the dimensions of the grid
-		long[] dims3D = {grid.getSize().getX(), grid.getSize().getY(), grid.getSize().getZ()};
 
-		JCheckBox[] dataFields = checkList_dataFields.getListData();
-
-		int iMax = new Long(dims3D[0]).intValue();
-		int jMax = new Long(dims3D[1]).intValue();
-
-		int shiftI = 0;
-		int shiftJ = 0;
-		float fill = 0;
-
-		// In case the user wants to shift the data
-		try { shiftI = Integer.parseInt(jTextField_shiftI.getText()); } catch (NumberFormatException e) {}
-		try { shiftJ = Integer.parseInt(jTextField_shiftJ.getText()); } catch (NumberFormatException e) {}
-		try { fill = Float.parseFloat(jTextField_fillField.getText()); } catch (NumberFormatException e) {}
 
 		if(addGridInfo) {
 			if(Math.abs(shiftI) > iMax) {
