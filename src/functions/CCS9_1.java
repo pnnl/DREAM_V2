@@ -173,8 +173,6 @@ public class CCS9_1 extends Function {
 			} else {
 				con.getTimesToDetection().remove(scenario);
 			}
-			// remove this after bug fix
-			System.out.println(scenario + " " + timeInYears); 
 			con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
 			con.addInferenceResult(scenario, inferenceResult);
 		}
