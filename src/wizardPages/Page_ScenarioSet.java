@@ -1,6 +1,7 @@
 package wizardPages;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -19,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
@@ -27,10 +29,11 @@ import org.eclipse.swt.widgets.Text;
 import functions.CCS9_1;
 import functions.Function;
 import functions.MutationFunction.MUTATE;
+import objects.DREAMData;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
 import utilities.PorosityDialog;
-import wizardPages.DREAMWizard.STORMData;
+import utilities.SaveLoad;
 
 public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 
@@ -40,12 +43,13 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 	private Combo scenarioSet;
 	private Combo simulation;
 	private Combo modelOption;
-	private STORMData data;
+	private DREAMData data;
 	private Text hdf5Text;
+	private Text saveFileText;
 	private boolean isCurrentPage = false;
 	private Label modelDescription;
 	
-	protected Page_ScenarioSet(STORMData data) {
+	protected Page_ScenarioSet(DREAMData data) {
 		super("STORM");
 		this.data = data;
 	}
@@ -156,6 +160,41 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		});
 		infoLink.setLayoutData(infoLinkData);
 				
+		Label saveFileLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
+		saveFileLabel.setText("Load from a saved configuration (dream_config.xml).");
+		
+		GridData saveFileGridData = new GridData(GridData.FILL_HORIZONTAL);
+		saveFileGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		saveFileGridData.verticalSpan = 4;
+		saveFileLabel.setLayoutData(saveFileGridData);			
+	
+
+		final FileDialog saveFileDialog = new FileDialog(container.getShell());
+		Button buttonSaveDir = new Button(container, SWT.PUSH);
+		buttonSaveDir.setText("Select a file");
+		buttonSaveDir.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				String file = saveFileDialog.open();
+				if (file != null) {
+					saveFileText.setText(file);
+					// Load it
+					try {
+						File newFile = new File(file);
+						data.setAs((DREAMData)SaveLoad.Load(newFile));
+						// TODO: Luke - set the stuff in this dialog?
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+				
+		saveFileText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		GridData saveFileGD = new GridData(GridData.FILL_HORIZONTAL);
+		saveFileText.setLayoutData(saveFileGD);
+		
+		
 		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
 		infoLabel.setText("Provide the path to a single directory containing hdf5 formatted files of all subsurface simulation output at specified plot times.");
 		
@@ -163,8 +202,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 4;
 		infoLabel.setLayoutData(infoGridData);
-			
-		
+					
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("Select a directory");

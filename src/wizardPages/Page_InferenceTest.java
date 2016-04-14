@@ -24,12 +24,12 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
-import wizardPages.DREAMWizard.STORMData;
+import objects.DREAMData;
 import wizardPages.Page_SensorSetup.SensorData;
 
 public class Page_InferenceTest extends WizardPage implements AbstractWizardPage {
 
-	STORMData data;
+	DREAMData data;
 	
 	private ScrolledComposite sc;
 	private Composite container;
@@ -40,7 +40,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 	private boolean isCurrentPage = false;
 	private Text minText;
 	
-	protected Page_InferenceTest(STORMData data) {
+	protected Page_InferenceTest(DREAMData data) {
 		super("Inference Test");
 	//	setDescription("Inference test");
 		this.data = data;	

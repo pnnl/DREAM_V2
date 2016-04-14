@@ -27,5 +27,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.jface.source_3.10.2.v20141021-1035.jar"/>
 	<classpathentry kind="lib" path="lib/org.eclipse.jface_3.10.2.v20141021-1035.jar"/>
+	<classpathentry kind="lib" path="lib/xstream-1.4.7.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

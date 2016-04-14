@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
 import utilities.Point3i;
-import wizardPages.DREAMWizard.STORMData;
+import objects.DREAMData;
 
 public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
@@ -49,7 +49,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	private Composite container;
 	private Composite rootContainer;
 	
-	private STORMData data;
+	private DREAMData data;
 	private boolean isCurrentPage = false;
 	private Button scenarioUnionButton;
 	private Button sensorUnionButton;
@@ -57,7 +57,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
 	private Map<String, SensorData> sensorData;
 		
-	protected Page_SensorSetup(STORMData data) {
+	protected Page_SensorSetup(DREAMData data) {
 		super("Sensors");
 		this.data = data;	
 	}

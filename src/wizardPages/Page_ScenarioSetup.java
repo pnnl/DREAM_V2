@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import wizardPages.DREAMWizard.STORMData;
+import objects.DREAMData;
 
 public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage {
 
@@ -37,11 +37,11 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	private Composite container;
 	private Composite rootContainer;
 	
-	private STORMData data;
+	private DREAMData data;
 	
 	private boolean isCurrentPage;
 		
-	protected Page_ScenarioSetup(STORMData data) {
+	protected Page_ScenarioSetup(DREAMData data) {
 		super("Scenario Set");
 		this.data = data;	
 	}
