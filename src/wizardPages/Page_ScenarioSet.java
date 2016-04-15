@@ -48,6 +48,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 	private Text saveFileText;
 	private boolean isCurrentPage = false;
 	private Label modelDescription;
+	private boolean loadedFromFile = false;
 	
 	protected Page_ScenarioSet(DREAMData data) {
 		super("STORM");
@@ -122,8 +123,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 			modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 		else 
 			modelOption = ModelOption.REALIZED__WELLS;
-		
-		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensors") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
+		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensors") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText(), loadedFromFile);
 		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell());
 			dialog.open();
@@ -181,6 +181,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 					try {
 						File newFile = new File(file);
 						data.setAs((DREAMData)SaveLoad.Load(newFile));
+						loadedFromFile = true;
 						// TODO: Luke - set the stuff in this dialog?
 					} catch (IOException e) {
 						// TODO Auto-generated catch block

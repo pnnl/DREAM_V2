@@ -106,18 +106,21 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
 			
-			
+			// TODO: Luke - this is where I think we should not be setting thresholds and values
 			// These may be backwards?
-			trigger = Trigger.MINIMUM_THRESHOLD;
-			deltaType = sensorSettings.getDeltaType();
+			if(sensorSettings.getTrigger() == Trigger.MAXIMUM_THRESHOLD){
+				trigger = Trigger.MINIMUM_THRESHOLD;
+				deltaType = sensorSettings.getDeltaType();
+				
+				// Try to be a little smarter about pressure
+				if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
+					trigger = Trigger.RELATIVE_DELTA;
+				
+				// Removing this, its buggy...
+				if(sensorType.toLowerCase().equals("ph"))
+					trigger = Trigger.MAXIMUM_THRESHOLD;
+			}
 			
-			// Try to be a little smarter about pressure
-			if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
-				trigger = Trigger.RELATIVE_DELTA;
-			
-			// Removing this, its buggy...
-			if(sensorType.toLowerCase().equals("ph"))
-				trigger = Trigger.MAXIMUM_THRESHOLD;
 			
 			dataMin = sensorSettings.getMin();
 			dataMax = sensorSettings.getMax();

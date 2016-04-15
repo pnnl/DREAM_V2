@@ -144,7 +144,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		Label probabilityLabel = new Label(container, SWT.NULL);
 		probabilityLabel.setText("Weight");
 		
-		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getScenarios());
+		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getAllScenarios());
 		Collections.sort(scenarios);
 
 		if(scenarios.size() > 1) {
@@ -169,19 +169,25 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		
 		for(Scenario scenario: scenarios) {
 			Button button = new Button(container, SWT.CHECK);
-			button.setSelection(true);
-			button.setText(scenario.getScenario());
 			Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
-			text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
+			if(data.getSet().getScenarios().contains(scenario)){
+				button.setSelection(true);
+				text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
+			}
+			else{ //this is an un-checked scenario
+				button.setSelection(false);
+				text1.setText("1.0");
+			}
+			button.setText(scenario.getScenario());
 			GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 			text1.setLayoutData(gd);
 			selectedScenarios.put(scenario, button);
 			weights.put(scenario, text1);
 		}
-		container.layout();	
+		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();		
-
+		
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}

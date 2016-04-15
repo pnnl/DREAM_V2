@@ -43,7 +43,7 @@ public class DREAMData {
 		return set;
 	}
 
-	public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String hdf5) throws Exception {	
+	public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String hdf5, final boolean keepOldData) throws Exception {	
 		dialog.run(true, false, new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -57,14 +57,16 @@ public class DREAMData {
 					Constants.loadHdf5Files(hdf5);	// Load the hdf5 files into the constants
 				monitor.worked(5);
 
-				monitor.subTask("clearing previous data");				
-				set.clearRun();	// Clear any old run data
-				monitor.worked(1);
-
+				if(!keepOldData){
+					monitor.subTask("clearing previous data");				
+					set.clearRun();	// Clear any old run data
+					monitor.worked(1);
+				}
+				
 				monitor.subTask("loading new data");
 				set.loadRunData(""); // Load the new data (this will be hdf5)
 				monitor.worked(1);
-
+				
 				monitor.subTask("applying user settings");
 				DREAMData.this.mutate = mutate;	// Set the mutate option
 				DREAMData.this.modelOption = modelOption;
@@ -89,10 +91,14 @@ public class DREAMData {
 				// Run tasks:
 				monitor.beginTask("Scenario set settings", scenarioWeights.size() + scenariosToRemove.size());
 
+				for(Scenario s: set.getAllScenarios()){
+					if(!set.getScenarios().contains(s)) set.getScenarios().add(s);
+				}
+				
 				monitor.subTask("applying scenario weights");
 				set.setScenarioWeights(scenarioWeights);
 				monitor.worked(scenarioWeights.size());
-
+				
 				for(Scenario scenario: scenariosToRemove) {
 					monitor.subTask("removing unused scenario: " + scenario);
 					set.removeScenario(scenario);
