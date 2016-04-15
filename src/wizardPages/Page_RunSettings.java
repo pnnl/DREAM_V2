@@ -23,12 +23,12 @@ import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
 import utilities.Point3i;
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 import wizardPages.Page_SensorSetup.SensorData;
 
 public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
-	private DREAMData data;
+	private STORMData data;
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
@@ -43,7 +43,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
 	private boolean isCurrentPage = false;
 
-	protected Page_RunSettings(DREAMData data) {
+	protected Page_RunSettings(STORMData data) {
 		super("Run setup");
 		//	setDescription("Run setup");
 		this.data = data;			

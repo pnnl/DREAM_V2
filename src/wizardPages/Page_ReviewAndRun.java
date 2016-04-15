@@ -71,12 +71,11 @@ import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Point3d;
 import utilities.Point3i;
-import utilities.SaveLoad;
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage {
 
-	private DREAMData data;
+	private STORMData data;
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
@@ -92,7 +91,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	
 	private boolean isCurrentPage = false;
 
-	protected Page_ReviewAndRun(DREAMData data) {
+	protected Page_ReviewAndRun(STORMData data) {
 		super("Review");
 		//	setDescription("Review");
 		this.data = data;			
@@ -737,24 +736,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-
-		Button saveButton = new Button(container, SWT.BALLOON);
-		saveButton.setSelection(true);
-		saveButton.setText("Save");
-		saveButton.addListener(SWT.Selection, new Listener() {
-
-			@Override
-			public void handleEvent(Event event) {
-				// create a save file
-				try {
-					File saveFile = new File(new File(outputFolder.getText()), "dream_config.xml");
-					SaveLoad.Save(data, saveFile);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}				
-			}			
-		});		
+		
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -762,7 +744,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
-		
+
 	}
 	
 

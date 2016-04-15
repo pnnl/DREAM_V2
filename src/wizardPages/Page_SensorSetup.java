@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
 import utilities.Point3i;
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 
 public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
@@ -49,7 +49,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	private Composite container;
 	private Composite rootContainer;
 	
-	private DREAMData data;
+	private STORMData data;
 	private boolean isCurrentPage = false;
 	private Button scenarioUnionButton;
 	private Button sensorUnionButton;
@@ -57,7 +57,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
 	private Map<String, SensorData> sensorData;
 		
-	protected Page_SensorSetup(DREAMData data) {
+	protected Page_SensorSetup(STORMData data) {
 		super("Sensors");
 		this.data = data;	
 	}
@@ -106,21 +106,18 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
 			
-			// TODO: Luke - this is where I think we should not be setting thresholds and values
-			// These may be backwards?
-			if(sensorSettings.getTrigger() == Trigger.MAXIMUM_THRESHOLD){
-				trigger = Trigger.MINIMUM_THRESHOLD;
-				deltaType = sensorSettings.getDeltaType();
-				
-				// Try to be a little smarter about pressure
-				if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
-					trigger = Trigger.RELATIVE_DELTA;
-				
-				// Removing this, its buggy...
-				if(sensorType.toLowerCase().equals("ph"))
-					trigger = Trigger.MAXIMUM_THRESHOLD;
-			}
 			
+			// These may be backwards?
+			trigger = Trigger.MINIMUM_THRESHOLD;
+			deltaType = sensorSettings.getDeltaType();
+			
+			// Try to be a little smarter about pressure
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
+				trigger = Trigger.RELATIVE_DELTA;
+			
+			// Removing this, its buggy...
+			if(sensorType.toLowerCase().equals("ph"))
+				trigger = Trigger.MAXIMUM_THRESHOLD;
 			
 			dataMin = sensorSettings.getMin();
 			dataMax = sensorSettings.getMax();

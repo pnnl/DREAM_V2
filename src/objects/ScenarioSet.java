@@ -29,7 +29,6 @@ public class ScenarioSet {
 	 */
 	private NodeStructure nodeStructure;
 	private List<Scenario> scenarios;
-	private List<Scenario> allScenarios; //hold all scenarios, even those not being used for this run.
 	
 	/**
 	 * User settings - 
@@ -61,7 +60,6 @@ public class ScenarioSet {
 		isReady = false;
 		
 		scenarios = new ArrayList<Scenario>();
-		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 
@@ -142,11 +140,9 @@ public class ScenarioSet {
 	public void loadRunData(String run) {
 	
 		nodeStructure = new NodeStructure(run);
-		/*I think we can remove this?
 		sensorSettings.clear();
-		allScenarios.clear();
 		scenarios.clear();
-		*/
+		
 		Constants.log(Level.INFO, "Scenario set: loading run data", run);
 		
 		String query =  "SELECT has_scenarios, scenario_names FROM run WHERE run_name='" + run + "'";
@@ -157,17 +153,15 @@ public class ScenarioSet {
 
 		if(!scenarios.isEmpty()) {
 			for(String scenario: scenarios) {
-				Scenario s = new Scenario(scenario);
-				this.scenarios.add(s);
-				this.allScenarios.add(s);
+				this.scenarios.add(new Scenario(scenario));
 			}
-			for(Scenario scenario: this.allScenarios) {
+			for(Scenario scenario: this.scenarios) {
 				scenarioWeights.put(scenario, (float)1);
 			}
 		} 
 		
 		for(final String type: nodeStructure.getDataTypes()) {
-			if(!sensorSettings.containsKey(type)) sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
+			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
 		}
 
 		// Setup the inference test
@@ -193,14 +187,6 @@ public class ScenarioSet {
 
 	public void setScenarios(List<Scenario> scenarios) {
 		this.scenarios = scenarios;
-	}
-
-	public List<Scenario> getAllScenarios() {
-		return allScenarios;
-	}
-
-	public void setAllScenarios(List<Scenario> scenarios) {
-		this.allScenarios = scenarios;
 	}
 
 	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
@@ -576,7 +562,6 @@ public class ScenarioSet {
 		isReady = false;
 		
 		scenarios.clear();
-		allScenarios.clear();
 		scenarioWeights.clear();
 		sensorSettings.clear();
 

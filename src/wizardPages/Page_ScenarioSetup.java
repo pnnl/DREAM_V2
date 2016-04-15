@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage {
 
@@ -37,11 +37,11 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	private Composite container;
 	private Composite rootContainer;
 	
-	private DREAMData data;
+	private STORMData data;
 	
 	private boolean isCurrentPage;
 		
-	protected Page_ScenarioSetup(DREAMData data) {
+	protected Page_ScenarioSetup(STORMData data) {
 		super("Scenario Set");
 		this.data = data;	
 	}
@@ -144,7 +144,7 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		Label probabilityLabel = new Label(container, SWT.NULL);
 		probabilityLabel.setText("Weight");
 		
-		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getAllScenarios());
+		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getScenarios());
 		Collections.sort(scenarios);
 
 		if(scenarios.size() > 1) {
@@ -169,25 +169,19 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 		
 		for(Scenario scenario: scenarios) {
 			Button button = new Button(container, SWT.CHECK);
-			Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
-			if(data.getSet().getScenarios().contains(scenario)){
-				button.setSelection(true);
-				text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
-			}
-			else{ //this is an un-checked scenario
-				button.setSelection(false);
-				text1.setText("1.0");
-			}
+			button.setSelection(true);
 			button.setText(scenario.getScenario());
+			Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
+			text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
 			GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 			text1.setLayoutData(gd);
 			selectedScenarios.put(scenario, button);
 			weights.put(scenario, text1);
 		}
-		container.layout();
+		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();		
-		
+
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}

@@ -21,17 +21,17 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 
 public class Page_InitialConfiguraiton extends WizardPage implements AbstractWizardPage {
 
-	DREAMData data;
+	STORMData data;
 	Composite container;
 	List<ExtendedSensor> sensors;
 	
 	private boolean isCurrentPage = false;
 
-	protected Page_InitialConfiguraiton(DREAMData data) {
+	protected Page_InitialConfiguraiton(STORMData data) {
 		super("Initial Sensors");
 	//	setDescription("Initial Sensors");
 		sensors = new ArrayList<ExtendedSensor>();	

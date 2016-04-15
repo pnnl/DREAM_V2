@@ -36,11 +36,11 @@ import org.eclipse.swt.widgets.MessageBox;
 
 import utilities.Constants;
 import utilities.Point3i;
-import objects.DREAMData;
+import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage {
 
-	DREAMData data;
+	STORMData data;
 
 	private ScrolledComposite sc;
 	private Composite container;
@@ -57,7 +57,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
 
-	public Page_ExcludeWells(DREAMData data) {
+	public Page_ExcludeWells(STORMData data) {
 		super("Inference Test");
 		this.data = data;		
 	}
