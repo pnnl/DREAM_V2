@@ -28,6 +28,7 @@ public class ScenarioSet {
 	 *  Scenarios must share common node structure
 	 */
 	private NodeStructure nodeStructure;
+	private List<Scenario> allScenarios;
 	private List<Scenario> scenarios;
 	
 	/**
@@ -58,8 +59,9 @@ public class ScenarioSet {
 		runLoaded = false;
 		defaultWeights = true;
 		isReady = false;
-		
+
 		scenarios = new ArrayList<Scenario>();
+		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 
@@ -141,6 +143,7 @@ public class ScenarioSet {
 	
 		nodeStructure = new NodeStructure(run);
 		sensorSettings.clear();
+		allScenarios.clear();
 		scenarios.clear();
 		
 		Constants.log(Level.INFO, "Scenario set: loading run data", run);
@@ -153,7 +156,9 @@ public class ScenarioSet {
 
 		if(!scenarios.isEmpty()) {
 			for(String scenario: scenarios) {
-				this.scenarios.add(new Scenario(scenario));
+				Scenario s = new Scenario(scenario);
+				this.scenarios.add(s);
+				this.allScenarios.add(s);
 			}
 			for(Scenario scenario: this.scenarios) {
 				scenarioWeights.put(scenario, (float)1);
@@ -187,6 +192,14 @@ public class ScenarioSet {
 
 	public void setScenarios(List<Scenario> scenarios) {
 		this.scenarios = scenarios;
+	}
+
+	public List<Scenario> getAllScenarios() {
+		return allScenarios;
+	}
+
+	public void setAllScenarios(List<Scenario> scenarios) {
+		this.allScenarios = scenarios;
 	}
 
 	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
@@ -560,8 +573,9 @@ public class ScenarioSet {
 		runLoaded = false;
 		defaultWeights = true;
 		isReady = false;
-		
+
 		scenarios.clear();
+		allScenarios.clear();
 		scenarioWeights.clear();
 		sensorSettings.clear();
 
