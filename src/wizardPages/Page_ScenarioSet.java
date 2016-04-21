@@ -121,9 +121,9 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		
 		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensors") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
 		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
-			PorosityDialog dialog = new PorosityDialog(container.getShell());
+			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
-			data.getScenarioSet().getNodeStructure().setDefaultPorosityOfNode(dialog.getPorosity());
+			//data.getScenarioSet().getNodeStructure().setDefaultPorosityOfNode(dialog.getPorosity());
 		}
 	}
 

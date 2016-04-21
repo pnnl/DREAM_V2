@@ -2,6 +2,13 @@ package objects;
 
 import hdf5Tool.HDF5Wrapper;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -155,7 +162,7 @@ public class NodeStructure {
 		
 		// We have to compute the cell center
 		if(ijkDimensions.getI() != x.size()) {
-			System.err.println("Implement this!!! NodeStructure: 139");
+			System.err.println("Implement this!!! NodeStructure: 163");
 			return null;
 		}
 		
@@ -282,18 +289,62 @@ public class NodeStructure {
 		if(porosityOfNode.size() == 0) return false;
 		return true;
 	}
+
+	public boolean setPorositiesFromIJKOrderedFile(File file) throws IOException {
+		/*
+		 *This function assumes that the porosities are listed in an order that increments i, then j, then k.
+		 *It also ignores any lines that it cannot intepret as a float and continues on to the next.
+		 *If we have found precisely the number of floats that we expect, the porosity is set and it returns true.
+		 *Otherwise, porosity is not set and false is returned.
+		 * 
+		 */
+		HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
+
+		BufferedReader fileReader = new BufferedReader(new FileReader(file));
+		String line = "";
+		int nodeNumber=1;
+		Point3i currentPoint = new Point3i(-1,-1,-1);
+		while((line = fileReader.readLine()) != null){ 
+			try{
+				float f = Float.valueOf(line);
+				currentPoint = getIJKFromNodeNumber(nodeNumber);
+				porosity.put(currentPoint, f);
+				nodeNumber++;
+			} catch(NumberFormatException e){
+				//Do nothing, just look for the next line I guess?
+			}
+		}
+		fileReader.close();
+		if(currentPoint.equals(this.ijkDimensions)){
+			this.porosityOfNode = porosity;
+			return true;
+		}
+		return false;
+	}
 	
-	public void setDefaultPorosityOfNode(Float porosity){
-		for(int i=1; i<=ijkDimensions.getI(); i++){
-			for(int j=1; j<=ijkDimensions.getJ(); j++){
-				for(int k=1; k<=ijkDimensions.getK(); k++){
-					Point3i point = new Point3i(i,j,k);
-					porosityOfNode.put(point, porosity);
+	public void setPorositiesFromRange(int iMin, int iMax, int jMin, int jMax, int kMin, int kMax, float porosity){
+		for(int i = iMin; i<=iMax; i++){
+			for(int j = jMin; j<=jMax; j++){
+				for(int k = kMin; k<=kMax; k++){
+					porosityOfNode.put(new Point3i(i,j,k), porosity);
 				}
 			}
 		}
 	}
-
+	
+	public void writePorositiesToIJKFile(File file) throws FileNotFoundException, UnsupportedEncodingException{
+		PrintWriter writer = new PrintWriter(file.getAbsolutePath(), "UTF-8");
+		for(int k = 1; k<=ijkDimensions.getK(); k++){
+			for(int j = 1; j<=ijkDimensions.getJ(); j++){
+				for(int i=1; i<=ijkDimensions.getI(); i++){
+					float value = porosityOfNode.get(new Point3i(i,j,k));
+					writer.println(String.valueOf(value));
+				}
+			}
+		}
+		writer.close();
+	}
+	
 	public List<String> getDataTypes() {
 		return dataTypes;
 	}
@@ -375,5 +426,7 @@ public class NodeStructure {
 	public void setRun(String run) {
 		this.run = run;
 	}
+
+
 
 }

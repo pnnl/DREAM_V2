@@ -225,11 +225,6 @@ public class HDF5Wrapper {
 					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, porosities);	
 					
 					//Now we can get the porosities
-					/*
-					for(int i=0; i<porosities.length; i++){
-						nodeStructure.getPorosityOfNode().put(nodeStructure.getIJKFromNodeNumber(i), porosities[i]);
-					}
-					*/
 					int testcounter = 0;
 					for(int i=0; i<xValues.length; i++){
 						for(int j=0; j<yValues.length; j++){
