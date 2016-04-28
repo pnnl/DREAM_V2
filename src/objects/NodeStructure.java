@@ -322,7 +322,7 @@ public class NodeStructure {
 		return false;
 	}
 	
-	public void setPorositiesFromRange(int iMin, int iMax, int jMin, int jMax, int kMin, int kMax, float porosity){
+	public void setPorositiesFromZone(int iMin, int iMax, int jMin, int jMax, int kMin, int kMax, float porosity){
 		for(int i = iMin; i<=iMax; i++){
 			for(int j = jMin; j<=jMax; j++){
 				for(int k = kMin; k<=kMax; k++){

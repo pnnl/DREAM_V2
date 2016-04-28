@@ -16,6 +16,8 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -38,7 +40,7 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class PorosityDialog extends TitleAreaDialog {
 	
-	private class RangeObject{
+	private class ZoneObject{
 		public int iMin;
 		public int iMax;
 		public int jMin;
@@ -47,7 +49,8 @@ public class PorosityDialog extends TitleAreaDialog {
 		public int kMax;
 		public float porosity;
 		
-		public RangeObject(){
+		
+		public ZoneObject(){
 			Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
 			iMin = 1;
 			jMin = 1;
@@ -59,11 +62,11 @@ public class PorosityDialog extends TitleAreaDialog {
 		}
 	}
 
-	private ArrayList<RangeObject> ranges;
+	private ArrayList<ZoneObject> zones;
 	private HashMap<Integer, Boolean> readyToGo;
 	private ScrolledComposite sc;
 	private Composite container;
-	private int numRanges = 1;
+	private int numZones = 1;
 	private float porosity;
 	private STORMData data;
 	private Shell parentShell;
@@ -74,7 +77,7 @@ public class PorosityDialog extends TitleAreaDialog {
 		super(parentShell);
 		this.parentShell = parentShell;
 		this.data = data;
-		ranges = new ArrayList<RangeObject>();
+		zones = new ArrayList<ZoneObject>();
 		readyToGo = new HashMap<Integer, Boolean>();
 	}
 	
@@ -135,12 +138,12 @@ public class PorosityDialog extends TitleAreaDialog {
 			c.dispose();
 		}
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		GridLayout layout = new GridLayout(8, false);
+		GridLayout layout = new GridLayout(9, false);
 		container.setLayout(layout);
 		
-		createRangeHeaders();
-		for(int i=0; i<numRanges; i++){
-			createRange(i+1);
+		createZoneHeaders();
+		for(int i=0; i<numZones; i++){
+			createZone(i+1);
 		}
 		createAddButton();
 
@@ -167,7 +170,7 @@ public class PorosityDialog extends TitleAreaDialog {
 		return false;
 	}
 	
-	private void createRangeHeaders(){
+	private void createZoneHeaders(){
 		Label blank = new Label(container, SWT.NONE);
 		blank.setText("");
 		Label imin = new Label(container, SWT.NONE);
@@ -184,16 +187,18 @@ public class PorosityDialog extends TitleAreaDialog {
 		kmax.setText("Max k");
 		Label porosity = new Label(container, SWT.NONE);
 		porosity.setText("Porosity");
+		Label blank2 = new Label(container, SWT.NONE);
+		blank2.setText("");
 	}
 	
-	private void createRange(final int i) {
-		/*deal with ranges that currently exist*/
-		RangeObject range;
-		if(i < numRanges){
-			range = ranges.get(i-1);
+	private void createZone(final int i) {
+		/*deal with zones that currently exist*/
+		ZoneObject zone;
+		if(i < zones.size()){
+			zone = zones.get(i-1);
 		} else{
-			range = new RangeObject();
-			ranges.add(range);
+			zone = new ZoneObject();
+			zones.add(zone);
 			for(int j=0; j<7; j++){
 				readyToGo.put(i*7+j, true);
 			}
@@ -201,8 +206,8 @@ public class PorosityDialog extends TitleAreaDialog {
 		
 		
 		/*make UI stuff*/
-		Label rangeLabel = new Label(container, SWT.NONE);
-		rangeLabel.setText("Range " + Integer.valueOf(i));
+		Label zoneLabel = new Label(container, SWT.NONE);
+		zoneLabel.setText("Zone " + Integer.valueOf(i));
 
 		GridData gridData = new GridData();
 		gridData.grabExcessHorizontalSpace = true;
@@ -210,19 +215,19 @@ public class PorosityDialog extends TitleAreaDialog {
 		
 		Text iminText = new Text(container, SWT.BORDER);
 		iminText.setLayoutData(gridData);
-		iminText.setText(String.valueOf(range.iMin));
+		iminText.setText(String.valueOf(zone.iMin));
 		iminText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x > ranges.get(i-1).iMax){
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x > zones.get(i-1).iMax){
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1), false);
 					}
 					else{
-						ranges.get(i-1).iMin = x;
+						zones.get(i-1).iMin = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1), true);
 					}
@@ -233,21 +238,34 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		iminText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).iMin = 1;
+			}
+		});
 		Text imaxText = new Text(container, SWT.BORDER);
 		imaxText.setLayoutData(gridData);
-		imaxText.setText(String.valueOf(range.iMax));
+		imaxText.setText(String.valueOf(zone.iMax));
 		imaxText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x < ranges.get(i-1).iMin){
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x < zones.get(i-1).iMin){
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1) + 1, false);
 					}
 					else{
-						ranges.get(i-1).iMax = x;
+						zones.get(i-1).iMax = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 1, true);
 					}
@@ -258,21 +276,34 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		imaxText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).iMax = data.getSet().getNodeStructure().getIJKDimensions().getI();
+			}
+		});
 		Text jminText = new Text(container, SWT.BORDER);
 		jminText.setLayoutData(gridData);
-		jminText.setText(String.valueOf(range.jMin));
+		jminText.setText(String.valueOf(zone.jMin));
 		jminText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x > ranges.get(i-1).jMax){
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x > zones.get(i-1).jMax){
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1) + 2, false);
 					}
 					else{
-						ranges.get(i-1).jMin = x;
+						zones.get(i-1).jMin = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 2, true);
 					}
@@ -283,21 +314,34 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		jminText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).jMin = 1;
+			}
+		});
 		Text jmaxText = new Text(container, SWT.BORDER);
 		jmaxText.setLayoutData(gridData);
-		jmaxText.setText(String.valueOf(range.jMax));
+		jmaxText.setText(String.valueOf(zone.jMax));
 		jmaxText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x < ranges.get(i-1).jMin){ 
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x < zones.get(i-1).jMin){ 
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1) + 3, false);
 					}
 					else{
-						ranges.get(i-1).jMax = x;
+						zones.get(i-1).jMax = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 3, true);
 					}
@@ -308,21 +352,34 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		jmaxText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).jMax = data.getSet().getNodeStructure().getIJKDimensions().getJ();
+			}
+		});
 		Text kminText = new Text(container, SWT.BORDER);
 		kminText.setLayoutData(gridData);
-		kminText.setText(String.valueOf(range.kMin));
+		kminText.setText(String.valueOf(zone.kMin));
 		kminText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x > ranges.get(i-1).kMax){ 
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x > zones.get(i-1).kMax){ 
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1) + 4, false);
 					}
 					else{
-						ranges.get(i-1).kMin = x;
+						zones.get(i-1).kMin = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 4, true);
 					}
@@ -333,21 +390,34 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		kminText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).kMin = 1;
+			}
+		});
 		Text kmaxText = new Text(container, SWT.BORDER);
 		kmaxText.setLayoutData(gridData);
-		kmaxText.setText(String.valueOf(range.kMax));
+		kmaxText.setText(String.valueOf(zone.kMax));
 		kmaxText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
 				String temp = ((Text)e.getSource()).getText();
 				try{
 					int x = Integer.valueOf(temp);
-					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x < ranges.get(i-1).kMin){ 
+					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x < zones.get(i-1).kMin){ 
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
 						readyToGo.put(7*(i-1) + 5, false);
 					}
 					else{
-						ranges.get(i-1).kMax = x;
+						zones.get(i-1).kMax = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 5, true);
 					}
@@ -358,9 +428,22 @@ public class PorosityDialog extends TitleAreaDialog {
 				}
 			}
 		});
+		kmaxText.addFocusListener(new FocusListener(){
+			@Override
+			public void focusGained(FocusEvent e) {
+				//Do nothing
+			}
+			@Override
+			public void focusLost(FocusEvent e) {
+				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
+				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
+				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+					zones.get(i-1).kMax = data.getSet().getNodeStructure().getIJKDimensions().getK();
+			}
+		});
 		Text porosityText = new Text(container, SWT.BORDER);
 		porosityText.setLayoutData(gridData);
-		porosityText.setText(String.valueOf(range.porosity));
+		porosityText.setText(String.valueOf(zone.porosity));
 		porosityText.addModifyListener(new ModifyListener(){
 			@Override
 			public void modifyText(ModifyEvent e){
@@ -372,7 +455,7 @@ public class PorosityDialog extends TitleAreaDialog {
 						readyToGo.put(7*(i-1) + 6, false);
 					}
 					else{
-						ranges.get(i-1).porosity = x;
+						zones.get(i-1).porosity = x;
 						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
 						readyToGo.put(7*(i-1) + 6, true);
 					}
@@ -390,18 +473,39 @@ public class PorosityDialog extends TitleAreaDialog {
 			jminText.setEnabled(false);
 			jmaxText.setEnabled(false);
 			kminText.setEnabled(false);
-			kmaxText.setEnabled(false);
+			kmaxText.setEnabled(false);			
+			Label fillerLabel = new Label(container, SWT.NONE);
+			fillerLabel.setText("");
+		}
+		else{
+			createRemoveButton(i-1);
 		}
 	}
 	
 	private void createAddButton() {
 
 		Button b = new Button(container, SWT.PUSH);
-		b.setText("Add Range");
+		b.setText("Add Zone");
 		b.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event arg0) {
-				numRanges++;
+				numZones++;
+				buildThings();
+				sc.getVerticalBar().setSelection(sc.getVerticalBar().getMaximum());
+				//createPorosity(container);
+			}
+		});
+	}
+	
+	private void createRemoveButton(final int indexToRemove) {
+
+		Button b = new Button(container, SWT.PUSH);
+		b.setText("Remove Zone");
+		b.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event arg0) {
+				numZones--;
+				zones.remove(indexToRemove);
 				buildThings();
 				sc.getVerticalBar().setSelection(sc.getVerticalBar().getMaximum());
 				//createPorosity(container);
@@ -419,8 +523,8 @@ public class PorosityDialog extends TitleAreaDialog {
 	protected void buttonPressed(int id){
 		if(id == OK){
 			if(!goodToGo()) return;
-			for(RangeObject range : ranges){
-				data.getSet().getNodeStructure().setPorositiesFromRange(range.iMin, range.iMax, range.jMin, range.jMax, range.kMin, range.kMax, range.porosity);
+			for(ZoneObject zone : zones){
+				data.getSet().getNodeStructure().setPorositiesFromZone(zone.iMin, zone.iMax, zone.jMin, zone.jMax, zone.kMin, zone.kMax, zone.porosity);
 			}
 			super.okPressed();
 		}
@@ -443,8 +547,8 @@ public class PorosityDialog extends TitleAreaDialog {
 		}
 		else if(id == saveFile){
 			if(goodToGo()){
-				for(RangeObject range : ranges){
-					data.getSet().getNodeStructure().setPorositiesFromRange(range.iMin, range.iMax, range.jMin, range.jMax, range.kMin, range.kMax, range.porosity);
+				for(ZoneObject zone : zones){
+					data.getSet().getNodeStructure().setPorositiesFromZone(zone.iMin, zone.iMax, zone.jMin, zone.jMax, zone.kMin, zone.kMax, zone.porosity);
 				}
 				FileDialog dialog = new FileDialog(parentShell, SWT.NULL);
 				String path = dialog.open();
