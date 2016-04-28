@@ -3,6 +3,8 @@ package results;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,8 +136,11 @@ public class ResultPrinter {
 		if(!results.bestConfigSum)
 			return;
 		String fileName = "best_configurations";
+		String ttdFileName = "best_configuration_ttds";
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
+		Map<Float, String> ttdLinesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
+		List<String> ttdLines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
 				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Well Configuration ($20/ft), Volume of Aquifer Degraded, Sensor Types (x y z)");
 
@@ -221,6 +226,17 @@ public class ResultPrinter {
 				}
 				
 				linesToSort.put(costOfConfig, line.toString());
+				
+
+				
+				//Luke's added thing test plot Kayyum
+				Collection<Float> ttds = configuration.getTimesToDetection().values();
+				StringBuilder ttdLine = new StringBuilder();
+				for(float ttd: ttds){
+					ttdLine.append(ttd + ",");
+				}
+				ttdLinesToSort.put(costOfConfig, ttdLine.toString());
+				//End Luke's added thing
 			}
 		}
 		
@@ -230,8 +246,24 @@ public class ResultPrinter {
 		for(float key: keySet){
 			lines.add(linesToSort.get(key));
 		}
-
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
+
+		int i=1;
+		for(float key: keySet){
+			ttdLines.add("Config_" + i + "," + ttdLinesToSort.get(key));
+		}
+		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
+		FileUtils.writeLines(ttdFile, ttdLines);
+		//Try running script
+		try{
+		File script = new File("./scripts/plot_best_config_ttds.py");
+		Runtime runtime = Runtime.getRuntime();
+		String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
+		runtime.exec(command);
+		}
+		catch(Exception e){
+			System.out.println("Install python and required libraries to create a PDF visualization");
+		}
 	}
 
 
