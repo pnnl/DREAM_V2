@@ -247,10 +247,22 @@ public class ResultPrinter {
 			lines.add(linesToSort.get(key));
 		}
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
-
+		//Try running script
+		try{
+		File script = new File("./scripts/plot_dream_3panel.py");
+		Runtime runtime = Runtime.getRuntime();
+		String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.tab\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
+		runtime.exec(command);
+		}
+		catch(Exception e){
+			System.out.println("Install python and required libraries to create a PDF visualization");
+		}
+		
+		
 		int i=1;
 		for(float key: keySet){
 			ttdLines.add("Config_" + i + "," + ttdLinesToSort.get(key));
+			i++;
 		}
 		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
 		FileUtils.writeLines(ttdFile, ttdLines);
