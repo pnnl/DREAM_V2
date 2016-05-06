@@ -18,6 +18,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -551,16 +553,20 @@ public class FileBrowser extends javax.swing.JFrame {
 						// Sanity check on the number of time steps matching in each scenario...
 						
 						// Bin by time steps found, ntab files seem to have scenarios that stop short of the max number of time steps...
-						Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>(); 						
+						final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>(); 						
 						for(String scenario: gridsByTimeAndScenario.keySet()) {
 							if(!temp.containsKey(gridsByTimeAndScenario.get(scenario).keySet().size()))
 								temp.put(gridsByTimeAndScenario.get(scenario).keySet().size(), new ArrayList<String>());
 							temp.get(gridsByTimeAndScenario.get(scenario).keySet().size()).add(scenario);
 						}
 						
-						Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
+
+						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
+						final Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
+						/* OLD WAY -- Exclude everything that doesn't have the max number of timesteps
 						if(temp.keySet().size() > 1) {
 							// We have to toss out some scenarios
+							System.out.println(variableSteps[variableSteps.length-1] + "\t" + (variableSteps.length-1));
 							String tossedScenarios = "We are expecting " + variableSteps[variableSteps.length-1] + " time steps. " +
 									"The following scenarios contained a different number and will be removed:\n";
 							for(int i = 0; i < variableSteps.length-1; i++) {
@@ -577,13 +583,41 @@ public class FileBrowser extends javax.swing.JFrame {
 								}								
 							});							
 						}
+						*/
+						Object scenarioToUse;
+						if(temp.keySet().size() > 1) {
+							TimestepSelectionSlider slider = new TimestepSelectionSlider(variableSteps, temp);
+							JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
+							int indexToUse = slider.getValue();
+							String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " time steps. " +
+									"The following scenarios contained a smaller number and will be removed:\n";
+							scenarioToUse = temp.get(variableSteps[indexToUse]).get(0);
+							for(int i=0; i < indexToUse; i++){
+								tossedScenarios+= "[" + variableSteps[i] + "] " +  temp.get(variableSteps[i]) + "\n";
+								for(String scenario: temp.get(variableSteps[i])){
+									gridsByTimeAndScenario.remove(scenario);
+								}
+							}
+							if(indexToUse != 0){
+								final String finalMessage = tossedScenarios;
+								SwingUtilities.invokeLater(new Runnable() {
+									@Override
+									public void run() {
+										JOptionPane.showMessageDialog(FileBrowser.this, finalMessage);									
+									}								
+								});	
+							}
+						}
+						else{
+							scenarioToUse = scenarios[0];
+						}
+						
 						
 						// Assumes 1 scenario and 1 time step actually exists
-						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
-						Object[] timeSteps = gridsByTimeAndScenario.get(scenarios[0]).keySet().toArray();
+						Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
 						Object[] data;
 						try {							
-							data = gridsByTimeAndScenario.get(scenarios[0]).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
+							data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
 						} catch (GridError e) {
 							e.printStackTrace(); // Can't continue
 							return;
