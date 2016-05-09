@@ -561,7 +561,6 @@ public class FileBrowser extends javax.swing.JFrame {
 						}
 						
 
-						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
 						final Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
 						/* OLD WAY -- Exclude everything that doesn't have the max number of timesteps
 						if(temp.keySet().size() > 1) {
@@ -609,9 +608,10 @@ public class FileBrowser extends javax.swing.JFrame {
 							}
 						}
 						else{
-							scenarioToUse = scenarios[0];
+							scenarioToUse = gridsByTimeAndScenario.keySet().toArray()[0];
 						}
-						
+						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
+
 						
 						// Assumes 1 scenario and 1 time step actually exists
 						Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();

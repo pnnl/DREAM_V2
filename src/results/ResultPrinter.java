@@ -229,14 +229,12 @@ public class ResultPrinter {
 				
 
 				
-				//Luke's added thing test plot Kayyum
 				Collection<Float> ttds = configuration.getTimesToDetection().values();
 				StringBuilder ttdLine = new StringBuilder();
 				for(float ttd: ttds){
 					ttdLine.append(ttd + ",");
 				}
 				ttdLinesToSort.put(costOfConfig, ttdLine.toString());
-				//End Luke's added thing
 			}
 		}
 		

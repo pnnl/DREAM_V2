@@ -52,17 +52,19 @@ if (len(sys.argv) != 3):
 	exit()
 
 fname=sys.argv[1]
-#threshold=np.float(sys.argv[2])
 bcfile=sys.argv[2]
 
 threshold=0.5 
 
+new_folder = os.path.join(os.path.dirname(fname) + '/best_config_visualizations')
+if not os.path.isdir(new_folder): os.mkdir(new_folder)
 
 if not re.search('.tab$',fname.lower()):
 	print '\nError - input file must be a *.tab file\n'
 	exit()
 
-filepre=re.sub('.tab$','',fname)
+
+filepre=new_folder + "/" + re.sub('.tab$','',os.path.basename(fname))
 
 fignamepdf='%s.pdf'%(filepre)
 fignamepng='%s.png'%(filepre)

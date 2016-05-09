@@ -341,6 +341,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 			@Override
 			public void handleEvent(Event arg0) {
+				printSolutionSpaceTab();
 				String numRuns = runs.getText();
 				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
 				int ittr = Integer.parseInt(iterations.getText());
@@ -540,49 +541,9 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					JOptionPane.showMessageDialog(null, "Could not write to solution_space.dat, make sure the file is not currently open");
 					e.printStackTrace();
 				}
-				/*
-				textArea.setText(text.toString());
-				temp.add(new JScrollPane(textArea));
-				temp.setSize(400, 400);
-				temp.setVisible(true);
-				*/
-				
-				/*
-				 * Adding output format for Kayyum
-				 */
-				text = new StringBuilder();
-				text.append("x y z");
-				for(String type: data.getSet().getSensorSettings().keySet()) text.append(" \"" + type + "\"");
-				for(int k = 1; k <= ijk.getK(); k++) { 			
-					for(int j = 1; j <= ijk.getJ(); j++) { 
-						for(int i = 1; i <= ijk.getI(); i++) {
-							Point3i node = new Point3i(i, j, k);
-							int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(node);
-							Point3d xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
-							text.append("\n" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ());
-							for(String type: data.getSet().getSensorSettings().keySet()){
-								String var = ((data.getSet().getSensorSettings().get(type).getValidNodes(null).contains(nodeNumber)) ? "1" : "0");
-								text.append(" " + var);
-							}
-						}
-					}
-				}
-				text.append("\n");
-				
-				try{
-					File outFolder = new File(outputFolder.getText());
-					if(!outFolder.exists())
-						outFolder.mkdirs();
-					File outFile = new File(new File(outputFolder.getText()), "solution_space.tab");
-					if(!outFile.exists())
-						outFile.createNewFile();
-					FileUtils.writeStringToFile(outFile, text.toString());
-				}catch (IOException e) {		
-					JOptionPane.showMessageDialog(null, "Could not write to solution_space.tab, make sure the file is not currently open");
-					e.printStackTrace();
-				}
-				
-			}	       
+
+				printSolutionSpaceTab();
+			}
 		});
 		
 		cloudButton.setVisible(Constants.buildDev);
@@ -668,6 +629,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		scatterplotButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
+				printSolutionSpaceTab();
 				int minNum = Integer.parseInt(minNumSensors.getText());
 				int maxNum = Integer.parseInt(maxNumSensors.getText());
 				int its = Integer.parseInt(iterationsPerSensorNumber.getText());
@@ -783,6 +745,40 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 
 	}
 	
+	public void printSolutionSpaceTab(){
+		StringBuilder text = new StringBuilder();
+		Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
+		text.append("x y z");
+		for(String type: data.getSet().getSensorSettings().keySet()) text.append(" \"" + type + "\"");
+		for(int k = 1; k <= ijk.getK(); k++) { 			
+			for(int j = 1; j <= ijk.getJ(); j++) { 
+				for(int i = 1; i <= ijk.getI(); i++) {
+					Point3i node = new Point3i(i, j, k);
+					int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(node);
+					Point3d xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
+					text.append("\n" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ());
+					for(String type: data.getSet().getSensorSettings().keySet()){
+						String var = ((data.getSet().getSensorSettings().get(type).getValidNodes(null).contains(nodeNumber)) ? "1" : "0");
+						text.append(" " + var);
+					}
+				}
+			}
+		}
+		text.append("\n");
+		
+		try{
+			File outFolder = new File(outputFolder.getText());
+			if(!outFolder.exists())
+				outFolder.mkdirs();
+			File outFile = new File(new File(outputFolder.getText()), "solution_space.tab");
+			if(!outFile.exists())
+				outFile.createNewFile();
+			FileUtils.writeStringToFile(outFile, text.toString());
+		}catch (IOException e) {		
+			JOptionPane.showMessageDialog(null, "Could not write to solution_space.tab, make sure the file is not currently open");
+			e.printStackTrace();
+		}
+	}
 
 	public void convertFile(File file) throws IOException {
 		/*
