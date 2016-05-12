@@ -25,6 +25,7 @@ public class Constants {
 	
 	// Catherine change this to true when you want to build production version!!!
 	public static boolean buildDev = true;
+	public static boolean runThreaded = true;
 	
 	public enum ModelOption { 
 		

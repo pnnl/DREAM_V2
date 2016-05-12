@@ -28,8 +28,6 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
-
 import gridviz.GridError;
 
 public class TimestepSelectionSlider extends javax.swing.JPanel {

@@ -405,7 +405,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			for (ExtendedSensor sensor : sensors)
 				configuration.addSensor(set, sensor);
 
-			objective(configuration, set, true);
+			objective(configuration, set, Constants.runThreaded);
 			//storeResult(configuration);
 			bruteForceEnumCount++;
 			if(monitor != null)

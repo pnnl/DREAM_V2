@@ -142,7 +142,10 @@ public class CCS9_1 extends Function {
 
 	}
 
-
+	/**                                                                  **\
+	 * Added by Luke: TODO - do we actually need this, and does it work?  *
+	 \*
+	
 	/**					**\
 	 * Helper Methods	 *
 	 * 					 *
@@ -181,7 +184,7 @@ public class CCS9_1 extends Function {
 	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
 	{
 
-		float realTime = timeStep.getRealTime();
+		//float realTime = timeStep.getRealTime();
 
 		for (ExtendedSensor sensor : con.getExtendedSensors())
 		{
@@ -193,48 +196,54 @@ public class CCS9_1 extends Function {
 				Boolean triggered = null;//getHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType());
 				// We haven't tested this before
 				if(triggered == null) {
-					// Get the settings
-					SensorSetting temp = set.getSensorSettings().get(sensor.getSensorType());
-
-					// Get the value at the current time step
-					Float currentValue = 0.0f;
-					Float valueAtTime0 = 0.0f;
-
-					if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-						currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, sensor.getSensorType(), sensor.getNodeNumber());
-						valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensor.getSensorType(), sensor.getNodeNumber());
-					} else if(Constants.hdf5Data.isEmpty()) {
-						currentValue =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, sensor.getSensorType(), sensor.getNodeNumber());	
-						valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensor.getSensorType(), sensor.getNodeNumber());	
-					} else {
-						currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, sensor.getSensorType(), sensor.getNodeNumber());		
-						valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensor.getSensorType(), sensor.getNodeNumber());				
-					}
-
-					// See if we exceeded threshold
-					if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-						triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
-					} else if(currentValue != null && temp.getTrigger() == Trigger.RELATIVE_DELTA) {
-						float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-						if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
-						else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
-						else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);					
-					} else if(currentValue != null && temp.getTrigger() == Trigger.ABSOLUTE_DELTA) {
-						float change = currentValue - valueAtTime0;
-						if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
-						else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
-						else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
-					} else {
-						triggered = false;
-					}
+					triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}		
 
 
 				// Store the result, set the sensor to triggered or not
-				storeHistory(scenario, sensor.getNodeNumber(), realTime, sensor.getSensorType(), triggered);
+				// storeHistory(scenario, sensor.getNodeNumber(), realTime, sensor.getSensorType(), triggered);
 				sensor.setTriggered(triggered, scenario, timeStep, 0.0); // TODO, we won't have the triggered value anymore, do we need it?
 			}
 		}
 		return inference(con, set, scenario);
+	}
+	
+	public static Boolean sensorTriggered(ScenarioSet set, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
+		Boolean triggered = null;
+		
+		SensorSetting temp = set.getSensorSettings().get(sensorType);
+
+		// Get the value at the current time step
+		Float currentValue = 0.0f;
+		Float valueAtTime0 = 0.0f;
+
+		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
+			currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);
+			valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);
+		} else if(Constants.hdf5Data.isEmpty()) {
+			currentValue =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);	
+			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);	
+		} else {
+			currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);		
+			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);				
+		}
+
+		// See if we exceeded threshold
+		if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
+			triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
+		} else if(currentValue != null && temp.getTrigger() == Trigger.RELATIVE_DELTA) {
+			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
+			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);					
+		} else if(currentValue != null && temp.getTrigger() == Trigger.ABSOLUTE_DELTA) {
+			float change = currentValue - valueAtTime0;
+			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
+		} else {
+			triggered = false;
+		}
+		return triggered;
 	}
 }

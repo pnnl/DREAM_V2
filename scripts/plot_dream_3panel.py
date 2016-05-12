@@ -96,6 +96,7 @@ fields=cols[3:]
 xvals=np.sort(np.unique(df1.x))
 yvals=np.sort(np.unique(df1.y))
 zvals=np.sort(np.unique(df1.z))
+zvals=zvals[::-1]
 zfact=1
 
 xmax=xvals[-1]+ (xvals[-1]-xvals[-2])/2
@@ -193,7 +194,7 @@ for run, group in df3.groupby(['run']):
 		##plt.axes([0.05, 0.75, 0.35, 0.25]).set_aspect('equal')  #left, bottom, width, height
 		ax1=plt.axes([0.09, bottom2, width, height]) #left, bottom, width, height
 		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
-		for i, row in group2.iterrows():plt.plot(row.x, row.y, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.x), alpha=0.75)
+		for i, row in group2.iterrows():plt.plot(row.x, row.y, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
 			#plt.text(row.x, row.y-300, row.sensor_type,fontsize=10,color='#000066', ha='center' )
 	
 		plt.xlim(np.min(X), np.max(X))
@@ -217,7 +218,8 @@ for run, group in df3.groupby(['run']):
 
 	
 		#for i, row in group.iterrows(): plt.plot([row.x,row.x], [np.max(Y), np.max(Y)- row.z], '-', lw=2, mew=0.2, alpha=0.5)
-		for i, row in group2.iterrows(): plt.plot(row.x, np.max(Y)-row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.x), alpha=0.75)
+		#for i, row in group2.iterrows(): plt.plot(row.x, np.max(Y)-row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.x), alpha=0.75)
+		for i, row in group2.iterrows(): plt.plot(row.x, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
 
 
 		plt.xlim(np.min(X), np.max(X))
@@ -236,7 +238,7 @@ for run, group in df3.groupby(['run']):
 		ax3=plt.axes([0.65, bottom, width2, height2]) #left, bottom, width, height
 		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
 		#for i, row in group.iterrows(): plt.plot([row.y,row.y], [np.max(Y), np.max(Y)- row.z], '-', lw=2, mew=0.2, alpha=0.5)
-		for i, row in group2.iterrows(): plt.plot(row.y, np.max(Y)-row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.x), alpha=0.75)
+		for i, row in group2.iterrows(): plt.plot(row.y, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
 
 		plt.xlim(np.min(X), np.max(X))
 		plt.ylim(np.min(Y), np.max(Y))

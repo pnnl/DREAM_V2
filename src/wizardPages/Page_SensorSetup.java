@@ -13,6 +13,7 @@ import objects.InferenceTest;
 import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
+import objects.TimeStep;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
@@ -39,6 +40,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import functions.*;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
@@ -552,7 +554,6 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		queryButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				
 				Constants.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;							
@@ -571,7 +572,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 					}
 					DREAMWizard.visLauncher.setEnabled(false);	
 					data.setupSensors(reset, sensorSettings);
-					volumeOfAquiferDegraded();
+					//volumeOfAquiferDegraded(); //Don't need this because you have to run it when you hit "next", and this way the overhead time does not apply to finding a solution space that you like.
 					DREAMWizard.visLauncher.setEnabled(true);
 					for(SensorData temp: sensorData.values()) {
 						if(temp.isIncluded &&  data.getSet().getSensorSettings(temp.sensorType).isSet())
@@ -714,9 +715,10 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		DREAMWizard.visLauncher.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
-	
-
+/*
+ * Keeping old method for comparison if the new one gives us weird results
 	private void volumeOfAquiferDegraded(){
+		long current = System.currentTimeMillis();
 		int detectionCriteriaStorage = data.getSet().getInferenceTest().getOverallMinimum();
 		Map<String, Integer> detectionCriteriaStorageByType = new HashMap<String, Integer>();
 		InferenceTest test = data.getSet().getInferenceTest();
@@ -739,7 +741,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			for(String sensorType: data.getSet().getSensorSettings().keySet()){
 				configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
 			}
-			data.runObjective(configuration, true);
+			data.runObjective(configuration, Constants.runThreaded);
 			for(Scenario scenario: configuration.getTimesToDetection().keySet()){
 				if(!timeToDegradationPerNode.containsKey(scenario)) timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
 				timeToDegradationPerNode.get(scenario).put(nodeNumber, configuration.getTimesToDetection().get(scenario));
@@ -777,10 +779,71 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		data.getSet().setInferenceTest(test);
 		
 		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
-		
+
+		long total = System.currentTimeMillis() - current;
+		System.out.println("Volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
 	}
-	
+*/
+	private void volumeOfAquiferDegraded(){	
+		long current = System.currentTimeMillis();
+		
+		HashSet<Integer> nodes = new HashSet<Integer>();
+		
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){
+			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
+		}
+		
+		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
+
+		for(Scenario scenario: data.getSet().getScenarios()){
+			timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
+			for(Integer nodeNumber: nodes){	
+				Float timeToDegredation = null;
+				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
+					for(String sensorType: data.getSet().getSensorSettings().keySet()){
+						try {
+							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if(timeToDegredation != null) break;
+					}
+					if(timeToDegredation != null) break;
+				}
+				if(timeToDegredation != null) timeToDegradationPerNode.get(scenario).put(nodeNumber, timeToDegredation);
+			}
+		}
+		
+		Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<Scenario, HashMap<Float, Float>>();
+		HashSet<Float> years = new HashSet<Float>();
+		for(Scenario scenario: timeToDegradationPerNode.keySet()){
+			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
+			for(Integer nodeNumber: timeToDegradationPerNode.get(scenario).keySet()){
+				Float year = timeToDegradationPerNode.get(scenario).get(nodeNumber);
+				years.add(year);
+				Point3i location = data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
+				if(!volumeDegradedByYear.get(scenario).containsKey(year)) volumeDegradedByYear.get(scenario).put(year, data.getSet().getNodeStructure().getVolumeOfNode(location));
+				else volumeDegradedByYear.get(scenario).put(year, volumeDegradedByYear.get(scenario).get(year) + data.getSet().getNodeStructure().getVolumeOfNode(location));
+			}
+		}
+		
+		ArrayList<Float> sortedYears = new ArrayList<Float>(years);
+		java.util.Collections.sort(sortedYears);
+		for(Scenario scenario: volumeDegradedByYear.keySet()){
+			if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(0))) volumeDegradedByYear.get(scenario).put(sortedYears.get(0), 0f);
+			for(int i=1; i<sortedYears.size(); ++i){
+				if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(i))) volumeDegradedByYear.get(scenario).put(sortedYears.get(i), 0f);
+				volumeDegradedByYear.get(scenario).put(sortedYears.get(i), volumeDegradedByYear.get(scenario).get(sortedYears.get(i)) + volumeDegradedByYear.get(scenario).get(sortedYears.get(i-1)));
+			}
+		}
+		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
+
+		long total = System.currentTimeMillis() - current;
+		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+	}
+
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;

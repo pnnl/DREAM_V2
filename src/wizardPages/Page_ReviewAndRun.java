@@ -239,7 +239,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						}
 					}
 					
-					data.runObjective(configuration, true);
+					data.runObjective(configuration, Constants.runThreaded);
 					
 					float totalTimeToDetection = 0.0f;
 					int detectedScenarios = 0;
