@@ -755,7 +755,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				for(int i = 1; i <= ijk.getI(); i++) {
 					Point3i node = new Point3i(i, j, k);
 					int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(node);
-					Point3d xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
+					Point3f xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
 					text.append("\n" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ());
 					for(String type: data.getSet().getSensorSettings().keySet()){
 						String var = ((data.getSet().getSensorSettings().get(type).getValidNodes(null).contains(nodeNumber)) ? "1" : "0");

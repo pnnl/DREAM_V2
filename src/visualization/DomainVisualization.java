@@ -14,6 +14,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
@@ -32,6 +33,7 @@ import org.eclipse.swt.widgets.Slider;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
@@ -64,6 +66,10 @@ public class DomainVisualization {
 	private Slider slider_tickY;
 	private Slider slider_tickZ;
 	
+	private Text text_labelX;
+	private Text text_labelY;
+	private Text text_labelZ;
+	
 	private Map<String, SensorTableItem> sensorTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
 	
@@ -91,28 +97,13 @@ public class DomainVisualization {
 		domainViewer.setLayoutData(visGridData);		
 
 		// Controls		
-		Label label_controls = new Label(composite, SWT.NONE);
-		label_controls.setText("Controls");
-
-		button_showMesh = new Button(composite, SWT.CHECK);
-		button_showMesh.setText("Show mesh");
-		button_showMesh.setSelection(true);
-				
-		button_renderUniform = new Button(composite, SWT.CHECK);
-		button_renderUniform.setText("Render uniform");
-		button_renderUniform.setSelection(true);
-		button_renderUniform.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				// Requires a reset
-				domainViewer.reset();
-			}
-		});
-
 		Composite composite_scale = new Composite(composite, SWT.BORDER);
 		GridLayout gridLayout_scale = new GridLayout();
-		gridLayout_scale.numColumns = 2;
+		gridLayout_scale.numColumns = 3;
 		composite_scale.setLayout(gridLayout_scale);
+		
+		Label label_controls = new Label(composite_scale, SWT.NONE);
+		label_controls.setText("Controls");
 
 		Label label_scaleX = new Label(composite_scale, SWT.NONE);
 		label_scaleX.setText("Scale X");
@@ -127,13 +118,27 @@ public class DomainVisualization {
 			}
 		});
 
-
+		button_showMesh = new Button(composite_scale, SWT.CHECK);
+		button_showMesh.setText("Show mesh");
+		button_showMesh.setSelection(true);
+		
 		Label label_scaleY = new Label(composite_scale, SWT.NONE);
 		label_scaleY.setText("Scale Y");
 
 		slider_scaleY = new Slider(composite_scale, SWT.NONE);
 		slider_scaleY.setValues(50, 0, 100, 5, 5, 5);
 		slider_scaleY.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// Requires a reset
+				domainViewer.reset();
+			}
+		});
+		
+		button_renderUniform = new Button(composite_scale, SWT.CHECK);
+		button_renderUniform.setText("Render uniform");
+		button_renderUniform.setSelection(true);
+		button_renderUniform.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				// Requires a reset
@@ -154,21 +159,30 @@ public class DomainVisualization {
 			}
 		});
 		
+		text_labelX = new Text(composite_scale, SWT.BORDER | SWT.SINGLE);
+		text_labelX.setText("X Label                 ");	
+		
 		Label label_tickX = new Label(composite_scale, SWT.NONE);
-		label_tickX.setText("Tick X");
+		label_tickX.setText("Ticks");
 
 		slider_tickX = new Slider(composite_scale, SWT.NONE);
 		slider_tickX.setValues(5, 1, set.getNodeStructure().getX().size(), 5, 1, 5);
+		
+		text_labelY = new Text(composite_scale, SWT.BORDER | SWT.SINGLE);
+		text_labelY.setText("Y Label                 ");
 
 		Label label_tickY = new Label(composite_scale, SWT.NONE);
-		label_tickY.setText("Tick Y");
+		label_tickY.setText("Ticks");
 
 		slider_tickY = new Slider(composite_scale, SWT.NONE);
 		slider_tickY.setValues(5, 1, set.getNodeStructure().getY().size(), 5, 1, 5);
 
-		Label label_tickZ = new Label(composite_scale, SWT.NONE);
-		label_tickZ.setText("Tick Z");
+		text_labelZ = new Text(composite_scale, SWT.BORDER | SWT.SINGLE);
+		text_labelZ.setText("Z Label                 ");
 
+		Label label_tickZ = new Label(composite_scale, SWT.NONE);
+		label_tickZ.setText("Ticks");
+		
 		slider_tickZ = new Slider(composite_scale, SWT.NONE);
 		slider_tickZ.setValues(5, 1, set.getNodeStructure().getZ().size(), 5, 1, 5);
 
@@ -192,7 +206,7 @@ public class DomainVisualization {
 		GridData scenarioTreeGridData = new GridData();
 		scenarioTreeGridData.verticalSpan = 10;
 		scenarioTreeGridData.widthHint = 300;
-		scenarioTreeGridData.heightHint = 160;
+		scenarioTreeGridData.heightHint = 220;
 		tree_configurationTree.setLayoutData(scenarioTreeGridData);	
 
 		shell.pack();
@@ -208,6 +222,25 @@ public class DomainVisualization {
 			} 
 		}); 		
 	}	
+	
+	
+	public String getXLabel() {
+		if(text_labelX == null)
+			return "X";
+		return text_labelX.getText();
+	}
+	
+	public String getYLabel() {
+		if(text_labelY == null)
+			return "Y";
+		return text_labelY.getText();
+	}
+	
+	public String getZLabel() {
+		if(text_labelZ == null)
+			return "Z";
+		return text_labelZ.getText();
+	}
 
 	public List<String> getAllSensorsToRender() {
 		List<String> sensors = new ArrayList<String>();
@@ -605,6 +638,42 @@ public class DomainVisualization {
 
 	private Tree buildScenarioTree(Composite composite) {
 		Tree tree = new Tree(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		tree.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+			//	domainViewer.resetConfigurations();
+				for(TreeDetectingPercentItem percent: configurations.values()) {
+					if(percent.getTreeItem(null) != null && percent.getTreeItem(null).equals(e.item)) {
+						// select all children
+						for(TreeTTDItem ttd: percent.children.values()) {
+							if(ttd.getTreeItem(null) != null) {
+								ttd.getTreeItem(null).setChecked(percent.getTreeItem(null).getChecked());
+								for(TreeConfigItem child: ttd.children) {
+									if(child.getTreeItem(null) != null) 
+										child.getTreeItem(null).setChecked(percent.getTreeItem(null).getChecked());
+								}
+							}
+						}
+						return;
+					} // check the children
+					for(TreeTTDItem ttd: percent.children.values()) {
+						if(ttd.getTreeItem(null) != null && ttd.getTreeItem(null).equals(e.item)) {
+							for(TreeConfigItem child: ttd.children) {
+								if(child.getTreeItem(null) != null) 
+									child.getTreeItem(null).setChecked(ttd.getTreeItem(null).getChecked());
+							}
+							return;
+						}
+					}					
+				} 
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+			}
+			
+		});
 		tree.pack();
 		return tree;
 	}
@@ -620,7 +689,7 @@ public class DomainVisualization {
 		public TreeItem getTreeItem(Tree tree) {
 			if(treeItem == null) {
 				treeItem = new TreeItem(tree, SWT.NONE);
-				treeItem.setText(Constants.percentageFormat.format(detectingScenarios) + "%");	
+				treeItem.setText(Constants.percentageFormat.format(detectingScenarios) + "% Scenarios Detected");	
 			}
 			return treeItem;
 		}
@@ -642,7 +711,7 @@ public class DomainVisualization {
 		public TreeItem getTreeItem(TreeItem parent) {
 			if(treeItem == null) {
 				treeItem = new TreeItem(parent, SWT.NONE);
-				treeItem.setText(Constants.decimalFormat.format(ttd));
+				treeItem.setText("TTD:" + Constants.decimalFormat.format(ttd));
 			}
 			return treeItem;
 		}
@@ -667,7 +736,7 @@ public class DomainVisualization {
 			if(configuration instanceof ExtendedConfiguration) {
 				name = ((ExtendedConfiguration)configuration).getSummary();
 			}
-			this.configuration = configuration;
+			this.configuration = ((ExtendedConfiguration)configuration).makeCopy(set);
 			this.name = name;
 			this.uuid = UUID.randomUUID().toString();
 		}

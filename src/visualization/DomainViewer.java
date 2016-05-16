@@ -76,7 +76,7 @@ public class DomainViewer {
 	private Map<String, TreeMap<Float, List<Face>>> faces;
 	private Map<String, TreeMap<Float, List<Face>>> configurations;
 	private List<Line> lines;
-	
+
 	private int numVertices = 0;
 
 	//================================================================
@@ -156,17 +156,17 @@ public class DomainViewer {
 		gl.glLineWidth(1);
 		gl.glEnable(GL.GL_DEPTH_TEST);	
 		gl.glDepthFunc(GL2.GL_LESS);  // the type of depth test to do
-		
+
 		gl.glEnable(GL2.GL_BLEND);
 		gl.glBlendFunc(GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA);	
-		
+
 		gl.glHint(GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
 		gl.glShadeModel(GL2.GL_SMOOTH); // blends colors nicely, and smoothes out lighting
 
 		gl.glEnable(GL2.GL_LIGHTING);
 		gl.glEnable(GL2.GL_LIGHT0);
 		gl.glEnable(GL2.GL_LIGHT1);
-		
+
 		float ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 		float diffuseLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 		float specularLight[] = { 1.0f, 1.0f, 1.0f, 1.0f };	
@@ -195,7 +195,7 @@ public class DomainViewer {
 	public void reset() {
 		this.reset = true;
 	}
-	
+
 	public void resetConfigurations() {
 		this.resetConfigurations = true;
 	}
@@ -244,6 +244,7 @@ public class DomainViewer {
 				List<Float> zs = domainVisualization.getRenderCellBoundsZ();
 				gl2.glPushMatrix();
 				gl2.glColor3f(0, 0, 0);
+
 				// TODO: Scale these values based on domain size
 				for(int i = 0; i < xs.size(); i += domainVisualization.getTickX()) {
 					gl2.glRasterPos3f(xs.get(i), -200, -200);
@@ -257,6 +258,16 @@ public class DomainViewer {
 					gl2.glRasterPos3f(-800, -200, zs.get(i));
 					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(zs.get(i)));
 				}
+				// User defined labels: TODO: offset with width
+				gl2.glRasterPos3f(xs.get(xs.size()-1)/2, -400, -400);
+				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getXLabel());
+
+				gl2.glRasterPos3f(xs.get(xs.size()-1)+1200, ys.get(ys.size()-1)/2, -200);
+				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getYLabel());
+
+				gl2.glRasterPos3f(-1600, -200, zs.get(zs.size()-1)/2);
+				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getZLabel());
+
 				gl2.glPopMatrix();
 			}
 
@@ -270,7 +281,7 @@ public class DomainViewer {
 				}
 			}
 			numFaces *= 4;
-		
+
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
 			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices+numFaces, numVertices);
 
@@ -278,7 +289,7 @@ public class DomainViewer {
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
 			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numFaces);
 			gl2.glDepthMask(true); // Already sorted, don't override
-			
+
 			// disable arrays once we're done
 			gl2.glBindBuffer( GL.GL_ARRAY_BUFFER, 0 );
 			gl2.glDisableClientState( GL2.GL_VERTEX_ARRAY );
@@ -392,19 +403,19 @@ public class DomainViewer {
 		for(Line line: lines) {
 			bufferLine(floatBuffer, line.v1, line.v2, line.color);
 		}		
-		
+
 		for(List<Face> faces: facesToDraw.values()) {
 			for(Face face: faces) {
 				bufferQuad(floatBuffer, face.v1, face.v2, face.v3, face.v4, face.color, face.transparency);
 			}
 		}
-		
+
 		for(List<Face> faces: configurationsToDraw.values()) {
 			for(Face face: faces) {
 				bufferQuad(floatBuffer, face.v1, face.v2, face.v3, face.v4, face.color, face.transparency);
 			}
 		}
-		
+
 
 		gl2.glUnmapBuffer( GL.GL_ARRAY_BUFFER );	
 	}
@@ -474,7 +485,7 @@ public class DomainViewer {
 		floatBuffer.put(color.getK()/255);
 		floatBuffer.put(transparency);	
 	}
-	
+
 	private void buildLines() {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
@@ -559,37 +570,37 @@ public class DomainViewer {
 						new Point3f(xMax, yMin, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
 				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
 						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
-				
+
 				float f1Distance = f1.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f1Distance)) {
 					facesByDistance.get(sensor).put(f1Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f1Distance).add(f1);
-			
+
 				float f2Distance = f2.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f2Distance)) {
 					facesByDistance.get(sensor).put(f2Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f2Distance).add(f2);
-			
+
 				float f3Distance = f3.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f3Distance)) {
 					facesByDistance.get(sensor).put(f3Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f3Distance).add(f3);
-				
+
 				float f4Distance = f4.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f4Distance)) {
 					facesByDistance.get(sensor).put(f4Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f4Distance).add(f4);
-			
+
 				float f5Distance = f5.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f5Distance)) {
 					facesByDistance.get(sensor).put(f5Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f5Distance).add(f5);
-				
+
 				float f6Distance = f6.getDistance(cameara);
 				if(!facesByDistance.get(sensor).containsKey(f6Distance)) {
 					facesByDistance.get(sensor).put(f6Distance, new ArrayList<Face>());
@@ -597,9 +608,9 @@ public class DomainViewer {
 				facesByDistance.get(sensor).get(f6Distance).add(f6);
 			}
 		}
-		
+
 		// Purge equal faces
-		
+
 		for(String sensor: facesByDistance.keySet()) {
 			for(Float distance: facesByDistance.get(sensor).keySet()) {
 				Map<Face, Integer> faceCount = new HashMap<Face, Integer>();
@@ -625,8 +636,8 @@ public class DomainViewer {
 				}
 			}
 		}
-		
-		
+
+
 		synchronized(faces) {
 			faces.clear();
 			faces.putAll(facesByDistance);
@@ -666,37 +677,37 @@ public class DomainViewer {
 						new Point3f(xMax, yMin, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
 				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
 						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
-				
+
 				float f1Distance = f1.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f1Distance)) {
 					facesByDistance.get(configUUID).put(f1Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f1Distance).add(f1);
-			
+
 				float f2Distance = f2.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f2Distance)) {
 					facesByDistance.get(configUUID).put(f2Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f2Distance).add(f2);
-			
+
 				float f3Distance = f3.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f3Distance)) {
 					facesByDistance.get(configUUID).put(f3Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f3Distance).add(f3);
-				
+
 				float f4Distance = f4.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f4Distance)) {
 					facesByDistance.get(configUUID).put(f4Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f4Distance).add(f4);
-			
+
 				float f5Distance = f5.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f5Distance)) {
 					facesByDistance.get(configUUID).put(f5Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f5Distance).add(f5);
-				
+
 				float f6Distance = f6.getDistance(cameara);
 				if(!facesByDistance.get(configUUID).containsKey(f6Distance)) {
 					facesByDistance.get(configUUID).put(f6Distance, new ArrayList<Face>());
@@ -704,15 +715,15 @@ public class DomainViewer {
 				facesByDistance.get(configUUID).get(f6Distance).add(f6);
 			}
 		}
-	
-		
+
+
 		synchronized(configurations) {
 			configurations.clear();
 			configurations.putAll(facesByDistance);
 		}
-		
+
 	}
-	
+
 	private class Line {
 		private Point3f v1, v2;
 		private Point3i color;
@@ -746,7 +757,7 @@ public class DomainViewer {
 					+ Math.pow(pt.getY() - average.getY(), 2) +
 					Math.pow(pt.getZ()-  average.getZ(), 2));
 		}
-		
+
 		public boolean equals(Face face) {
 			int matches = 0;
 			for(Point3f vs: new Point3f[]{v1, v2, v3, v4}) {
@@ -758,7 +769,7 @@ public class DomainViewer {
 				}	
 			}			
 			return matches == 4 && 
-						color.equals(face.color) &&
+					color.equals(face.color) &&
 					Float.compare(transparency, face.transparency) == 0;
 		}
 	}
