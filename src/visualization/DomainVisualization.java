@@ -189,7 +189,6 @@ public class DomainVisualization {
 		Label label_sensors = new Label(composite, SWT.NONE);
 		label_sensors.setText("Solution Space");
 
-
 		table_sensorTable = buildSensorTable(composite);
 		GridData sensorTableGridData = new GridData();
 		sensorTableGridData.verticalSpan = 10;
@@ -323,7 +322,7 @@ public class DomainVisualization {
 	}
 
 	public Point3i getMeshColor() {
-		return new Point3i(0, 0, 0);
+		return new Point3i(120, 120, 120);
 	}
 
 	public boolean drawMesh() {

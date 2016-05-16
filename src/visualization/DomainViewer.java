@@ -166,6 +166,8 @@ public class DomainViewer {
 		gl.glEnable(GL2.GL_LIGHTING);
 		gl.glEnable(GL2.GL_LIGHT0);
 		gl.glEnable(GL2.GL_LIGHT1);
+		
+		gl.glDisable(GL2.GL_CULL_FACE);
 
 		float ambientLight[] = { 0.2f, 0.2f, 0.2f, 1.0f };
 		float diffuseLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -223,19 +225,22 @@ public class DomainViewer {
 
 			createAndFillVertexBuffer(gl2);
 
-			// needed so material for quads will be set from color map
-			gl2.glColorMaterial( GL.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE );
-			gl2.glEnable( GL2.GL_COLOR_MATERIAL );
-
 			// draw all quads in vertex buffer
 			gl2.glBindBuffer( GL.GL_ARRAY_BUFFER, aiVertexBufferIndices[0] );
 			gl2.glEnableClientState( GL2.GL_VERTEX_ARRAY );
 			gl2.glEnableClientState( GL2.GL_COLOR_ARRAY );
 			gl2.glVertexPointer( 4, GL.GL_FLOAT, 8 * Buffers.SIZEOF_FLOAT, 0 );
 			gl2.glColorPointer( 4, GL.GL_FLOAT, 8 * Buffers.SIZEOF_FLOAT, 4 * Buffers.SIZEOF_FLOAT );
-
+			
+			// needed so material for quads will be set from color map
+			gl2.glEnable( GL2.GL_COLOR_MATERIAL );
+			gl2.glColorMaterial( GL.GL_FRONT_AND_BACK, GL2.GL_AMBIENT_AND_DIFFUSE );
+			gl2.glDisable(GL2.GL_LIGHTING);
+			
 			if(domainVisualization.drawMesh()) {
-				gl2.glPolygonMode( GL.GL_FRONT, GL2.GL_LINE );
+
+				gl2.glColor3f(1f, .4f, .4f);
+				gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_LINE );
 				gl2.glDrawArrays( GL2.GL_LINES, 0, lines.size()*2 );
 
 				GLUT glut = new GLUT();
@@ -270,7 +275,9 @@ public class DomainViewer {
 
 				gl2.glPopMatrix();
 			}
-
+			
+			gl2.glEnable(GL2.GL_LIGHTING);
+			
 			int numMeshVertices = lines.size()*2;
 			int numFaces = 0;
 			for(String key: faces.keySet()) {
@@ -426,9 +433,9 @@ public class DomainViewer {
 		floatBuffer.put(v1.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(1);
 
 		floatBuffer.put(v2.getX());
@@ -436,9 +443,9 @@ public class DomainViewer {
 		floatBuffer.put(v2.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(1);
 	}
 
@@ -450,9 +457,9 @@ public class DomainViewer {
 		floatBuffer.put(v1.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(transparency);
 
 		floatBuffer.put(v2.getX());
@@ -460,9 +467,9 @@ public class DomainViewer {
 		floatBuffer.put(v2.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(transparency);
 
 		floatBuffer.put(v3.getX());
@@ -470,9 +477,9 @@ public class DomainViewer {
 		floatBuffer.put(v3.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(transparency);
 
 		floatBuffer.put(v4.getX());
@@ -480,9 +487,9 @@ public class DomainViewer {
 		floatBuffer.put(v4.getZ());
 		floatBuffer.put(1);
 
-		floatBuffer.put(color.getI()/255);
-		floatBuffer.put(color.getJ()/255);
-		floatBuffer.put(color.getK()/255);
+		floatBuffer.put(color.getI()/255.0f);
+		floatBuffer.put(color.getJ()/255.0f);
+		floatBuffer.put(color.getK()/255.0f);
 		floatBuffer.put(transparency);	
 	}
 
@@ -500,34 +507,37 @@ public class DomainViewer {
 			meshLines.add(new Line(new Point3f(xs.get(i), 0, 0), 
 					new Point3f(xs.get(i), ys.get(ys.size()-1), 0), 
 					meshColor)); 
+			// y's across the x axis
+			for(int j = 0; j < ys.size(); j++) {
+				meshLines.add(new Line(new Point3f(0, ys.get(j), 0), 
+						new Point3f(xs.get(xs.size()-1), ys.get(j), 0), 
+						meshColor));
+			}
 		}
 		// Left; x == 0
 		for(int i = 0; i < ys.size(); i++) {
 			meshLines.add(new Line(new Point3f(0, ys.get(i), 0), 
 					new Point3f(0, ys.get(i), zs.get(zs.size()-1)), 
 					meshColor)); 
+			// z's across the y axis
+			for(int j = 0; j < zs.size(); j++) {
+				meshLines.add(new Line(new Point3f(xs.get(0), 0, zs.get(j)), 
+						new Point3f(xs.get(0), ys.get(ys.size()-1), zs.get(j)), 
+						meshColor)); 
+			}
 		}	
 		// Back; y == 0
 		for(int i = 0; i < zs.size(); i++) {
 			meshLines.add(new Line(new Point3f(0, ys.get(ys.size()-1), zs.get(i)), 
 					new Point3f(xs.get(xs.size()-1), ys.get(ys.size()-1), zs.get(i)), 
 					meshColor)); 
+			// x's across the z axis
+			for(int j = 0; j < xs.size(); j++) {
+				meshLines.add(new Line(new Point3f(xs.get(j), ys.get(ys.size()-1), 0), 
+						new Point3f(xs.get(j), ys.get(ys.size()-1), zs.get(zs.size()-1)), 
+						meshColor)); 
+			}
 		}			
-
-		// Closes top left			
-		meshLines.add(new Line(new Point3f(xs.get(0), 0, zs.get(zs.size()-1)), 
-				new Point3f(xs.get(0), ys.get(ys.size()-1), zs.get(zs.size()-1)), 
-				meshColor)); 
-
-		// Closes front left
-		meshLines.add(new Line(new Point3f(xs.get(xs.size()-1), ys.get(ys.size()-1), 0), 
-				new Point3f(xs.get(xs.size()-1), ys.get(ys.size()-1), zs.get(zs.size()-1)), 
-				meshColor)); 
-
-		// Closes bottom right
-		meshLines.add(new Line(new Point3f(0, ys.get(ys.size()-1), 0), 
-				new Point3f(xs.get(xs.size()-1), ys.get(ys.size()-1), 0), 
-				meshColor));
 
 		xTranslate = -distance.getX()/2;
 		yTranslate = -distance.getY()/2;
@@ -657,8 +667,7 @@ public class DomainViewer {
 				facesByDistance.put(configUUID, new TreeMap<Float, List<Face>>());
 			for(Sensor sensor: nodes) {
 				Point3i color = domainVisualization.getColorOfSensor(sensor.getSensorType());
-				// TODO: this does not work?
-				// color = new Point3i((int)(color.getI()*.8), (int)(color.getJ()*.8), (int)(color.getK()*.8));
+				color = new Point3i((int)(color.getI()*.8), (int)(color.getJ()*.8), (int)(color.getK()*.8));
 				float xMin = xs.get(sensor.getIJK().getI()-1);
 				float yMin = ys.get(sensor.getIJK().getJ()-1);
 				float zMin = zs.get(sensor.getIJK().getK()-1);
