@@ -47,8 +47,10 @@ import org.eclipse.swt.widgets.TrayItem;
 
 import results.ResultPrinter;
 import utilities.Constants;
-import utilities.Point3d;
+import utilities.Point3f;
 import utilities.Constants.ModelOption;
+import visualization.DomainViewer;
+import visualization.DomainVisualization;
 import visualization.MultiDomainViewer;
 import wizardPages.Page_SensorSetup.SensorData;
 import functions.CCS9_1;
@@ -59,6 +61,7 @@ public class DREAMWizard extends Wizard {
 
 	private STORMData data;
 	private MultiDomainViewer domainViewer;
+	private DomainVisualization newDomainViewer;
 	private WizardDialog dialog;
 
 	public static Button convertDataButton;
@@ -79,8 +82,9 @@ public class DREAMWizard extends Wizard {
 		this.dialog = dialog;		
 	}
 
-	public void linkViewer(MultiDomainViewer domainViewer) {
+	public void linkViewer(MultiDomainViewer domainViewer, DomainVisualization newDomainViewer2) {
 		this.domainViewer = domainViewer;
+		this.newDomainViewer = newDomainViewer2;
 	}
 
 	@Override
@@ -225,14 +229,16 @@ public class DREAMWizard extends Wizard {
 	public void launchVisWindow() {
 		System.out.println("Main Shell handling Button press, about to create child Shell");
 		try {
-		MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
-		linkViewer(domainViewer);
+	//	MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
+		DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
+		linkViewer(domainViewer, newDomainViewer);
 		} catch (Exception e) {
 			try {
 				Thread.sleep(1000);
-
+				
+		//		DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
 				MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
-				linkViewer(domainViewer);
+				linkViewer(domainViewer, newDomainViewer);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -383,7 +389,7 @@ public class DREAMWizard extends Wizard {
 								if(set.getSensorSettings(sensorType) != null){
 									for(Integer node: set.getSensorSettings(sensorType).getValidNodes(monitor)){
 										if(monitor.isCanceled()) break;
-										Point3d test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+										Point3f test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
 										if (minZ <= test.getZ() && test.getZ() <= maxZ)
 											temp.add(node);
 									}
@@ -474,6 +480,7 @@ public class DREAMWizard extends Wizard {
 			if(showPlots){
 				wizard.launchVisWindow();	
 				runner.setDomainViewer(wizard.domainViewer);
+				runner.setNewDomainViewer(wizard.newDomainViewer);
 			}
 			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
@@ -497,6 +504,7 @@ public class DREAMWizard extends Wizard {
 		public void randomEnumeration(final int max) throws Exception {			
 			wizard.launchVisWindow();
 			runner.setDomainViewer(wizard.domainViewer);
+			runner.setNewDomainViewer(wizard.newDomainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -510,6 +518,7 @@ public class DREAMWizard extends Wizard {
 		public void runEnumeration() throws Exception {
 			wizard.launchVisWindow();
 			runner.setDomainViewer(wizard.domainViewer);
+			runner.setNewDomainViewer(wizard.newDomainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

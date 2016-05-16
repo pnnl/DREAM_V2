@@ -16,7 +16,7 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 import utilities.Point3i;
-import utilities.Point3d;
+import utilities.Point3f;
 
 /**
  * Basic structure for STOMP plot file data
@@ -146,8 +146,8 @@ public class NodeStructure {
 
 	public float getVolumeOfNode(Point3i location){
 		Point3i nextCorner = new Point3i(location.getI()+1, location.getJ()+1, location.getK()+1);
-		Point3d lowerxyz = getXYZEdgeFromIJK(location);
-		Point3d upperxyz = getXYZEdgeFromIJK(nextCorner);
+		Point3f lowerxyz = getXYZEdgeFromIJK(location);
+		Point3f upperxyz = getXYZEdgeFromIJK(nextCorner);
 		float lengthx = upperxyz.getX() - lowerxyz.getX();
 		float lengthy = upperxyz.getY() - lowerxyz.getY();
 		float lengthz = upperxyz.getZ() - lowerxyz.getZ();
@@ -158,7 +158,7 @@ public class NodeStructure {
 	
 
 
-	public Point3d getXYZCenterFromIJK(Point3i node) {
+	public Point3f getXYZCenterFromIJK(Point3i node) {
 		
 		// We have to compute the cell center
 		if(ijkDimensions.getI() != x.size()) {
@@ -166,10 +166,10 @@ public class NodeStructure {
 			return null;
 		}
 		
-		return new Point3d(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));	
+		return new Point3f(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));	
 	}
 
-	public Point3d getXYZEdgeFromIJK(Point3i node) {
+	public Point3f getXYZEdgeFromIJK(Point3i node) {
 		try {
 			
 			// We just have to return the right xyz, probably xyz at ijk-1?
@@ -203,22 +203,22 @@ public class NodeStructure {
 				nodalValueZ = currentZ + diff;
 			}
 	
-			return  new Point3d(nodalValueX, nodalValueY,nodalValueZ);
+			return  new Point3f(nodalValueX, nodalValueY,nodalValueZ);
 		} catch(Exception e) {
 			Constants.log(Level.SEVERE, "Node structure - node was out of bounds", node.toString()); // Maybe warning?
 			return null;
 		}
 	}
 	
-	public Point3d getNodeCenteredXYZFromIJK(Point3i node) {
-		return  new Point3d(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));				
+	public Point3f getNodeCenteredXYZFromIJK(Point3i node) {
+		return  new Point3f(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));				
 	}
 
 	public int getNodeNumber(Point3i node) {
 		return getNodeNumber(node.getI(), node.getJ(), node.getK());
 	}
 
-	public int getNodeNumber(Point3d point) {
+	public int getNodeNumber(Point3f point) {
 		return getNodeNumber(getI(point.getX()), getJ(point.getY()), getK(point.getZ()));
 	}
 
@@ -228,7 +228,7 @@ public class NodeStructure {
 		return (k-1) * iMax * jMax + (j-1) * iMax + i;
 	}
 
-	public Point3i getIJKFromXYZ(Point3d point) {
+	public Point3i getIJKFromXYZ(Point3f point) {
 		return new Point3i(getI(point.getX()), getJ(point.getY()), getK(point.getZ()));
 	}
 
@@ -401,7 +401,7 @@ public class NodeStructure {
 
 		int nodeNumber = 651;
 		Point3i startNode = structure.getIJKFromNodeNumber(nodeNumber);
-		Point3d point = structure.getXYZEdgeFromIJK(startNode);
+		Point3f point = structure.getXYZEdgeFromIJK(startNode);
 
 
 		System.out.println("Node: " + startNode.toString());

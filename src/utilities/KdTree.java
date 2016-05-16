@@ -20,7 +20,7 @@ import java.util.TreeSet;
  * 
  * @author Justin Wetherell <phishman3579@gmail.com>
  */
-public class KdTree<T extends Point3d> {
+public class KdTree<T extends Point3f> {
 
     private int k = 3;
     private KdNode root = null;
@@ -43,7 +43,7 @@ public class KdTree<T extends Point3d> {
      * @param list
      *            of XYZPoints.
      */
-    public KdTree(List<Point3d> list) {
+    public KdTree(List<Point3f> list) {
         root = createNode(list, k, 0);
     }
 
@@ -58,29 +58,29 @@ public class KdTree<T extends Point3d> {
      *            depth of the node.
      * @return node created.
      */
-    private static KdNode createNode(List<Point3d> list, int k, int depth) {
+    private static KdNode createNode(List<Point3f> list, int k, int depth) {
         if (list == null || list.size() == 0)
             return null;
 
         int axis = depth % k;
         if (axis == X_AXIS)
-            Collections.sort(list,  Point3d.X_COMPARATOR);
+            Collections.sort(list,  Point3f.X_COMPARATOR);
         else if (axis == Y_AXIS)
-            Collections.sort(list,  Point3d.Y_COMPARATOR);
+            Collections.sort(list,  Point3f.Y_COMPARATOR);
         else
-            Collections.sort(list,  Point3d.Z_COMPARATOR);
+            Collections.sort(list,  Point3f.Z_COMPARATOR);
 
         KdNode node = null;
         if (list.size() > 0) {
             int medianIndex = list.size() / 2;
             node = new KdNode(k, depth, list.get(medianIndex));
-            List<Point3d> less = new ArrayList<Point3d>(list.size() - 1);
-            List<Point3d> more = new ArrayList<Point3d>(list.size() - 1);
+            List<Point3f> less = new ArrayList<Point3f>(list.size() - 1);
+            List<Point3f> more = new ArrayList<Point3f>(list.size() - 1);
             // Process list to see where each non-median point lies
             for (int i = 0; i < list.size(); i++) {
                 if (i == medianIndex)
                     continue;
-                Point3d p = list.get(i);
+                Point3f p = list.get(i);
                 if (KdNode.compareTo(depth, k, p, node.id) <= 0) {
                     less.add(p);
                 } else {
@@ -179,7 +179,7 @@ public class KdTree<T extends Point3d> {
      *            to search for.
      * @return KdNode or NULL if not found
      */
-    private static final <T extends Point3d> KdNode getNode(KdTree<T> tree, T value) {
+    private static final <T extends Point3f> KdNode getNode(KdTree<T> tree, T value) {
         if (tree == null || tree.root == null || value == null)
             return null;
 
@@ -223,7 +223,7 @@ public class KdTree<T extends Point3d> {
         KdNode parent = node.parent;
         if (parent != null) {
             if (parent.lesser != null && node.equals(parent.lesser)) {
-                List<Point3d> nodes = getTree(node);
+                List<Point3f> nodes = getTree(node);
                 if (nodes.size() > 0) {
                     parent.lesser = createNode(nodes, node.k, node.depth);
                     if (parent.lesser != null) {
@@ -233,7 +233,7 @@ public class KdTree<T extends Point3d> {
                     parent.lesser = null;
                 }
             } else {
-                List<Point3d> nodes = getTree(node);
+                List<Point3f> nodes = getTree(node);
                 if (nodes.size() > 0) {
                     parent.greater = createNode(nodes, node.k, node.depth);
                     if (parent.greater != null) {
@@ -245,7 +245,7 @@ public class KdTree<T extends Point3d> {
             }
         } else {
             // root
-            List<Point3d> nodes = getTree(node);
+            List<Point3f> nodes = getTree(node);
             if (nodes.size() > 0)
                 root = createNode(nodes, node.k, node.depth);
             else
@@ -262,8 +262,8 @@ public class KdTree<T extends Point3d> {
      *            of tree to get nodes for.
      * @return points in (sub) tree, not including root.
      */
-    private static final List<Point3d> getTree(KdNode root) {
-        List<Point3d> list = new ArrayList<Point3d>();
+    private static final List<Point3f> getTree(KdNode root) {
+        List<Point3f> list = new ArrayList<Point3f>();
         if (root == null)
             return list;
 
@@ -334,7 +334,7 @@ public class KdTree<T extends Point3d> {
         return collection;
     }
 
-    private static final <T extends Point3d> void searchNode(T value, KdNode node, int K,
+    private static final <T extends Point3f> void searchNode(T value, KdNode node, int K,
             TreeSet<KdNode> results, Set<KdNode> examined) {
         examined.add(node);
 
@@ -418,9 +418,9 @@ public class KdTree<T extends Point3d> {
 
     protected static class EuclideanComparator implements Comparator<KdNode> {
 
-        private Point3d point = null;
+        private Point3f point = null;
 
-        public EuclideanComparator(Point3d point) {
+        public EuclideanComparator(Point3f point) {
             this.point = point;
         }
 
@@ -443,28 +443,28 @@ public class KdTree<T extends Point3d> {
 
         private int k = 3;
         private int depth = 0;
-        private Point3d id = null;
+        private Point3f id = null;
         private KdNode parent = null;
         private KdNode lesser = null;
         private KdNode greater = null;
 
-        public KdNode(Point3d id) {
+        public KdNode(Point3f id) {
             this.id = id;
         }
 
-        public KdNode(int k, int depth, Point3d id) {
+        public KdNode(int k, int depth, Point3f id) {
             this(id);
             this.k = k;
             this.depth = depth;
         }
 
-        public static int compareTo(int depth, int k, Point3d o1, Point3d o2) {
+        public static int compareTo(int depth, int k, Point3f o1, Point3f o2) {
             int axis = depth % k;
             if (axis == X_AXIS)
-                return Point3d.X_COMPARATOR.compare(o1, o2);
+                return Point3f.X_COMPARATOR.compare(o1, o2);
             if (axis == Y_AXIS)
-                return  Point3d.Y_COMPARATOR.compare(o1, o2);
-            return  Point3d.Z_COMPARATOR.compare(o1, o2);
+                return  Point3f.Y_COMPARATOR.compare(o1, o2);
+            return  Point3f.Z_COMPARATOR.compare(o1, o2);
         }
 
         /**
@@ -506,7 +506,7 @@ public class KdTree<T extends Point3d> {
 
     protected static class TreePrinter {
 
-        public static <T extends Point3d> String getString(KdTree<T> tree) {
+        public static <T extends Point3f> String getString(KdTree<T> tree) {
             if (tree.root == null)
                 return "Tree has no nodes.";
             return getString(tree.root, "", true);

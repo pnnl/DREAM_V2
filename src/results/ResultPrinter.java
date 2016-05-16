@@ -23,7 +23,7 @@ import objects.TimeStep;
 import results.Results.ObjectiveResult;
 import results.Results.Type;
 import utilities.Constants;
-import utilities.Point3d;
+import utilities.Point3f;
 
 /**
  * Utility methods for printing a results
@@ -221,7 +221,7 @@ public class ResultPrinter {
 				line.append(", " + volumeDegraded);
 				
 				for(Sensor sensor: configuration.getSensors()) {		
-					Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+					Point3f xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
 					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 				}
 				
@@ -340,7 +340,7 @@ public class ResultPrinter {
 			line.append(volumeDegraded.get(i) + ",");
 			line.append(configs.get(i).getSensors().size());
 			for(Sensor sensor: configs.get(i).getSensors()){
-				Point3d xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+				Point3f xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
 				line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 			}
 			lines.add(line.toString());

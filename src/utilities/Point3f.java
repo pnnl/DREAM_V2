@@ -2,25 +2,25 @@ package utilities;
 
 import java.util.Comparator;
 
-public class Point3d implements Comparable<Point3d> {
+public class Point3f implements Comparable<Point3f> {
 
 	private float x;
 	private float y;
 	private float z;
 
-	public Point3d(float x, float y) {
+	public Point3f(float x, float y) {
 		this.x = x;
 		this.y = y;
 		this.z = 0;
 	}
 
-	public Point3d(float x, float y, float z) {
+	public Point3f(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 	
-	public Point3d(Point3d xyzPoint) {
+	public Point3f(Point3f xyzPoint) {
 		this.x = xyzPoint.getX();
 		this.y = xyzPoint.getY();
 		this.z = xyzPoint.getZ();
@@ -45,7 +45,7 @@ public class Point3d implements Comparable<Point3d> {
 	 *            other point.
 	 * @return euclidean distance.
 	 */
-	public float euclideanDistance(Point3d o1) {
+	public float euclideanDistance(Point3f o1) {
 		return euclideanDistance(o1, this);
 	}
 
@@ -58,7 +58,7 @@ public class Point3d implements Comparable<Point3d> {
 	 *            second point.
 	 * @return euclidean distance.
 	 */
-	private static final float euclideanDistance(Point3d o1, Point3d o2) {
+	private static final float euclideanDistance(Point3f o1, Point3f o2) {
 		return (float) Math.sqrt(Math.pow((o1.x - o2.x), 2) + Math.pow((o1.y - o2.y), 2) + Math.pow((o1.z - o2.z), 2));
 	};
 
@@ -69,10 +69,10 @@ public class Point3d implements Comparable<Point3d> {
 	public boolean equals(Object obj) {
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Point3d))
+		if (!(obj instanceof Point3f))
 			return false;
 
-		Point3d xyzPoint = (Point3d) obj;
+		Point3f xyzPoint = (Point3f) obj;
 		return compareTo(xyzPoint) == 0;
 	}
 
@@ -80,7 +80,7 @@ public class Point3d implements Comparable<Point3d> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int compareTo(Point3d o) {
+	public int compareTo(Point3f o) {
 		int xComp = X_COMPARATOR.compare(this, o);
 		if (xComp != 0)
 			return xComp;
@@ -105,13 +105,13 @@ public class Point3d implements Comparable<Point3d> {
 		return builder.toString();
 	}
 
-	static final Comparator<Point3d> X_COMPARATOR = new Comparator<Point3d>() {
+	static final Comparator<Point3f> X_COMPARATOR = new Comparator<Point3f>() {
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public int compare(Point3d o1, Point3d o2) {
+		public int compare(Point3f o1, Point3f o2) {
 			if (o1.x < o2.x)
 				return -1;
 			if (o1.x > o2.x)
@@ -120,13 +120,13 @@ public class Point3d implements Comparable<Point3d> {
 		}
 	};
 
-	static final Comparator<Point3d> Y_COMPARATOR = new Comparator<Point3d>() {
+	static final Comparator<Point3f> Y_COMPARATOR = new Comparator<Point3f>() {
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public int compare(Point3d o1, Point3d o2) {
+		public int compare(Point3f o1, Point3f o2) {
 			if (o1.y < o2.y)
 				return -1;
 			if (o1.y > o2.y)
@@ -135,13 +135,13 @@ public class Point3d implements Comparable<Point3d> {
 		}
 	};
 
-	static final Comparator<Point3d> Z_COMPARATOR = new Comparator<Point3d>() {
+	static final Comparator<Point3f> Z_COMPARATOR = new Comparator<Point3f>() {
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public int compare(Point3d o1, Point3d o2) {
+		public int compare(Point3f o1, Point3f o2) {
 			if (o1.z < o2.z)
 				return -1;
 			if (o1.z > o2.z)

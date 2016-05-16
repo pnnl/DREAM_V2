@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import utilities.Constants;
-import utilities.Point3d;
+import utilities.Point3f;
 import utilities.Point3i;
 
 
@@ -466,10 +466,10 @@ public class ScenarioSet {
 			if(well.i == 0 || well.j == 0){
 				continue;
 			} //makes sure we're not looking at the add point. Can probably remove.
-			Point3d wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
+			Point3f wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
 			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
 				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
-					Point3d otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
+					Point3f otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
 					if(otherxyz.euclideanDistance(wellxyz) <= exclusionRadius){
 						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
 							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.

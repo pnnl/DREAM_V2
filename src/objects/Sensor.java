@@ -2,7 +2,7 @@ package objects;
 
 import java.util.Map;
 
-import utilities.Point3d;
+import utilities.Point3f;
 import utilities.Point3i;
 
 public class Sensor {
@@ -13,7 +13,7 @@ public class Sensor {
 	
 	// About the sensors location
 	protected Point3i node;
-	protected Point3d point;
+	protected Point3f point;
 	protected int nodeNumber;
 	
 	// What type of sensor
@@ -21,7 +21,7 @@ public class Sensor {
 		
     public Sensor(float x, float y, float z, String type, NodeStructure domain) {
     	
-    	point = new Point3d(x,y,z);
+    	point = new Point3f(x,y,z);
     	node = domain.getIJKFromXYZ(point);
     	nodeNumber = domain.getNodeNumber(node);
     	
@@ -51,7 +51,7 @@ public class Sensor {
     	this.nodeNumber = toCopy.nodeNumber;
     	this.node = new Point3i(toCopy.node);
     	if(this.point != null)
-    		this.point = new Point3d(toCopy.point);
+    		this.point = new Point3f(toCopy.point);
     	
     	this.type = toCopy.type;    	
     }
@@ -68,7 +68,7 @@ public class Sensor {
 		return node;
 	}
 	
-	public Point3d getPoint() {
+	public Point3f getPoint() {
 		return point;
 	}	
 	

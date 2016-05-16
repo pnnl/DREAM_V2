@@ -17,6 +17,8 @@ import objects.ExtendedSensor;
 import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
+import visualization.DomainViewer;
+import visualization.DomainVisualization;
 import visualization.MultiDomainViewer;
 
 /**
@@ -40,6 +42,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 	private IProgressMonitor monitor; // So we can update the status
 	private MultiDomainViewer viewer; // Graphical representation of the run
+	private DomainVisualization newViewer; // Graphical representation of the run
 
 	int counter = 0;
 	
@@ -169,6 +172,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		if(viewer != null)
 			viewer.assignConfigurations(initialConfiguration, newConfiguration, bestConfiguration, currentConfiguration);
 
+		if(newViewer != null)
+			newViewer.addConfiguration(currentConfiguration);
+		
 		// Apply first mutation
 		mutate(newConfiguration, set);
 
@@ -321,6 +327,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 			
+			if(newViewer != null)
+				newViewer.addConfiguration(currentConfiguration);
+
 			if(viewer != null) {
 				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.BEST).triggerDisplayThread();
 				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.CURRENT).triggerDisplayThread();
@@ -558,6 +567,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 	public void setDomainViewer(MultiDomainViewer viewer) {
 		this.viewer = viewer;
+	}
+
+	public void setNewDomainViewer(DomainVisualization newDomainViewer) {
+		this.newViewer = newDomainViewer;
 	}
 	
 	public void setMonitor(IProgressMonitor monitor) {
