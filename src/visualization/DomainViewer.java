@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +77,7 @@ public class DomainViewer {
 	private Map<String, TreeMap<Float, List<Face>>> faces;
 	private Map<String, TreeMap<Float, List<Face>>> configurations;
 	private List<Line> lines;
+	private Point3f cameraPosition = new Point3f(0, 0, 0);
 
 	private int numVertices = 0;
 
@@ -99,8 +101,6 @@ public class DomainViewer {
 		xTranslate = distance.getX()/2;
 		yTranslate = distance.getY()/2;
 		zTranslate = distance.getY()/2;		
-
-		System.out.println(xTranslate + ", " + yTranslate + ", " + zoom);
 
 		glcanvas = new GLCanvas(compositeParent, SWT.BORDER, gldata);
 
@@ -165,7 +165,6 @@ public class DomainViewer {
 
 		gl.glEnable(GL2.GL_LIGHTING);
 		gl.glEnable(GL2.GL_LIGHT0);
-		gl.glEnable(GL2.GL_LIGHT1);
 		
 		gl.glDisable(GL2.GL_CULL_FACE);
 
@@ -177,11 +176,7 @@ public class DomainViewer {
 		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_AMBIENT, ambientLight, 0);
 		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseLight, 0);
 		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularLight, 0);
-		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{1, 0, 1, 1.0f}, 0);
-		gl.glLightfv( GL2.GL_LIGHT1, GL2.GL_AMBIENT, ambientLight, 0);
-		gl.glLightfv( GL2.GL_LIGHT1, GL2.GL_DIFFUSE, diffuseLight, 0);
-		gl.glLightfv( GL2.GL_LIGHT1, GL2.GL_SPECULAR, specularLight, 0);
-		gl.glLightfv( GL2.GL_LIGHT1, GL2.GL_POSITION, new float[]{-1, 0, 1, 1.0f}, 0);
+		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{0, -20000, 20000, 1.0f}, 0);
 
 		glcontext.release();
 
@@ -296,7 +291,7 @@ public class DomainViewer {
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
 			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numFaces);
 			gl2.glDepthMask(true); // Already sorted, don't override
-
+		
 			// disable arrays once we're done
 			gl2.glBindBuffer( GL.GL_ARRAY_BUFFER, 0 );
 			gl2.glDisableClientState( GL2.GL_VERTEX_ARRAY );
@@ -338,18 +333,22 @@ public class DomainViewer {
 
 		gl2.glMatrixMode( GLMatrixFunc.GL_MODELVIEW );
 		gl2.glViewport( 0, 0, iWidth, iHeight );
+				
 		gl2.glLoadIdentity();	
-
 
 		gl2.glRotatef(zPlaneRotation, 0.0f, 0.0f, 1.0f); // z plane
 		gl2.glRotatef(xPlaneRotation, 1.0f, 0.0f, 0.0f); // y plane
-
+		
 		gl2.glTranslatef( xTranslate, yTranslate, zTranslate);
 
+		float[] matModelView = new float[16];
+		gl2.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, matModelView, 0);
+//		System.out.println(Arrays.toString(matModelView));
+		cameraPosition = new Point3f(-matModelView[12], -matModelView[13], -matModelView[14]);
+//		System.out.println(cameraPosition);
 	}
 
 	protected void createAndFillVertexBuffer(GL2 gl2) {
-
 		int numLines = lines.size();
 		int numFaces = 0;
 		// Max to min distance
@@ -553,7 +552,7 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f cameara = new Point3f(0, -20000, 0); 
+		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		for(String sensor: domainVisualization.getAllSensorsToRender()) {
 			Point3i color = domainVisualization.getColorOfSensor(sensor);

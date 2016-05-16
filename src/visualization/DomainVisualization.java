@@ -115,6 +115,7 @@ public class DomainVisualization {
 			public void widgetSelected(SelectionEvent e) {
 				// Requires a reset
 				domainViewer.reset();
+				domainViewer.resetConfigurations();
 			}
 		});
 
@@ -132,6 +133,7 @@ public class DomainVisualization {
 			public void widgetSelected(SelectionEvent e) {
 				// Requires a reset
 				domainViewer.reset();
+				domainViewer.resetConfigurations();
 			}
 		});
 		
@@ -143,6 +145,7 @@ public class DomainVisualization {
 			public void widgetSelected(SelectionEvent e) {
 				// Requires a reset
 				domainViewer.reset();
+				domainViewer.resetConfigurations();
 			}
 		});
 
@@ -156,6 +159,7 @@ public class DomainVisualization {
 			public void widgetSelected(SelectionEvent e) {
 				// Requires a reset
 				domainViewer.reset();
+				domainViewer.resetConfigurations();
 			}
 		});
 		
@@ -641,6 +645,8 @@ public class DomainVisualization {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 			//	domainViewer.resetConfigurations();
+				if(e.detail != 32)
+					return;
 				for(TreeDetectingPercentItem percent: configurations.values()) {
 					if(percent.getTreeItem(null) != null && percent.getTreeItem(null).equals(e.item)) {
 						// select all children
