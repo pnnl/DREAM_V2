@@ -274,11 +274,13 @@ public class DomainVisualization {
 	public List<Sensor> getSensorsInConfiguration(String uuid) {
 		if(this.configurations == null)
 			return new ArrayList<Sensor>();
-		for(TreeDetectingPercentItem configuration: this.configurations.values()) {
-			for(TreeTTDItem ttdItem: configuration.children.values()) {
-				for(TreeConfigItem configItem: ttdItem.children) {
-					if(configItem.getUUID().equals(uuid))
-						return configItem.getConfiguration().getSensors();
+		synchronized(configurations) {
+			for(TreeDetectingPercentItem configuration: this.configurations.values()) {
+				for(TreeTTDItem ttdItem: configuration.children.values()) {
+					for(TreeConfigItem configItem: ttdItem.children) {
+						if(configItem.getUUID().equals(uuid))
+							return configItem.getConfiguration().getSensors();
+					}
 				}
 			}
 		}
@@ -777,7 +779,7 @@ public class DomainVisualization {
 			tableItem = new TableItem(table, SWT.CENTER);
 			tableItem.setText(sensorType);
 			tableItem.setChecked(true);
-			tableItem.setText(0, sensorType);
+			tableItem.setText(0, Sensor.sensorAliases.get(sensorType));
 			int itemCount = table.getItemCount();
 			float[][] colors = new float[][]{
 				{1.0f, 0.0f, 0.0f, 0.8f}, 

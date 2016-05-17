@@ -236,8 +236,8 @@ public class DREAMWizard extends Wizard {
 			try {
 				Thread.sleep(1000);
 				
-		//		DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
-				MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
+				DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
+		//		MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
 				linkViewer(domainViewer, newDomainViewer);
 			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block

@@ -50,6 +50,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	protected Map<String, Integer> num_duplicates = new HashMap<String, Integer>();
 	
 	private STORMData data;
 	private boolean isCurrentPage = false;
@@ -65,8 +66,9 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	}
 	
 	public class SensorData {
-				
+
 		public String sensorType;
+		public String sensorName;
 		public String alias;
 		public boolean isIncluded;
 		public float cost;
@@ -84,6 +86,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		public boolean asRelativeChange;
 		public boolean asAbsoluteChange;
 		
+		private boolean isDuplicate;
+		
 		// A couple of these need to be global
 		private Label sensorTypeLabel;
 		private Text aliasText;
@@ -99,10 +103,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		private Label nodeLabel;
 		private boolean hasErrors;	
 		
-		public SensorData(SensorSetting sensorSettings) {
+		public SensorData(SensorSetting sensorSettings, String sensorName) {
+			
+			if(sensorSettings.getType().equals(sensorName)) isDuplicate = false;
+			else isDuplicate = true;
 			
 			sensorType = sensorSettings.getType();
-			alias = "";
+			this.sensorName = sensorName;
+			alias = sensorName;
 			isIncluded = false; // By default	
 			cost = sensorSettings.getCost();
 			maxZ = sensorSettings.getMaxZ();
@@ -140,6 +148,34 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		
 		public void buildUI() {
 			
+			//Add a button here
+			if(isDuplicate){
+				Button addButton = new Button(container, SWT.PUSH);
+			    addButton.addListener(SWT.Selection, new Listener() {
+					@Override
+					public void handleEvent(Event arg0) {
+						sensorData.remove(sensorName);
+						data.getSet().getSensorSettings().remove(sensorName);
+						loadPage();
+					}
+			    });
+			    addButton.setText("-");
+			}
+			else{
+				Button addButton = new Button(container, SWT.PUSH);
+			    addButton.addListener(SWT.Selection, new Listener() {
+					@Override
+					public void handleEvent(Event arg0) {
+						if(!num_duplicates.containsKey(sensorType)) num_duplicates.put(sensorType, 1);
+						addSensor(sensorType, sensorType + "_" + num_duplicates.get(sensorType));
+						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
+						loadPage();
+					}
+			    });
+			    addButton.setText("+");
+			}
+			
+		    
 			// Include button
 			Button includeButton = new Button(container,  SWT.CHECK);
 			includeButton.setSelection(isIncluded);
@@ -405,7 +441,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
-		layout.numColumns = 7;
+		layout.numColumns = 8;
+//		layout.makeColumnsEqualWidth = false;
 		
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -420,11 +457,13 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			isCurrentPage = false;		
 			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 			Map<String, String> sensorAliases = new HashMap<String, String>();
-			for(SensorData data: sensorData.values()) {
-				String dataType = data.sensorType;
+			SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
+			for(String label: sensorData.keySet()) {
+				SensorData data = sensorData.get(label);
 				String alias = data.alias;
-				sensorSettings.put(dataType, data);
-				sensorAliases.put(dataType, alias.equals("") ? dataType: alias);
+				sensorSettings.put(label, data);
+				sensorAliases.put(label, alias.equals("") ? label: alias);
+				SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 			}
 			DREAMWizard.visLauncher.setEnabled(false);			
 			Sensor.sensorAliases = sensorAliases;
@@ -450,8 +489,12 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 								
-				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType)));
-				
+				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+				//This is what we need to do to add
+				//data.getSet().addSensorSetting(dataType+"1", dataType);
+				//data.getSet().getInferenceTest().setMinimumRequiredForType(dataType+"1", -1);
+				//sensorData.put(dataType+"1", new SensorData(data.getSet().getSensorSettings(dataType+"1"), dataType+"1"));
+				//End here
 			}
 		}
 		
@@ -494,7 +537,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		// Headers
 		
 		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
-			
+		
+		Label blankFiller = new Label(container, SWT.LEFT);	
 		Label monitorParams = new Label(container, SWT.LEFT);
 		Label aliasLabel = new Label(container, SWT.LEFT);
 		Label costPerSensor = new Label(container, SWT.LEFT);
@@ -503,6 +547,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		Label minZLabel = new Label(container, SWT.LEFT);
 		Label maxZLabel = new Label(container, SWT.LEFT);
 		
+		blankFiller.setText("");
 		monitorParams.setText("Monitoring Parameter");
 		aliasLabel.setText("Alias for Monitoring Technology");
 		costPerSensor.setText("Cost per Sensor");
@@ -523,32 +568,48 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			data.buildUI();
 		}
 
-		Button queryButton = new Button(container, SWT.BALLOON);
+		Composite composite_scale = new Composite(container, SWT.BORDER);
+		GridLayout gridLayout_scale = new GridLayout();
+		gridLayout_scale.numColumns = 8;
+		composite_scale.setLayout(gridLayout_scale);
+		
+		GridData gridData = new GridData();
+		gridData.horizontalSpan=8;
+		composite_scale.setLayoutData(gridData);
+		
+		Button queryButton = new Button(composite_scale, SWT.BALLOON);
 		queryButton.setText("Find triggering nodes");
 
-		new Label(container, SWT.NULL);
-		new Label(container, SWT.NULL);
-		new Label(container, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
 		
 		int count = 0;
-		for(SensorData temp: sensorData.values()) {		
+		
+		for(String label: sensorData.keySet()){
+			SensorData temp = sensorData.get(label);
+
 			// Let these fill two spots
 			GridData tempData = new GridData(GridData.FILL_HORIZONTAL);
 			tempData.horizontalSpan = 2;
-			temp.nodeLabel = new Label(container, SWT.WRAP);
+			temp.nodeLabel = new Label(composite_scale, SWT.WRAP);
 			temp.nodeLabel.setLayoutData(tempData);
-			if(data.getSet().getSensorSettings(temp.sensorType) == null)
-				data.getSet().resetSensorSettings(temp.sensorType, temp.min, temp.max);
-			if( data.getSet().getSensorSettings(temp.sensorType).isSet())
-				temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
+			if(data.getSet().getSensorSettings(label) == null)
+				data.getSet().resetSensorSettings(label, temp.min, temp.max);
+			if( data.getSet().getSensorSettings(label).isSet())
+				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
 			else 
-				temp.nodeLabel.setText(temp.sensorType+ ": Not set");
+				temp.nodeLabel.setText(label+ ": Not set");
 			count+=2;
 		}
 		
-		if(count % 4 != 0) {
-			for(int i = 0; i < 4-(count % 4); i++)
-				new Label(container, SWT.NULL);
+		if(count % 8 != 0) {
+			for(int i = 0; i < 8-(count % 8); i++)
+				new Label(composite_scale, SWT.NULL);
 		}
 		
 		queryButton.addListener(SWT.Selection, new Listener() {
@@ -559,10 +620,16 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				boolean reset = true;							
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();	
 				
-				for(SensorData data: sensorData.values()) {
-					String dataType = data.sensorType;
-					sensorSettings.put(dataType, data);
+				
+				Map<String, String> sensorAliases = new HashMap<String, String>();
+				for(String label: sensorData.keySet()){
+					SensorData temp = sensorData.get(label);
+					sensorSettings.put(label, temp);
+					String alias = temp.alias;
+					sensorAliases.put(label, alias.equals("") ? label: alias);
 				}	
+				Sensor.sensorAliases = sensorAliases;
+
 				
 				try {
 					if(reset) {
@@ -574,11 +641,12 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 					data.setupSensors(reset, sensorSettings);
 					//volumeOfAquiferDegraded(); //Don't need this because you have to run it when you hit "next", and this way the overhead time does not apply to finding a solution space that you like.
 					DREAMWizard.visLauncher.setEnabled(true);
-					for(SensorData temp: sensorData.values()) {
-						if(temp.isIncluded &&  data.getSet().getSensorSettings(temp.sensorType).isSet())
-							temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
+					for(String label: sensorData.keySet()){
+						SensorData temp = sensorData.get(label);
+						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
+							temp.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
 						else
-							temp.nodeLabel.setText(temp.sensorType+ ": Not set");
+							temp.nodeLabel.setText(label + ": Not set");
 					}			
 					
 					// Then we really only want the intersection
@@ -605,12 +673,13 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 							}
 						}
 						System.out.println("Intersection: (" + intersection.size() + ") " + intersection);
-						for(SensorData temp: sensorData.values()) {
-							if(data.getSet().getSensorSettings(temp.sensorType) != null && data.getSet().getSensorSettings(temp.sensorType).isSet()) {
-								data.getSet().getSensorSettings(temp.sensorType).setValidNodes(intersection);
-								temp.nodeLabel.setText(temp.sensorType+ ": " + data.getSet().getSensorSettings(temp.sensorType).getValidNodes(null).size());
+						for(String label: sensorData.keySet()){
+							SensorData temp = sensorData.get(label);
+							if(data.getSet().getSensorSettings(label) != null && data.getSet().getSensorSettings(label).isSet()) {
+								data.getSet().getSensorSettings(label).setValidNodes(intersection);
+								temp.nodeLabel.setText(temp.alias + ": " + data.getSet().getSensorSettings(temp.alias).getValidNodes(null).size());
 							} else
-								temp.nodeLabel.setText(temp.sensorType+ ": Not set");
+								temp.nodeLabel.setText(temp.alias + ": Not set");
 						}
 					}
 					/*
@@ -640,16 +709,15 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		});	
 				
 
-		//new Label(container, SWT.NULL);
+		//new Label(composite_scale, SWT.NULL);
 
-		new Label(container, SWT.NULL);
-		Label col = new Label(container, SWT.NULL);
+		Label col = new Label(composite_scale, SWT.NULL);
 		col.setText("Set up the solution space using ...");
 		col.setFont(boldFont1);
-		new Label(container, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
 		
-	    scenarioUnionButton = new Button(container, SWT.CHECK);
-	    final Button scenarioIntersectionButton = new Button(container, SWT.CHECK);
+	    scenarioUnionButton = new Button(composite_scale, SWT.CHECK);
+	    final Button scenarioIntersectionButton = new Button(composite_scale, SWT.CHECK);
 	    scenarioIntersectionButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -674,8 +742,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	    scenarioUnionButton.setText("union of scenarios");
 	    scenarioIntersectionButton.setText("intersection of scenarios");
 	    
-	    sensorUnionButton = new Button(container, SWT.CHECK);
-	    final Button sensorIntersectionButton = new Button(container, SWT.CHECK);
+	    sensorUnionButton = new Button(composite_scale, SWT.CHECK);
+	    final Button sensorIntersectionButton = new Button(composite_scale, SWT.CHECK);
 	    sensorIntersectionButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -707,16 +775,23 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		boolean enableVis  = false;
-		for(SensorData temp: sensorData.values()) {
-			if(temp.isIncluded &&  data.getSet().getSensorSettings(temp.sensorType).isSet())
+		for(String label: sensorData.keySet()){
+			SensorData temp = sensorData.get(label);
+			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
 				enableVis = true;
 		}
 
 		DREAMWizard.visLauncher.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
+	
+	private void addSensor(String dataType, String newName){
+		data.getSet().addSensorSetting(newName, dataType);
+		data.getSet().getInferenceTest().setMinimumRequiredForType(newName, -1);
+		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
+	}
 /*
- * Keeping old method for comparison if the new one gives us weird results
+ // Keeping old method for comparison if the new one gives us weird results
 	private void volumeOfAquiferDegraded(){
 		long current = System.currentTimeMillis();
 		int detectionCriteriaStorage = data.getSet().getInferenceTest().getOverallMinimum();
@@ -785,13 +860,16 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
 	}
 */
+	
 	private void volumeOfAquiferDegraded(){	
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
 		
 		for(String sensorType: data.getSet().getSensorSettings().keySet()){
+			System.out.println(sensorType);
 			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
+			System.out.println(nodes.size());
 		}
 		
 		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
@@ -816,6 +894,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			}
 		}
 		
+		System.out.println(timeToDegradationPerNode.size());
+		
 		Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<Scenario, HashMap<Float, Float>>();
 		HashSet<Float> years = new HashSet<Float>();
 		for(Scenario scenario: timeToDegradationPerNode.keySet()){
@@ -828,6 +908,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				else volumeDegradedByYear.get(scenario).put(year, volumeDegradedByYear.get(scenario).get(year) + data.getSet().getNodeStructure().getVolumeOfNode(location));
 			}
 		}
+		
+		System.out.println(years.size());
 		
 		ArrayList<Float> sortedYears = new ArrayList<Float>(years);
 		java.util.Collections.sort(sortedYears);
@@ -843,7 +925,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		long total = System.currentTimeMillis() - current;
 		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
-
+	
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;

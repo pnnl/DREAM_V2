@@ -539,6 +539,10 @@ public class ScenarioSet {
 		return sensorSettings;
 	}
 	
+	public void addSensorSetting(String name, String type){
+		sensorSettings.put(name, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
+	}
+	
 	public void removeSensorSettings(String dataType) {
 		sensorSettings.remove(dataType);
 	}

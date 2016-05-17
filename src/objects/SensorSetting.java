@@ -20,6 +20,8 @@ import utilities.Constants;
 
 public class SensorSetting {
 	
+	public static HashMap<String, String> sensorTypeToDataType;
+	
 	public enum Trigger {
 		
 		MAXIMUM_THRESHOLD("Maximum threshold"), MINIMUM_THRESHOLD("Minimum threshold"), 

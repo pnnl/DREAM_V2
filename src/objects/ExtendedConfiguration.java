@@ -13,7 +13,7 @@ import utilities.Constants.ModelOption;
 
 
 public class ExtendedConfiguration extends Configuration {
-
+	
 	private List<Well> wells;
 
 	// Actual time to detection, if a scenario does not detect value will be null

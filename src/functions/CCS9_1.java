@@ -211,6 +211,7 @@ public class CCS9_1 extends Function {
 	public static Boolean sensorTriggered(ScenarioSet set, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
 		Boolean triggered = null;
 		
+		String dataType = SensorSetting.sensorTypeToDataType.get(sensorType);
 		SensorSetting temp = set.getSensorSettings().get(sensorType);
 
 		// Get the value at the current time step
@@ -218,14 +219,14 @@ public class CCS9_1 extends Function {
 		Float valueAtTime0 = 0.0f;
 
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);
-			valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);
+			currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
+			valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
 		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);	
-			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);	
+			currentValue =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);	
+			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);	
 		} else {
-			currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, sensorType, nodeNumber);		
-			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), sensorType, nodeNumber);				
+			currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);		
+			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);				
 		}
 
 		// See if we exceeded threshold

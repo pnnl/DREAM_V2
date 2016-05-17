@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
+import objects.Sensor;
 import utilities.Constants;
 import wizardPages.DREAMWizard.STORMData;
 import wizardPages.Page_SensorSetup.SensorData;
@@ -127,7 +128,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		for(String dataType: data.getSet().getDataTypes()) {
 			
 			final Label dataLabel = new Label(container, SWT.NULL);
-			dataLabel.setText(dataType);			
+			dataLabel.setText(Sensor.sensorAliases.get(dataType));			
 			
 			Text minText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
