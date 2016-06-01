@@ -38,6 +38,9 @@ public class ResultPrinter {
 	// The results object
 	public static Results results;
 
+	// Whether or not we want to run python scripts (disable for scatterplot runs)
+	public static boolean runScripts = true;
+	
 	public static void clearResults(ScenarioSet set, boolean makePlots) {
 		results = new Results(set, makePlots);
 	}
@@ -245,17 +248,18 @@ public class ResultPrinter {
 			lines.add(linesToSort.get(key));
 		}
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
-		//Try running script
-		try{
-		File script = new File("./scripts/plot_dream_3panel.py");
-		Runtime runtime = Runtime.getRuntime();
-		String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.tab\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
-		runtime.exec(command);
+		if(runScripts){
+			//Try running script
+			try{
+			File script = new File("./scripts/plot_dream_3panel.py");
+			Runtime runtime = Runtime.getRuntime();
+			String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.tab\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
+			runtime.exec(command);
+			}
+			catch(Exception e){
+				System.out.println("Install python and required libraries to create a PDF visualization");
+			}
 		}
-		catch(Exception e){
-			System.out.println("Install python and required libraries to create a PDF visualization");
-		}
-		
 		
 		int i=1;
 		for(float key: keySet){
@@ -264,15 +268,17 @@ public class ResultPrinter {
 		}
 		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
 		FileUtils.writeLines(ttdFile, ttdLines);
-		//Try running script
-		try{
-		File script = new File("./scripts/plot_best_config_ttds.py");
-		Runtime runtime = Runtime.getRuntime();
-		String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
-		runtime.exec(command);
-		}
-		catch(Exception e){
-			System.out.println("Install python and required libraries to create a PDF visualization");
+		if(runScripts){
+			//Try running script
+			try{
+			File script = new File("./scripts/plot_best_config_ttds.py");
+			Runtime runtime = Runtime.getRuntime();
+			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
+			runtime.exec(command);
+			}
+			catch(Exception e){
+				System.out.println("Install python and required libraries to create a PDF visualization");
+			}
 		}
 	}
 
@@ -306,14 +312,16 @@ public class ResultPrinter {
 			FileUtils.writeLines(fileToWrite, lines);
 			
 			//Try running Kayuum's script
-			try{
-			File script = new File("./scripts/plot_dreamout01.py");
-			Runtime runtime = Runtime.getRuntime();
-			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
-			runtime.exec(command);
-			}
-			catch(Exception e){
-				System.out.println("Install python and required libraries to create a PDF visualization");
+			if(runScripts){
+				try{
+				File script = new File("./scripts/plot_dreamout01.py");
+				Runtime runtime = Runtime.getRuntime();
+				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
+				runtime.exec(command);
+				}
+				catch(Exception e){
+					System.out.println("Install python and required libraries to create a PDF visualization");
+				}
 			}
 			/* ---- This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
 			Process p = runtime.exec(command);

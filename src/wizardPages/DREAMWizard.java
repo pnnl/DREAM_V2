@@ -495,6 +495,7 @@ public class DREAMWizard extends Wizard {
 					}					
 				}
 			});
+			System.gc();
 		}
 
 		public float runObjective(ExtendedConfiguration configuration, boolean runThreaded) {

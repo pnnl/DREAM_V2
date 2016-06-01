@@ -351,6 +351,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					Constants.random.setSeed(10);
+					ResultPrinter.runScripts = true;
 					data.run(runs, showPlots.getSelection());
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
 				} catch (Exception e) {
@@ -515,7 +516,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
-						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(new Point3i(i, j, k));
+						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(i, j, k);
 						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes(null).contains(nodeNumber) ? "1" : "0");		
 						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
 					}}}
@@ -667,8 +668,10 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						data.setWorkingDirectory(outputFolder.getText());
 						data.getSet().setIterations(ittr);
 						try {
+							ResultPrinter.runScripts = false;
 							data.run(1, false); //This should never show plots, we are running too many iterations.
 							//get the best TTD
+							
 							float ttd = ResultPrinter.results.bestObjValue;
 							HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
 							for(Configuration config: bestConfigs){
@@ -682,6 +685,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								averageVolumeDegraded.add(SensorSetting.getVolumeDegraded(config.getTimesToDetection(), data.getSet().getScenarios().size()));
 								configs.add(config);
 							}
+							
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -708,7 +712,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					if(configurationCosts.get(i) < (maxCost - minCost)/3 + minCost) lowSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
 					else if(configurationCosts.get(i) > -(maxCost - minCost)/3 + maxCost) highSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i)); 
 					else mediumSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
-					System.out.println(configurationCosts.get(i) + "\t" + configurationTTDs.get(i));
 				}
 				result.addSeries(highSeries);
 				result.addSeries(mediumSeries);

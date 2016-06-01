@@ -214,9 +214,7 @@ public class HDF5Wrapper {
 				for(float y: yValues) nodeStructure.getY().add(y);
 				for(float z: zValues) nodeStructure.getZ().add(z);
 				
-				nodeStructure.getIJKDimensions().setI(xValues.length);
-				nodeStructure.getIJKDimensions().setJ(yValues.length);
-				nodeStructure.getIJKDimensions().setK(zValues.length);
+				nodeStructure.setIJKDimensions(xValues.length, yValues.length, zValues.length);
 				
 				// Should have all the info we need now to read the porosities
 				if(porosityFound){

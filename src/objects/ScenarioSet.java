@@ -454,6 +454,7 @@ public class ScenarioSet {
 		
 		
 		// if you want to run the "old" way, comment out everything below this until the matching comment
+		
 		//Find all well locations
 		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();
 		//Initialize all (i,j)s to be allowed

@@ -2,26 +2,41 @@ package utilities;
 
 public class Point3i {
 
-	private int i;
-	private int j;
-	private int k;
+	private final int i;
+	private final int j;
+	private final int k;
+	private final int hash;
 		
 	public Point3i() {
-		setI(0);
-		setJ(0);
-		setK(0);
+		this.i = 0;
+		this.j = 0;
+		this.k = 0;
+		this.hash = getHash();
 	}
 	
 	public Point3i(int i, int j, int k) {
 		this.i = i;
 		this.j = j;
 		this.k = k;
+		this.hash = getHash();
 	}
 
 	public Point3i(Point3i toCopy) {
 		this.i = toCopy.getI();
 		this.j = toCopy.getJ();
 		this.k = toCopy.getK();
+		this.hash = getHash();
+	}
+	
+	private int getHash(){
+		/*
+		int[] array = new int[3];
+		array[0] = i;
+		array[1] = j;
+		array[2] = k;
+		return java.util.Arrays.hashCode(array);
+		*/
+		return 1000000*i+1000*j+k;
 	}
 	
 	@Override
@@ -46,35 +61,19 @@ public class Point3i {
 	
 	@Override
 	public int hashCode(){
-		int[] array = new int[3];
-		array[0] = i;
-		array[1] = j;
-		array[2] = k;
-		return java.util.Arrays.hashCode(array);
+		return hash;
 	}
 	
 	public int getI() {
 		return i;
 	}
 
-	public void setI(int i) {
-		this.i = i;
-	}
-
 	public int getJ() {
 		return j;
 	}
 
-	public void setJ(int j) {
-		this.j = j;
-	}
-
 	public int getK() {
 		return k;
-	}
-
-	public void setK(int k) {
-		this.k = k;
 	}
 	
 }

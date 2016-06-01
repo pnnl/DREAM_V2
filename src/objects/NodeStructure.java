@@ -357,6 +357,10 @@ public class NodeStructure {
 		return ijkDimensions;
 	}
 
+	public void setIJKDimensions(int i, int j, int k) {
+		ijkDimensions = new Point3i(i,j,k);
+	}
+
 	/**
 	 * Returns a list of all the neighboring nodes.
 	 * 

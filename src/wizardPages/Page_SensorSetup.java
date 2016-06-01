@@ -925,6 +925,48 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 		long total = System.currentTimeMillis() - current;
 		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
+
+	private void countParetoRedundant(){	
+		long current = System.currentTimeMillis();
+		
+		HashSet<Integer> nodes = new HashSet<Integer>();
+		
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){
+			System.out.println(sensorType);
+			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
+			System.out.println(nodes.size());
+		}
+		
+		HashMap<String, ArrayList<ArrayList<Float>>> optimalSolutions = new HashMap<String, ArrayList<ArrayList<Float>>>();
+		
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){
+			System.out.println(sensorType);
+			for(Integer nodeNumber: nodes){
+				//build up the string ID and the list of ttds (for the ones that detect)
+				String scenariosFound = "";
+				ArrayList<Float> ttds = new ArrayList<Float>();
+				Float timeToDegredation = null;
+				for(Scenario scenario: data.getSet().getScenarios()){
+					for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
+						try {
+							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						if(timeToDegredation != null) break;
+					}
+					if(timeToDegredation == null) continue;
+					scenariosFound += scenario;
+					ttds.add(timeToDegredation);
+				}
+				
+				//now compare this list and see what we need to do with it!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			}
+		}
+
+		long total = System.currentTimeMillis() - current;
+		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+	}
 	
 	@Override
 	public boolean isPageCurrent() {

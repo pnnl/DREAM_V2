@@ -196,6 +196,8 @@ public class CCS9_1 extends Function {
 				Boolean triggered = null;//getHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType());
 				// We haven't tested this before
 				if(triggered == null) {
+					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
+					
 					triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}		
 

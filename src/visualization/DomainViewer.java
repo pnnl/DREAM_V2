@@ -68,7 +68,7 @@ public class DomainViewer {
 	private float xTranslate = 0.0f;
 	private float yTranslate = 0.0f;
 	private float zTranslate = 0.0f;
-	private float zoom = 0.0f;
+	private float zoom = 45f;
 
 	private DomainVisualization domainVisualization;
 
@@ -140,6 +140,14 @@ public class DomainViewer {
 			}			
 		});
 
+
+		compositeParent.addListener(SWT.MouseVerticalWheel, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				zoom-=event.count*.5;
+			}
+		});
+		
 		glcanvas.addListener(SWT.MouseDown, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
@@ -326,7 +334,7 @@ public class DomainViewer {
 		// to screen pixels, but preserving the correct aspect ratio
 
 		GLU glu = new GLU();
-		glu.gluPerspective(45, iWidth/iHeight, 0.1f, 100000.0f);
+		glu.gluPerspective(zoom, iWidth/iHeight, 0.1f, 100000.0f);
 
 		// camera position, look at position, up vector
 		glu.gluLookAt(0, -20000, 0, 0, 0, 0, 0, 0, 1);
