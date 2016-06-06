@@ -65,14 +65,16 @@ public class DomainVisualization {
 	private Slider slider_tickX;
 	private Slider slider_tickY;
 	private Slider slider_tickZ;
-	
+
 	private Text text_labelX;
 	private Text text_labelY;
 	private Text text_labelZ;
-	
+
 	private Map<String, SensorTableItem> sensorTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
-	
+
+	private boolean resetTreeRequired = false;
+
 	public DomainVisualization(Display display, ScenarioSet set) {
 		shell = new Shell(display, SWT.DIALOG_TRIM | SWT.MODELESS); 
 		shell.setText("DREAM Visualization"); 
@@ -101,7 +103,7 @@ public class DomainVisualization {
 		GridLayout gridLayout_scale = new GridLayout();
 		gridLayout_scale.numColumns = 3;
 		composite_scale.setLayout(gridLayout_scale);
-		
+
 		Label label_controls = new Label(composite_scale, SWT.NONE);
 		label_controls.setText("Controls");
 
@@ -122,7 +124,7 @@ public class DomainVisualization {
 		button_showMesh = new Button(composite_scale, SWT.CHECK);
 		button_showMesh.setText("Show mesh");
 		button_showMesh.setSelection(true);
-		
+
 		Label label_scaleY = new Label(composite_scale, SWT.NONE);
 		label_scaleY.setText("Scale Y");
 
@@ -136,7 +138,7 @@ public class DomainVisualization {
 				domainViewer.resetConfigurations();
 			}
 		});
-		
+
 		button_renderUniform = new Button(composite_scale, SWT.CHECK);
 		button_renderUniform.setText("Render uniform");
 		button_renderUniform.setSelection(true);
@@ -162,16 +164,16 @@ public class DomainVisualization {
 				domainViewer.resetConfigurations();
 			}
 		});
-		
+
 		text_labelX = new Text(composite_scale, SWT.BORDER | SWT.SINGLE);
 		text_labelX.setText("X Label                 ");	
-		
+
 		Label label_tickX = new Label(composite_scale, SWT.NONE);
 		label_tickX.setText("Ticks");
 
 		slider_tickX = new Slider(composite_scale, SWT.NONE);
 		slider_tickX.setValues(5, 1, set.getNodeStructure().getX().size(), 5, 1, 5);
-		
+
 		text_labelY = new Text(composite_scale, SWT.BORDER | SWT.SINGLE);
 		text_labelY.setText("Y Label                 ");
 
@@ -186,7 +188,7 @@ public class DomainVisualization {
 
 		Label label_tickZ = new Label(composite_scale, SWT.NONE);
 		label_tickZ.setText("Ticks");
-		
+
 		slider_tickZ = new Slider(composite_scale, SWT.NONE);
 		slider_tickZ.setValues(5, 1, set.getNodeStructure().getZ().size(), 5, 1, 5);
 
@@ -220,25 +222,64 @@ public class DomainVisualization {
 			@Override 
 			public void handleEvent(Event event) 
 			{ 
-				domainViewer.dispose();
-				shell.dispose(); 
+				event.doit = false;
+				shell.setVisible(false);
 			} 
 		}); 		
-	}	
-	
-	
+	}		
+
+	public void show() {
+		if(!shell.isVisible()) {
+			if(shell != null && !shell.isDisposed()) {
+				shell.getDisplay().syncExec(new Runnable() {
+					public void run() {
+						if(resetTreeRequired) {
+							rebuildTree();
+						}
+						if (!shell.getMinimized())
+						{
+							shell.setMinimized(true);
+						}
+						shell.setMinimized(false);
+						shell.setActive();
+						shell.setVisible(true);
+					}
+				});
+			}				
+		}
+	}
+
+	public void hide() {
+		setVisible(false);		
+	}
+
+	private void setVisible(boolean show) {
+		shell.setVisible(true);
+	}
+
+	public void dispose() {
+		if(shell != null && !shell.isDisposed()) {
+			shell.getDisplay().syncExec(new Runnable() {
+				public void run() {
+					domainViewer.dispose();
+					shell.dispose();
+				}
+			});
+		}
+	}
+
 	public String getXLabel() {
 		if(text_labelX == null)
 			return "X";
 		return text_labelX.getText();
 	}
-	
+
 	public String getYLabel() {
 		if(text_labelY == null)
 			return "Y";
 		return text_labelY.getText();
 	}
-	
+
 	public String getZLabel() {
 		if(text_labelZ == null)
 			return "Z";
@@ -252,7 +293,7 @@ public class DomainVisualization {
 		}
 		return sensors;
 	}
-	
+
 	public boolean renderConfiguration(String uuid) {
 		if(this.configurations == null)
 			return false;
@@ -270,7 +311,7 @@ public class DomainVisualization {
 		}
 		return false;
 	}
-	
+
 	public List<Sensor> getSensorsInConfiguration(String uuid) {
 		if(this.configurations == null)
 			return new ArrayList<Sensor>();
@@ -286,7 +327,7 @@ public class DomainVisualization {
 		}
 		return new ArrayList<Sensor>();
 	}
-	
+
 	public List<String> getAllConfigurationsToRender() {
 		List<String> configurations = new ArrayList<String>();
 		if(this.configurations == null)
@@ -300,7 +341,7 @@ public class DomainVisualization {
 		}
 		return configurations;		
 	}
-	
+
 	public boolean renderSensor(String sensor) {
 		if(sensorTableItems.containsKey(sensor))
 			return sensorTableItems.get(sensor).getTableItem().getChecked();
@@ -561,69 +602,73 @@ public class DomainVisualization {
 
 		return table;
 	}
-	
-	public void addConfiguration(Configuration configuration) {
-		if(configurations == null)
-			configurations = new TreeMap<Float, TreeDetectingPercentItem>(Collections.reverseOrder());
-	
-		//float scenariosDetected = configuration.countScenariosDetected();
-		//float totalScenarios = set.getScenarios().size();
-		float globallyWeightedPercentage = 0;
-		//float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
-		//float costOfConfig = set.costOfConfiguration(configuration);
-		//float volumeDegraded = SensorSetting.getVolumeDegraded(configuration.getTimesToDetection(), set.getScenarios().size());
-		float totalWeightsForDetectedScenarios = 0.0f;
-		float weightedAverageTTD = 0.0f;
 
-		for(Scenario scenario: set.getScenarios()) {
-			if(configuration.getTimesToDetection().containsKey(scenario)) {	
-				totalWeightsForDetectedScenarios += set.getScenarioWeights().get(scenario);
-			}
-		}	
-		
-		// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
-		// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
-		for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
-			float scenarioWeight = set.getScenarioWeights().get(detectingScenario);
-			weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
-			globallyWeightedPercentage += set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
-		}
-		
-		// weighted or not?
-		float ttd = weightedAverageTTD; // otherwise [unweightedAverageTTD]
-		float percent = globallyWeightedPercentage; // otherwise [globallyWeightedPercentage]
-			
-		if(!configurations.containsKey(percent)) {
-			configurations.put(percent, new TreeDetectingPercentItem(percent));
-		}		
-		if(!configurations.get(percent).children.containsKey(ttd)) {
-			configurations.get(percent).children.put(ttd, new TreeTTDItem(ttd));
-		}
-		
-		final TreeConfigItem treeItem = new TreeConfigItem(configuration);
-		configurations.get(percent).children.get(ttd).addChild(treeItem);
-			
+	public void addConfiguration(final Configuration configuration) {
 		if(shell != null && !shell.isDisposed()) {
 			shell.getDisplay().syncExec(new Runnable() {
 				public void run() {
-					if (shell != null && !shell.isDisposed()) {
+					boolean rebuildTree = shell.isVisible();
+
+					if(configurations == null)
+						configurations = new TreeMap<Float, TreeDetectingPercentItem>(Collections.reverseOrder());
+
+					//float scenariosDetected = configuration.countScenariosDetected();
+					//float totalScenarios = set.getScenarios().size();
+					float globallyWeightedPercentage = 0;
+					//float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
+					//float costOfConfig = set.costOfConfiguration(configuration);
+					//float volumeDegraded = SensorSetting.getVolumeDegraded(configuration.getTimesToDetection(), set.getScenarios().size());
+					float totalWeightsForDetectedScenarios = 0.0f;
+					float weightedAverageTTD = 0.0f;
+
+					for(Scenario scenario: set.getScenarios()) {
+						if(configuration.getTimesToDetection().containsKey(scenario)) {	
+							totalWeightsForDetectedScenarios += set.getScenarioWeights().get(scenario);
+						}
+					}	
+
+					// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+					// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
+					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+						float scenarioWeight = set.getScenarioWeights().get(detectingScenario);
+						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
+						globallyWeightedPercentage += set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
+					}
+
+					// weighted or not?
+					float ttd = weightedAverageTTD; // otherwise [unweightedAverageTTD]
+					float percent = globallyWeightedPercentage; // otherwise [globallyWeightedPercentage]
+
+					if(!configurations.containsKey(percent)) {
+						configurations.put(percent, new TreeDetectingPercentItem(percent));
+					}		
+					if(!configurations.get(percent).children.containsKey(ttd)) {
+						configurations.get(percent).children.put(ttd, new TreeTTDItem(ttd));
+					}
+
+					TreeConfigItem treeItem = new TreeConfigItem(configuration);
+					configurations.get(percent).children.get(ttd).addChild(treeItem);
+
+					if(rebuildTree) {
 						rebuildTree();
-						treeItem.getTreeItem(null).setChecked(true);
+						treeItem.getTreeItem(null).setChecked(true);							
+					} else {
+						resetTreeRequired = true;
+						System.out.println("Do not rebuild tree");
 					}
 				}
 			});
 		}
-		
-	}
-	
+	}	
+
 	public void clearConfiguration() {
 		if(configurations != null) {
 			configurations.clear();
 		}			
 		this.tree_configurationTree.clearAll(true);
 	}
-	
-	public void rebuildTree() {
+
+	private void rebuildTree() {		
 		if(configurations == null)
 			return;
 		for(TreeDetectingPercentItem percent: configurations.values())
@@ -646,7 +691,7 @@ public class DomainVisualization {
 		tree.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-			//	domainViewer.resetConfigurations();
+				//	domainViewer.resetConfigurations();
 				if(e.detail != 32)
 					return;
 				for(TreeDetectingPercentItem percent: configurations.values()) {
@@ -679,12 +724,12 @@ public class DomainVisualization {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 			}
-			
+
 		});
 		tree.pack();
 		return tree;
 	}
-	
+
 	private class TreeDetectingPercentItem {
 		private float detectingScenarios;
 		private TreeItem treeItem;
@@ -731,9 +776,9 @@ public class DomainVisualization {
 			children.add(child);
 		}
 	}
-	
+
 	private class TreeConfigItem {
-	
+
 		private String uuid;
 		private String name;
 		private TreeItem treeItem;
@@ -747,15 +792,15 @@ public class DomainVisualization {
 			this.name = name;
 			this.uuid = UUID.randomUUID().toString();
 		}
-		
+
 		private Configuration getConfiguration() {
 			return configuration;
 		}
-		
+
 		public String getUUID() {
 			return uuid;
 		}
-		
+
 		public TreeItem getTreeItem(TreeItem parent) {
 			if(parent != null && treeItem == null) {
 				treeItem = new TreeItem(parent, SWT.NONE);
@@ -767,12 +812,12 @@ public class DomainVisualization {
 			treeItem = null;
 		}
 	}
-	
+
 	private class SensorTableItem {
 
 		private float transparency = 0;
 		private Color color;
-		
+
 		private TableItem tableItem;
 
 		public SensorTableItem(Table table, int rowHeight, String sensorType) {
@@ -787,55 +832,55 @@ public class DomainVisualization {
 				{0.0f, 1.0f, 0.0f, 0.03f}, 
 				{0.0f, 1.0f, 1.0f, 0.03f}, 
 				{1.0f, 1.0f, 0.8f, 0.03f}};
-			float[] sensorColor = colors[itemCount%5];
-			color = new Color(shell.getDisplay(), (int)sensorColor[0]*255, (int)sensorColor[1]*255, (int)sensorColor[2]*255);
-			tableItem.setBackground(1, color);
-			TableEditor editor = new TableEditor(table);
-			Button button = new Button(table, SWT.PUSH | SWT.FLAT | SWT.CENTER);	
-			button.setText("Select...");			
-			button.computeSize(SWT.DEFAULT, rowHeight);
-			editor.grabHorizontal = true;
-			editor.grabVertical = true;
-			editor.verticalAlignment = SWT.BOTTOM;
-			editor.minimumHeight = rowHeight;
-			editor.setEditor(button, tableItem, 3);
-			final Slider slider = new Slider(table, SWT.NONE);
-			slider.setMaximum(255);
-			this.transparency = (60.0f/255.0f);
-			slider.setSelection(60);
-			slider.computeSize(SWT.DEFAULT, rowHeight);
-			slider.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					transparency = (slider.getSelection()/255.0f);
-					domainViewer.reset();
-				}
-			});
-			TableEditor editor2 = new TableEditor(table);
-			editor2.grabHorizontal = true;
-			editor2.grabVertical = true;
-			editor2.verticalAlignment = SWT.BOTTOM;
-			editor2.minimumHeight = rowHeight;
-			editor2.setEditor(slider, tableItem, 2);	
-			button.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent event) {
-					ColorDialog dialog = new ColorDialog(shell);
-					RGB rgb = dialog.open();
-					if (rgb != null) {
-						color = new Color(shell.getDisplay(), rgb);
-						tableItem.setBackground(1, color);
-						// Color change requires reset
+				float[] sensorColor = colors[itemCount%5];
+				color = new Color(shell.getDisplay(), (int)sensorColor[0]*255, (int)sensorColor[1]*255, (int)sensorColor[2]*255);
+				tableItem.setBackground(1, color);
+				TableEditor editor = new TableEditor(table);
+				Button button = new Button(table, SWT.PUSH | SWT.FLAT | SWT.CENTER);	
+				button.setText("Select...");			
+				button.computeSize(SWT.DEFAULT, rowHeight);
+				editor.grabHorizontal = true;
+				editor.grabVertical = true;
+				editor.verticalAlignment = SWT.BOTTOM;
+				editor.minimumHeight = rowHeight;
+				editor.setEditor(button, tableItem, 3);
+				final Slider slider = new Slider(table, SWT.NONE);
+				slider.setMaximum(255);
+				this.transparency = (60.0f/255.0f);
+				slider.setSelection(60);
+				slider.computeSize(SWT.DEFAULT, rowHeight);
+				slider.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						transparency = (slider.getSelection()/255.0f);
 						domainViewer.reset();
-						domainViewer.resetConfigurations();						
 					}
-				}
-			});   
+				});
+				TableEditor editor2 = new TableEditor(table);
+				editor2.grabHorizontal = true;
+				editor2.grabVertical = true;
+				editor2.verticalAlignment = SWT.BOTTOM;
+				editor2.minimumHeight = rowHeight;
+				editor2.setEditor(slider, tableItem, 2);	
+				button.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent event) {
+						ColorDialog dialog = new ColorDialog(shell);
+						RGB rgb = dialog.open();
+						if (rgb != null) {
+							color = new Color(shell.getDisplay(), rgb);
+							tableItem.setBackground(1, color);
+							// Color change requires reset
+							domainViewer.reset();
+							domainViewer.resetConfigurations();						
+						}
+					}
+				});   
 		}
 
 		public float getTransparency() {
 			return transparency;
 		}
-		
+
 		public TableItem getTableItem() {
 			return tableItem;
 		}
@@ -848,5 +893,6 @@ public class DomainVisualization {
 	public static void main(String[] args) {
 		new DomainVisualization(new Display(), null);
 	}
+
 
 }

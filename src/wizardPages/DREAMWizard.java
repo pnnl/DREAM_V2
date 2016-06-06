@@ -2,27 +2,19 @@ package wizardPages;
 
 import hdf5Tool.FileBrowser;
 
-import java.awt.AWTException;
 import java.awt.Color;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
-import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.dialogs.DialogTray;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -39,19 +31,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tray;
-import org.eclipse.swt.widgets.TrayItem;
-
-import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Point3f;
 import utilities.Constants.ModelOption;
-import visualization.DomainViewer;
 import visualization.DomainVisualization;
-import visualization.MultiDomainViewer;
 import wizardPages.Page_SensorSetup.SensorData;
 import functions.CCS9_1;
 import functions.Function;
@@ -60,13 +45,12 @@ import functions.MutationFunction.MUTATE;
 public class DREAMWizard extends Wizard {
 
 	private STORMData data;
-	private MultiDomainViewer domainViewer;
-	private DomainVisualization newDomainViewer;
+	private DomainVisualization domainViewer;
 	private WizardDialog dialog;
 
 	public static Button convertDataButton;
 	public static Button visLauncher;
-	
+
 	public DREAMWizard() {
 		super();
 		setWindowTitle(null);
@@ -82,9 +66,40 @@ public class DREAMWizard extends Wizard {
 		this.dialog = dialog;		
 	}
 
-	public void linkViewer(MultiDomainViewer domainViewer, DomainVisualization newDomainViewer2) {
-		this.domainViewer = domainViewer;
-		this.newDomainViewer = newDomainViewer2;
+	public void createViewer() {
+		closeViewer(); // Close the old viewer
+		try {
+			// Create a new viewer, this crashes sometimes when it is first called
+			this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());			
+		} catch (Exception e) {
+			try {
+				Thread.sleep(1000);
+				this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());	
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+	
+	public boolean viewerExists() {
+		return this.domainViewer != null;
+	}
+	
+	public void closeViewer() {
+		if(this.domainViewer != null) {
+			this.domainViewer.dispose();
+			this.domainViewer = null;
+		}
+	}
+	
+	public void hideViewer() {
+		if(this.domainViewer != null)
+			this.domainViewer.hide();
+	}
+	
+	public void showViewer() {
+		if(this.domainViewer != null) 
+			this.domainViewer.show();
 	}
 
 	@Override
@@ -132,13 +147,13 @@ public class DREAMWizard extends Wizard {
 	public boolean performFinish() {
 		return true;
 	}
-	
-	
+
+
 	public static void main(String[] args) {
 
 		try {
-//			UIManager.setLookAndFeel(
-//					UIManager.getCrossPlatformLookAndFeelClassName());
+			//			UIManager.setLookAndFeel(
+			//					UIManager.getCrossPlatformLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} 
@@ -163,14 +178,14 @@ public class DREAMWizard extends Wizard {
 			{
 				setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.MODELESS | SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.ICON);
 			}
-			
+
 			@Override
 			protected void finishPressed(){
 				//On a mac, this was being "pressed" when enter was hit. This way it does nothing and does not exit.
 			}
-			
-			
-			
+
+
+
 			@Override
 			protected void createButtonsForButtonBar(Composite parent) {		
 
@@ -201,7 +216,7 @@ public class DREAMWizard extends Wizard {
 				{ 
 					@Override 
 					public void widgetSelected(SelectionEvent e) { 
-						wizard.launchVisWindow();
+						wizard.launchVisWindow(false);
 					} 
 
 					@Override 
@@ -226,27 +241,18 @@ public class DREAMWizard extends Wizard {
 		wizardDialog.open();
 	}
 
-	public void launchVisWindow() {
-		System.out.println("Main Shell handling Button press, about to create child Shell");
-		try {
-	//	MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
-		DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
-		linkViewer(domainViewer, newDomainViewer);
-		} catch (Exception e) {
-			try {
-				Thread.sleep(1000);
-				
-				DomainVisualization newDomainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());
-		//		MultiDomainViewer domainViewer = new MultiDomainViewer(Display.getCurrent(), getScenarioSet()); 
-				linkViewer(domainViewer, newDomainViewer);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
+	public void launchVisWindow(boolean reset) {
+		// If we don't want to reset the vis window and 
+		if(!reset && viewerExists())
+		{
+			showViewer();
+			return;
 		}
-	}
+		// Otherwise create a new one, this will close the old one of there was one open previously
+		createViewer();
 
+	}
+	
 	public ScenarioSet getScenarioSet() {
 		return data.getScenarioSet();
 	}
@@ -372,6 +378,8 @@ public class DREAMWizard extends Wizard {
 									if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
 										monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
 										set.getSensorSettings(sensorType).getValidNodes(monitor); // This should re-query for the valid nodes
+										// Clear the vis window
+										DREAMWizard.this.closeViewer();
 									}
 									monitor.worked(1);
 								} else {
@@ -478,9 +486,9 @@ public class DREAMWizard extends Wizard {
 
 		public void run(final int runs, final boolean showPlots) throws Exception {		
 			if(showPlots){
-				wizard.launchVisWindow();	
+				// Resets the vis window
+				wizard.launchVisWindow(true);	
 				runner.setDomainViewer(wizard.domainViewer);
-				runner.setNewDomainViewer(wizard.newDomainViewer);
 			}
 			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
@@ -502,10 +510,10 @@ public class DREAMWizard extends Wizard {
 			return runner.objective(configuration, set, runThreaded);
 		}
 
-		public void randomEnumeration(final int max) throws Exception {			
-			wizard.launchVisWindow();
+		public void randomEnumeration(final int max) throws Exception {		
+			// Resets the vis window	
+			wizard.launchVisWindow(true);
 			runner.setDomainViewer(wizard.domainViewer);
-			runner.setNewDomainViewer(wizard.newDomainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -517,9 +525,9 @@ public class DREAMWizard extends Wizard {
 		}
 
 		public void runEnumeration() throws Exception {
-			wizard.launchVisWindow();
+			// Resets the vis window
+			wizard.launchVisWindow(true);
 			runner.setDomainViewer(wizard.domainViewer);
-			runner.setNewDomainViewer(wizard.newDomainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

@@ -249,8 +249,11 @@ public class SensorSetting {
 		
 		this.isReady = true;
 
-		if(changeOccured)
+		if(changeOccured) {
+			// Clear the vis window
 			this.nodesReady = false; // We will need to re-query the database
+			
+		}
 
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
 	}

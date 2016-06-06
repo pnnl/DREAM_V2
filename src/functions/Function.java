@@ -19,7 +19,6 @@ import utilities.Constants;
 import utilities.Constants.ModelOption;
 import visualization.DomainViewer;
 import visualization.DomainVisualization;
-import visualization.MultiDomainViewer;
 
 /**
  * Any new functions should extend this class, that will allow pluggable pieces.
@@ -41,8 +40,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	protected volatile Map<Scenario, Map<Integer, Map<Float, Map<String, Boolean>>>> history;
 
 	private IProgressMonitor monitor; // So we can update the status
-	private MultiDomainViewer viewer; // Graphical representation of the run
-	private DomainVisualization newViewer; // Graphical representation of the run
+	private DomainVisualization viewer; // Graphical representation of the run
 
 	int counter = 0;
 	
@@ -170,10 +168,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 		
 		if(viewer != null)
-			viewer.assignConfigurations(initialConfiguration, newConfiguration, bestConfiguration, currentConfiguration);
-
-		if(newViewer != null)
-			newViewer.addConfiguration(currentConfiguration);
+			viewer.addConfiguration(currentConfiguration);
 		
 		// Apply first mutation
 		mutate(newConfiguration, set);
@@ -214,14 +209,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			currentIteration = iteration;
 			if(monitor != null)
 				monitor.subTask("iteration " + iteration);
-			
-			if(viewer != null) {
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.BEST).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.CURRENT).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.INITIAL).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.NEW).triggerDisplayThread();
-			}
-
+		
 			float calculatedValue;
 			float randomValue;
 			
@@ -327,15 +315,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 			
-			if(newViewer != null)
-				newViewer.addConfiguration(currentConfiguration);
-
-			if(viewer != null) {
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.BEST).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.CURRENT).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.INITIAL).triggerDisplayThread();
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.NEW).triggerDisplayThread();
-			}
+			if(viewer != null)
+				viewer.addConfiguration(currentConfiguration);
 
 			if(monitor != null)
 				monitor.worked(1);
@@ -348,13 +329,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 		Constants.log(Level.INFO, "Function: done running", null);
 		Constants.log(Level.CONFIG, "Function: best configuration", bestConfiguration);		
-
-		if(viewer != null) {
-			viewer.displayTools.get(MultiDomainViewer.SensorConfigType.BEST).triggerDisplayThread();
-			viewer.displayTools.get(MultiDomainViewer.SensorConfigType.CURRENT).triggerDisplayThread();
-			viewer.displayTools.get(MultiDomainViewer.SensorConfigType.INITIAL).triggerDisplayThread();
-			viewer.displayTools.get(MultiDomainViewer.SensorConfigType.NEW).triggerDisplayThread();
-		}
 		
 		System.out.println(Constants.timer);
 
@@ -419,10 +393,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			bruteForceEnumCount++;
 			if(monitor != null)
 				monitor.worked(1);
-			if(viewer != null) {
-				viewer.setConfiguration(configuration);
-				viewer.displayTools.get(MultiDomainViewer.SensorConfigType.INITIAL).triggerDisplayThread();
-			}
 			if(monitor != null)
 				monitor.subTask("Iteration " + bruteForceEnumCount);
 			System.out.println("Iteration " + bruteForceEnumCount);
@@ -565,12 +535,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		ResultPrinter.resultsDirectory = resultsDirectory;
 	}
 
-	public void setDomainViewer(MultiDomainViewer viewer) {
-		this.viewer = viewer;
-	}
-
-	public void setNewDomainViewer(DomainVisualization newDomainViewer) {
-		this.newViewer = newDomainViewer;
+	public void setDomainViewer(DomainVisualization domainViewer) {
+		this.viewer = domainViewer;
 	}
 	
 	public void setMonitor(IProgressMonitor monitor) {
