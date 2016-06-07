@@ -147,7 +147,7 @@ public class SensorSetting {
 		volumeDegradedByYear = volumeDegradedByYear2;
 	}
 	
-	public static float getVolumeDegraded(Map<Scenario, Float> ttdMap, int numScenarios){ //TODO: might want to make this take weighted averages.
+	public static float getVolumeDegradedByTTDs(Map<Scenario, Float> ttdMap, int numScenarios){ //TODO: might want to make this take weighted averages.
 		float volume = 0;
 		//Note that this only loops over scenarios in which some volume of aquifer is degraded
 		for(Scenario scenario: volumeDegradedByYear.keySet()){
@@ -166,6 +166,43 @@ public class SensorSetting {
 			}
 		}
 		return volume/numScenarios;
+	}
+	
+	public static HashMap<Float,Float> getAverageVolumeDegradedAtTimesteps(){
+		HashMap<Float,Float> averageVADMap = new HashMap<Float,Float>();
+		int numScenarios = volumeDegradedByYear.keySet().size();
+		for(Float year: years){
+			float totalVAD = 0;
+			for(Scenario scenario: volumeDegradedByYear.keySet()){
+				totalVAD += volumeDegradedByYear.get(scenario).get(year);
+			}
+			averageVADMap.put(year, totalVAD/numScenarios);
+		}
+		return averageVADMap;
+	}
+	
+	public static HashMap<Float,Float> getMaxVolumeDegradedAtTimesteps(){
+		HashMap<Float,Float> maxVADMap = new HashMap<Float,Float>();
+		for(Float year: years){
+			float maxVAD = 0;
+			for(Scenario scenario: volumeDegradedByYear.keySet()){
+				maxVAD = Math.max(maxVAD, volumeDegradedByYear.get(scenario).get(year));
+			}
+			maxVADMap.put(year, maxVAD);
+		}
+		return maxVADMap;
+	}
+	
+	public static HashMap<Float,Float> getMinVolumeDegradedAtTimesteps(){
+		HashMap<Float,Float> minVADMap = new HashMap<Float,Float>();
+		for(Float year: years){
+			float minVAD = Float.MAX_VALUE;
+			for(Scenario scenario: volumeDegradedByYear.keySet()){
+				minVAD = Math.min(minVAD, volumeDegradedByYear.get(scenario).get(year));
+			}
+			minVADMap.put(year, minVAD);
+		}
+		return minVADMap;
 	}
 	
 	@Override

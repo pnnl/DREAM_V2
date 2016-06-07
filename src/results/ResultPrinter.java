@@ -165,7 +165,7 @@ public class ResultPrinter {
 				float globallyWeightedPercentage = 0;
 				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
 				float costOfConfig = results.set.costOfConfiguration(configuration);
-				float volumeDegraded = SensorSetting.getVolumeDegraded(configuration.getTimesToDetection(), results.set.getScenarios().size());
+				float volumeDegraded = SensorSetting.getVolumeDegradedByTTDs(configuration.getTimesToDetection(), results.set.getScenarios().size());
 				float totalWeightsForDetectedScenarios = 0.0f;
 				float weightedAverageTTD = 0.0f;
 

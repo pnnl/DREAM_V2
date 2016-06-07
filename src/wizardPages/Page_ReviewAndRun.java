@@ -4,6 +4,8 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -222,8 +224,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					justThisOne.add(sensorType);
 					sensorsToTest.add(justThisOne);
 				}
-				// Run once with all sensor types
-				sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
+				// Run once with all sensor types - if there is more than one such type
+				if(sensorsToTest.size() > 1) sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
 				
 				float percentDetectable = 0;
 				
@@ -251,7 +253,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 						totalTimeToDetection += timeToDetection;
 						scenariosDetected.add(scenario.getScenario());
 						ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
-						if(sensors.size() > 1){
+						if(sensorsToTest.size() == 1 || sensors.size() > 1){
 							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
 						}
 					}
@@ -315,9 +317,55 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					e.printStackTrace();
 				}
 			}	       
-		});		
+		});	
 		
-		Label spacer = new Label(container, SWT.NONE);
+		Button vadButton = new Button(container, SWT.BALLOON);
+		vadButton.setSelection(true);
+		vadButton.setText("VAD");
+		vadButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				
+				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
+				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
+				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
+				
+				StringBuilder text = new StringBuilder();
+				
+				// Heading
+				text.append("Timestep,Average VAD over all scenarios,Minimum VAD,Maximum VAD");
+				
+				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
+				Collections.sort(years);
+				
+				for(Float time: years){
+					text.append("\n");
+					text.append(time);
+					text.append(",");
+					text.append(averages.get(time));
+					text.append(",");
+					text.append(minimums.get(time));
+					text.append(",");
+					text.append(maximums.get(time));
+				}
+								
+				try {
+					File outFolder = new File(outputFolder.getText());
+					if(!outFolder.exists())
+						outFolder.mkdirs();
+					File csvOutput = new File(new File(outputFolder.getText()), "VAD.csv");
+					if(!csvOutput.exists())
+						csvOutput.createNewFile();
+					FileUtils.writeStringToFile(csvOutput, text.toString());
+					Desktop.getDesktop().open(csvOutput);
+				} catch (IOException e) {		
+					JOptionPane.showMessageDialog(null, "Could not write to VAD.csv, make sure the file is not currently open");
+					e.printStackTrace();
+				}
+			}	       
+		});
+		
+		//Label spacer = new Label(container, SWT.NONE);
 
 
 		Button button = new Button(container, SWT.BALLOON);
@@ -682,7 +730,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								configurationCosts.add(cost);
 								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
 								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
-								averageVolumeDegraded.add(SensorSetting.getVolumeDegraded(config.getTimesToDetection(), data.getSet().getScenarios().size()));
+								averageVolumeDegraded.add(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
 								configs.add(config);
 							}
 							
