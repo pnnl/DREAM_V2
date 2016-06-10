@@ -654,7 +654,7 @@ public class DomainVisualization {
 						treeItem.getTreeItem(null).setChecked(true);							
 					} else {
 						resetTreeRequired = true;
-						System.out.println("Do not rebuild tree");
+						//System.out.println("Do not rebuild tree");
 					}
 				}
 			});
@@ -720,12 +720,14 @@ public class DomainVisualization {
 				} 
 			}
 
+			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 			}
 
 		});
+		
 		tree.pack();
 		return tree;
 	}

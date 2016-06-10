@@ -66,7 +66,7 @@ public class DomainViewer {
 	private float xTranslate = 0.0f;
 	private float yTranslate = 0.0f;
 	private float zTranslate = 0.0f;
-	private float zoom = 45f;
+	private float zoom = 1f;
 
 	private DomainVisualization domainVisualization;
 
@@ -88,6 +88,10 @@ public class DomainViewer {
 		this.display = display;
 		this.domainVisualization = domainVisualization;
 
+		Point3f temp = domainVisualization.getRenderDistance();
+		float maxDistance = Math.max(temp.getX(), Math.max(temp.getY(), temp.getZ()));
+		this.zoom = 9000 / maxDistance;
+		
 		GLData gldata = new GLData();
 		gldata.doubleBuffer = true;
 		faces = new HashMap<String, TreeMap<Float, List<Face>>>();
@@ -105,6 +109,14 @@ public class DomainViewer {
 		glcanvas.setCurrent();
 		glcontext = GLDrawableFactory.getFactory( GLProfile.get( GLProfile.GL2 ) ).createExternalGLContext();
 
+		compositeParent.addListener(SWT.MouseVerticalWheel, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				zoom-=event.count*0.01;
+				System.out.println(zoom);
+			}
+		});
+		
 		glcanvas.addListener( SWT.Resize, new Listener() {
 			public void handleEvent( Event event ) {
 				glcanvas.setCurrent();
@@ -137,18 +149,11 @@ public class DomainViewer {
 				pt = null;
 			}			
 		});
-
-
-		compositeParent.addListener(SWT.MouseVerticalWheel, new Listener() {
-			@Override
-			public void handleEvent(Event event) {
-				zoom-=event.count*.5;
-			}
-		});
 		
 		glcanvas.addListener(SWT.MouseDown, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
+				glcanvas.forceFocus();
 				pt = new Point(event.x, event.y);
 			}
 		});
@@ -252,26 +257,29 @@ public class DomainViewer {
 				gl2.glColor3f(0, 0, 0);
 
 				// TODO: Scale these values based on domain size
+				Point3f axisLengths = domainVisualization.getRenderDistance();
+				float maxLength = Math.max(axisLengths.getX(), Math.max(axisLengths.getY(), axisLengths.getZ()));
+				
 				for(int i = 0; i < xs.size(); i += domainVisualization.getTickX()) {
-					gl2.glRasterPos3f(xs.get(i), -200, -200);
+					gl2.glRasterPos3f(xs.get(i), -maxLength/30, -maxLength/30);
 					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(xs.get(i)));
 				}
 				for(int i = 0; i < ys.size(); i += domainVisualization.getTickY()) {
-					gl2.glRasterPos3f(xs.get(xs.size()-1)+200, ys.get(i), -200);
+					gl2.glRasterPos3f(xs.get(xs.size()-1)+maxLength/30, ys.get(i), -maxLength/30);
 					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(ys.get(i)));
 				}
 				for(int i = domainVisualization.getTickZ(); i < zs.size(); i += domainVisualization.getTickZ()) {
-					gl2.glRasterPos3f(-800, -200, zs.get(i));
+					gl2.glRasterPos3f(-maxLength/20, -maxLength/20, zs.get(i));
 					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(zs.get(i)));
 				}
 				// User defined labels: TODO: offset with width
-				gl2.glRasterPos3f(xs.get(xs.size()-1)/2, -400, -400);
+				gl2.glRasterPos3f(xs.get(xs.size()-1)/2, -maxLength/10, -maxLength/10);
 				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getXLabel());
 
-				gl2.glRasterPos3f(xs.get(xs.size()-1)+1200, ys.get(ys.size()-1)/2, -200);
+				gl2.glRasterPos3f(xs.get(xs.size()-1)+maxLength/10, ys.get(ys.size()-1)/2, -maxLength/10);
 				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getYLabel());
 
-				gl2.glRasterPos3f(-1600, -200, zs.get(zs.size()-1)/2);
+				gl2.glRasterPos3f(-maxLength/10, -maxLength/10, zs.get(zs.size()-1)/2);
 				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getZLabel());
 
 				gl2.glPopMatrix();
@@ -298,6 +306,35 @@ public class DomainViewer {
 			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numFaces);
 			gl2.glDepthMask(true); // Already sorted, don't override
 		
+			//Luke's floating axis thing
+			// Draw axis
+			gl2.glPushMatrix();
+			gl2.glLoadIdentity();
+			gl2.glTranslatef(-6000.0f, 0.0f, 6000f);		
+			gl2.glRotatef(zPlaneRotation, 0.0f, 0.0f, 1.0f); // z plane
+			gl2.glRotatef(xPlaneRotation, 1.0f, 0.0f, 0.0f); // y plane
+			gl2.glLineWidth(2);
+			gl2.glColor3f(1.0f, 0.0f, 0.0f);
+			gl2.glBegin(GL.GL_LINES);
+			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
+			gl2.glVertex3f(2000.0f, 0.0f, 0.0f);
+			gl2.glEnd();
+			gl2.glColor3f(0.0f, 1.0f, 0.0f);
+			gl2.glBegin(GL.GL_LINES);
+			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
+			gl2.glVertex3f(0.0f, 2000.0f, 0.0f);
+			gl2.glEnd();
+			gl2.glColor3f(0.0f, 0.0f, 1.0f);
+			gl2.glBegin(GL.GL_LINES);
+			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
+			gl2.glVertex3f(0.0f, 0.0f, 2000.0f);
+			gl2.glEnd();
+			//grab the rotation
+			// Reset
+			gl2.glLineWidth(1);
+			gl2.glPopMatrix();
+			
+			
 			// disable arrays once we're done
 			gl2.glBindBuffer( GL.GL_ARRAY_BUFFER, 0 );
 			gl2.glDisableClientState( GL2.GL_VERTEX_ARRAY );
@@ -332,21 +369,24 @@ public class DomainViewer {
 		// to screen pixels, but preserving the correct aspect ratio
 
 		GLU glu = new GLU();
-		glu.gluPerspective(zoom, iWidth/iHeight, 0.1f, 100000.0f);
-
+		glu.gluPerspective(45f, iWidth/iHeight, 0.1f, 100000.0f);
+		
 		// camera position, look at position, up vector
 		glu.gluLookAt(0, -20000, 0, 0, 0, 0, 0, 0, 1);
+
 
 		gl2.glMatrixMode( GLMatrixFunc.GL_MODELVIEW );
 		gl2.glViewport( 0, 0, iWidth, iHeight );
 				
 		gl2.glLoadIdentity();	
 
+		gl2.glScalef(zoom, zoom, zoom);
+		
 		gl2.glRotatef(zPlaneRotation, 0.0f, 0.0f, 1.0f); // z plane
 		gl2.glRotatef(xPlaneRotation, 1.0f, 0.0f, 0.0f); // y plane
 		
 		gl2.glTranslatef( xTranslate, yTranslate, zTranslate);
-
+		
 		float[] matModelView = new float[16];
 		gl2.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, matModelView, 0);
 //		System.out.println(Arrays.toString(matModelView));
