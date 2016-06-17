@@ -92,7 +92,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	private Button showPlots;
 	
 	private boolean isCurrentPage = false;
-
+	
 	protected Page_ReviewAndRun(STORMData data) {
 		super("Review");
 		//	setDescription("Review");

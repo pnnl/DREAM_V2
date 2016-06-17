@@ -113,7 +113,6 @@ public class DomainViewer {
 			@Override
 			public void handleEvent(Event event) {
 				zoom-=event.count*0.01;
-				System.out.println(zoom);
 			}
 		});
 		
@@ -190,11 +189,13 @@ public class DomainViewer {
 		gl.glLightfv( GL2.GL_LIGHT0, GL2.GL_POSITION, new float[]{0, -20000, 20000, 1.0f}, 0);
 
 		glcontext.release();
-
+		
 		// Repaint loop
 		DomainViewer.this.display.asyncExec(new Runnable() {
 			public void run() {
-				draw();
+				if(glcanvas.isVisible() ){
+					draw();
+				}
 				DomainViewer.this.display.asyncExec(this);
 			}
 		});
@@ -207,6 +208,15 @@ public class DomainViewer {
 	public void resetConfigurations() {
 		this.resetConfigurations = true;
 	}
+	
+	public void show(){
+		glcanvas.setVisible(true);
+	}
+	
+	public void hide(){
+		glcanvas.setVisible(false);
+	}
+
 
 	private void draw() {
 		if(glcanvas != null && !glcanvas.isDisposed()) {
@@ -290,7 +300,7 @@ public class DomainViewer {
 			int numMeshVertices = lines.size()*2;
 			int numFaces = 0;
 			for(String key: faces.keySet()) {
-				if(domainVisualization.renderSensor(key)) {
+				if(domainVisualization.renderCloud(key)) {
 					for(Float distance: faces.get(key).keySet()) {
 						numFaces += faces.get(key).get(distance).size();
 					}
@@ -308,26 +318,34 @@ public class DomainViewer {
 		
 			//Luke's floating axis thing
 			// Draw axis
+			GLUT glut = new GLUT();
 			gl2.glPushMatrix();
 			gl2.glLoadIdentity();
-			gl2.glTranslatef(-6000.0f, 0.0f, 6000f);		
+			gl2.glTranslatef(-6000.0f, 0.0f, -6000f);		
 			gl2.glRotatef(zPlaneRotation, 0.0f, 0.0f, 1.0f); // z plane
 			gl2.glRotatef(xPlaneRotation, 1.0f, 0.0f, 0.0f); // y plane
 			gl2.glLineWidth(2);
 			gl2.glColor3f(1.0f, 0.0f, 0.0f);
+			gl2.glRasterPos3f(2000f, 0f, 0f);
+			glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, "X");
 			gl2.glBegin(GL.GL_LINES);
 			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
 			gl2.glVertex3f(2000.0f, 0.0f, 0.0f);
 			gl2.glEnd();
 			gl2.glColor3f(0.0f, 1.0f, 0.0f);
+			gl2.glRasterPos3f(0f, 2000f, 0f);
+			glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, "Y");
 			gl2.glBegin(GL.GL_LINES);
 			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
 			gl2.glVertex3f(0.0f, 2000.0f, 0.0f);
 			gl2.glEnd();
 			gl2.glColor3f(0.0f, 0.0f, 1.0f);
+			gl2.glRasterPos3f(0f, 0f, 2000f);
+			glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, "Z");
 			gl2.glBegin(GL.GL_LINES);
 			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
 			gl2.glVertex3f(0.0f, 0.0f, 2000.0f);
+			gl2.glRasterPos3f(0f,0f,0f);
 			gl2.glEnd();
 			//grab the rotation
 			// Reset
@@ -401,7 +419,7 @@ public class DomainViewer {
 		Map<Float, List<Face>> facesToDraw = new TreeMap<Float, List<Face>>(Collections.reverseOrder());
 		Map<Float, List<Face>> configurationsToDraw = new TreeMap<Float, List<Face>>(Collections.reverseOrder());
 		for(String key: faces.keySet()) {
-			if(domainVisualization.renderSensor(key)) {
+			if(domainVisualization.renderCloud(key)) {
 				for(Float distance: faces.get(key).keySet()) {
 					numFaces += faces.get(key).get(distance).size();
 					if(!facesToDraw.containsKey(distance)) {
@@ -600,9 +618,9 @@ public class DomainViewer {
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
 		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
-		for(String sensor: domainVisualization.getAllSensorsToRender()) {
-			Point3i color = domainVisualization.getColorOfSensor(sensor);
-			float transparency = domainVisualization.getTransparency(sensor);
+		for(String sensor: domainVisualization.getAllCloudsToRender()) {
+			Point3i color = domainVisualization.getColorOfCloud(sensor);
+			float transparency = domainVisualization.getCloudTransparency(sensor);
 			List<Point3i> nodes = domainVisualization.getCloudNodes(sensor);
 			if(!facesByDistance.containsKey(sensor))
 				facesByDistance.put(sensor, new TreeMap<Float, List<Face>>());
@@ -706,11 +724,12 @@ public class DomainViewer {
 		Point3f cameara = new Point3f(0, -20000, 0); 
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		for(String configUUID: domainVisualization.getAllConfigurationsToRender()) {
-			float transparency = 1;
 			List<Sensor> nodes = new ArrayList<Sensor>(domainVisualization.getSensorsInConfiguration(configUUID));
 			if(!facesByDistance.containsKey(configUUID))
 				facesByDistance.put(configUUID, new TreeMap<Float, List<Face>>());
 			for(Sensor sensor: nodes) {
+				if(!domainVisualization.renderSensor(sensor.getSensorType())) continue;
+				float transparency = domainVisualization.getSensorTransparency(sensor.getSensorType());
 				Point3i color = domainVisualization.getColorOfSensor(sensor.getSensorType());
 				color = new Point3i((int)(color.getI()*.8), (int)(color.getJ()*.8), (int)(color.getK()*.8));
 				float xMin = xs.get(sensor.getIJK().getI()-1);

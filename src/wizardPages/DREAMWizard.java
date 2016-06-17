@@ -66,15 +66,15 @@ public class DREAMWizard extends Wizard {
 		this.dialog = dialog;		
 	}
 
-	public void createViewer() {
+	public void createViewer(Boolean show) {
 		closeViewer(); // Close the old viewer
 		try {
 			// Create a new viewer, this crashes sometimes when it is first called
-			this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());			
+			this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet(), show);			
 		} catch (Exception e) {
 			try {
 				Thread.sleep(1000);
-				this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet());	
+				this.domainViewer = new DomainVisualization(Display.getCurrent(), getScenarioSet(), show);	
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
@@ -216,7 +216,7 @@ public class DREAMWizard extends Wizard {
 				{ 
 					@Override 
 					public void widgetSelected(SelectionEvent e) { 
-						wizard.launchVisWindow(false);
+						wizard.launchVisWindow(false, true);
 					} 
 
 					@Override 
@@ -241,7 +241,7 @@ public class DREAMWizard extends Wizard {
 		wizardDialog.open();
 	}
 
-	public void launchVisWindow(boolean reset) {
+	public void launchVisWindow(boolean reset, boolean show) {
 		// If we don't want to reset the vis window and 
 		if(!reset && viewerExists())
 		{
@@ -249,7 +249,7 @@ public class DREAMWizard extends Wizard {
 			return;
 		}
 		// Otherwise create a new one, this will close the old one of there was one open previously
-		createViewer();
+		createViewer(show);
 
 	}
 	
@@ -484,10 +484,14 @@ public class DREAMWizard extends Wizard {
 			return initialConfiguration;
 		}
 
-		public void run(final int runs, final boolean showPlots) throws Exception {		
+		public void run(final int runs, final boolean showPlots) throws Exception {	
 			if(showPlots){
 				// Resets the vis window
-				wizard.launchVisWindow(true);	
+				wizard.launchVisWindow(true, true);	
+				runner.setDomainViewer(wizard.domainViewer);
+			}
+			else{
+				wizard.launchVisWindow(true, false);
 				runner.setDomainViewer(wizard.domainViewer);
 			}
 			dialog.run(true, true, new IRunnableWithProgress() {
@@ -512,7 +516,7 @@ public class DREAMWizard extends Wizard {
 
 		public void randomEnumeration(final int max) throws Exception {		
 			// Resets the vis window	
-			wizard.launchVisWindow(true);
+			wizard.launchVisWindow(true, true);
 			runner.setDomainViewer(wizard.domainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
@@ -526,7 +530,7 @@ public class DREAMWizard extends Wizard {
 
 		public void runEnumeration() throws Exception {
 			// Resets the vis window
-			wizard.launchVisWindow(true);
+			wizard.launchVisWindow(true, true);
 			runner.setDomainViewer(wizard.domainViewer);
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override

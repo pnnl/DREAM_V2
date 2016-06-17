@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Slider;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -51,6 +53,7 @@ public class DomainVisualization {
 	private Shell shell;
 	private Tree tree_configurationTree;
 	private Table table_sensorTable;
+	private Table table_sensorTable2;
 	private DomainViewer domainViewer;
 
 	private ScenarioSet set;
@@ -71,12 +74,14 @@ public class DomainVisualization {
 	private Text text_labelZ;
 
 	private Map<String, SensorTableItem> sensorTableItems;
+	private Map<String, CloudTableItem> cloudTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
 
 	private boolean resetTreeRequired = false;
 
-	public DomainVisualization(Display display, ScenarioSet set) {
+	public DomainVisualization(Display display, ScenarioSet set, Boolean show) {
 		shell = new Shell(display, SWT.DIALOG_TRIM | SWT.MODELESS); 
+		
 		shell.setText("DREAM Visualization"); 
 		shell.setLayout(new FillLayout());	
 		this.set = set;
@@ -93,7 +98,7 @@ public class DomainVisualization {
 		visGridData.horizontalSpan = 2;
 		visGridData.verticalSpan = 24;
 		visGridData.widthHint = 680;
-		visGridData.heightHint = 620;
+		visGridData.heightHint = 660;
 		visGridData.grabExcessVerticalSpace = true;
 		visGridData.grabExcessHorizontalSpace = true;
 		domainViewer.setLayoutData(visGridData);		
@@ -192,17 +197,33 @@ public class DomainVisualization {
 		slider_tickZ = new Slider(composite_scale, SWT.NONE);
 		slider_tickZ.setValues(5, 1, set.getNodeStructure().getZ().size(), 5, 1, 5);
 
-		Label label_sensors = new Label(composite, SWT.NONE);
-		label_sensors.setText("Solution Space");
+		TabFolder tab = new TabFolder(composite, SWT.NONE);
 
-		table_sensorTable = buildSensorTable(composite);
-		GridData sensorTableGridData = new GridData();
-		sensorTableGridData.verticalSpan = 10;
-		sensorTableGridData.widthHint = 300;
-		sensorTableGridData.heightHint = 160;
+		GridData tabGridData = new GridData();
+		tabGridData.verticalSpan = 10;
+		tabGridData.widthHint = 320;
+		tabGridData.heightHint = 200;
+		tab.setLayoutData(tabGridData);
+		
+		
+		//Make the first tab
+		TabItem tab1 = new TabItem(tab, SWT.NONE);
+		tab1.setText("Solution Space");
+		
+		table_sensorTable = buildCloudTable(tab);
 
-		table_sensorTable.setLayoutData(sensorTableGridData);	
+		TabItem tab2 = new TabItem(tab, SWT.NONE);
+		tab2.setText("Monitoring Technologies");
+		
+		table_sensorTable2 = buildSensorTable(tab);
+		
+//		table_sensorTable.setLayoutData(sensorTableGridData);	
+//		table_sensorTable2.setLayoutData(sensorTableGridData2);	
 
+
+		tab1.setControl(table_sensorTable);
+		tab2.setControl(table_sensorTable2);
+		
 		Label label_configurations = new Label(composite, SWT.NONE);
 		label_configurations.setText("Configurations");
 
@@ -215,7 +236,8 @@ public class DomainVisualization {
 		tree_configurationTree.setLayoutData(scenarioTreeGridData);	
 
 		shell.pack();
-		shell.open();
+		if(show) shell.open();
+		else this.hide();
 
 		shell.addListener(SWT.Close, new Listener() 
 		{ 
@@ -243,6 +265,7 @@ public class DomainVisualization {
 						shell.setMinimized(false);
 						shell.setActive();
 						shell.setVisible(true);
+						domainViewer.show();
 					}
 				});
 			}				
@@ -250,7 +273,17 @@ public class DomainVisualization {
 	}
 
 	public void hide() {
-		setVisible(false);		
+		if(shell.isVisible()) {
+			if(shell != null && !shell.isDisposed()) {
+				shell.getDisplay().syncExec(new Runnable() {
+					public void run() {
+						setVisible(false);
+						domainViewer.hide();
+					}
+				});
+			}				
+		}
+		
 	}
 
 	private void setVisible(boolean show) {
@@ -286,9 +319,9 @@ public class DomainVisualization {
 		return text_labelZ.getText();
 	}
 
-	public List<String> getAllSensorsToRender() {
+	public List<String> getAllCloudsToRender() {
 		List<String> sensors = new ArrayList<String>();
-		for(String key: sensorTableItems.keySet()) {
+		for(String key: cloudTableItems.keySet()) {
 			sensors.add(key);
 		}
 		return sensors;
@@ -342,6 +375,12 @@ public class DomainVisualization {
 		return configurations;		
 	}
 
+	public boolean renderCloud(String sensor) {
+		if(cloudTableItems.containsKey(sensor))
+			return cloudTableItems.get(sensor).getTableItem().getChecked();
+		return false;
+	}
+
 	public boolean renderSensor(String sensor) {
 		if(sensorTableItems.containsKey(sensor))
 			return sensorTableItems.get(sensor).getTableItem().getChecked();
@@ -364,8 +403,17 @@ public class DomainVisualization {
 		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
 	}
 
-	public float getTransparency(String sensor) {
+	public Point3i getColorOfCloud(String sensor) {
+		Color color = cloudTableItems.get(sensor).getColor();
+		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
+	}
+
+	public float getSensorTransparency(String sensor) {
 		return sensorTableItems.get(sensor).getTransparency();
+	}
+
+	public float getCloudTransparency(String sensor) {
+		return cloudTableItems.get(sensor).getTransparency();
 	}
 
 	public Point3i getMeshColor() {
@@ -536,7 +584,7 @@ public class DomainVisualization {
 
 	private Table buildSensorTable(Composite composite) {
 		final Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		final int rowHeight = 24;
+		final int rowHeight = 12;
 
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
@@ -557,6 +605,75 @@ public class DomainVisualization {
 		for(String type: set.getDataTypes()) {
 			SensorTableItem sensorTableItem = new SensorTableItem(table, rowHeight, type);
 			sensorTableItems.put(type, sensorTableItem);
+		}
+
+		// resize the row height using a MeasureItem listener
+		table.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				// height cannot be per row so simply set
+				event.height = rowHeight; // lame
+				if(event.index % 4 == 1)
+					event.width = 40;
+				if(event.index % 4 == 2)
+					event.width = 40;
+				if(event.index % 4 == 0) // label
+					event.width = 100;
+				if(event.index % 4 == 3) // button
+					event.width = 60;
+			}
+		});
+
+		table.addListener(SWT.EraseItem, new Listener() {
+			// Copied from stack overflow, used to stop highlight color
+			public void handleEvent(Event event) {
+				// Selection:
+				event.detail &= ~SWT.SELECTED;
+				// Expect: selection now has no visual effect.
+				// Actual: selection remains but changes from light blue to white.
+
+				// MouseOver:
+				event.detail &= ~SWT.HOT;
+				// Expect: mouse over now has no visual effect.
+				// Actual: behavior remains unchanged.
+
+				GC gc = event.gc;
+				TableItem item = (TableItem) event.item;
+				gc.setBackground(item.getBackground(event.index));
+				gc.fillRectangle(event.x, event.y, event.width, event.height);
+			}
+		});
+
+		tableColumn_sensorType.pack();
+		tableColumn_selectColor.pack();
+		tableColumn_displayColor.pack();
+		tableColumn_transparency.pack();
+
+		return table;
+	}
+	
+	private Table buildCloudTable(Composite composite) {
+		final Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		final int rowHeight = 12;
+
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+
+		TableColumn tableColumn_sensorType = new TableColumn(table, SWT.CENTER);
+		tableColumn_sensorType.setText("Include");
+
+		TableColumn tableColumn_displayColor = new TableColumn(table, SWT.CENTER);
+		tableColumn_displayColor.setText("Color");
+
+		TableColumn tableColumn_transparency = new TableColumn(table, SWT.CENTER);
+		tableColumn_transparency.setText("Transparency");
+
+		TableColumn tableColumn_selectColor = new TableColumn(table, SWT.CENTER);
+		tableColumn_selectColor.setText("");
+
+		cloudTableItems = new HashMap<String, CloudTableItem>();
+		for(String type: set.getDataTypes()) {
+			CloudTableItem cloudTableItem = new CloudTableItem(table, rowHeight, type);
+			cloudTableItems.put(type, cloudTableItem);
 		}
 
 		// resize the row height using a MeasureItem listener
@@ -827,6 +944,94 @@ public class DomainVisualization {
 			tableItem.setText(sensorType);
 			tableItem.setChecked(true);
 			tableItem.setText(0, Sensor.sensorAliases.get(sensorType));
+			table.addListener(SWT.Selection, new Listener(){
+				@Override
+				public void handleEvent(Event event) {
+					if(event.detail == SWT.CHECK){
+						domainViewer.reset();
+						domainViewer.resetConfigurations();
+					}
+				}
+			});
+			
+			int itemCount = table.getItemCount();
+			float[][] colors = new float[][]{
+				{1.0f, 0.0f, 0.0f, 0.8f}, 
+				{0.0f, 0.0f, 1.0f, 0.8f}, 
+				{0.0f, 1.0f, 0.0f, 0.03f}, 
+				{0.0f, 1.0f, 1.0f, 0.03f}, 
+				{1.0f, 1.0f, 0.8f, 0.03f}};
+				float[] sensorColor = colors[itemCount%5];
+				color = new Color(shell.getDisplay(), (int)sensorColor[0]*255, (int)sensorColor[1]*255, (int)sensorColor[2]*255);
+				tableItem.setBackground(1, color);
+				TableEditor editor = new TableEditor(table);
+				Button button = new Button(table, SWT.PUSH | SWT.FLAT | SWT.CENTER);	
+				button.setText("Select...");			
+				button.computeSize(SWT.DEFAULT, rowHeight);
+				editor.grabHorizontal = true;
+				editor.grabVertical = true;
+				editor.verticalAlignment = SWT.BOTTOM;
+				editor.minimumHeight = rowHeight;
+				editor.setEditor(button, tableItem, 3);
+				final Slider slider = new Slider(table, SWT.NONE);
+				slider.setMaximum(255);
+				this.transparency = (255f/255.0f);
+				slider.setSelection(255);
+				slider.computeSize(SWT.DEFAULT, rowHeight);
+				slider.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						transparency = (slider.getSelection()/255.0f);
+						domainViewer.reset();
+						domainViewer.resetConfigurations();
+					}
+				});
+				TableEditor editor2 = new TableEditor(table);
+				editor2.grabHorizontal = true;
+				editor2.grabVertical = true;
+				editor2.verticalAlignment = SWT.BOTTOM;
+				editor2.minimumHeight = rowHeight;
+				editor2.setEditor(slider, tableItem, 2);	
+				button.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent event) {
+						ColorDialog dialog = new ColorDialog(shell);
+						RGB rgb = dialog.open();
+						if (rgb != null) {
+							color = new Color(shell.getDisplay(), rgb);
+							tableItem.setBackground(1, color);
+							// Color change requires reset
+							domainViewer.reset();
+							domainViewer.resetConfigurations();						
+						}
+					}
+				});   
+		}
+
+		public float getTransparency() {
+			return transparency;
+		}
+
+		public TableItem getTableItem() {
+			return tableItem;
+		}
+
+		public Color getColor() {
+			return color;
+		}
+	}
+	
+	private class CloudTableItem {
+
+		private float transparency = 0;
+		private Color color;
+
+		private TableItem tableItem;
+
+		public CloudTableItem(Table table, int rowHeight, String sensorType) {
+			tableItem = new TableItem(table, SWT.CENTER);
+			tableItem.setText(sensorType);
+			tableItem.setChecked(true);
+			tableItem.setText(0, Sensor.sensorAliases.get(sensorType));
 			int itemCount = table.getItemCount();
 			float[][] colors = new float[][]{
 				{1.0f, 0.0f, 0.0f, 0.8f}, 
@@ -893,7 +1098,7 @@ public class DomainVisualization {
 	}
 
 	public static void main(String[] args) {
-		new DomainVisualization(new Display(), null);
+		new DomainVisualization(new Display(), null, true);
 	}
 
 
