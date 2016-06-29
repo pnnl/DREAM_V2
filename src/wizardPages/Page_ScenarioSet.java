@@ -176,6 +176,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 				if (dir != null) {
 					Constants.homeDirectory = dir;
 					hdf5Text.setText(dir);
+					data.reset();
 				}
 			}
 		});

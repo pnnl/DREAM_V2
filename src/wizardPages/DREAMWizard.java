@@ -258,6 +258,9 @@ public class DREAMWizard extends Wizard {
 	}
 
 	public class STORMData {
+		//booleans that help us keep track of when we need to reset stuff
+		public boolean needToResetWells = true;
+		public boolean needToResetMonitoringParameters = true;
 
 		private ScenarioSet set;
 		private Function runner;
@@ -272,6 +275,15 @@ public class DREAMWizard extends Wizard {
 			set = new ScenarioSet();
 			initialConfiguration = new ExtendedConfiguration();
 			mutate = MUTATE.SENSOR;
+		}
+		
+		public void reset() {
+			//Reset this data
+			set = new ScenarioSet();
+			initialConfiguration = new ExtendedConfiguration();
+			mutate = MUTATE.SENSOR;
+			needToResetWells = true;
+			needToResetMonitoringParameters = true;
 		}
 
 		public ScenarioSet getScenarioSet() {

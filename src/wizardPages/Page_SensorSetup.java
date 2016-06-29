@@ -1,6 +1,9 @@
 package wizardPages;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +20,7 @@ import objects.TimeStep;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -468,6 +472,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			DREAMWizard.visLauncher.setEnabled(false);			
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
+			data.needToResetWells = true;
 			volumeOfAquiferDegraded();
 			DREAMWizard.visLauncher.setEnabled(true);
 			
@@ -483,7 +488,8 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	public void loadPage() {
 		isCurrentPage = true;
 				
-		if(sensorData == null) {
+		if(sensorData == null || data.needToResetMonitoringParameters) {
+			data.needToResetMonitoringParameters = false;
 			// New UI
 			sensorData = new TreeMap<String, SensorData>();
 		
@@ -937,35 +943,96 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 			System.out.println(nodes.size());
 		}
 		
-		HashMap<String, ArrayList<ArrayList<Float>>> optimalSolutions = new HashMap<String, ArrayList<ArrayList<Float>>>();
+		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
+		List<Scenario> sortedScenarios = data.getSet().getScenarios();
+		Collections.sort(sortedScenarios);
 		
 		for(String sensorType: data.getSet().getSensorSettings().keySet()){
 			System.out.println(sensorType);
 			for(Integer nodeNumber: nodes){
 				//build up the string ID and the list of ttds (for the ones that detect)
-				String scenariosFound = "";
 				ArrayList<Float> ttds = new ArrayList<Float>();
-				Float timeToDegredation = null;
-				for(Scenario scenario: data.getSet().getScenarios()){
+				for(Scenario scenario: sortedScenarios){
+					Float timeToDegredation = Float.MAX_VALUE;
 					for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
 						try {
 							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						if(timeToDegredation != null) break;
+						if(timeToDegredation != Float.MAX_VALUE) break;
 					}
-					if(timeToDegredation == null) continue;
-					scenariosFound += scenario;
 					ttds.add(timeToDegredation);
 				}
-				
-				//now compare this list and see what we need to do with it!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
+				boolean everyReasonTo = false;
+				boolean everyReasonNot = false;
+				for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
+					ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
+					boolean greater = false;
+					boolean less = false;
+					for(int i=0; i<paretoSolution.size(); ++i){
+						if(paretoSolution.get(i) < ttds.get(i)) greater = true;
+						if(paretoSolution.get(i) > ttds.get(i)) less = true;
+					}
+					if(greater && less){
+						//don't need to do anything, both of these are pairwise pareto optimal
+					}
+					else if(greater && !less){
+						everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
+						break; //we don't need to look anymore, don't include this new configuration
+					}
+					else if(!greater && less){
+						everyReasonTo = true; //This solution is pareto optimal to this stored one
+						toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
+					}
+					else if(!greater && !less){
+						//everyReasonNot = true; //These two spots are equal, so we might as well get rid of the one we're looking at
+						break; //We don't need to check other spots if these are equal.
+					}
+				}
+				if(everyReasonTo){
+					//We need to add this one and remove some.
+					for(Integer x : toRemove){
+						optimalSolutions.remove(x);
+					}
+					optimalSolutions.put(nodeNumber, ttds);
+				}
+				else if(everyReasonNot){
+					//Lets not add this one, it's redundant
+				}
+				else{
+					//No reason not to add it and it didn't replace one, it must be another pareto optimal answer. Let's add it.
+					optimalSolutions.put(nodeNumber, ttds);
+				}
 			}
 		}
 
+		System.out.println("Number of initial spots: " + nodes.size());
+		
+		int count = optimalSolutions.size();
+		
+		System.out.println("Number of solutions left: " + count);
+		
+		StringBuilder x = new StringBuilder();
+		for(Integer location: optimalSolutions.keySet()){
+			Point3i point = data.getSet().getNodeStructure().getIJKFromNodeNumber(location);
+			x.append(location + " (" + point.getI() + " " + point.getJ() + " " + point.getK() + "):,");
+			for(Float y : optimalSolutions.get(location)){
+				x.append(y + ", ");
+			}
+			x.append(optimalSolutions.get(location).size());
+			x.append("\n");
+		}
+		try {
+			FileUtils.write(new File("C:/Users/rodr144/Documents/SVN Projects/DREAM/DREAM/testoutput.csv"), x.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		long total = System.currentTimeMillis() - current;
-		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+		System.out.println("Pareto thing time:\t" + total/1000 + "." + total%1000);
 	}
 	
 	@Override

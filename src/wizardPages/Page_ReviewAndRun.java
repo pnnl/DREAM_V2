@@ -584,8 +584,12 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					File outFile = new File(new File(outputFolder.getText()), "solution_space.dat");
 					if(!outFile.exists())
 						outFile.createNewFile();
-					FileUtils.writeStringToFile(outFile, text.toString());
-					Desktop.getDesktop().open(outFile);
+					FileUtils.writeStringToFile(outFile, text.toString());	
+					try {
+						Desktop.getDesktop().open(outFile);
+					} catch(IOException e){
+						System.out.println("No default opener for .dat file extension");
+					}
 				}catch (IOException e) {		
 					JOptionPane.showMessageDialog(null, "Could not write to solution_space.dat, make sure the file is not currently open");
 					e.printStackTrace();

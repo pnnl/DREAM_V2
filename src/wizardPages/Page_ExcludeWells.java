@@ -47,6 +47,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 	private Composite rootContainer;
 	private GridLayout layout;
 	private Map<Integer, Map<Integer, Button>> buttons;
+	private Map<Integer, List<Integer>> wells;
 
 	private Map<Integer, Map<Integer, Boolean>> selection;
 
@@ -122,7 +123,16 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		buttons.clear();
 
 		// Add check boxes for all valid well locations
-		Map<Integer, List<Integer>> wells = data.getSet().getAllPossibleWells();
+		if(data.needToResetWells){
+			//This means that we have set new paramters and need to reset all values
+			data.needToResetWells = false;
+			wells = data.getSet().getAllPossibleWells();
+			selection.clear();
+			minI = Integer.MAX_VALUE;
+			minJ = Integer.MAX_VALUE;
+			maxI = Integer.MIN_VALUE;
+			maxJ = Integer.MIN_VALUE;
+		}
 
 		for(Integer i: wells.keySet()) {			
 			if(i < minI) {
@@ -181,7 +191,8 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		
 		Label spacer = new Label(container, SWT.NULL);
 		GridData spacerGridData = new GridData(GridData.FILL_HORIZONTAL);
-		spacerGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns-12;
+//		spacerGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns-12;
+		spacerGridData.horizontalSpan = Math.max(12, ((GridLayout)container.getLayout()).numColumns-12);
 		spacerGridData.verticalSpan = 4;
 		spacer.setLayoutData(spacerGridData);
 		
