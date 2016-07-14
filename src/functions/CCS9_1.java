@@ -10,6 +10,7 @@ import java.util.logging.Level;
 
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
+import objects.NodeStructure;
 import objects.ScenarioSet;
 import objects.Scenario;
 import objects.ExtendedSensor;
@@ -244,6 +245,45 @@ public class CCS9_1 extends Function {
 			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
 			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
 			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
+		} else {
+			triggered = false;
+		}
+		return triggered;
+	}
+	
+	public static Boolean testSensorTriggered(SensorSetting setting, NodeStructure nodeStructure, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
+		Boolean triggered = null;
+		
+		String dataType = SensorSetting.sensorTypeToDataType.get(sensorType);
+
+		// Get the value at the current time step
+		Float currentValue = 0.0f;
+		Float valueAtTime0 = 0.0f;
+
+		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
+			currentValue = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
+			valueAtTime0 = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
+		} else if(Constants.hdf5Data.isEmpty()) {
+			currentValue =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
+			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
+		} else {
+			currentValue =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
+			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
+		}
+
+		// See if we exceeded threshold
+		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
+			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
+		} else if(currentValue != null && setting.getTrigger() == Trigger.RELATIVE_DELTA) {
+			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);					
+		} else if(currentValue != null && setting.getTrigger() == Trigger.ABSOLUTE_DELTA) {
+			float change = currentValue - valueAtTime0;
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);		
 		} else {
 			triggered = false;
 		}

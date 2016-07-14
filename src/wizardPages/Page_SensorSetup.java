@@ -626,13 +626,14 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 				boolean reset = true;							
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();	
 				
-				
+				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 				Map<String, String> sensorAliases = new HashMap<String, String>();
 				for(String label: sensorData.keySet()){
 					SensorData temp = sensorData.get(label);
 					sensorSettings.put(label, temp);
 					String alias = temp.alias;
 					sensorAliases.put(label, alias.equals("") ? label: alias);
+					SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 				}	
 				Sensor.sensorAliases = sensorAliases;
 

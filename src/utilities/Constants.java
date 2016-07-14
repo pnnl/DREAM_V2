@@ -27,6 +27,7 @@ public class Constants {
 	public static boolean buildDev = true;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
+	public static boolean useParetoOptimal = true;
 	
 	public enum ModelOption { 
 		

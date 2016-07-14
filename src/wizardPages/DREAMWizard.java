@@ -409,9 +409,13 @@ public class DREAMWizard extends Wizard {
 								if(set.getSensorSettings(sensorType) != null){
 									for(Integer node: set.getSensorSettings(sensorType).getValidNodes(monitor)){
 										if(monitor.isCanceled()) break;
-										Point3f test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+										//Point3f test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
+										Point3f test = set.getNodeStructure().getNodeCenteredXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
 										if (minZ <= test.getZ() && test.getZ() <= maxZ)
 											temp.add(node);
+										else{
+											System.out.println("Removed one:\t" + test.getZ());
+										}
 									}
 									set.getSensorSettings(sensorType).setValidNodes(temp);
 								}
@@ -444,7 +448,7 @@ public class DREAMWizard extends Wizard {
 								}
 							} 
 						} catch (Exception e) {
-							System.out.println(monitor.isCanceled());
+							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 							e.printStackTrace();
 						}
 

@@ -56,19 +56,6 @@ public class NodeStructure {
 		porosityOfNode = new HashMap<Point3i, Float>();
 
 		loadRun(run);
-
-		//GET RID OF THIS!!!!!
-		/*
-		for(int i=1; i<= ijkDimensions.getI(); i++){
-			for(int j=1; j<=ijkDimensions.getJ(); j++){
-				for(int k=1; k<=ijkDimensions.getK(); k++){
-					Point3i point = new Point3i(i,j,k);
-					porosityOfNode.put(point, 0.1f);
-				}
-			}
-		}
-		*/
-		//BUT REALLY!
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
