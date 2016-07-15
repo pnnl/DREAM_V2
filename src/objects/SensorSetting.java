@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import functions.CCS9_1;
 import objects.SensorSetting.Trigger;
 import utilities.Constants;
+import utilities.Point3f;
 import utilities.Point3i;
 
 public class SensorSetting {
@@ -67,6 +68,8 @@ public class SensorSetting {
 
 	private Float min;
 	private Float max;
+	private float minZ;
+	private float maxZ;
 
 	private Trigger trigger;
 	private DeltaType deltaType;
@@ -75,10 +78,11 @@ public class SensorSetting {
 	private float upperThreshold;
 
 	private HashSet<Integer> validNodes;
+	private HashSet<Integer> fullCloudNodes;
 	private static Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear;
 	private static List<Float> years;
-	public static float minZ;
-	public static float maxZ;
+	public static float globalMinZ;
+	public static float globalMaxZ;
 
 	private Color color;
 
@@ -229,8 +233,8 @@ public class SensorSetting {
 		builder.append("\t\tMax value: " + max + "\n");
 		builder.append("\t\tTriggering on: " + getTrigger().toString()  + "\n");
 		
-		builder.append("\t\tminZ: " + minZ + "\n");
-		builder.append("\t\tmaxZ: " + maxZ + "\n");
+		builder.append("\t\tminZ: " + globalMinZ + "\n");
+		builder.append("\t\tmaxZ: " + globalMaxZ + "\n");
 
 		if(areNodesReady()) {
 			builder.append("\t"+validNodes.size()+" Valid nodes: " + validNodes.toString() + "\n");
@@ -248,6 +252,9 @@ public class SensorSetting {
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
 		
 		boolean changeOccured = reset; // Don't re-query if we don't need to!
+
+		float realMaxZ = Math.max(minZ, maxZ);
+		float realMinZ = Math.min(minZ, maxZ);
 		
 		if(Float.compare(cost, this.cost) != 0) {
 			this.cost = cost;
@@ -280,12 +287,12 @@ public class SensorSetting {
 		}
 		
 		if(this.getMinZ() != minZ) {
-			this.minZ = minZ;
+			this.minZ = realMinZ;
 			changeOccured = true;
 		}
 		
 		if(this.getMaxZ() != maxZ) {
-			this.maxZ = maxZ;
+			this.maxZ = realMaxZ;
 			changeOccured = true;
 		}
 		
@@ -383,9 +390,29 @@ public class SensorSetting {
 		isReady = true;
 		nodesReady = true;
 
+		fullCloudNodes = new HashSet<Integer>(validNodes);
+		
+		trimZ();
 		if(Constants.useParetoOptimal) paretoOptimal();
 		
+		
 		Constants.log(Level.CONFIG, "Sensor settings: set valid nodes", this);
+	}
+	
+	private void trimZ(){
+		//Find the nodes that fit this z restriction
+		HashSet<Integer> temp = new HashSet<Integer>();
+		for(Integer node: validNodes){
+			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
+			if (minZ <= test.getZ() && test.getZ() <= maxZ){
+				temp.add(node);
+			}
+			else{
+				//System.out.println(test.getZ() + "\t" + minZ + ":" + maxZ);
+			}
+		}
+		validNodes.clear();
+		validNodes.addAll(temp);
 	}
 	
 	private void paretoOptimal(){
@@ -530,6 +557,15 @@ public class SensorSetting {
 		return validNodes;
 	}
 	
+	public synchronized Set<Integer> getCloudNodes(IProgressMonitor monitor) {
+		if(!areNodesReady() && monitor != null)
+			setValidNodes(monitor);
+		if(!areNodesReady() && monitor == null) {
+			System.err.println("Nodes are not ready and we didn't provide a progress monitor, fix this.");
+		}
+		return fullCloudNodes;
+	}
+	
 	public Color getColor() {
 		return color;
 	}
@@ -596,19 +632,19 @@ public class SensorSetting {
 	}
 
 	public float getMinZ() {
-		return minZ;
+		return globalMinZ;
 	}
 
 	public void setMinZ(float minZ) {
-		this.minZ = minZ;
+		this.globalMinZ = minZ;
 	}
 
 	public float getMaxZ() {
-		return maxZ;
+		return globalMaxZ;
 	}
 
 	public void setMaxZ(float maxZ) {
-		this.maxZ = maxZ;
+		this.globalMaxZ = maxZ;
 	}
 
 }

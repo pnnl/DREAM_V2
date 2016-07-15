@@ -72,7 +72,8 @@ public class DomainViewer {
 
 	private boolean reset = true;
 	private boolean resetConfigurations = true;
-	private Map<String, TreeMap<Float, List<Face>>> faces;
+	private Map<String, TreeMap<Float, List<Face>>> validFaces;
+	private Map<String, TreeMap<Float, List<Face>>> cloudFaces;
 	private Map<String, TreeMap<Float, List<Face>>> configurations;
 	private List<Line> lines;
 	private Point3f cameraPosition = new Point3f(0, 0, 0);
@@ -94,7 +95,8 @@ public class DomainViewer {
 		
 		GLData gldata = new GLData();
 		gldata.doubleBuffer = true;
-		faces = new HashMap<String, TreeMap<Float, List<Face>>>();
+		validFaces = new HashMap<String, TreeMap<Float, List<Face>>>();
+		cloudFaces = new HashMap<String, TreeMap<Float, List<Face>>>();
 		configurations = new HashMap<String, TreeMap<Float, List<Face>>>();
 		lines = new ArrayList<Line>();
 
@@ -231,7 +233,8 @@ public class DomainViewer {
 
 			if(reset) {
 				this.buildLines();
-				this.buildFaces();
+				this.buildValidFaces();
+				this.buildCloudFaces();
 				reset = false;
 			}			
 			if(resetConfigurations) {
@@ -298,23 +301,34 @@ public class DomainViewer {
 			gl2.glEnable(GL2.GL_LIGHTING);
 			
 			int numMeshVertices = lines.size()*2;
-			int numFaces = 0;
-			for(String key: faces.keySet()) {
-				if(domainVisualization.renderCloud(key)) {
-					for(Float distance: faces.get(key).keySet()) {
-						numFaces += faces.get(key).get(distance).size();
+			int numValidFaces = 0;
+			for(String key: validFaces.keySet()) {
+				if(domainVisualization.renderValid(key)) {
+					for(Float distance: validFaces.get(key).keySet()) {
+						numValidFaces += validFaces.get(key).get(distance).size();
 					}
 				}
 			}
-			numFaces *= 4;
+			numValidFaces *= 4;
+			int numCloudFaces = 0;
+			for(String key: cloudFaces.keySet()) {
+				if(domainVisualization.renderCloud(key)) {
+					for(Float distance: cloudFaces.get(key).keySet()) {
+						numCloudFaces += cloudFaces.get(key).get(distance).size();
+					}
+				}
+			}
+			numCloudFaces *= 4;
 
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
-			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices+numFaces, numVertices);
+			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices+numValidFaces+numCloudFaces, numVertices);
 
 			gl2.glDepthMask(false);
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
-			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numFaces);
+			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numValidFaces+numCloudFaces);
 			gl2.glDepthMask(true); // Already sorted, don't override
+			
+			
 		
 			//Luke's floating axis thing
 			// Draw axis
@@ -418,14 +432,26 @@ public class DomainViewer {
 		// Max to min distance
 		Map<Float, List<Face>> facesToDraw = new TreeMap<Float, List<Face>>(Collections.reverseOrder());
 		Map<Float, List<Face>> configurationsToDraw = new TreeMap<Float, List<Face>>(Collections.reverseOrder());
-		for(String key: faces.keySet()) {
-			if(domainVisualization.renderCloud(key)) {
-				for(Float distance: faces.get(key).keySet()) {
-					numFaces += faces.get(key).get(distance).size();
+		for(String key: validFaces.keySet()) {
+			if(domainVisualization.renderValid(key)) {
+				for(Float distance: validFaces.get(key).keySet()) {
+					numFaces += validFaces.get(key).get(distance).size();
 					if(!facesToDraw.containsKey(distance)) {
 						facesToDraw.put(distance, new ArrayList<Face>());
 					}
-					for(Face face:faces.get(key).get(distance))
+					for(Face face:validFaces.get(key).get(distance))
+						facesToDraw.get(distance).add(face);
+				}
+			}
+		}
+		for(String key: cloudFaces.keySet()) {
+			if(domainVisualization.renderCloud(key)) {
+				for(Float distance: cloudFaces.get(key).keySet()) {
+					numFaces += cloudFaces.get(key).get(distance).size();
+					if(!facesToDraw.containsKey(distance)) {
+						facesToDraw.put(distance, new ArrayList<Face>());
+					}
+					for(Face face:cloudFaces.get(key).get(distance))
 						facesToDraw.get(distance).add(face);
 				}
 			}
@@ -612,12 +638,121 @@ public class DomainViewer {
 		}
 	}
 
-	private void buildFaces() {
+	private void buildValidFaces() {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
 		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
+		
+		//Get all the ones for the valid nodes
+		for(String sensor: domainVisualization.getAllValidsToRender()) {
+			Point3i color = domainVisualization.getColorOfValid(sensor);
+			float transparency = domainVisualization.getValidTransparency(sensor);
+			List<Point3i> nodes = domainVisualization.getValidNodes(sensor);
+			if(!facesByDistance.containsKey(sensor))
+				facesByDistance.put(sensor, new TreeMap<Float, List<Face>>());
+			for(Point3i point: nodes) {
+				float xMin = xs.get(point.getI()-1);
+				float yMin = ys.get(point.getJ()-1);
+				float zMin = zs.get(point.getK()-1);
+				float xMax = xs.get(point.getI());
+				float yMax = ys.get(point.getJ());
+				float zMax = zs.get(point.getK());
+				Face f1 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
+						new Point3f(xMax, yMax, zMin), new Point3f(xMin, yMax, zMin), color, transparency);
+				Face f2 = new Face(new Point3f(xMin, yMin, zMax), new Point3f(xMax, yMin, zMax), 
+						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
+				Face f3 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMin, yMax, zMin), 
+						new Point3f(xMin, yMax, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
+				Face f4 = new Face(new Point3f(xMax, yMin, zMin), new Point3f(xMax, yMax, zMin), 
+						new Point3f(xMax, yMax, zMax), new Point3f(xMax, yMin, zMax), color, transparency);
+				Face f5 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
+						new Point3f(xMax, yMin, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
+				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
+						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
+
+				float f1Distance = f1.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f1Distance)) {
+					facesByDistance.get(sensor).put(f1Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f1Distance).add(f1);
+
+				float f2Distance = f2.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f2Distance)) {
+					facesByDistance.get(sensor).put(f2Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f2Distance).add(f2);
+
+				float f3Distance = f3.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f3Distance)) {
+					facesByDistance.get(sensor).put(f3Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f3Distance).add(f3);
+
+				float f4Distance = f4.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f4Distance)) {
+					facesByDistance.get(sensor).put(f4Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f4Distance).add(f4);
+
+				float f5Distance = f5.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f5Distance)) {
+					facesByDistance.get(sensor).put(f5Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f5Distance).add(f5);
+
+				float f6Distance = f6.getDistance(cameara);
+				if(!facesByDistance.get(sensor).containsKey(f6Distance)) {
+					facesByDistance.get(sensor).put(f6Distance, new ArrayList<Face>());
+				}				
+				facesByDistance.get(sensor).get(f6Distance).add(f6);
+			}
+		}
+
+		// Purge equal faces
+
+		for(String sensor: facesByDistance.keySet()) {
+			for(Float distance: facesByDistance.get(sensor).keySet()) {
+				Map<Face, Integer> faceCount = new HashMap<Face, Integer>();
+				for(Face face: facesByDistance.get(sensor).get(distance)) {
+					Face found = null;
+					for(Face countedFace: faceCount.keySet()) {
+						if(face.equals(countedFace)) {
+							found = countedFace;
+							break;
+						}
+					}
+					if(found != null){
+						int currentCount = faceCount.get(found);
+						faceCount.put(found, currentCount + 1);
+					} else {
+						faceCount.put(face, 1);
+					}
+				}
+				facesByDistance.get(sensor).get(distance).clear();
+				for(Face face: faceCount.keySet()) {
+					if(faceCount.get(face) == 1)
+						facesByDistance.get(sensor).get(distance).add(face);
+				}
+			}
+		}
+
+
+		synchronized(validFaces) {
+			validFaces.clear();
+			validFaces.putAll(facesByDistance);
+		}
+	}
+
+	private void buildCloudFaces() {
+		List<Float> xs = domainVisualization.getRenderCellBoundsX();
+		List<Float> ys = domainVisualization.getRenderCellBoundsY();
+		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
+		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
+		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
+		
+		//Get all the ones for the cloud nodes
 		for(String sensor: domainVisualization.getAllCloudsToRender()) {
 			Point3i color = domainVisualization.getColorOfCloud(sensor);
 			float transparency = domainVisualization.getCloudTransparency(sensor);
@@ -711,9 +846,9 @@ public class DomainViewer {
 		}
 
 
-		synchronized(faces) {
-			faces.clear();
-			faces.putAll(facesByDistance);
+		synchronized(cloudFaces) {
+			cloudFaces.clear();
+			cloudFaces.putAll(facesByDistance);
 		}
 	}
 

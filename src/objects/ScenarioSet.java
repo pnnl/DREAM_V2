@@ -312,7 +312,7 @@ public class ScenarioSet {
 			}
 		}
 		for(Point3i location: locations){
-			cost += (SensorSetting.minZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
+			cost += (SensorSetting.globalMinZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
 		}
 		return cost;
 	}

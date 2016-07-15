@@ -361,16 +361,16 @@ public class DREAMWizard extends Wizard {
 						settings.add(data.delta);
 					} 
 		 */
-		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorSettings) throws Exception {
+		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData) throws Exception {
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							monitor.beginTask("Sensor settings", sensorSettings.size()*2);	
-							for(String sensorType: sensorSettings.keySet()) {							
+							monitor.beginTask("Sensor settings", sensorData.size()*2);	
+							for(String sensorType: sensorData.keySet()) {							
 								if(monitor.isCanceled()) break;							
-								SensorData data = sensorSettings.get(sensorType);
+								SensorData data = sensorData.get(sensorType);
 								if(data.isIncluded) {
 									monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
 									if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
@@ -400,32 +400,13 @@ public class DREAMWizard extends Wizard {
 									set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
 									monitor.worked(2);
 								}
-								//TODO: remove this hard-coded z check
-
-								float minZ = data.minZ;
-								float maxZ = data.maxZ;
-								//Find the nodes that fit this z restriction
-								HashSet<Integer> temp = new HashSet<Integer>();
-								if(set.getSensorSettings(sensorType) != null){
-									for(Integer node: set.getSensorSettings(sensorType).getValidNodes(monitor)){
-										if(monitor.isCanceled()) break;
-										//Point3f test = set.getNodeStructure().getXYZEdgeFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
-										Point3f test = set.getNodeStructure().getNodeCenteredXYZFromIJK(set.getNodeStructure().getIJKFromNodeNumber(node));
-										if (minZ <= test.getZ() && test.getZ() <= maxZ)
-											temp.add(node);
-										else{
-											System.out.println("Removed one:\t" + test.getZ());
-										}
-									}
-									set.getSensorSettings(sensorType).setValidNodes(temp);
-								}
 							}
 
 							// If the user canceled, should we clear the data????
 							if(monitor.isCanceled()) {
 								// TODO: We're probably in an invalid state? clear everything???
-								for(String sensorType: sensorSettings.keySet()) {							
-									SensorData data = sensorSettings.get(sensorType);
+								for(String sensorType: sensorData.keySet()) {							
+									SensorData data = sensorData.get(sensorType);
 									if(data.isIncluded) {
 										if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
 											set.resetSensorSettings(sensorType, data.min, data.max);

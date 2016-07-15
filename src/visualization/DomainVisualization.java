@@ -54,6 +54,7 @@ public class DomainVisualization {
 	private Tree tree_configurationTree;
 	private Table table_sensorTable;
 	private Table table_sensorTable2;
+	private Table table_sensorTable3;
 	private DomainViewer domainViewer;
 
 	private ScenarioSet set;
@@ -75,6 +76,7 @@ public class DomainVisualization {
 
 	private Map<String, SensorTableItem> sensorTableItems;
 	private Map<String, CloudTableItem> cloudTableItems;
+	private Map<String, CloudTableItem> validTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
 
 	private boolean resetTreeRequired = false;
@@ -208,14 +210,19 @@ public class DomainVisualization {
 		
 		//Make the first tab
 		TabItem tab1 = new TabItem(tab, SWT.NONE);
-		tab1.setText("Solution Space");
+		tab1.setText("Full Solution Space");
 		
 		table_sensorTable = buildCloudTable(tab);
 
 		TabItem tab2 = new TabItem(tab, SWT.NONE);
-		tab2.setText("Monitoring Technologies");
+		tab2.setText("Optimal Locations");
 		
-		table_sensorTable2 = buildSensorTable(tab);
+		table_sensorTable2 = buildValidTable(tab);
+		
+		TabItem tab3 = new TabItem(tab, SWT.NONE);
+		tab3.setText("Monitoring Technologies");
+		
+		table_sensorTable3 = buildSensorTable(tab);
 		
 //		table_sensorTable.setLayoutData(sensorTableGridData);	
 //		table_sensorTable2.setLayoutData(sensorTableGridData2);	
@@ -223,6 +230,7 @@ public class DomainVisualization {
 
 		tab1.setControl(table_sensorTable);
 		tab2.setControl(table_sensorTable2);
+		tab3.setControl(table_sensorTable3);
 		
 		Label label_configurations = new Label(composite, SWT.NONE);
 		label_configurations.setText("Configurations");
@@ -319,6 +327,14 @@ public class DomainVisualization {
 		return text_labelZ.getText();
 	}
 
+	public List<String> getAllValidsToRender() {
+		List<String> sensors = new ArrayList<String>();
+		for(String key: validTableItems.keySet()) {
+			sensors.add(key);
+		}
+		return sensors;
+	}
+
 	public List<String> getAllCloudsToRender() {
 		List<String> sensors = new ArrayList<String>();
 		for(String key: cloudTableItems.keySet()) {
@@ -375,6 +391,12 @@ public class DomainVisualization {
 		return configurations;		
 	}
 
+	public boolean renderValid(String sensor) {
+		if(validTableItems.containsKey(sensor))
+			return validTableItems.get(sensor).getTableItem().getChecked();
+		return false;
+	}
+
 	public boolean renderCloud(String sensor) {
 		if(cloudTableItems.containsKey(sensor))
 			return cloudTableItems.get(sensor).getTableItem().getChecked();
@@ -387,11 +409,22 @@ public class DomainVisualization {
 		return false;
 	}
 
+	public List<Point3i> getValidNodes(String sensor) {
+		List<Point3i> validNodes = new ArrayList<Point3i>();
+		Set<Integer> nodeNumbers = new HashSet<Integer>();
+		if(set.getSensorSettings().containsKey(sensor))
+			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getValidNodes(null));
+		for(Integer nodeNumber: nodeNumbers) {
+			validNodes.add(set.getNodeStructure().getIJKFromNodeNumber(nodeNumber));
+		}
+		return validNodes;
+	}
+
 	public List<Point3i> getCloudNodes(String sensor) {
 		List<Point3i> cloudNodes = new ArrayList<Point3i>();
 		Set<Integer> nodeNumbers = new HashSet<Integer>();
 		if(set.getSensorSettings().containsKey(sensor))
-			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getValidNodes(null));
+			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getCloudNodes(null));
 		for(Integer nodeNumber: nodeNumbers) {
 			cloudNodes.add(set.getNodeStructure().getIJKFromNodeNumber(nodeNumber));
 		}
@@ -403,6 +436,11 @@ public class DomainVisualization {
 		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
 	}
 
+	public Point3i getColorOfValid(String sensor) {
+		Color color = validTableItems.get(sensor).getColor();
+		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
+	}
+
 	public Point3i getColorOfCloud(String sensor) {
 		Color color = cloudTableItems.get(sensor).getColor();
 		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
@@ -410,6 +448,10 @@ public class DomainVisualization {
 
 	public float getSensorTransparency(String sensor) {
 		return sensorTableItems.get(sensor).getTransparency();
+	}
+
+	public float getValidTransparency(String sensor) {
+		return validTableItems.get(sensor).getTransparency();
 	}
 
 	public float getCloudTransparency(String sensor) {
@@ -605,6 +647,75 @@ public class DomainVisualization {
 		for(String type: set.getDataTypes()) {
 			SensorTableItem sensorTableItem = new SensorTableItem(table, rowHeight, type);
 			sensorTableItems.put(type, sensorTableItem);
+		}
+
+		// resize the row height using a MeasureItem listener
+		table.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				// height cannot be per row so simply set
+				event.height = rowHeight; // lame
+				if(event.index % 4 == 1)
+					event.width = 40;
+				if(event.index % 4 == 2)
+					event.width = 40;
+				if(event.index % 4 == 0) // label
+					event.width = 100;
+				if(event.index % 4 == 3) // button
+					event.width = 60;
+			}
+		});
+
+		table.addListener(SWT.EraseItem, new Listener() {
+			// Copied from stack overflow, used to stop highlight color
+			public void handleEvent(Event event) {
+				// Selection:
+				event.detail &= ~SWT.SELECTED;
+				// Expect: selection now has no visual effect.
+				// Actual: selection remains but changes from light blue to white.
+
+				// MouseOver:
+				event.detail &= ~SWT.HOT;
+				// Expect: mouse over now has no visual effect.
+				// Actual: behavior remains unchanged.
+
+				GC gc = event.gc;
+				TableItem item = (TableItem) event.item;
+				gc.setBackground(item.getBackground(event.index));
+				gc.fillRectangle(event.x, event.y, event.width, event.height);
+			}
+		});
+
+		tableColumn_sensorType.pack();
+		tableColumn_selectColor.pack();
+		tableColumn_displayColor.pack();
+		tableColumn_transparency.pack();
+
+		return table;
+	}
+	
+	private Table buildValidTable(Composite composite) {
+		final Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		final int rowHeight = 12;
+
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+
+		TableColumn tableColumn_sensorType = new TableColumn(table, SWT.CENTER);
+		tableColumn_sensorType.setText("Include");
+
+		TableColumn tableColumn_displayColor = new TableColumn(table, SWT.CENTER);
+		tableColumn_displayColor.setText("Color");
+
+		TableColumn tableColumn_transparency = new TableColumn(table, SWT.CENTER);
+		tableColumn_transparency.setText("Transparency");
+
+		TableColumn tableColumn_selectColor = new TableColumn(table, SWT.CENTER);
+		tableColumn_selectColor.setText("");
+
+		validTableItems = new HashMap<String, CloudTableItem>();
+		for(String type: set.getDataTypes()) {
+			CloudTableItem cloudTableItem = new CloudTableItem(table, rowHeight, type);
+			validTableItems.put(type, cloudTableItem);
 		}
 
 		// resize the row height using a MeasureItem listener
