@@ -71,8 +71,10 @@ import objects.SensorSetting;
 import objects.TecplotNode;
 import results.ResultPrinter;
 import utilities.Constants;
+import utilities.EnsembleDialog;
 import utilities.Point3f;
 import utilities.Point3i;
+import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage {
@@ -648,40 +650,162 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		//TODO: These!!
 		Label spacer2 = new Label(container, SWT.NULL);
-		
-		Label minNumSensorsLabel = new Label(container, SWT.NULL);
-		minNumSensorsLabel.setText("Smallest number of sensors to test in scatterplot");
-		minNumSensorsLabel.setVisible(Constants.buildDev);
-		minNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
-		minNumSensors.setText("1");
-		GridData minNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
-		minNumSensors.setLayoutData(minNumSensorsGD);
-		minNumSensors.setVisible(Constants.buildDev);
-
-		Label maxNumSensorsLabel = new Label(container, SWT.NULL);
-		maxNumSensorsLabel.setText("Largest number of sensors to test in scatterplot");
-		maxNumSensorsLabel.setVisible(Constants.buildDev);
-		maxNumSensors = new Text(container, SWT.BORDER | SWT.SINGLE);
-		maxNumSensors.setText("10");
-		GridData maxNumSensorsGD = new GridData(GridData.FILL_HORIZONTAL);
-		maxNumSensors.setLayoutData(maxNumSensorsGD);
-		maxNumSensors.setVisible(Constants.buildDev);
-
-		Label iterationsPerSensorNumberLabel = new Label(container, SWT.NULL);
-		iterationsPerSensorNumberLabel.setText("Iterations per number of sensors in scatterplot");
-		iterationsPerSensorNumberLabel.setVisible(Constants.buildDev);
-		iterationsPerSensorNumber = new Text(container, SWT.BORDER | SWT.SINGLE);
-		iterationsPerSensorNumber.setText("5");
-		GridData iterationsPerSensorNumberGD = new GridData(GridData.FILL_HORIZONTAL);
-		iterationsPerSensorNumber.setLayoutData(iterationsPerSensorNumberGD);
-		iterationsPerSensorNumber.setVisible(Constants.buildDev);
 				 
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
 		scatterplotButton.setSelection(true);
-		scatterplotButton.setText("Build Scatterplot");
+		scatterplotButton.setText("Multi-Run Ensemble");
 		scatterplotButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
+				EnsembleDialog dialog = new EnsembleDialog(container.getShell(), data, Integer.valueOf(iterations.getText()));
+				dialog.open();
+				if(dialog.readyToRun){
+					//Run the ensemble (formerly scatterplot)
+					printSolutionSpaceTab();
+					int minNum = dialog.getMin();
+					int maxNum = dialog.getMax();
+					int its = dialog.getIterationsPerSensor();
+					
+					//TODO: Store the old values that we want to keep track of
+					float oldExclusionRadius = data.getSet().getExclusionRadius();
+					HashMap<String, Float> costPerType = new HashMap<String, Float>();
+					for(String sensorType: data.getSet().getSensorSettings().keySet()){
+						costPerType.put(sensorType, data.getSet().getCost(sensorType));
+						data.getSet().getSensorSettings(sensorType).setCost(100);
+					}
+					
+					//these will be an ordered list corresponding to x and y coordinates on the scatterplots
+					List<Float> configurationCosts = new ArrayList<Float>();
+					List<Float> configurationAverageTTDs = new ArrayList<Float>();
+					List<Float> configurationPercentDetected = new ArrayList<Float>();
+					List<Float> configurationTTDs = new ArrayList<Float>();
+					List<Float> averageVolumeDegraded = new ArrayList<Float>();
+					List<Configuration> configs = new ArrayList<Configuration>();
+					List<Float> budgets = new ArrayList<Float>();
+					List<Integer> wells = new ArrayList<Integer>();
+					float budget = data.getSet().getCostConstraint();
+					int well = data.getSet().getMaxWells();
+					//Generate the set of budges and well numbers to run over
+					float budgetIncrement = budget/2;
+					int wellIncrement = well/2;
+					for(int i=1; i<=3; i++){
+						budgets.add(budgetIncrement*i);
+						wells.add(wellIncrement*i);
+					}
+					float minCost = Float.MAX_VALUE;
+					float maxCost = 0;
+//					for(Float budgeti: budgets){
+//						for(Integer wellj: wells){
+					for(int i=minNum; i<=maxNum; ++i){
+						for(int j=0; j<its; ++j){
+							//For each budget and well number, run the iterative procedure and get the best configurations by TTED
+							int innerWells = i;
+							int innerSensors = i*100;
+							System.out.println(innerSensors + " " + innerWells);
+							data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, dialog.getDistanceBetweenWells(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
+							int ittr = dialog.getIterationsPerRun();
+							data.setWorkingDirectory(outputFolder.getText());
+							data.getSet().setIterations(ittr);
+							try {
+								ResultPrinter.runScripts = false;
+								data.run(1, false); //This should never show plots, we are running too many iterations.
+								//get the best TTD
+								
+								float ttd = ResultPrinter.results.bestObjValue;
+								HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
+								for(Configuration config: bestConfigs){
+									configurationTTDs.add(ttd);
+									float cost = data.getScenarioSet().costOfConfiguration(config);
+									if(cost < minCost) minCost = cost;
+									if(cost > maxCost) maxCost = cost;
+									configurationCosts.add(cost);
+									configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
+									configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
+									averageVolumeDegraded.add(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
+									configs.add(config);
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+//						}
+//					}
+					//Set this back to what it was so we don't mess up future runs
+					data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
+					
+					//Print our results in a csv file
+					try {
+						ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, configs, averageVolumeDegraded);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					//Make the plot with our points
+					XYSeriesCollection result = new XYSeriesCollection();
+					XYSeries highSeries = new XYSeries("High Cost");
+					XYSeries mediumSeries = new XYSeries("Medium Cost");
+					XYSeries lowSeries = new XYSeries("Low Cost");
+					for(int i=0; i<configurationTTDs.size(); i++){
+						if(configurationCosts.get(i) < (maxCost - minCost)/3 + minCost) lowSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
+						else if(configurationCosts.get(i) > -(maxCost - minCost)/3 + maxCost) highSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i)); 
+						else mediumSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
+					}
+					result.addSeries(highSeries);
+					result.addSeries(mediumSeries);
+					result.addSeries(lowSeries);
+					
+					JFreeChart chart = ChartFactory.createScatterPlot(
+							"Average TTD of Detecting Scenarios as a Function of the Percent of Scenarios Detected", //title
+							"Percent of Scenarios Detected", //x axis label
+							"Average Time to Detection of Detecting Scenarios", //y axis label
+							result, //data
+							PlotOrientation.VERTICAL, //orientation
+							true, //legend
+							false, //tooltips 
+							false); //urls
+					ChartFrame frame = new ChartFrame("Cost-TTD Scatter", chart);
+					frame.pack();
+					frame.setVisible(true);
+
+					//Reset parameters that we messed with
+					data.getSet().setExclusionRadius(oldExclusionRadius);
+					for(String sensorType: costPerType.keySet()){
+						data.getSet().getSensorSettings(sensorType).setCost(costPerType.get(sensorType));
+					}
+
+					
+					
+					
+					/*
+					System.out.println(dialog.getMin());
+					System.out.println(dialog.getMax());
+					System.out.println(dialog.getIterationsPerSensor());
+					System.out.println(dialog.getIterationsPerRun());
+					System.out.println(dialog.getDistanceBetweenWells());
+					System.out.println(dialog.getCostPerUnit());
+					*/
+				}
+			}
+			});
+		
+		scatterplotButton.setVisible(Constants.buildDev);
+		
+		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
+		samples.setLayoutData(sampleGD);
+		
+		
+		container.layout();	
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		sc.layout();
+		
+		DREAMWizard.visLauncher.setEnabled(true);
+		DREAMWizard.convertDataButton.setEnabled(false);
+
+	}
+	
+	/*SCATTERPLOT BUTTON FUNCTION STORAGE
+	 * 
 				printSolutionSpaceTab();
 				int minNum = Integer.parseInt(minNumSensors.getText());
 				int maxNum = Integer.parseInt(maxNumSensors.getText());
@@ -781,24 +905,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				ChartFrame frame = new ChartFrame("Cost-TTD Scatter", chart);
 				frame.pack();
 				frame.setVisible(true);
-				
-			}
-			});
-		
-		scatterplotButton.setVisible(Constants.buildDev);
-		
-		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
-		samples.setLayoutData(sampleGD);
-		
-		
-		container.layout();	
-		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.layout();
-		
-		DREAMWizard.visLauncher.setEnabled(true);
-		DREAMWizard.convertDataButton.setEnabled(false);
-
-	}
+	 * 
+	 */
 	
 	public void printSolutionSpaceTab(){
 		StringBuilder text = new StringBuilder();
