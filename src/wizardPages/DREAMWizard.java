@@ -50,6 +50,8 @@ public class DREAMWizard extends Wizard {
 
 	public static Button convertDataButton;
 	public static Button visLauncher;
+	
+	boolean wasCancelled;
 
 	public DREAMWizard() {
 		super();
@@ -481,7 +483,8 @@ public class DREAMWizard extends Wizard {
 			return initialConfiguration;
 		}
 
-		public void run(final int runs, final boolean showPlots) throws Exception {	
+		//Returns whether or not the run was cancelled for future use
+		public boolean run(final int runs, final boolean showPlots) throws Exception {
 			if(showPlots){
 				// Resets the vis window
 				wizard.launchVisWindow(true, true);	
@@ -497,14 +500,14 @@ public class DREAMWizard extends Wizard {
 					monitor.beginTask("Running iterative procedure ", set.getIterations()*runs);	
 					runner.setMonitor(monitor);
 					if(runs > 1) {
-						runner.run(data.modelOption, initialConfiguration, set, showPlots, runs);	
+						wasCancelled = runner.run(data.modelOption, initialConfiguration, set, showPlots, runs);	
 					} else {
-
-						runner.run(data.modelOption, initialConfiguration, set, showPlots);	
+						wasCancelled = runner.run(data.modelOption, initialConfiguration, set, showPlots);	
 					}					
 				}
 			});
 			System.gc();
+			return wasCancelled;
 		}
 
 		public float runObjective(ExtendedConfiguration configuration, boolean runThreaded) {

@@ -99,18 +99,19 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	
 	
-	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
+	public boolean run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
+		boolean wasCancelled = false;
 		ResultPrinter.clearResults(set, showPlots);
 		for(int i = 0; i < sets; i++) {
-			if(monitor.isCanceled())
-				return;
 			if(i !=0) ResultPrinter.newTTDPlots(set, i+1); //already set up for the first iteration
 			currentRun = i;
 			if(monitor != null) 
 				monitor.setTaskName("Running iterative procedure " + (i+1) + "/" + sets);
-			runInternal(initialConfiguration, set);
+			wasCancelled = runInternal(initialConfiguration, set);
+			if(wasCancelled) return true;
 		}
 		ResultPrinter.printAll();
+		return false;
 	}
 
 	/**
@@ -127,11 +128,13 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	//	run(initialConfiguration, set, null);
 	//}
 
-	public void run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
+	public boolean run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
+		boolean wasCancelled = false;
 		ResultPrinter.clearResults(set, showPlots);
 		this.modelOption = modelOption;
-		runInternal(initialConfiguration, set);
+		wasCancelled = runInternal(initialConfiguration, set);
 		ResultPrinter.printAll();
+		return wasCancelled;
 	}
 
 
@@ -146,7 +149,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * @param initialConfiguration
 	 * @param set
 	 */
-	private void runInternal(final ExtendedConfiguration initialConfiguration, ScenarioSet set) {
+	private boolean runInternal(final ExtendedConfiguration initialConfiguration, ScenarioSet set) {
 		iterative = true;
 		
 		// resultsByType = new HashMap<String, ArrayList<String>>();
@@ -197,7 +200,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		for(int iteration = 0; iteration < set.getIterations(); iteration++) {
 			
 			if(monitor.isCanceled())
-				return;
+				return true;
 			
 			long timeToStoreResults = 0;
 			long timeToMatchConfig = 0;
@@ -331,7 +334,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		Constants.log(Level.CONFIG, "Function: best configuration", bestConfiguration);		
 		
 		System.out.println(Constants.timer);
-
+		return false;
 	}
 
 

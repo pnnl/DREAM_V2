@@ -666,7 +666,6 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					int maxNum = dialog.getMax();
 					int its = dialog.getIterationsPerSensor();
 					
-					//TODO: Store the old values that we want to keep track of
 					float oldExclusionRadius = data.getSet().getExclusionRadius();
 					HashMap<String, Float> costPerType = new HashMap<String, Float>();
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
@@ -708,7 +707,10 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 							data.getSet().setIterations(ittr);
 							try {
 								ResultPrinter.runScripts = false;
-								data.run(1, false); //This should never show plots, we are running too many iterations.
+								if(data.run(1, false)){ //This should never show plots, we are running too many iterations.
+									//this was cancelled at some point, we'd better just return now.
+									return;
+								}
 								//get the best TTD
 								
 								float ttd = ResultPrinter.results.bestObjValue;
