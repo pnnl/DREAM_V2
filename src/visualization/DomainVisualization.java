@@ -223,10 +223,6 @@ public class DomainVisualization {
 		tab3.setText("Monitoring Technologies");
 		
 		table_sensorTable3 = buildSensorTable(tab);
-		
-//		table_sensorTable.setLayoutData(sensorTableGridData);	
-//		table_sensorTable2.setLayoutData(sensorTableGridData2);	
-
 
 		tab1.setControl(table_sensorTable);
 		tab2.setControl(table_sensorTable2);

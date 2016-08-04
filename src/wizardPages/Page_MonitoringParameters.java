@@ -523,11 +523,12 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.setAlignment(SWT.RIGHT);
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the “Alias for Monitoring Technology” box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the ï¿½Alias for Monitoring Technologyï¿½ box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

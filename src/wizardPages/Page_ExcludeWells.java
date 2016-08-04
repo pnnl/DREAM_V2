@@ -166,6 +166,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		infoLinkData.verticalSpan = 4;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.setAlignment(SWT.RIGHT);
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {

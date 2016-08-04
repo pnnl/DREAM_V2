@@ -94,11 +94,12 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.setAlignment(SWT.RIGHT);
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The Detection Criteria window prompts the user to specify how many monitoring devices must be triggered to signify a leak has occurred. A leak may be defined in two ways. DREAM reads input provided as an “or”-statement, where it will determine a leak has occurred if (1) the specified value for any specific parameter has been met or (2) the overall number of locations exceeding the detection criteria is equal to or greater than the provided value. This allows for various combinations of monitoring device configurations to be tested.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Detection Criteria window prompts the user to specify how many monitoring devices must be triggered to signify a leak has occurred. A leak may be defined in two ways. DREAM reads input provided as an ï¿½orï¿½-statement, where it will determine a leak has occurred if (1) the specified value for any specific parameter has been met or (2) the overall number of locations exceeding the detection criteria is equal to or greater than the provided value. This allows for various combinations of monitoring device configurations to be tested.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
