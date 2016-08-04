@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Text;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_SensorSetup.SensorData;
+import wizardPages.Page_MonitoringParameters.SensorData;
 
 public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 

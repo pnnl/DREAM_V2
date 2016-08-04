@@ -163,7 +163,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		
 		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
-		infoLinkData.verticalSpan = 2;
+		infoLinkData.verticalSpan = 4;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 		infoLink.addListener(SWT.MouseUp, new Listener(){
@@ -178,24 +178,26 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Deselect unapproved or infeasible monitoring locations.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData.horizontalSpan = 6;
+		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 4;
 		infoLabel.setLayoutData(infoGridData);
 		
 
 		Button launchMapButton = new Button(container, SWT.BUTTON1);		
 		GridData launchButtonData = new GridData(GridData.BEGINNING);
-		launchButtonData.horizontalSpan = 6;
+		launchButtonData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		launchButtonData.verticalSpan = 4;
 		launchMapButton.setLayoutData(launchButtonData);
 		
+		
+		/*
 		Label spacer = new Label(container, SWT.NULL);
 		GridData spacerGridData = new GridData(GridData.FILL_HORIZONTAL);
 //		spacerGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns-12;
 		spacerGridData.horizontalSpan = Math.max(12, ((GridLayout)container.getLayout()).numColumns-12);
 		spacerGridData.verticalSpan = 4;
 		spacer.setLayoutData(spacerGridData);
-		
+		*/
 		
 		Label corner = new Label(container, SWT.NULL);
 		if((maxJ-minJ)*(maxI-minI) > 9000){
@@ -206,6 +208,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 			for(int i = minI; i <= maxI; i++) {			
 				Label label = new Label(container, SWT.NULL);
 				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
+				System.out.println(label.getText());
 			}
 			for(int j = minJ; j <= maxJ; j++) {
 				Label label = new Label(container, SWT.NULL);

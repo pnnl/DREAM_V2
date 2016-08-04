@@ -49,7 +49,7 @@ import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
+public class Page_MonitoringParameters extends WizardPage implements AbstractWizardPage {
 	
 	private ScrolledComposite sc;
 	private Composite container;
@@ -64,7 +64,7 @@ public class Page_SensorSetup extends WizardPage implements AbstractWizardPage {
 	
 	private Map<String, SensorData> sensorData;
 		
-	protected Page_SensorSetup(STORMData data) {
+	protected Page_MonitoringParameters(STORMData data) {
 		super("Sensors");
 		this.data = data;	
 	}

@@ -37,7 +37,7 @@ import utilities.Constants;
 import utilities.Point3f;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
-import wizardPages.Page_SensorSetup.SensorData;
+import wizardPages.Page_MonitoringParameters.SensorData;
 import functions.CCS9_1;
 import functions.Function;
 import functions.MutationFunction.MUTATE;
@@ -138,7 +138,8 @@ public class DREAMWizard extends Wizard {
 		addPage(new Page_WelcomeScreen());	
 		addPage(new Page_ScenarioSet(data));	
 		addPage(new Page_ScenarioSetup(data));
-		addPage(new Page_SensorSetup(data));
+		addPage(new Page_MonitoringParameters(data));
+//		addPage(new Page_DegradationParameters(data));
 		addPage(new Page_InferenceTest(data));
 		addPage(new Page_RunSettings(data));
 		addPage(new Page_ExcludeWells(data));

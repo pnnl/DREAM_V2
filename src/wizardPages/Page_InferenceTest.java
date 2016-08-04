@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Text;
 import objects.Sensor;
 import utilities.Constants;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_SensorSetup.SensorData;
+import wizardPages.Page_MonitoringParameters.SensorData;
 
 public class Page_InferenceTest extends WizardPage implements AbstractWizardPage {
 
