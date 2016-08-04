@@ -203,7 +203,7 @@ public class DomainVisualization {
 
 		GridData tabGridData = new GridData();
 		tabGridData.verticalSpan = 10;
-		tabGridData.widthHint = 320;
+		tabGridData.widthHint = 450;
 		tabGridData.heightHint = 200;
 		tab.setLayoutData(tabGridData);
 		
@@ -235,14 +235,19 @@ public class DomainVisualization {
 		Label label_configurations = new Label(composite, SWT.NONE);
 		label_configurations.setText("Configurations");
 
+		tabGridData.grabExcessHorizontalSpace = true;
+		
 		// Tree
 		tree_configurationTree = buildScenarioTree(composite);
 		GridData scenarioTreeGridData = new GridData();
 		scenarioTreeGridData.verticalSpan = 10;
-		scenarioTreeGridData.widthHint = 300;
+		scenarioTreeGridData.widthHint = 450;
 		scenarioTreeGridData.heightHint = 220;
+		scenarioTreeGridData.grabExcessHorizontalSpace = true;
+
 		tree_configurationTree.setLayoutData(scenarioTreeGridData);	
 
+		
 		shell.pack();
 		if(show) shell.open();
 		else this.hide();
