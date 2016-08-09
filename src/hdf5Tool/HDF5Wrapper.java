@@ -21,12 +21,12 @@ import objects.NodeStructure;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import objects.TimeStep;
-import ncsa.hdf.hdf5lib.H5;
-import ncsa.hdf.hdf5lib.HDF5Constants;
-import ncsa.hdf.object.Dataset;
-import ncsa.hdf.object.Group;
-import ncsa.hdf.object.HObject;
-import ncsa.hdf.object.h5.H5File;
+import hdf.hdf5lib.H5;
+import hdf.hdf5lib.HDF5Constants;
+import hdf.object.Dataset;
+import hdf.object.Group;
+import hdf.object.HObject;
+import hdf.object.h5.H5File;
 import utilities.Constants;
 import utilities.Point3i;
 
