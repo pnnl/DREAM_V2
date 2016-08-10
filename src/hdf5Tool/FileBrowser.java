@@ -53,10 +53,10 @@ import javax.swing.UIManager;
 
 import org.apache.commons.io.FileUtils;
 
-import hdf.object.Datatype;
-import hdf.object.FileFormat;
-import hdf.object.Group;
-import hdf.object.h5.H5File;
+import ncsa.hdf.object.Datatype;
+import ncsa.hdf.object.FileFormat;
+import ncsa.hdf.object.Group;
+import ncsa.hdf.object.h5.H5File;
 import utilities.Constants;
 
 /*

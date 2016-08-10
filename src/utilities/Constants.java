@@ -15,16 +15,16 @@ import java.util.logging.SimpleFormatter;
 
 import hdf5Tool.HDF5Wrapper;
 import objects.NodeStructure;
-import hdf.hdf5lib.H5;
-import hdf.hdf5lib.HDF5Constants;
-import hdf.object.Dataset;
-import hdf.object.Group;
-import hdf.object.h5.H5File;
+import ncsa.hdf.hdf5lib.H5;
+import ncsa.hdf.hdf5lib.HDF5Constants;
+import ncsa.hdf.object.Dataset;
+import ncsa.hdf.object.Group;
+import ncsa.hdf.object.h5.H5File;
 
 public class Constants {
 	
 	// Catherine change this to true when you want to build production version!!!
-	public static boolean buildDev = true;
+	public static boolean buildDev = false;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;

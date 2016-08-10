@@ -15,12 +15,12 @@ import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import org.apache.commons.io.FileUtils;
 
-import hdf.hdf5lib.HDF5Constants;
-import hdf.object.Dataset;
-import hdf.object.Datatype;
-import hdf.object.FileFormat;
-import hdf.object.Group;
-import hdf.object.h5.*; 
+import ncsa.hdf.hdf5lib.HDF5Constants;
+import ncsa.hdf.object.Dataset;
+import ncsa.hdf.object.Datatype;
+import ncsa.hdf.object.FileFormat;
+import ncsa.hdf.object.Group;
+import ncsa.hdf.object.h5.*; 
 
 public class HDF5Parser {
 
