@@ -13,7 +13,9 @@ import java.util.TreeMap;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.InferenceTest;
+import objects.NodeStructure;
 import objects.Scenario;
+import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
 import objects.TimeStep;
@@ -45,6 +47,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import functions.*;
+import hdf5Tool.HDF5Wrapper;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
@@ -55,7 +58,6 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	protected Map<String, Integer> num_duplicates = new HashMap<String, Integer>();
 	
 	private STORMData data;
 	private boolean isCurrentPage = false;
@@ -351,25 +353,41 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 	
 	@Override
 	public void completePage() throws Exception {
+		try{
+			isCurrentPage = false;		
+			ArrayList<SensorSetting> sensorSettings = new ArrayList<SensorSetting>();
+			for(String label: degradationData.keySet()){
+				DegradationData degData = degradationData.get(label);
+				if(degData.isIncluded){
+					SensorSetting x = new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), label, data.getScenarioSet().getScenarios());
+					x.setTrigger(degData.trigger);
+					if(degData.trigger == Trigger.MAXIMUM_THRESHOLD){
+						x.setUpperThreshold(degData.max);
+					}
+					x.setUserSettings(0f, null, degData.min, degData.max, degData.trigger, false, degData.deltaType, degData.minZ, degData.maxZ);
+					sensorSettings.add(x);
+				}
+			}
+			volumeOfAquiferDegraded(sensorSettings);			
+
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
 		
-		if(degradationData == null || data.needToResetMonitoringParameters) {
-			data.needToResetMonitoringParameters = false;
+		if(degradationData == null) {
 			// New UI
 			degradationData = new TreeMap<String, DegradationData>();
 		
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 								
 				degradationData.put(dataType, new DegradationData(dataType));
-				//This is what we need to do to add
-				//data.getSet().addSensorSetting(dataType+"1", dataType);
-				//data.getSet().getInferenceTest().setMinimumRequiredForType(dataType+"1", -1);
-				//sensorData.put(dataType+"1", new SensorData(data.getSet().getSensorSettings(dataType+"1"), dataType+"1"));
-				//End here
 			}
 		}
 		
@@ -437,11 +455,11 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 		}
 		
 		Label volumeCost = new Label(container, SWT.LEFT);
-		volumeCost.setFont(boldFont);
+		volumeCost.setFont(boldFont1);
 		volumeCost.setText("Cost per unit volume:");
 		volumeCostText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		volumeCostText.setText(Constants.decimalFormat.format(0));
-		volumeCostText.setSize(200, 20);
+		volumeCostText.setSize(1000, 20);
 		volumeCostText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -453,7 +471,9 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 				}
 			}				
 		});
-	
+		GridData volumeCostGridData = new GridData(SWT.FILL, SWT.END, false, false);
+		volumeCostText.setLayoutData(volumeCostGridData);
+
 		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
@@ -461,6 +481,86 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
+	
+	private void volumeOfAquiferDegraded(ArrayList<SensorSetting> sensorSettings){	
+		long current = System.currentTimeMillis();
+		
+		HashSet<Integer> nodes = new HashSet<Integer>();
+		//TODO: NEED ALL NODES
+		Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
+		for(SensorSetting sensorSetting: sensorSettings){
+			for(Scenario scenario: data.getSet().getScenarios()) {
+				// Query for valid nodes per scenario
+				try {
+					HashSet<Integer> innerNodes = Constants.hdf5Data.isEmpty() ? 
+							HDF5Wrapper.queryNodesFromFiles(data.getSet().getNodeStructure(), scenario.toString(), sensorSetting.getType(),
+									sensorSetting.getLowerThreshold(), sensorSetting.getUpperThreshold(), null) : 
+								HDF5Wrapper.queryNodesFromMemory(data.getSet().getNodeStructure(), scenario.toString(), sensorSetting.getType(),
+										sensorSetting.getLowerThreshold(), sensorSetting.getUpperThreshold(), null);
+							nodes.addAll(innerNodes);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
+
+		for(Scenario scenario: data.getSet().getScenarios()){
+			timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
+			for(Integer nodeNumber: nodes){	
+				Float timeToDegredation = null;
+				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
+					for(SensorSetting setting: sensorSettings){
+						try {
+							if(CCS9_1.volumeSensorTriggered(setting, data.getSet().getNodeStructure(), timeStep, scenario, setting.getType(), nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if(timeToDegredation != null) break;
+					}
+					if(timeToDegredation != null) break;
+				}
+				if(timeToDegredation != null) timeToDegradationPerNode.get(scenario).put(nodeNumber, timeToDegredation);
+			}
+		}
+		
+		System.out.println(timeToDegradationPerNode.size());
+		
+		Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<Scenario, HashMap<Float, Float>>();
+		HashSet<Float> years = new HashSet<Float>();
+		for(Scenario scenario: timeToDegradationPerNode.keySet()){
+			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
+			for(Integer nodeNumber: timeToDegradationPerNode.get(scenario).keySet()){
+				Float year = timeToDegradationPerNode.get(scenario).get(nodeNumber);
+				years.add(year);
+				Point3i location = data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
+				if(!volumeDegradedByYear.get(scenario).containsKey(year)) volumeDegradedByYear.get(scenario).put(year, data.getSet().getNodeStructure().getVolumeOfNode(location));
+				else volumeDegradedByYear.get(scenario).put(year, volumeDegradedByYear.get(scenario).get(year) + data.getSet().getNodeStructure().getVolumeOfNode(location));
+			}
+		}
+		
+		System.out.println(years.size());
+		if(years.size() == 0){
+			SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, new ArrayList<Float>());
+			return;
+		}
+		ArrayList<Float> sortedYears = new ArrayList<Float>(years);
+		java.util.Collections.sort(sortedYears);
+		for(Scenario scenario: volumeDegradedByYear.keySet()){
+			if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(0))) volumeDegradedByYear.get(scenario).put(sortedYears.get(0), 0f);
+			for(int i=1; i<sortedYears.size(); ++i){
+				if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(i))) volumeDegradedByYear.get(scenario).put(sortedYears.get(i), 0f);
+				volumeDegradedByYear.get(scenario).put(sortedYears.get(i), volumeDegradedByYear.get(scenario).get(sortedYears.get(i)) + volumeDegradedByYear.get(scenario).get(sortedYears.get(i-1)));
+			}
+		}
+		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
+
+		long total = System.currentTimeMillis() - current;
+		System.out.println("Updated volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+	}
+	
 	
 /*
  // Keeping old method for comparison if the new one gives us weird results

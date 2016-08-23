@@ -473,7 +473,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
-			volumeOfAquiferDegraded();
+//			volumeOfAquiferDegraded();
 			DREAMWizard.visLauncher.setEnabled(true);
 			
 
@@ -868,7 +868,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
 	}
 */
-	
+/*	
 	private void volumeOfAquiferDegraded(){	
 		long current = System.currentTimeMillis();
 		
@@ -1036,7 +1036,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		long total = System.currentTimeMillis() - current;
 		System.out.println("Pareto thing time:\t" + total/1000 + "." + total%1000);
 	}
-	
+*/	
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;

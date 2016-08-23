@@ -350,7 +350,7 @@ public class HDF5Wrapper {
 					((Dataset)child).close(dataset_id);
 					for(int i = 0; i < dataRead.length; i++) {
 
-						if(monitor.isCanceled()) return nodes;
+						if(monitor != null && monitor.isCanceled()) return nodes;
 
 						
 						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) { // Or >=

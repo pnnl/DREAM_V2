@@ -427,7 +427,7 @@ public class SensorSetting {
 				Float timeToDegredation = Float.MAX_VALUE;
 				for (TimeStep timeStep: nodeStructure.getTimeSteps()){
 					try {
-						if(CCS9_1.testSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						if(CCS9_1.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
