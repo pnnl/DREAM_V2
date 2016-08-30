@@ -16,9 +16,6 @@ public class ExtendedConfiguration extends Configuration {
 	
 	private List<Well> wells;
 
-	// Actual time to detection, if a scenario does not detect value will be null
-	private Map<Scenario, Float> timesToDetection;
-	
 	// Weighted with penalty for scenarios that do not detect
 	private Map<Scenario, Float> objectiveValues;
 	

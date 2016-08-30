@@ -9,7 +9,7 @@ public class Configuration {
 
 	protected List<Sensor> sensors = new ArrayList<Sensor>();	
 	
-	private Map<Scenario, Float> timesToDetection;
+	protected Map<Scenario, Float> timesToDetection;
 
 	public Configuration() {
 		sensors = new ArrayList<Sensor>();
@@ -40,8 +40,10 @@ public class Configuration {
 
 	public float getUnweightedTimeToDetectionInDetectingScenarios() {
 		float ttd = 0.0f;
-		for(float ttdPerScenario: timesToDetection.values()) 
-			ttd += ttdPerScenario;
+		//if(timesToDetection != null)
+			for(float ttdPerScenario: timesToDetection.values()) 
+				ttd += ttdPerScenario;
+		//else ttd = Float.MAX_VALUE;
 		return ttd;
 	}	
 

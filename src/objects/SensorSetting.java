@@ -160,7 +160,7 @@ public class SensorSetting {
 		float volume = 0;
 		//Note that this only loops over scenarios in which some volume of aquifer is degraded
 		for(Scenario scenario: volumeDegradedByYear.keySet()){
-			if(!ttdMap.containsKey(scenario)){
+			if(!ttdMap.containsKey(scenario) && years.size() != 0){
 				volume += volumeDegradedByYear.get(scenario).get(years.get(years.size()-1));
 				continue;
 			}

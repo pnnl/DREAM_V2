@@ -33,7 +33,7 @@ public class Results {
 	// or  value, node type: (i, j, k), node type: (i, j, k), node type: (i, j, k)
 	public boolean bestConfigSum = true;
 	public float bestObjValue;
-	public HashSet<Configuration> bestConfigSumList;
+	public HashSet<ExtendedConfiguration> bestConfigSumList;
 	public HashMap<Configuration, Float> bestConfigSumTTDs;
 	public HashMap<Configuration, Float> bestConfigSumPercents;
 
@@ -64,7 +64,7 @@ public class Results {
 	
 	public Results(ScenarioSet set, boolean makePlots) {
 		this.set = set;
-		bestConfigSumList = new HashSet<Configuration>();
+		bestConfigSumList = new HashSet<ExtendedConfiguration>();
 		bestConfigSumTTDs = new HashMap<Configuration, Float>();
 		bestConfigSumPercents = new HashMap<Configuration, Float>();
 		bestObjValue = Float.MAX_VALUE;
@@ -109,15 +109,15 @@ public class Results {
 				bestObjValue = global_ttd;
 			}
 			if(Float.compare(global_ttd, bestObjValue) == 0) {
-				Configuration newConfiguration = new Configuration();
+				ExtendedConfiguration newExtendedConfiguration = new ExtendedConfiguration();
 				for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
 					if(sensor.isInferred())
-						newConfiguration.addSensor(sensor.makeCopy());
+						newExtendedConfiguration.addSensor(sensor.makeCopy());
 				}
-				newConfiguration.setTimesToDetection(configuration.getTimesToDetection());
-				bestConfigSumList.add(newConfiguration);
-				bestConfigSumTTDs.put(newConfiguration, ttd);
-				bestConfigSumPercents.put(newConfiguration, percent);
+				newExtendedConfiguration.setTimesToDetection(configuration.getTimesToDetection());
+				bestConfigSumList.add(newExtendedConfiguration);
+				bestConfigSumTTDs.put(newExtendedConfiguration, ttd);
+				bestConfigSumPercents.put(newExtendedConfiguration, percent);
 			}
 		}
 		

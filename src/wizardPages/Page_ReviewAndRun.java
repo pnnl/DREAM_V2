@@ -70,6 +70,7 @@ import objects.Sensor;
 import objects.SensorSetting;
 import objects.TecplotNode;
 import results.ResultPrinter;
+import utilities.ComparisonDialog;
 import utilities.Constants;
 import utilities.EnsembleDialog;
 import utilities.Point3f;
@@ -715,7 +716,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 								//get the best TTD
 								
 								float ttd = ResultPrinter.results.bestObjValue;
-								HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
+								HashSet<ExtendedConfiguration> bestConfigs = ResultPrinter.results.bestConfigSumList;
 								for(Configuration config: bestConfigs){
 									configurationTTDs.add(ttd);
 									float cost = data.getScenarioSet().costOfConfiguration(config);
@@ -776,27 +777,128 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					for(String sensorType: costPerType.keySet()){
 						data.getSet().getSensorSettings(sensorType).setCost(costPerType.get(sensorType));
 					}
-
-					
-					
-					
-					/*
-					System.out.println(dialog.getMin());
-					System.out.println(dialog.getMax());
-					System.out.println(dialog.getIterationsPerSensor());
-					System.out.println(dialog.getIterationsPerRun());
-					System.out.println(dialog.getDistanceBetweenWells());
-					System.out.println(dialog.getCostPerUnit());
-					*/
 				}
 			}
 			});
 		
 		scatterplotButton.setVisible(Constants.buildDev);
 		
+		Button comparisonButton = new Button(container, SWT.BALLOON);
+		comparisonButton.setSelection(true);
+		comparisonButton.setText("Compare two sensors");
+		comparisonButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				ComparisonDialog dialog = new ComparisonDialog(container.getShell(), data, Integer.valueOf(iterations.getText()));
+				dialog.open();
+				if(dialog.readyToRun){
+					String sensor1 = dialog.getSensor1();
+					String sensor2 = dialog.getSensor2();
+					HashMap<String, Float> costStorage = new HashMap<String, Float>();
+					for(String sensor: data.getSet().getDataTypes()){
+						if(sensor != sensor1){
+							costStorage.put(sensor, data.getScenarioSet().getCost(sensor));
+							data.getSet().getSensorSettings().get(sensor).setCost(Float.MAX_VALUE);
+						}
+					}
+					try {
+						data.run(1, false); //showPlots.getSelection();
+						List<List<ExtendedConfiguration>> fullSet = new ArrayList<List<ExtendedConfiguration>>();
+						for(ExtendedConfiguration config: ResultPrinter.results.bestConfigSumList){
+							List<ExtendedConfiguration> innerSet = new ArrayList<ExtendedConfiguration>();
+							//For each config, let's run through the iterations of replacing the sensors with our original ones.
+							data.runObjective(config, true);
+							innerSet.add(config);
+							int numSensors = config.getExtendedSensors().size();
+							for(int i=1; i<=numSensors; i++){
+								//Get the config with the best ttd for this
+								ExtendedConfiguration bestConfig = null;
+								float bestValue = Float.MAX_VALUE;
+								for(int[] combo: getAllCombinations(numSensors,i)){
+									//Try swapping out the sensors in these positions, and keep the best result
+									ExtendedConfiguration newConfig = new ExtendedConfiguration();
+									for(int j=0; j<numSensors; j++){
+										boolean contains = false;
+										for(int k=0; k<i; k++){
+											if(combo[k] == j) contains = true;
+										}
+										if(contains){ //add a sensor of type 2 in the same spot
+											ExtendedSensor oldSensor = config.getExtendedSensors().get(j);
+											newConfig.addSensor(data.getScenarioSet(), new ExtendedSensor(
+													oldSensor.getNodeNumber(),
+													sensor2,
+													data.getSet().getNodeStructure()));
+										}
+										else newConfig.addSensor(data.getScenarioSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
+									}
+									data.runObjective(newConfig, true);
+									float objective = newConfig.getObjectiveValue();
+									if(objective < bestValue){
+										bestValue = objective;
+										bestConfig = newConfig;
+									}
+								}
+								innerSet.add(bestConfig);
+							}
+							fullSet.add(innerSet);
+						}
+						int i=0;
+						StringBuilder sb = new StringBuilder();
+						sb.append("Replaced Sensors,Volume Degraded,Objective Result");
+						List<Scenario> scenarios = data.getSet().getScenarios();
+						for(Scenario s: scenarios) sb.append("," + s.toString());
+						sb.append(",Sensor Types and Locations\n");
+						for(List<ExtendedConfiguration> innerSet: fullSet){
+							int j=0;
+							for(ExtendedConfiguration config: innerSet){
+								sb.append(j == 0 ? "Original": String.valueOf(j));
+								sb.append(",");
+								sb.append(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
+								sb.append(",");
+								sb.append(config.getObjectiveValue());
+								Map<Scenario, Float> ttds = config.getTimesToDetection();
+								for(Scenario s: scenarios){
+									sb.append(",");
+									sb.append(ttds.get(s) == null ? "N/A" : ttds.get(s));
+								}
+								for(Sensor sensor: config.getSensors()){
+									Point3f point = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(sensor.getIJK());
+									sb.append("," + sensor.getSensorType() + "("
+										+ point.getX() + " " 
+										+ point.getY() + " " 
+										+ point.getZ() + ")");
+								}
+								sb.append("\n");
+								j++;
+							}
+						}
+						try{
+							File outFolder = new File(outputFolder.getText());
+							if(!outFolder.exists())
+								outFolder.mkdirs();
+							File outFile = new File(new File(outputFolder.getText()), "sensor_comparison.csv");
+							if(!outFile.exists())
+								outFile.createNewFile();
+							FileUtils.writeStringToFile(outFile, sb.toString());
+						}catch (IOException e) {		
+							JOptionPane.showMessageDialog(null, "Could not write to sensor_comparison.csv, make sure the file is not currently open");
+							e.printStackTrace();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					for(String type: costStorage.keySet()){
+						data.getSet().getSensorSettings().get(type).setCost(costStorage.get(type));
+					}
+				}
+				else{
+					System.out.println("CANCELLED");
+				}
+			}
+		});
 		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
 		samples.setLayoutData(sampleGD);
-		
+		comparisonButton.setVisible(Constants.buildDev);
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -804,7 +906,28 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
-
+	}
+	
+	private List<int[]> getAllCombinations(int n, int k){
+		// get all combinations of size k of the first n integers
+		ArrayList<int[]> combos = new ArrayList<int[]>();
+		int[] x = new int[k];
+		for(int i=0; i<k; i++) x[i] = i;
+		combos.add(x.clone());
+		while(true){
+			int i;
+			for(i=k-1; i>= 0 && x[i] == n-k+i; i--);
+			if(i<0) break;
+			else{
+				x[i]++;
+				for(++i; i<k; i++){
+					x[i] = x[i-1] + 1;
+				}
+				combos.add(x.clone());
+			}
+		}
+		
+		return combos;
 	}
 	
 	/*SCATTERPLOT BUTTON FUNCTION STORAGE
