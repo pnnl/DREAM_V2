@@ -140,10 +140,13 @@ public class ResultPrinter {
 			return;
 		String fileName = "best_configurations";
 		String ttdFileName = "best_configuration_ttds";
+		String vadFileName = "best_configuration_vads";
 		Map<Float, String> linesToSort = new HashMap<Float, String>();
 		Map<Float, String> ttdLinesToSort = new HashMap<Float, String>();
+		Map<Float, String> vadLinesToSort = new HashMap<Float, String>();
 		List<String> lines = new ArrayList<String>();	
-		List<String> ttdLines = new ArrayList<String>();	
+		List<String> ttdLines = new ArrayList<String>();
+		List<String> vadLines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
 				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Well Configuration ($20/ft), Volume of Aquifer Degraded, Sensor Types (x y z)");
 
@@ -235,9 +238,16 @@ public class ResultPrinter {
 				Collection<Float> ttds = configuration.getTimesToDetection().values();
 				StringBuilder ttdLine = new StringBuilder();
 				for(float ttd: ttds){
-					ttdLine.append(ttd + ",");
+					ttdLine.append("," + ttd);
 				}
 				ttdLinesToSort.put(costOfConfig, ttdLine.toString());
+				
+				StringBuilder vadLine = new StringBuilder();
+				Collection<Float> vads = SensorSetting.getVolumesDegraded(configuration.getTimesToDetection()).values();
+				for(float vad: vads){
+					vadLine.append("," + vad);
+				}
+				vadLinesToSort.put(costOfConfig, vadLine.toString());
 			}
 		}
 		
@@ -263,7 +273,13 @@ public class ResultPrinter {
 		
 		int i=1;
 		for(float key: keySet){
-			ttdLines.add("Config_" + i + "," + ttdLinesToSort.get(key));
+			ttdLines.add("Config_" + i + ttdLinesToSort.get(key));
+			i++;
+		}
+		
+		i=1;
+		for(float key: keySet){
+			vadLines.add("Config_" + i + vadLinesToSort.get(key));
 			i++;
 		}
 		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
@@ -279,6 +295,22 @@ public class ResultPrinter {
 			catch(Exception e){
 				System.out.println("Install python and required libraries to create a PDF visualization");
 			}
+		}
+		File vadFile = new File(resultsDirectory, vadFileName + ".csv");
+		FileUtils.writeLines(vadFile, vadLines);
+		if(runScripts){
+			//Try running script
+			
+			try{
+			File script = new File("./scripts/plot_best_config_vads.py");
+			Runtime runtime = Runtime.getRuntime();
+			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + vadFile.getAbsolutePath() + "\"";
+			runtime.exec(command);
+			}
+			catch(Exception e){
+				System.out.println("Install python and required libraries to create a PDF visualization");
+			}
+			
 		}
 	}
 

@@ -156,6 +156,28 @@ public class SensorSetting {
 		volumeDegradedByYear = volumeDegradedByYear2;
 	}
 	
+	public static Map<Scenario, Float> getVolumesDegraded(Map<Scenario, Float> ttdMap){
+		HashMap<Scenario, Float> vadMap = new HashMap<Scenario, Float>();
+		for(Scenario scenario: ttdMap.keySet()){
+			if(volumeDegradedByYear.containsKey(scenario)){
+				int i=1;
+				while(i <= years.size()){
+					if(i == years.size()) vadMap.put(scenario, volumeDegradedByYear.get(scenario).get(years.get(i-1)));
+					else if(ttdMap.get(scenario) <= years.get(i)){
+						vadMap.put(scenario, volumeDegradedByYear.get(scenario).get(years.get(i)));
+						break;
+					}
+					i++;
+				}
+			}
+			else{
+				vadMap.put(scenario, 0f);
+				System.out.println("Wasn't sure I would hit this - VAD for printing");
+			}
+		}
+		return vadMap;
+	}
+	
 	public static float getVolumeDegradedByTTDs(Map<Scenario, Float> ttdMap, int numScenarios){ //TODO: might want to make this take weighted averages.
 		float volume = 0;
 		//Note that this only loops over scenarios in which some volume of aquifer is degraded
