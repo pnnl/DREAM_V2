@@ -75,7 +75,7 @@ dfdect.plot(marker='s', ms=0, ax=ax1, linewidth=3, mew=0.5,colormap='hsv', alpha
 ax1.set_ylabel('Scenarios with\nLeakage Detected (%)\n', fontsize=figfontsize)
 
 dfttd.plot(marker='s', ms=0, ax=ax2, linewidth=3, mew=0.5,colormap='hsv', alpha=0.55)
-ax2.set_ylabel('E(TFD) (years)\n', fontsize=figfontsize)
+ax2.set_ylabel('TTD (years)\n', fontsize=figfontsize)
 ax2.set_xlabel('\nIterations', fontsize=figfontsize)
 
 ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))

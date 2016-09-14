@@ -78,6 +78,14 @@ public class DomainVisualization {
 	private Map<String, CloudTableItem> cloudTableItems;
 	private Map<String, CloudTableItem> validTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
+	
+	//TODO: TEST!
+	private boolean cloudOldSelection = true;
+	private boolean validOldSelection = true;
+	private boolean sensorOldSelection = true;
+	private TableItem cloudSelectAll;
+	private TableItem validSelectAll;
+	private TableItem sensorSelectAll;
 
 	private boolean resetTreeRequired = false;
 
@@ -685,6 +693,10 @@ public class DomainVisualization {
 				gc.fillRectangle(event.x, event.y, event.width, event.height);
 			}
 		});
+		
+		sensorSelectAll = new TableItem(table, SWT.CENTER);
+		sensorSelectAll.setText("Select all");
+		sensorSelectAll.setChecked(true);
 
 		tableColumn_sensorType.pack();
 		tableColumn_selectColor.pack();
@@ -754,6 +766,10 @@ public class DomainVisualization {
 				gc.fillRectangle(event.x, event.y, event.width, event.height);
 			}
 		});
+		
+		validSelectAll = new TableItem(table, SWT.CENTER);
+		validSelectAll.setText("Select all");
+		validSelectAll.setChecked(true);
 
 		tableColumn_sensorType.pack();
 		tableColumn_selectColor.pack();
@@ -769,7 +785,7 @@ public class DomainVisualization {
 
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
-
+		
 		TableColumn tableColumn_sensorType = new TableColumn(table, SWT.CENTER);
 		tableColumn_sensorType.setText("Include");
 
@@ -781,7 +797,7 @@ public class DomainVisualization {
 
 		TableColumn tableColumn_selectColor = new TableColumn(table, SWT.CENTER);
 		tableColumn_selectColor.setText("");
-
+		
 		cloudTableItems = new HashMap<String, CloudTableItem>();
 		for(String type: set.getDataTypes()) {
 			CloudTableItem cloudTableItem = new CloudTableItem(table, rowHeight, type);
@@ -824,6 +840,12 @@ public class DomainVisualization {
 			}
 		});
 
+
+
+		cloudSelectAll = new TableItem(table, SWT.CENTER);
+		cloudSelectAll.setText("Select all");
+		cloudSelectAll.setChecked(true);
+		
 		tableColumn_sensorType.pack();
 		tableColumn_selectColor.pack();
 		tableColumn_displayColor.pack();
@@ -1209,6 +1231,38 @@ public class DomainVisualization {
 		}
 	}
 
+	
+	//TODO: TEST!
+	public void checkSelectAll(){
+		if(cloudSelectAll != null){
+			boolean newValue = cloudSelectAll.getChecked();
+			if(cloudOldSelection != newValue){
+				for(CloudTableItem cloudItem: cloudTableItems.values()){
+					cloudItem.getTableItem().setChecked(newValue);
+				}
+				cloudOldSelection = newValue;
+			}
+		}
+		if(validSelectAll != null){
+			boolean newValue = validSelectAll.getChecked();
+			if(validOldSelection != newValue){
+				for(CloudTableItem cloudItem: validTableItems.values()){
+					cloudItem.getTableItem().setChecked(newValue);
+				}
+				validOldSelection = newValue;
+			}
+		}
+		if(sensorSelectAll != null){
+			boolean newValue = sensorSelectAll.getChecked();
+			if(sensorOldSelection != newValue){
+				for(SensorTableItem cloudItem: sensorTableItems.values()){
+					cloudItem.getTableItem().setChecked(newValue);
+				}
+				sensorOldSelection = newValue;
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		new DomainVisualization(new Display(), null, true);
 	}

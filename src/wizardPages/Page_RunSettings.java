@@ -218,6 +218,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		wellCost.setVisible(Constants.buildDev);
 		wellCostLabel.setVisible(Constants.buildDev);
 
+	/*
 		Label addLabel = new Label(container, SWT.NULL);
 		addLabel.setText("Add Point");
 		addPoint= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -227,7 +228,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
 		addPoint.setVisible(Constants.buildDev);
 		addLabel.setVisible(Constants.buildDev);		
-		
+	*/
 		averageTTD = new Button(container, SWT.CHECK);
 		averageTTD.setText("Use average time to detection");
 		new Label(container, SWT.NULL);

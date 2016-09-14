@@ -231,6 +231,9 @@ public class DomainViewer {
 			gl2.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
 			gl2.glClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
 
+			//TODO: TEST!
+			domainVisualization.checkSelectAll();
+			
 			if(reset) {
 				this.buildLines();
 				this.buildValidFaces();

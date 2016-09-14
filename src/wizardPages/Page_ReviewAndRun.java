@@ -274,7 +274,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 				StringBuilder text = new StringBuilder();
 				
 				// Heading
-				text.append("Sensor,Average TTD in detected scenarios, detected scenarios, tested scenarios");
+				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
 				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 					text.append("," + scenario.getScenario());
 				}
@@ -285,8 +285,11 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
 						text.append(sensorType + ",");
 						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
-						text.append(sensorTestedScenariosDetected.get(sensorType).size() + ",");
-						text.append(data.getScenarioSet().getScenarios().size());
+						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
+						int scenariosTested = data.getScenarioSet().getScenarios().size();
+						text.append(((float)detectedScenarios)/scenariosTested*100);
+						text.append(detectedScenarios + ",");
+						text.append(scenariosTested);
 						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
 							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
 									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
