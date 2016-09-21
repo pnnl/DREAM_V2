@@ -14,6 +14,7 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	private DREAMMap map = null;
+	private CoordinateConversion converter = new CoordinateConversion();
 	
 	public int offsetX;
 	public int offsetY;
@@ -47,7 +48,10 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
         latitudeLabel = new javax.swing.JLabel();
         longitudeField = new javax.swing.JTextField();
         longitudeLabel = new javax.swing.JLabel();
-        selectButton = new javax.swing.JButton();
+        selectLatLonButton = new javax.swing.JButton();
+        utmField = new javax.swing.JTextField();
+        utmLabel = new javax.swing.JLabel();
+        selectUtmButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         zoomSlider = new javax.swing.JSlider();
         
@@ -56,7 +60,7 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
         latitudeField.setText("46.3729672");
         longitudeField.setText("-119.2561704");
         
-        selectButton.addActionListener(new ActionListener() {
+        selectLatLonButton.addActionListener(new ActionListener() {
         	@Override
 			public void actionPerformed(ActionEvent e) {
 				System.out.println("Select button clicked!");
@@ -66,10 +70,31 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
 				zoom = 50;				
 				zoomSlider.setValue(zoom);
 				
-				map.redraw(Float.valueOf(latitudeField.getText()), Float.valueOf(longitudeField.getText()));
+				float lat = Float.valueOf(latitudeField.getText());
+				float lon = Float.valueOf(longitudeField.getText());
+				utmField.setText(converter.latLon2UTM(lat, lon));
+				map.redraw(lat, lon);
 			}
         });
         
+        utmField.setText(converter.latLon2UTM(46.3729672, -119.2561704));
+        selectUtmButton.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("Select clicked");
+				offsetX = 0;
+				offsetY = 0;
+				rotate = 0;
+				zoom = 50;				
+				zoomSlider.setValue(zoom);
+				double[] x = converter.utm2LatLon(utmField.getText());
+				latitudeField.setText(String.valueOf(x[0]));
+				longitudeField.setText(String.valueOf(x[1]));
+				map.redraw((float)x[0], (float)x[1]);
+			}
+        	
+        });
         // 0 to 100?
         zoomSlider.setMinimum(0);
         zoomSlider.setMaximum(100);
@@ -89,7 +114,10 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
         latitudeLabel.setForeground(Color.white);
         longitudeLabel.setText("Longitude");
         longitudeLabel.setForeground(Color.white);
-        selectButton.setText("Select");
+        utmLabel.setText("UTM Cords");
+        utmLabel.setForeground(Color.white);
+        selectLatLonButton.setText("Select");
+        selectUtmButton.setText("Select");
 
         panUpButton.addActionListener(this);
         panDownButton.addActionListener(this);
@@ -233,17 +261,22 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                	.addGroup(layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(selectButton))
+                        .addComponent(selectLatLonButton))      
+                	.addGroup(layout.createSequentialGroup()
+                            .addGap(0, 0, Short.MAX_VALUE)
+                            .addComponent(selectUtmButton))      
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(longitudeLabel)
-                            .addComponent(latitudeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(latitudeLabel)
+                            .addComponent(utmLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(latitudeField)
-                            .addComponent(longitudeField)))
+                            .addComponent(longitudeField)
+                            .addComponent(utmField)))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -259,8 +292,14 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
                     .addComponent(longitudeField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(longitudeLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(selectButton)
+                .addComponent(selectLatLonButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(utmField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(utmLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(selectUtmButton)
+               .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(370, Short.MAX_VALUE))
         );
@@ -271,13 +310,16 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
     private javax.swing.JLabel latitudeLabel;
     private javax.swing.JTextField longitudeField;
     private javax.swing.JLabel longitudeLabel;
+    private javax.swing.JTextField utmField;
+    private javax.swing.JLabel utmLabel;
     private javax.swing.JButton panDownButton;
     private javax.swing.JButton panLeftButton;
     private javax.swing.JButton panRightButton;
     private javax.swing.JButton panUpButton;
     private javax.swing.JButton rotateCCWButton;
     private javax.swing.JButton rotateCWButton;
-    private javax.swing.JButton selectButton;
+    private javax.swing.JButton selectLatLonButton;
+    private javax.swing.JButton selectUtmButton;
     private javax.swing.JButton zoomInButton;
     private javax.swing.JButton zoomOutButton;
     private javax.swing.JSlider zoomSlider;

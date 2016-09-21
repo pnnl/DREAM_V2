@@ -79,7 +79,6 @@ public class DomainVisualization {
 	private Map<String, CloudTableItem> validTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
 	
-	//TODO: TEST!
 	private boolean cloudOldSelection = true;
 	private boolean validOldSelection = true;
 	private boolean sensorOldSelection = true;
@@ -1232,7 +1231,6 @@ public class DomainVisualization {
 	}
 
 	
-	//TODO: TEST!
 	public void checkSelectAll(){
 		if(cloudSelectAll != null){
 			boolean newValue = cloudSelectAll.getChecked();

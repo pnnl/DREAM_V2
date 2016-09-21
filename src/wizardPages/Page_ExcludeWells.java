@@ -237,7 +237,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 			}
 		}
 		
-		launchMapButton.setText("Launch Google map (needs internet connection)");
+		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				final List<IJ> ijs = new ArrayList<IJ>();
