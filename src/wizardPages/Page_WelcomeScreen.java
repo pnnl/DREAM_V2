@@ -29,6 +29,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	private Composite rootContainer;
 
 	private boolean isCurrentPage = false;
+	private boolean hasBeenLoaded = false;
 
 	protected Page_WelcomeScreen() {
 		super("Welcome");
@@ -84,7 +85,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	public void loadPage() {
 		isCurrentPage = true;
 		
-		
+		if(!hasBeenLoaded){
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
@@ -144,7 +145,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 			}
 		});
 		
-		new Label(container, SWT.BEGINNING).setText("\tVersion 2016.04-1.0 Beta");
+		new Label(container, SWT.BEGINNING).setText("\tVersion 2016.09-1.0");
 		Link userManual = new Link(container, SWT.BEGINNING);
 		userManual.setText("                   <A>User manual</A>");
 		userManual.addListener(SWT.Selection, new Listener() {
@@ -180,7 +181,8 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);
 		
-	
+		}
+		hasBeenLoaded = true;
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}

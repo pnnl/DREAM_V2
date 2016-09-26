@@ -82,16 +82,20 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Select clicked");
-				offsetX = 0;
-				offsetY = 0;
-				rotate = 0;
-				zoom = 50;				
-				zoomSlider.setValue(zoom);
-				double[] x = converter.utm2LatLon(utmField.getText());
-				latitudeField.setText(String.valueOf(x[0]));
-				longitudeField.setText(String.valueOf(x[1]));
-				map.redraw((float)x[0], (float)x[1]);
+				try{
+					double[] x = converter.utm2LatLon(utmField.getText());
+					offsetX = 0;
+					offsetY = 0;
+					rotate = 0;
+					zoom = 50;				
+					zoomSlider.setValue(zoom);
+					latitudeField.setText(String.valueOf(x[0]));
+					longitudeField.setText(String.valueOf(x[1]));
+					map.redraw((float)x[0], (float)x[1]);
+				}
+				catch(Exception exception){
+					System.out.println("Invalid UTM");
+				}
 			}
         	
         });
