@@ -506,6 +506,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void handleEvent(Event arg0) {
 				numZones--;
 				zones.remove(indexToRemove);
+				for(int i=0; i<7; ++i) readyToGo.put(indexToRemove*7+i, true);
 				buildThings();
 				sc.getVerticalBar().setSelection(sc.getVerticalBar().getMaximum());
 				//createPorosity(container);
