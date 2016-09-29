@@ -139,7 +139,7 @@ public class DREAMWizard extends Wizard {
 		addPage(new Page_ScenarioSet(data));	
 		addPage(new Page_ScenarioSetup(data));
 		addPage(new Page_MonitoringParameters(data));
-		addPage(new Page_DegradationParameters(data));
+		//addPage(new Page_DegradationParameters(data));
 		addPage(new Page_InferenceTest(data));
 		addPage(new Page_RunSettings(data));
 		addPage(new Page_ExcludeWells(data));

@@ -24,8 +24,8 @@ import ncsa.hdf.object.h5.H5File;
 public class Constants {
 	
 	// Catherine change this to true when you want to build production version!!!
-	public static boolean buildDev = true;
-	public static boolean runThreaded = true;
+	public static boolean buildDev = false;
+	public static boolean runThreaded = false;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
 	
