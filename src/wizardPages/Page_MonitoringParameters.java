@@ -26,8 +26,6 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.GestureEvent;
-import org.eclipse.swt.events.GestureListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -198,6 +196,23 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						}
 					}
 			    });
+						data.getSet().getSensorSettings().remove(sensorName);
+						loadPage();
+					}
+			    });
+			    addButton.setText("-");
+			}
+			else{
+				Button addButton = new Button(container, SWT.PUSH);
+			    addButton.addListener(SWT.Selection, new Listener() {
+					@Override
+					public void handleEvent(Event arg0) {
+						if(!num_duplicates.containsKey(sensorType)) num_duplicates.put(sensorType, 1);
+						addSensor(sensorType, sensorType + "_" + num_duplicates.get(sensorType));
+						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
+						loadPage();
+					}
+			    });
 			    addButton.setText("+");
 			}
 			
@@ -261,15 +276,6 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						testReady();
 					}
 				}				
-			});
-			costText.addGestureListener(new GestureListener() {
-
-				@Override
-				public void gesture(GestureEvent e) {
-					// TODO Auto-generated method stub
-					System.out.println(e.data);
-				}
-				
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			costTextData.widthHint = 60;
@@ -504,7 +510,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
-			volumeOfAquiferDegraded();
+//			volumeOfAquiferDegraded();
 			DREAMWizard.visLauncher.setEnabled(true);
 			
 
@@ -910,7 +916,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
 	}
 */
-	
+/*	
 	private void volumeOfAquiferDegraded(){	
 		long current = System.currentTimeMillis();
 		
@@ -975,7 +981,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		long total = System.currentTimeMillis() - current;
 		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
-/*
+
 	private void countParetoRedundant(){	
 		long current = System.currentTimeMillis();
 		
