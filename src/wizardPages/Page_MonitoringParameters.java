@@ -26,6 +26,8 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.GestureEvent;
+import org.eclipse.swt.events.GestureListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -161,6 +163,16 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						sensorData.remove(sensorName);
 						data.getSet().getSensorSettings().remove(sensorName);
 						loadPage();
+						//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
+						//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
+						if(System.getProperty("os.name").contains("Mac")){
+							for(String sensor : sensorData.keySet()){
+								if(sensorData.get(sensor).isIncluded){
+									sensorData.get(sensor).aliasText.setFocus();
+									break;
+								}
+							}
+						}
 					}
 			    });
 			    addButton.setText("-");
@@ -174,6 +186,16 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						addSensor(sensorType, sensorType + "_" + num_duplicates.get(sensorType));
 						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
 						loadPage();
+						//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
+						//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
+						if(System.getProperty("os.name").contains("Mac")){
+							for(String sensor : sensorData.keySet()){
+								if(sensorData.get(sensor).isIncluded){
+									sensorData.get(sensor).aliasText.setFocus();
+									break;
+								}
+							}
+						}
 					}
 			    });
 			    addButton.setText("+");
@@ -239,6 +261,15 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						testReady();
 					}
 				}				
+			});
+			costText.addGestureListener(new GestureListener() {
+
+				@Override
+				public void gesture(GestureEvent e) {
+					// TODO Auto-generated method stub
+					System.out.println(e.data);
+				}
+				
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			costTextData.widthHint = 60;
@@ -622,6 +653,17 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		queryButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
+				//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
+				//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
+				if(System.getProperty("os.name").contains("Mac")){
+					for(String sensor : sensorData.keySet()){
+						if(sensorData.get(sensor).isIncluded){
+							sensorData.get(sensor).aliasText.setFocus();
+							break;
+						}
+					}
+				}
+				
 				Constants.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;							
