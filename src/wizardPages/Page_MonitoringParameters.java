@@ -652,7 +652,6 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 						}
 					}
 				}
-				
 				Constants.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;							

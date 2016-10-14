@@ -92,9 +92,24 @@ public class CCS9_1 extends Function {
 		long startTime = System.currentTimeMillis();		
 		List<Thread> threads = new ArrayList<Thread>();
 		// Clear out previous information
+		//TEST!
+//		List<ExtendedSensor> toAdd = new ArrayList<ExtendedSensor>();
+		//ENDTEST!
 		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {
 			sensor.clearScenariosUsed();
+			//TEST!
+//			sensor.getSensorType();
+//			for(String type: set.getDataTypes()){
+//				if(type != sensor.getSensorType()){
+//					toAdd.add(new ExtendedSensor(sensor.getNodeNumber(), type, set.getNodeStructure()));
+//				}
+//			}
+			//ENDTEST!
 		}
+		//TEST!
+//		final ExtendedConfiguration newConfiguration = configuration.makeCopy(set);
+//		for(ExtendedSensor sensor : toAdd) newConfiguration.addSensor(sensor); //Comment out this line and hopefully results will change.
+		//ENDTEST!
 		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
 		for (final Scenario scenario : set.getScenarios())
 		{
@@ -117,7 +132,7 @@ public class CCS9_1 extends Function {
 			} else {
 				startTime = System.currentTimeMillis();	
 				try {
-					innerLoopParallel(configuration, set, scenario);
+					innerLoopParallel(newConfiguration, set, scenario);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -139,7 +154,7 @@ public class CCS9_1 extends Function {
 
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
 
-		return configuration.getObjectiveValue();
+		return newConfiguration.getObjectiveValue();
 
 	}
 
