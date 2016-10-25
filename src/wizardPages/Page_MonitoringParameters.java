@@ -493,7 +493,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
-			volumeOfAquiferDegraded();
+			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole seperate page
 			DREAMWizard.visLauncher.setEnabled(true);
 			
 

@@ -411,10 +411,10 @@ public class SensorSetting {
 
 		isReady = true;
 		nodesReady = true;
-
+		trimZ();
+		
 		fullCloudNodes = new HashSet<Integer>(validNodes);
 		
-		trimZ();
 		if(Constants.useParetoOptimal) paretoOptimal();
 		
 		
@@ -653,20 +653,27 @@ public class SensorSetting {
 		this.deltaType = deltaType;
 	}
 
-	public float getMinZ() {
+	public static float getMinZ() {
 		return globalMinZ;
 	}
 
-	public void setMinZ(float minZ) {
-		this.globalMinZ = minZ;
+	public static void setMinZ(float minZ) {
+		globalMinZ = minZ;
 	}
 
-	public float getMaxZ() {
+	public static float getMaxZ() {
 		return globalMaxZ;
 	}
 
-	public void setMaxZ(float maxZ) {
-		this.globalMaxZ = maxZ;
+	public static void setMaxZ(float maxZ) {
+		globalMaxZ = maxZ;
 	}
-
+	
+	public float getThisMinZ(){
+		return minZ;
+	}
+	
+	public float getThisMaxZ(){
+		return maxZ;
+	}
 }

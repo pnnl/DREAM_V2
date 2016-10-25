@@ -39,6 +39,7 @@ public class ScenarioSet {
 	private int iterations;
 	private float costConstraint;
 	private float exclusionRadius;
+	private float inclusionRadius;
 	private float wellCost;
 	private boolean allowMultipleSensorsInWell;
 	
@@ -70,6 +71,7 @@ public class ScenarioSet {
 		iterations = 1000;
 		costConstraint = 300;
 		exclusionRadius = 0;
+		inclusionRadius = Float.MAX_VALUE;
 		wellCost = 65;
 		allowMultipleSensorsInWell = true;
 		
@@ -131,6 +133,12 @@ public class ScenarioSet {
 		this.exclusionRadius = exclusionRadius;
 		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 		isReady = true;
+		//TEST!!!
+		//for(SensorSetting setting: sensorSettings.values()){
+		//	float depth = SensorSetting.getMaxZ() - setting.getThisMinZ();
+		//	inclusionRadius = Math.min(inclusionRadius, depth*(2f/3f));
+		//}
+		//ENDTEST!!!
 		
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
@@ -471,7 +479,8 @@ public class ScenarioSet {
 			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
 				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
 					Point3f otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
-					if(otherxyz.euclideanDistance(wellxyz) <= exclusionRadius){
+					float distance = otherxyz.euclideanDistance(wellxyz);
+					if(distance <= exclusionRadius || distance >= inclusionRadius){
 						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
 							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
 							if(allowMultipleSensorsInWell) continue; //if we're allowing multiple, then we don't want to exclude this location no matter what
