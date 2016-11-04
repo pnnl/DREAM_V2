@@ -139,7 +139,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 			public void handleEvent(Event event) {			
 				MessageBox messageBox = new MessageBox(Page_WelcomeScreen.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
-				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the Department of Energy’s (DOE) Office of Fossil Energy’s Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (NETL Strategic Center for Coal) and Mark Ackiewicz (DOE Office of Fossil Energy) for programmatic guidance, direction, and support.");		
+				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy’s (DOE) Office of Fossil Energy’s Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager), Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support.");		
 				messageBox.setText("Acknowledgements");
 				messageBox.open();
 			}
