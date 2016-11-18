@@ -22,6 +22,7 @@ import javax.media.opengl.glu.GLU;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.win32.BITMAP;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.opengl.GLCanvas;
 import org.eclipse.swt.opengl.GLData;
@@ -104,7 +105,7 @@ public class DomainViewer {
 
 		xTranslate = distance.getX()/2;
 		yTranslate = distance.getY()/2;
-		zTranslate = distance.getY()/2;		
+		zTranslate = distance.getZ()/2;		//TODO: Should this be Z? (Was Y when I found it)
 
 		glcanvas = new GLCanvas(compositeParent, SWT.BORDER, gldata);
 
@@ -269,24 +270,26 @@ public class DomainViewer {
 				List<Float> xs = domainVisualization.getRenderCellBoundsX();
 				List<Float> ys = domainVisualization.getRenderCellBoundsY();
 				List<Float> zs = domainVisualization.getRenderCellBoundsZ();
+				List<Float> labelX = domainVisualization.getTrueCellBoundsX();
+				List<Float> labelY = domainVisualization.getTrueCellBoundsY();
+				List<Float> labelZ = domainVisualization.getTrueCellBoundsZ();
 				gl2.glPushMatrix();
 				gl2.glColor3f(0, 0, 0);
 
 				// TODO: Scale these values based on domain size
 				Point3f axisLengths = domainVisualization.getRenderDistance();
 				float maxLength = Math.max(axisLengths.getX(), Math.max(axisLengths.getY(), axisLengths.getZ()));
-				
 				for(int i = 0; i < xs.size(); i += domainVisualization.getTickX()) {
 					gl2.glRasterPos3f(xs.get(i), -maxLength/30, -maxLength/30);
-					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(xs.get(i)));
+					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.decimalFormat.format(labelX.get(i)));
 				}
 				for(int i = 0; i < ys.size(); i += domainVisualization.getTickY()) {
 					gl2.glRasterPos3f(xs.get(xs.size()-1)+maxLength/30, ys.get(i), -maxLength/30);
-					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(ys.get(i)));
+					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.decimalFormat.format(labelY.get(i)));
 				}
 				for(int i = domainVisualization.getTickZ(); i < zs.size(); i += domainVisualization.getTickZ()) {
 					gl2.glRasterPos3f(-maxLength/20, -maxLength/20, zs.get(i));
-					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.exponentialFormatShort.format(zs.get(i)));
+					glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, Constants.decimalFormat.format(labelZ.get(i)));
 				}
 				// User defined labels: TODO: offset with width
 				gl2.glRasterPos3f(xs.get(xs.size()-1)/2, -maxLength/10, -maxLength/10);

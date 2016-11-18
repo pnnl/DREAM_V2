@@ -63,6 +63,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 	private boolean toggling = false;
 	
 	private Map<String, SensorData> sensorData;
+	
 		
 	protected Page_MonitoringParameters(STORMData data) {
 		super("Sensors");
@@ -656,7 +657,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;							
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();	
-				
+
 				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 				Map<String, String> sensorAliases = new HashMap<String, String>();
 				for(String label: sensorData.keySet()){
@@ -675,7 +676,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 							data.getSet().getSensorSettings(dataType).setNodesReady(false);
 						}
 					}
-					DREAMWizard.visLauncher.setEnabled(false);	
+					DREAMWizard.visLauncher.setEnabled(false);
 					data.setupSensors(reset, sensorSettings);
 					//volumeOfAquiferDegraded(); //Don't need this because you have to run it when you hit "next", and this way the overhead time does not apply to finding a solution space that you like.
 					DREAMWizard.visLauncher.setEnabled(true);

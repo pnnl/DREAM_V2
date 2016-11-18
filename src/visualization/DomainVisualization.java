@@ -501,7 +501,7 @@ public class DomainVisualization {
 		return button_renderUniform != null ? button_renderUniform.getSelection() : false;
 	}	
 
-	private List<Float> getTrueCellBoundsX() {
+	public List<Float> getTrueCellBoundsX() {
 		List<Float> xs = set.getNodeStructure().getX();
 		List<Float> cellBoundsX = new ArrayList<Float>();		
 		for(int x = 1; x < xs.size(); x++) {
@@ -515,7 +515,7 @@ public class DomainVisualization {
 		return cellBoundsX;
 	}
 
-	private List<Float> getTrueCellBoundsY() {
+	public List<Float> getTrueCellBoundsY() {
 		List<Float> ys = set.getNodeStructure().getY();
 		List<Float> cellBoundsY = new ArrayList<Float>();
 		for(int y = 1; y < ys.size(); y++) {
@@ -529,17 +529,21 @@ public class DomainVisualization {
 		return cellBoundsY;
 	}
 
-	private List<Float> getTrueCellBoundsZ() {
+	public List<Float> getTrueCellBoundsZ() {
 		List<Float> zs = set.getNodeStructure().getZ();	
 		List<Float> cellBoundsZ = new ArrayList<Float>();
 		for(int z = 1; z < zs.size(); z++) {
-			float half = (zs.get(z)-zs.get(z-1))/2;
+			float half = (Math.abs(zs.get(z))-Math.abs(zs.get(z-1)))/2;
 			if(z == 1)
+			//	cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))-half).floatValue());
 				cellBoundsZ.add(new Float(zs.get(z-1)-half).floatValue());
+			//cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))+half).floatValue());
 			cellBoundsZ.add(new Float(zs.get(z-1)+half).floatValue());
 			if(z == zs.size()-1) 
-				cellBoundsZ.add(new Float(zs.get(z)+half).floatValue());
+				//	cellBoundsZ.add(new Float(Math.abs(zs.get(z))+half).floatValue());
+					cellBoundsZ.add(new Float(zs.get(z)+half).floatValue());
 		}
+		Collections.sort(cellBoundsZ);
 		return cellBoundsZ;
 	}
 
@@ -563,7 +567,8 @@ public class DomainVisualization {
 		float scaleX = getScaleX();
 		List<Float> tempXs = new ArrayList<Float>();
 		for(int i = 0; i < xs.size(); i++) {
-			tempXs.add(xs.get(i)*scaleX);
+			if(renderUniform()) tempXs.add(xs.get(i)*scaleX);
+			else tempXs.add((xs.get(i)-xs.get(0))*scaleX);
 		}
 		xs = tempXs;
 		return xs;
@@ -589,7 +594,8 @@ public class DomainVisualization {
 		float scaleY = getScaleY();
 		List<Float> tempYs = new ArrayList<Float>();
 		for(int i = 0; i < ys.size(); i++) {
-			tempYs.add(ys.get(i)*scaleY);
+			if(renderUniform())tempYs.add(ys.get(i)*scaleY);
+			else tempYs.add((ys.get(i)-ys.get(0))*scaleY);
 		}
 		ys = tempYs;
 		return ys;
@@ -615,7 +621,8 @@ public class DomainVisualization {
 		float scaleZ = getScaleZ();
 		List<Float> tempZs = new ArrayList<Float>();
 		for(int i = 0; i < zs.size(); i++) {
-			tempZs.add(zs.get(i)*scaleZ);
+			if(renderUniform()) tempZs.add(zs.get(i)*scaleZ);
+			else tempZs.add((zs.get(i)-zs.get(0))*scaleZ);
 		}
 		zs = tempZs;	
 		return zs;
@@ -631,7 +638,7 @@ public class DomainVisualization {
 				cellBoundsY.get(cellBoundsY.size()-1), 
 				cellBoundsZ.get(cellBoundsZ.size()-1));
 	}
-
+	
 	private Table buildSensorTable(Composite composite) {
 		final Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 		final int rowHeight = 12;

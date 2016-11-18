@@ -378,19 +378,25 @@ public class FileBrowser extends javax.swing.JFrame {
 		JCheckBox[] timeSteps = checkList_timesteps.getListData();
 
 		// Use them all.. well okay, all but one :)
-		int cores = Runtime.getRuntime().availableProcessors() - 1;
+		//int cores = Runtime.getRuntime().availableProcessors() - 1;
+		int cores = 1;
 		ExecutorService service = Executors.newFixedThreadPool(cores);
 		System.out.println("Using " + (cores) + " cores.");
 
+		
 		int totalScenarios = 0;
 		for(JCheckBox scenario: scenarios) {
 			if(!scenario.isSelected())
 				continue;
-
+//			FileConverterThread runnable = new FileConverterThread(scenario.getText(), timeSteps);
+//			Thread thread = new Thread(runnable);
+//			thread.start();
+//			thread.wait();
 			service.execute(new FileConverterThread(scenario.getText(), timeSteps));
 			totalScenarios++;
 		}
 
+		
 		service.shutdown();
 
 		MonitorRunnable monitorRunnable = new MonitorRunnable(service, (cores), totalScenarios);
