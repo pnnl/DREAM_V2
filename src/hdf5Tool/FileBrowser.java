@@ -53,6 +53,7 @@ import javax.swing.UIManager;
 
 import org.apache.commons.io.FileUtils;
 
+import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
@@ -378,39 +379,119 @@ public class FileBrowser extends javax.swing.JFrame {
 		JCheckBox[] timeSteps = checkList_timesteps.getListData();
 
 		// Use them all.. well okay, all but one :)
-		//int cores = Runtime.getRuntime().availableProcessors() - 1;
-		int cores = 1;
-		ExecutorService service = Executors.newFixedThreadPool(cores);
+		final int cores = Runtime.getRuntime().availableProcessors() - 1;
+		//int cores = 1;
+//		ExecutorService service = Executors.newFixedThreadPool(cores);
 		System.out.println("Using " + (cores) + " cores.");
 
+		final List<Thread> runningThreads = new ArrayList<Thread>();
+		final List<Thread> threadsToRun = new ArrayList<Thread>();
 		
 		int totalScenarios = 0;
 		for(JCheckBox scenario: scenarios) {
 			if(!scenario.isSelected())
 				continue;
-//			FileConverterThread runnable = new FileConverterThread(scenario.getText(), timeSteps);
-//			Thread thread = new Thread(runnable);
-//			thread.start();
-//			thread.wait();
-			service.execute(new FileConverterThread(scenario.getText(), timeSteps));
+			FileConverterThread runnable = new FileConverterThread(scenario.getText(), timeSteps);
+			Thread thread = new Thread(runnable);
+			threadsToRun.add(thread);
+//			service.execute(new FileConverterThread(scenario.getText(), timeSteps));
 			totalScenarios++;
 		}
+	
 
+		// remove this stuff if it doens't work....
+		//	monitor = new ProgressMonitor(FileBrowser.this, "Converting files on " + cores + " cores", "0/" + totalScenarios, 0, totalScenarios);
+		//processedTasks = 0;
 		
-		service.shutdown();
-
-		MonitorRunnable monitorRunnable = new MonitorRunnable(service, (cores), totalScenarios);
+		MonitorRunnable monitorRunnable = new MonitorRunnable(null, (cores), totalScenarios);
 		new Thread(monitorRunnable).start();
+
+		Thread runningAllStuffThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				while(!threadsToRun.isEmpty()) {
+					if(runningThreads.size() < cores - 1) { // probably not
+						Thread thread = threadsToRun.remove(0);
+						thread.start();
+						runningThreads.add(thread);
+					} else {
+						List<Thread> deadThreads = new ArrayList<Thread>();
+						for(Thread thread: runningThreads) {
+							if(!thread.isAlive()) {
+								deadThreads.add(thread);
+							}
+						}
+						for(Thread dead: deadThreads) {
+							runningThreads.remove(dead); // remove the dead...!
+						}
+					}
+					try {
+						Thread.sleep(100); // mmmm maybe?
+						// Add something here listening for a cancel?
+						if(monitor.isCanceled()) {
+							// kill everything
+							for(Thread killable: runningThreads) {
+								killable.interrupt();
+							}
+							runningThreads.clear();
+							threadsToRun.clear(); // maybe  java can collect these???
+							return;
+						}
+					} catch (Exception e) {
+
+					}
+				}
+
+				while(!runningThreads.isEmpty()) {
+					List<Thread> deadThreads = new ArrayList<Thread>();
+					for(Thread thread: runningThreads) {
+						if(!thread.isAlive()) {
+							deadThreads.add(thread);
+						}
+					}
+					for(Thread dead: deadThreads) {
+						runningThreads.remove(dead); // remove the dead...!
+					}
+
+					try {
+						Thread.sleep(1000); // mmmm maybe?
+						// Add something here listening for a cancel?
+						if(monitor.isCanceled()) {
+							// kill everything
+							for(Thread killable: runningThreads) {
+								killable.stop();							
+							}
+							runningThreads.clear();
+							threadsToRun.clear(); // maybe  java can collect these???
+							return;
+						}
+					} catch (Exception e) {
+
+					}
+				}	
+			}
+			
+		});
+		runningAllStuffThread.start();
+		//runningAllStuffThread.join();
+
+		// and uncomment the stuff below here...
+		
+	//	service.shutdown();
+
+	//	MonitorRunnable monitorRunnable = new MonitorRunnable(service, (cores), totalScenarios);
+	//	new Thread(monitorRunnable).start();
 
 	}
 
 	private class MonitorRunnable implements Runnable {
 
-		private ExecutorService service;
+	//	private ExecutorService service;
 		private int totalTasks;
 
 		MonitorRunnable(ExecutorService service, int cores, int totalTasks) {
-			this.service = service;
+		//	this.service = service;
 			this.totalTasks = totalTasks;
 			monitor = new ProgressMonitor(FileBrowser.this, "Converting files on " + cores + " cores", "0/" + totalTasks, 0, totalTasks);
 			processedTasks = 0;
@@ -418,7 +499,21 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		@Override
 		public void run() {
-			while(!service.isTerminated()) {
+			while(!monitor.isCanceled()) {
+				// or maybe some done check too?
+				try {	
+					monitor.setNote(processedTasks + "/" + totalTasks);
+					monitor.setProgress(processedTasks);	
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace(); // Ignore and continue
+					JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
+				}
+			}
+			monitor.setProgress(processedTasks);	
+			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success" : "Canceled") + ", h5 files are located here: " + file_outputDir.getAbsolutePath());    		
+
+			/*	while(!service.isTerminated()) {
 				try {	
 					monitor.setNote(processedTasks + "/" + totalTasks);
 					monitor.setProgress(processedTasks);	
@@ -433,7 +528,8 @@ public class FileBrowser extends javax.swing.JFrame {
 			}
 			monitor.setProgress(processedTasks);	
 			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success" : "Canceled") + ", h5 files are located here: " + file_outputDir.getAbsolutePath());    		
-		}
+		*/
+			}
 	}
 
 	private class FileConverterThread implements Runnable {
@@ -442,17 +538,17 @@ public class FileBrowser extends javax.swing.JFrame {
 		private JCheckBox[] timeSteps;			
 		public FileConverterThread(String scenario, JCheckBox[] timeSteps) {
 			this.scenario = scenario;
-			this.timeSteps = timeSteps; 
+			this.timeSteps = timeSteps;
 		}
 
 		@Override
 		public void run() {
-
+			H5File hdf5File = null;
 			try {
 				FileFormat hdf5Format = null;
 				hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");	
-				H5File hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
+				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
 
 				System.out.println("File: " + hdf5File);
 				hdf5File.open();
@@ -507,12 +603,23 @@ public class FileBrowser extends javax.swing.JFrame {
 				FileUtils.copyFile(hdf5File, hdf5FileLocation);
 				if(debug)
 					System.out.println("Done");
-				hdf5File.close(); // Close the file
-				hdf5File.delete(); // Remove the file
-				processedTasks++; // For the monitor 
+			//	hdf5File.close(); // Close the file
+			//	hdf5File.delete(); // Remove the file
 			} catch (Exception e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
+				hdf5File.delete(); // Remove the file					
+			} finally {
+				if(hdf5File != null)  {
+					try {
+						hdf5File.close();
+				//		hdf5File.delete(); // Remove the file		
+					} catch (HDF5Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} // Close the file	
+				}
+				processedTasks++; // For the monitor 
 			}
 
 		}
@@ -1065,7 +1172,9 @@ public class FileBrowser extends javax.swing.JFrame {
 				System.out.println(line);
 				String[] parts = line.split(",");
 				parts = parts[3].split(":");
-				File porosityFile = new File(file_inputDir, scenario + "\\" + parts[1]);
+				File porosityFile;
+				if(parts.length > 1) porosityFile = new File(file_inputDir, scenario + "\\" + parts[1]);
+				else porosityFile = new File(file_inputDir, scenario + "\\hack.hack.hack");
 				if(porosityFile.exists()){
 					BufferedReader porosityReader = new BufferedReader(new FileReader(porosityFile));
 					line = "";

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -30,6 +31,9 @@ public class NodeStructure {
 	private List<Float> x;
 	private List<Float> y;
 	private List<Float> z;
+	private List<Float> edgex;
+	private List<Float> edgey;
+	private List<Float> edgez;
 
 	private List<TimeStep> timeSteps;
 	private List<String> dataTypes;
@@ -56,6 +60,10 @@ public class NodeStructure {
 		porosityOfNode = new HashMap<Point3i, Float>();
 
 		loadRun(run);
+
+		setEdgeX();
+		setEdgeY();
+		setEdgeZ();
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -88,6 +96,52 @@ public class NodeStructure {
 			// Something went wrong...
 			e.printStackTrace();
 		}		
+	}
+	
+	private void setEdgeX() {
+		List<Float> xs = this.x;
+		List<Float> cellBoundsX = new ArrayList<Float>();		
+		for(int x = 1; x < xs.size(); x++) {
+			float half = (xs.get(x)-xs.get(x-1))/2;
+			if(x == 1)
+				cellBoundsX.add(new Float(xs.get(x-1)-half).floatValue());
+			cellBoundsX.add(new Float(xs.get(x-1)+half).floatValue());
+			if(x == xs.size()-1) 
+				cellBoundsX.add(new Float(xs.get(x)+half).floatValue());
+		}
+		this.edgex = cellBoundsX;
+	}
+
+	private void setEdgeY() {
+		List<Float> ys = this.y;
+		List<Float> cellBoundsY = new ArrayList<Float>();
+		for(int y = 1; y < ys.size(); y++) {
+			float half = (ys.get(y)-ys.get(y-1))/2;
+			if(y == 1)
+				cellBoundsY.add(new Float(ys.get(y-1)-half).floatValue());
+			cellBoundsY.add(new Float(ys.get(y-1)+half).floatValue());
+			if(y == ys.size()-1) 
+				cellBoundsY.add(new Float(ys.get(y)+half).floatValue());
+		}
+		this.edgey = cellBoundsY;
+	}
+
+	private void setEdgeZ() {
+		List<Float> zs = this.z;	
+		List<Float> cellBoundsZ = new ArrayList<Float>();
+		for(int z = 1; z < zs.size(); z++) {
+			float half = (Math.abs(zs.get(z))-Math.abs(zs.get(z-1)))/2;
+			if(z == 1)
+			//	cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))-half).floatValue());
+				cellBoundsZ.add(new Float(zs.get(z-1)-half).floatValue());
+			//cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))+half).floatValue());
+			cellBoundsZ.add(new Float(zs.get(z-1)+half).floatValue());
+			if(z == zs.size()-1) 
+				//	cellBoundsZ.add(new Float(Math.abs(zs.get(z))+half).floatValue());
+					cellBoundsZ.add(new Float(zs.get(z)+half).floatValue());
+		}
+		Collections.sort(cellBoundsZ);
+		this.edgez = cellBoundsZ;
 	}
 
 	public Float getTimeAt(int index) {
@@ -170,7 +224,7 @@ public class NodeStructure {
 			
 			// TODO: This assumes the problem starts at 0, 0, 0 -> some stomp files
 			// start at other values and that would be indicated in the header of the plot files
-			
+			/*
 			float nodalValueX = 0.0f;
 			for(int i = 0; i < node.getI()-1; i++) {
 				float currentX = x.get(i);
@@ -189,8 +243,11 @@ public class NodeStructure {
 				float diff = currentZ-nodalValueZ;
 				nodalValueZ = currentZ + diff;
 			}
-	
+			
 			return  new Point3f(nodalValueX, nodalValueY,nodalValueZ);
+			*/
+			//This version uses the extrapolated edges instead.
+			return new Point3f(edgex.get(node.getI()), edgey.get(node.getJ()), edgez.get(node.getK()));
 		} catch(Exception e) {
 			Constants.log(Level.SEVERE, "Node structure - node was out of bounds", node.toString()); // Maybe warning?
 			return null;

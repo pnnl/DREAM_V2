@@ -306,7 +306,7 @@ public class ScenarioSet {
 			for(Point3i location: locations){
 				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
 					//this is at least the second sensor in the well
-					// k=0 is the lowest point!
+					// k=0 is the lowest point! (or the most-negative point is the lowest)
 					if(point.getK() < location.getK()){
 						locations.remove(location);
 						locations.add(point);
@@ -320,7 +320,8 @@ public class ScenarioSet {
 			}
 		}
 		for(Point3i location: locations){
-			cost += (SensorSetting.globalMaxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
+			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
+			cost += (maxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
 		}
 		return cost;
 	}
