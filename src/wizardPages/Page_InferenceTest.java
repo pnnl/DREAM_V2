@@ -126,45 +126,52 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		setLabel.setFont(boldFont);
 		probabilityLabel.setFont(boldFont);
 		
-		for(String dataType: data.getSet().getDataTypes()) {
-			
-			final Label dataLabel = new Label(container, SWT.NULL);
-			dataLabel.setText(Sensor.sensorAliases.get(dataType));			
-			
-			Text minText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
-				minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
-			if(minText.getText().isEmpty() ||minText.getText().trim().equals("0")) {
-				(dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
-			} else {
-				(dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
+			if(!Constants.runAsOneSensor){
+			for(String dataType: data.getSet().getDataTypes()) {
+				
+				final Label dataLabel = new Label(container, SWT.NULL);
+				dataLabel.setText(Sensor.sensorAliases.get(dataType));			
+				
+				Text minText = new Text(container, SWT.BORDER | SWT.SINGLE);
+				if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
+					minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
+				if(minText.getText().isEmpty() ||minText.getText().trim().equals("0")) {
+					(dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
+				} else {
+					(dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
+				}
+				minText.addModifyListener(new ModifyListener() {
+					@Override
+					public void modifyText(ModifyEvent e) {
+						try {
+							Float.parseFloat(((Text)e.getSource()).getText());	
+							((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+							testReady();
+						} catch (NumberFormatException ne) {
+							((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+							testReady();
+						}
+						if(((Text)e.getSource()).getText().isEmpty() || ((Text)e.getSource()).getText().trim().equals("0")) {
+							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
+						} else {
+							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
+						}
+						
+					}				
+				});
+				GridData gdc = new GridData(GridData.FILL_HORIZONTAL);
+				minText.setLayoutData(gdc);
+				minimumSensors.put(dataType, minText);
+				
+			}	
+		}
+		else{
+			for(String dataType: data.getSet().getDataTypes()) {
+				minimumSensors.put(dataType, null);
 			}
-			minText.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					try {
-						Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-						if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-						if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-						testReady();
-					}
-					if(((Text)e.getSource()).getText().isEmpty() || ((Text)e.getSource()).getText().trim().equals("0")) {
-						if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
-					} else {
-						if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
-					}
-					
-				}				
-			});
-			GridData gdc = new GridData(GridData.FILL_HORIZONTAL);
-			minText.setLayoutData(gdc);
-			minimumSensors.put(dataType, minText);
-			
-		}		
+		}
 		
 		Label dataLabel = new Label(container, SWT.NULL);
 		dataLabel.setText("Overall Minimum Required ");			
@@ -199,16 +206,22 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
+		String firstMinimum = minText.getText();
+		int overallMin = firstMinimum.length() > 0 ? Integer.parseInt(firstMinimum) : -1;
 		Map<String, Integer> requiredSensors = new HashMap<String, Integer>();
 		for(String sensorType: minimumSensors.keySet())  {
-			String minimum = minimumSensors.get(sensorType).getText();
-			if(minimum.length() > 0)
-				requiredSensors.put(sensorType, Integer.parseInt(minimum));
-			else
-				requiredSensors.put(sensorType, -1);
+			if(!Constants.runAsOneSensor){
+				String minimum = minimumSensors.get(sensorType).getText();
+				if(minimum.length() > 0)
+					requiredSensors.put(sensorType, Integer.parseInt(minimum));
+				else
+					requiredSensors.put(sensorType, -1);
+			}
+			else{
+				requiredSensors.put(sensorType, overallMin);
+			}
 		}
-		String minimum = minText.getText();
-		int overallMin = minimum.length() > 0 ? Integer.parseInt(minimum) : -1;
+		
 		data.setupInferenceTest(requiredSensors, overallMin);
 	}
 	
@@ -228,7 +241,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		for(Text data: minimumSensors.values()) {
 
 
-			if(data.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
+			if(data!=null && data.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
 				isReady = false;
 				break;
 			}

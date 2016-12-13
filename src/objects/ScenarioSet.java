@@ -356,9 +356,14 @@ public class ScenarioSet {
 	
 	public Map<Integer, List<Integer>> getAllPossibleWells() {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-		for(String sensorType: this.getSensorSettings().keySet()) {
-			for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
-				cloudNodes.add(node);
+		if(!Constants.runAsOneSensor){
+			for(String sensorType: this.getSensorSettings().keySet()) {
+				for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
+					cloudNodes.add(node);
+			}
+		}
+		else{
+			for(Integer node: sensorSettings.get("all").getValidNodes(null)) cloudNodes.add(node);
 		}
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
 		for(Integer node: cloudNodes) {

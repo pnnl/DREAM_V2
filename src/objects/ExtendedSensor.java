@@ -3,6 +3,7 @@ package objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -186,6 +187,30 @@ public class ExtendedSensor extends Sensor {
 				move(validMoves.get(Constants.random.nextInt(validMoves.size())), set.getNodeStructure());
 				return true;
 			}
+		}
+		// There must be no other spot to put a sensor
+		return false;
+	}
+	
+
+	public static boolean move(ArrayList<ExtendedSensor> sensors, ExtendedConfiguration configuration, ScenarioSet set) {
+
+		ExtendedSensor sensor = sensors.get(0);
+		
+		// Get all the nodes we can afford to move to that are in the cloud and unoccupied
+		List<Integer> validMoves = set.getValidNodes("all", configuration, false, false, false);
+		
+		// Remove our current location
+		if(validMoves.contains(sensor.getNodeNumber()))
+			validMoves.remove(sensor.getNodeNumber());
+		
+		// If there's somewhere to put a sensor of this type, do it.
+		if(!validMoves.isEmpty()){
+			Integer newSpot = validMoves.get(Constants.random.nextInt(validMoves.size()));
+			for(ExtendedSensor extSensor: sensors){
+				extSensor.moveTo(newSpot, set.getNodeStructure());
+			}
+			return true;
 		}
 		// There must be no other spot to put a sensor
 		return false;

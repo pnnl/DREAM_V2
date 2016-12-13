@@ -28,7 +28,7 @@ public class Constants {
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
-	public static boolean runAsOneSensor = false;
+	public static boolean runAsOneSensor = false; //Catherine Ruprecht Yonkofski - this is how you make the "all" sensor appear, for now
 	
 	public enum ModelOption { 
 		

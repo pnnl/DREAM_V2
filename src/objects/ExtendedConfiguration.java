@@ -3,6 +3,7 @@ package objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -10,6 +11,7 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 import utilities.Constants.ModelOption;
+import utilities.Point3f;
 
 
 public class ExtendedConfiguration extends Configuration {
@@ -418,18 +420,26 @@ public class ExtendedConfiguration extends Configuration {
 		Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
 		//	boolean debug = true;
 
-		Object addedSensor = addSensor(scenarioSet);
+		Object addedSensor;
+		if(Constants.runAsOneSensor) addedSensor = addAllSensor(scenarioSet);
+		else
+			addedSensor = addSensor(scenarioSet);
 		if(addedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, ADDED SENSOR", addedSensor);
 			return true;
 		}
-		Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
-		if(movedSensorInBounds != null) {
-			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);;
-			return true;
+		//Have to skip this if we're running as one sensor, this is pretty much guaranteed to have out of bounds sensors we don't want to move (outside of their clouds)
+		if(!Constants.runAsOneSensor){
+			Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
+			if(movedSensorInBounds != null) {
+				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);;
+				return true;
+			}
 		}
 		
-		Object movedSensor = moveSensor(scenarioSet);
+		Object movedSensor;
+		if(Constants.runAsOneSensor) movedSensor = moveAllSensor(scenarioSet);
+		else movedSensor = moveSensor(scenarioSet);
 		if(movedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);
 			return true;
@@ -537,6 +547,46 @@ public class ExtendedConfiguration extends Configuration {
 		// System.out.println("Added sensor, time taken: " + (System.currentTimeMillis()-startTime));
 
 	}
+	
+	private Object addAllSensor(ScenarioSet scenarioSet) {
+
+		// Timer
+		// long startTime = System.currentTimeMillis();
+
+		// We will try to add here first.
+		int addPoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
+		Map<String, List<Integer>> affordableSensors = new HashMap<String, List<Integer>>();
+		List<String> types = new ArrayList<String>();
+		boolean atAddPoint = false;
+		List<Integer> validNodes = scenarioSet.getValidNodes("all", this, true, true, true);
+		if(!validNodes.isEmpty()) {
+			affordableSensors.put("all", validNodes);
+			if(validNodes.contains(addPoint)) {
+				atAddPoint = true; // We can add a sensor at the add point
+			}
+		}
+		if(affordableSensors.isEmpty()) {
+			// System.out.println("Could not add sensor, time taken: " + (System.currentTimeMillis()-startTime));
+			return null;
+		}
+		if(atAddPoint) {
+			ExtendedSensor toAdd = new ExtendedSensor(addPoint, "all", scenarioSet.getNodeStructure());
+			addSensor(scenarioSet, toAdd);
+			return toAdd;
+		} else {
+			int index = Constants.random.nextInt(affordableSensors.get("all").size());
+			for(String type: scenarioSet.getSensorSettings().keySet()){
+				if(type != "all"){
+					ExtendedSensor toAdd = new ExtendedSensor(affordableSensors.get("all").get(index), type, scenarioSet.getNodeStructure());
+					addSensor(scenarioSet, toAdd);
+				}
+			}
+			return new Object();
+		}
+
+		// System.out.println("Added sensor, time taken: " + (System.currentTimeMillis()-startTime));
+
+	}
 
 	private Object moveSensorInBounds(ScenarioSet scenarioSet) {
 
@@ -554,6 +604,10 @@ public class ExtendedConfiguration extends Configuration {
 
 	private Object moveSensor(ScenarioSet scenarioSet) {
 		return moveSensor(sensors, scenarioSet);	// Otherwise just move a random one
+	}
+
+	private Object moveAllSensor(ScenarioSet scenarioSet) {
+		return moveAllSensor(sensors, scenarioSet);	// Otherwise just move a random one
 	}
 
 	/*
@@ -625,6 +679,32 @@ public class ExtendedConfiguration extends Configuration {
 				addSensor(scenarioSet, extendedSensor);	
 				return extendedSensor; // We were able to move an out of bounds sensor into the cloud
 			}
+		}
+		return null;
+	}
+	
+	private Object moveAllSensor(List<Sensor> sensors, ScenarioSet scenarioSet) {
+		// Randomize the list
+		Collections.shuffle(sensors, Constants.random);
+		//Will break if not extended sensors
+		ExtendedSensor sensor1 = (ExtendedSensor) sensors.get(0);
+		Integer nodeToMove = sensor1.getNodeNumber();
+		ArrayList<ExtendedSensor> sensorsToMove = new ArrayList<ExtendedSensor>();
+		for(Sensor sensor: sensors) {
+			ExtendedSensor extendedSensor = (ExtendedSensor)sensor;
+			if(sensor.getNodeNumber().equals(nodeToMove)) sensorsToMove.add(extendedSensor);
+		}
+		/*
+		if(extendedSensor.move(this, scenarioSet)) {
+			addSensor(scenarioSet, extendedSensor);	
+			return extendedSensor; // We were able to move an out of bounds sensor into the cloud
+		}
+		*/
+		if(ExtendedSensor.move(sensorsToMove, this, scenarioSet)){
+			for(ExtendedSensor sensor: sensorsToMove){
+				addSensor(scenarioSet, sensor);
+			}
+			return new Object();
 		}
 		return null;
 	}

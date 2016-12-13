@@ -330,8 +330,16 @@ public class SensorSetting {
 	}
 	
 	public void setValidNodes(HashSet<Integer> newSet){
-		this.validNodes.clear();
+		if(this.validNodes == null) this.validNodes = new HashSet<Integer>();
+		else this.validNodes.clear();
 		this.validNodes.addAll(newSet);
+		nodesReady = true;
+	}
+	
+	public void setFullCloudNodes(HashSet<Integer> newSet){
+		if(this.fullCloudNodes == null) this.fullCloudNodes = new HashSet<Integer>();
+		else this.fullCloudNodes.clear();
+		this.fullCloudNodes.addAll(newSet);
 	}
 
 	// Update the valid nodes based on current settings 
@@ -417,7 +425,6 @@ public class SensorSetting {
 		
 		if(Constants.useParetoOptimal) paretoOptimal();
 		
-		
 		Constants.log(Level.CONFIG, "Sensor settings: set valid nodes", this);
 	}
 	
@@ -502,6 +509,76 @@ public class SensorSetting {
 		
 		validNodes.clear();
 		validNodes.addAll(optimalSolutions.keySet());
+	}
+	
+
+	
+	public static HashSet<Integer> paretoOptimalAll(HashSet<Integer> allNodes, List<Scenario> sortedScenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
+		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
+		Collections.sort(sortedScenarios);
+		
+		for(Integer nodeNumber: allNodes){
+			//build up the string ID and the list of ttds (for the ones that detect)
+			ArrayList<Float> ttds = new ArrayList<Float>();
+			for(Scenario scenario: sortedScenarios){
+				Float timeToDegredation = Float.MAX_VALUE;
+				for (TimeStep timeStep: ns.getTimeSteps()){
+					try {
+						//Need a loop for each sensor type
+						for(SensorSetting setting: sensorSettings.values())
+						if(CCS9_1.paretoSensorTriggered(setting, ns, timeStep, scenario, setting.type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if(timeToDegredation != Float.MAX_VALUE) break;
+				}
+				ttds.add(timeToDegredation);
+			}
+			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
+			boolean everyReasonTo = false;
+			boolean everyReasonNot = false;
+			for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
+				ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
+				boolean greater = false;
+				boolean less = false;
+				for(int i=0; i<paretoSolution.size(); ++i){
+					if(paretoSolution.get(i) < ttds.get(i)) greater = true;
+					if(paretoSolution.get(i) > ttds.get(i)) less = true;
+				}
+				if(greater && less){
+					//don't need to do anything, both of these are pairwise pareto optimal
+				}
+				else if(greater && !less){
+					everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
+					break; //we don't need to look anymore, don't include this new configuration
+				}
+				else if(!greater && less){
+					everyReasonTo = true; //This solution is pareto optimal to this stored one
+					toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
+				}
+				else if(!greater && !less){
+					//everyReasonNot = true; //These two spots are equal, so we might as well get rid of the one we're looking at
+					break; //We don't need to check other spots if these are equal.
+				}
+			}
+			if(everyReasonTo){
+				//We need to add this one and remove some.
+				for(Integer x : toRemove){
+					optimalSolutions.remove(x);
+				}
+				optimalSolutions.put(nodeNumber, ttds);
+			}
+			else if(everyReasonNot){
+				//Lets not add this one, it's redundant
+			}
+			else{
+				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer. Let's add it.
+				optimalSolutions.put(nodeNumber, ttds);
+			}
+		}
+		HashSet<Integer> solution = new HashSet<Integer>();
+		solution.addAll(optimalSolutions.keySet());
+		return solution;
 	}
 
 	private void setMin() { min = 0f;

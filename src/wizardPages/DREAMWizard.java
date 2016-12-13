@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
+import objects.SensorSetting;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -404,6 +405,20 @@ public class DREAMWizard extends Wizard {
 									monitor.worked(2);
 								}
 							}
+							if(Constants.runAsOneSensor){
+								System.out.println("New test loop -------");
+								HashSet<Integer> nodes = new HashSet<Integer>();
+								float cost = 0;
+								for(String setting: set.getSensorSettings().keySet()){
+									if(setting.equals("all")) continue;
+									nodes.addAll(set.getSensorSettings().get(setting).getCloudNodes(monitor));
+									cost += set.getSensorSettings().get(setting).getCost();
+								}
+								set.addSensorSetting("all", "all");
+								set.getSensorSettings().get("all").setCost(cost);
+								set.getSensorSettings().get("all").setFullCloudNodes(nodes);
+								set.getSensorSettings().get("all").setValidNodes(SensorSetting.paretoOptimalAll(nodes, set.getAllScenarios(), set.getNodeStructure(), set.getSensorSettings()));
+							}
 
 							// If the user canceled, should we clear the data????
 							if(monitor.isCanceled()) {
@@ -464,10 +479,9 @@ public class DREAMWizard extends Wizard {
 					for(String sensorType: requiredSensors.keySet()) {
 						monitor.subTask("setting sensors required for " + sensorType.toLowerCase());
 						set.getInferenceTest().setMinimumRequiredForType(sensorType, requiredSensors.get(sensorType));
-						set.getInferenceTest().setMinimum(totalMinimum);
-						monitor.worked(1);
 					}
-
+					set.getInferenceTest().setMinimum(totalMinimum);
+					monitor.worked(1);
 				}
 			});			
 		}

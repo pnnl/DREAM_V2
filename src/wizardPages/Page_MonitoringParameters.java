@@ -8,12 +8,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.InferenceTest;
+import objects.NodeStructure;
 import objects.Scenario;
+import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
 import objects.TimeStep;
@@ -46,6 +49,7 @@ import org.eclipse.swt.widgets.Text;
 
 import functions.*;
 import utilities.Constants;
+import utilities.Point3f;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -482,6 +486,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			isCurrentPage = false;		
 			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 			Map<String, String> sensorAliases = new HashMap<String, String>();
+			if(Constants.runAsOneSensor) sensorAliases.put("all", "all");
 			SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 			for(String label: sensorData.keySet()) {
 				SensorData data = sensorData.get(label);
@@ -495,6 +500,49 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole seperate page
+			//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
+			/*
+			HashMap<Integer, HashSet<Integer>> ijs = new HashMap<Integer, HashSet<Integer>>();
+			HashMap<Float, HashSet<Float>> xys = new HashMap<Float, HashSet<Float>>();
+			HashSet<Integer> validNodes = new HashSet<Integer>();
+			for(String label: data.getSet().getSensorSettings().keySet()){
+				validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
+			}
+			for(Integer node: validNodes){
+				Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
+				Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
+				if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashSet<Integer>());
+				ijs.get(ijk.getI()).add(ijk.getJ());
+				if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashSet<Float>());
+				xys.get(xyz.getX()).add(xyz.getY());
+			}
+			StringBuilder ijStringBuilder = new StringBuilder();
+			for(Integer i: ijs.keySet()){
+				for(Integer j: ijs.get(i)){
+					ijStringBuilder.append(i.toString() + "," + j.toString() + "\n");
+				}
+			}
+			StringBuilder xyStringBuilder = new StringBuilder();
+			for(Float x: xys.keySet()){
+				for(Float y: xys.get(x)){
+					xyStringBuilder.append(x.toString() + "," + y.toString() + "\n");
+				}
+			}
+			
+			try{
+				File xyLocationFile = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY.txt");
+				if(!xyLocationFile.exists())
+					xyLocationFile.createNewFile();
+				FileUtils.writeStringToFile(xyLocationFile, xyStringBuilder.toString());	
+				File ijLocationFile = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsIJ.txt");
+				if(!ijLocationFile.exists())
+					ijLocationFile.createNewFile();
+				FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
+			}
+			catch(Exception e){
+				System.err.println("Could not write to well files");
+			}
+			*/
 			DREAMWizard.visLauncher.setEnabled(true);
 			
 
@@ -658,16 +706,17 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 				boolean reset = true;							
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();	
 
+
 				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 				Map<String, String> sensorAliases = new HashMap<String, String>();
+				if(Constants.runAsOneSensor) sensorAliases.put("all", "all");
 				for(String label: sensorData.keySet()){
 					SensorData temp = sensorData.get(label);
 					sensorSettings.put(label, temp);
 					String alias = temp.alias;
 					sensorAliases.put(label, alias.equals("") ? label: alias);
 					SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
-				}	
-				Sensor.sensorAliases = sensorAliases;
+				}
 
 				
 				try {
