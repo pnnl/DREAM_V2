@@ -265,6 +265,8 @@ public class DREAMWizard extends Wizard {
 		//booleans that help us keep track of when we need to reset stuff
 		public boolean needToResetWells = true;
 		public boolean needToResetMonitoringParameters = true;
+		//booleans that help us decide what mode we're running in
+		public boolean runAsOneSensor = false;
 
 		private ScenarioSet set;
 		private Function runner;

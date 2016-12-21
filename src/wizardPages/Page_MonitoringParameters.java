@@ -653,6 +653,24 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		gridData.horizontalSpan=8;
 		composite_scale.setLayoutData(gridData);
 		
+		// allSensor label and button
+		if(Constants.buildDev){
+			Label allSensorLabel = new Label(composite_scale, SWT.WRAP);
+			allSensorLabel.setText("Run all technologies as a single sensor");
+			Button allSensorButton = new Button(composite_scale,  SWT.CHECK);
+			allSensorButton.setSelection(Constants.runAsOneSensor);
+			allSensorButton.addSelectionListener(new SelectionListener() {
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) { 
+					Constants.runAsOneSensor = ((Button)e.getSource()).getSelection(); 					
+				}
+				@Override
+				public void widgetSelected(SelectionEvent e) { 
+					Constants.runAsOneSensor = ((Button)e.getSource()).getSelection(); 
+					if(!Constants.runAsOneSensor && data.getSet().getSensorSettings().keySet().contains("all")) data.getSet().removeSensorSettings("all");
+				}
+			});
+		}
 		Button queryButton = new Button(composite_scale, SWT.BALLOON);
 		queryButton.setText("Find triggering nodes");
 
@@ -661,8 +679,10 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		new Label(composite_scale, SWT.NULL);
 		new Label(composite_scale, SWT.NULL);
 		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
+		if(!Constants.buildDev){ //Need to add more spacers if we aren't including the checkbox above
+			new Label(composite_scale, SWT.NULL);
+			new Label(composite_scale, SWT.NULL);
+		}
 		
 		int count = 0;
 		
@@ -717,7 +737,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 					sensorAliases.put(label, alias.equals("") ? label: alias);
 					SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 				}
-
+				Sensor.sensorAliases = sensorAliases;
 				
 				try {
 					if(reset) {

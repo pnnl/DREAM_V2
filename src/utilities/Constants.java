@@ -28,7 +28,8 @@ public class Constants {
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
-	public static boolean runAsOneSensor = false; //Catherine Ruprecht Yonkofski - this is how you make the "all" sensor appear, for now
+	// booleans that really are not constant, but we don't have a better place for since they're static.
+	public static boolean runAsOneSensor = false; //Set in MonitoringParameters page. Leave as false in case "buildDev" is false
 	
 	public enum ModelOption { 
 		
