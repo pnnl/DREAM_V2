@@ -421,7 +421,7 @@ public class ExtendedConfiguration extends Configuration {
 		//	boolean debug = true;
 
 		Object addedSensor;
-		if(Constants.runAsOneSensor) addedSensor = addAllSensor(scenarioSet);
+		if(modelOption == ModelOption.ALL_SENSORS) addedSensor = addAllSensor(scenarioSet);
 		else
 			addedSensor = addSensor(scenarioSet);
 		if(addedSensor != null) {
@@ -429,7 +429,7 @@ public class ExtendedConfiguration extends Configuration {
 			return true;
 		}
 		//Have to skip this if we're running as one sensor, this is pretty much guaranteed to have out of bounds sensors we don't want to move (outside of their clouds)
-		if(!Constants.runAsOneSensor){
+		if(!(modelOption == ModelOption.ALL_SENSORS)){
 			Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
 			if(movedSensorInBounds != null) {
 				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);;
@@ -438,7 +438,7 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		
 		Object movedSensor;
-		if(Constants.runAsOneSensor) movedSensor = moveAllSensor(scenarioSet);
+		if(modelOption == ModelOption.ALL_SENSORS) movedSensor = moveAllSensor(scenarioSet);
 		else movedSensor = moveSensor(scenarioSet);
 		if(movedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);

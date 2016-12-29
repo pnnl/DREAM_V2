@@ -247,7 +247,7 @@ public class NodeStructure {
 			return  new Point3f(nodalValueX, nodalValueY,nodalValueZ);
 			*/
 			//This version uses the extrapolated edges instead.
-			return new Point3f(edgex.get(node.getI()), edgey.get(node.getJ()), edgez.get(node.getK()));
+			return new Point3f(edgex.get(node.getI()-1), edgey.get(node.getJ()-1), edgez.get(node.getK()-1));
 		} catch(Exception e) {
 			Constants.log(Level.SEVERE, "Node structure - node was out of bounds", node.toString()); // Maybe warning?
 			return null;

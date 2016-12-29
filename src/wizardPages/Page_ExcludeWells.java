@@ -124,9 +124,9 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 
 		// Add check boxes for all valid well locations
 		if(data.needToResetWells){
-			//This means that we have set new paramters and need to reset all values
+			//This means that we have set new parameters and need to reset all values
 			data.needToResetWells = false;
-			wells = data.getSet().getAllPossibleWells();
+			wells = data.getSet().getAllPossibleWells(data.modelOption);
 			selection.clear();
 			minI = Integer.MAX_VALUE;
 			minJ = Integer.MAX_VALUE;

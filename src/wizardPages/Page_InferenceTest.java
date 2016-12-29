@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Text;
 
 import objects.Sensor;
 import utilities.Constants;
+import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
 import wizardPages.Page_MonitoringParameters.SensorData;
 
@@ -126,7 +127,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		setLabel.setFont(boldFont);
 		probabilityLabel.setFont(boldFont);
 		
-			if(!Constants.runAsOneSensor){
+			if(!(data.modelOption == ModelOption.ALL_SENSORS)){
 			for(String dataType: data.getSet().getDataTypes()) {
 				
 				final Label dataLabel = new Label(container, SWT.NULL);
@@ -210,7 +211,7 @@ public class Page_InferenceTest extends WizardPage implements AbstractWizardPage
 		int overallMin = firstMinimum.length() > 0 ? Integer.parseInt(firstMinimum) : -1;
 		Map<String, Integer> requiredSensors = new HashMap<String, Integer>();
 		for(String sensorType: minimumSensors.keySet())  {
-			if(!Constants.runAsOneSensor){
+			if(!(data.modelOption == ModelOption.ALL_SENSORS)){
 				String minimum = minimumSensors.get(sensorType).getText();
 				if(minimum.length() > 0)
 					requiredSensors.put(sensorType, Integer.parseInt(minimum));

@@ -486,7 +486,6 @@ public class Page_DegradationParameters extends WizardPage implements AbstractWi
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
-		//TODO: NEED ALL NODES
 		Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
 		for(SensorSetting sensorSetting: sensorSettings){
 			for(Scenario scenario: data.getSet().getScenarios()) {

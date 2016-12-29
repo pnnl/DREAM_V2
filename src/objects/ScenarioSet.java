@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import utilities.Constants;
+import utilities.Constants.ModelOption;
 import utilities.Point3f;
 import utilities.Point3i;
 
@@ -354,9 +355,10 @@ public class ScenarioSet {
 		return runLoaded;
 	}
 	
-	public Map<Integer, List<Integer>> getAllPossibleWells() {
+	public Map<Integer, List<Integer>> getAllPossibleWells(ModelOption modelOption) {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-		if(!Constants.runAsOneSensor){
+		
+		if(modelOption != ModelOption.ALL_SENSORS){
 			for(String sensorType: this.getSensorSettings().keySet()) {
 				for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
 					cloudNodes.add(node);

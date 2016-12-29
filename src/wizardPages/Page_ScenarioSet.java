@@ -116,10 +116,12 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 			modelOption = ModelOption.INDIVIDUAL_SENSORS;
 		else if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS_2.toString()))
 			modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
+		else if(strOption.equals(ModelOption.ALL_SENSORS.toString()))
+			modelOption = ModelOption.ALL_SENSORS;
 		else 
 			modelOption = ModelOption.REALIZED__WELLS;
 		
-		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensors") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
+		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
 		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
@@ -202,6 +204,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		modelOption = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
 		
 		modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
+		if(Constants.buildDev) modelOption.add(Constants.ModelOption.ALL_SENSORS.toString());
 		if(Constants.buildDev) modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS.toString());
 		if(Constants.buildDev) modelOption.add(Constants.ModelOption.REALIZED__WELLS.toString());
 		modelOption.setText(modelOption.getItem(0));

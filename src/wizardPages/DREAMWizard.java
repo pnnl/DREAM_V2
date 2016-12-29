@@ -265,8 +265,6 @@ public class DREAMWizard extends Wizard {
 		//booleans that help us keep track of when we need to reset stuff
 		public boolean needToResetWells = true;
 		public boolean needToResetMonitoringParameters = true;
-		//booleans that help us decide what mode we're running in
-		public boolean runAsOneSensor = false;
 
 		private ScenarioSet set;
 		private Function runner;
@@ -274,7 +272,7 @@ public class DREAMWizard extends Wizard {
 		private ExtendedConfiguration initialConfiguration;
 		private DREAMWizard wizard;
 
-		private Constants.ModelOption modelOption;
+		public Constants.ModelOption modelOption;
 
 		public STORMData(DREAMWizard wizard) {
 			this.wizard = wizard;
@@ -407,8 +405,7 @@ public class DREAMWizard extends Wizard {
 									monitor.worked(2);
 								}
 							}
-							if(Constants.runAsOneSensor){
-								System.out.println("New test loop -------");
+							if(modelOption == ModelOption.ALL_SENSORS){
 								HashSet<Integer> nodes = new HashSet<Integer>();
 								float cost = 0;
 								for(String setting: set.getSensorSettings().keySet()){
