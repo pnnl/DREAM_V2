@@ -32,9 +32,10 @@ public class Constants {
 	public enum ModelOption { 
 		
 		INDIVIDUAL_SENSORS_2("Individual Sensors 2.0", "Prioritize moving a well over adjusting sensors in a well."),
-		ALL_SENSORS("Aggregated Sensor Technology", "Place a sensor of every type at each monitoring location"),
-		INDIVIDUAL_SENSORS("Individual Sensors", "Prioritize adjusting sensors in a well over moving a well."),
-		REALIZED__WELLS("Realized Wells", "Wells have all sensor types at each k index");
+		ALL_SENSORS("Aggregated Sensor Technology", "Place a sensor of every type at each monitoring location");
+		//NO LONGER SUPPORTED: these used to be options and are either depreciated or redundant.
+		//INDIVIDUAL_SENSORS("Individual Sensors", "Prioritize adjusting sensors in a well over moving a well."),
+		//REALIZED__WELLS("Realized Wells", "Wells have all sensor types at each k index");
 		
 		String alias;
 		String description;

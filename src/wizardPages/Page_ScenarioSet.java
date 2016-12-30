@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -19,6 +20,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
@@ -38,8 +40,8 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 	private Composite container;
 	private Composite rootContainer;
 	private Combo scenarioSet;
-	private Combo simulation;
-	private Combo modelOption;
+	private String simulation = "CCS9.1";
+	private String modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
 	private STORMData data;
 	private Text hdf5Text;
 	private boolean isCurrentPage = false;
@@ -100,26 +102,24 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 	}
 
 	public String getSimulation() {
-		return simulation.getText();
+		return simulation;
 	}
 
 	public String getModelOption() {
-		return modelOption.getText();
+		//Change this back if we are going back to drop-downs
+		//return modelOption.getText();
+		return modelOption;
 	}
 
 	public void completePage() throws Exception {	
 		isCurrentPage = false;
 		
-		ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS;
+		ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 		String strOption = getModelOption();
-		if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS.toString()))
-			modelOption = ModelOption.INDIVIDUAL_SENSORS;
-		else if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS_2.toString()))
+		if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS_2.toString()))
 			modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 		else if(strOption.equals(ModelOption.ALL_SENSORS.toString()))
 			modelOption = ModelOption.ALL_SENSORS;
-		else 
-			modelOption = ModelOption.REALIZED__WELLS;
 		
 		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
 		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
@@ -189,6 +189,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		hdf5Text.setText(Constants.homeDirectory);
 		hdf5Text.setLayoutData(myGd);
 	
+		/*
 		Label functionLabel = new Label(container, SWT.NULL);
 		functionLabel.setText("Simulation tool");
 		simulation = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -198,7 +199,17 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		simulation.setText(simulation.getItem(0));
 		GridData wellgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		simulation.setLayoutData(wellgd);
-
+		*/
+		/*
+		simulation = new Group(container, SWT.SHADOW_ETCHED_IN);
+		simulation.setText("Simulation tool");
+		simulation.setLayout(new RowLayout(SWT.VERTICAL));
+		Button selected1 = new Button(simulation, SWT.RADIO);
+		selected1.setText("Sensor placement optimization: " + (new CCS9_1()).toString());
+		selected1.setSelection(true);
+		//Add other options below
+		*/
+		/*
 		Label modelOptionLabel = new Label(container, SWT.NULL);
 		modelOptionLabel.setText("Model option");
 		modelOption = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -210,7 +221,37 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		modelOption.setText(modelOption.getItem(0));
 		GridData modelgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		modelOption.setLayoutData(modelgd);
+		*/
+
+		GridData buttonGridData = new GridData(GridData.FILL_HORIZONTAL);
+		buttonGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		Group radioButton = new Group(container, SWT.SHADOW_NONE);
+		radioButton.setText("Model option");
+		radioButton.setLayout(new RowLayout(SWT.VERTICAL));
+		Button button1 = new Button(radioButton, SWT.RADIO);
+		button1.setText(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
+		button1.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				System.out.println("1111111");
+				modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
+			}
+		});
+		button1.setSelection(true);
+		Button button2 = new Button(radioButton, SWT.RADIO);
+		button2.setText(Constants.ModelOption.ALL_SENSORS.toString());
+		button2.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				System.out.println("2222222");
+				modelOption = Constants.ModelOption.ALL_SENSORS.toString();
+			}
+		});
 		
+		
+		radioButton.setLayoutData(buttonGridData);
+		//Add other options here
+				
 		modelDescription = new Label(container, SWT.NULL);
 		
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );

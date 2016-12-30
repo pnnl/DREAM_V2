@@ -473,7 +473,7 @@ public class ExtendedConfiguration extends Configuration {
 
 	public boolean mutateSensorToEdgeOnly(ScenarioSet set) {	
 		set.setEdgeMovesOnly(true);
-		boolean sensorMutate = mutateSensor(set, ModelOption.INDIVIDUAL_SENSORS);
+		boolean sensorMutate = mutateSensor(set, ModelOption.INDIVIDUAL_SENSORS_2);
 		set.setEdgeMovesOnly(false);
 		return sensorMutate;
 	}

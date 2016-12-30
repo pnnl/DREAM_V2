@@ -31,7 +31,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	protected Integer currentRun = 0;
 	
 	protected MUTATE mutate = MUTATE.SENSOR; // Default mutation
-	protected Constants.ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS;
+	protected Constants.ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 	
 	protected boolean iterative; // Keep track of what type of run we are doing
 	
