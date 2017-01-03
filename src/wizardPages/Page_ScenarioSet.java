@@ -233,7 +233,6 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		button1.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				System.out.println("1111111");
 				modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
 			}
 		});
@@ -243,7 +242,6 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		button2.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				System.out.println("2222222");
 				modelOption = Constants.ModelOption.ALL_SENSORS.toString();
 			}
 		});
