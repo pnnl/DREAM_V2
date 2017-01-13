@@ -38,10 +38,18 @@ import utilities.Constants;
 import utilities.Point3f;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
-import wizardPages.Page_MonitoringParameters.SensorData;
+import wizardPages.Page_LeakageCriteria.SensorData;
 import functions.CCS9_1;
 import functions.Function;
 import functions.MutationFunction.MUTATE;
+
+/**
+ * Parent class of UI, contains information about which pages to add and in what order
+ * Also contains main function for launching DREAM
+ * @author port091
+ * @author rodr144
+ *
+ */
 
 public class DREAMWizard extends Wizard {
 
@@ -136,15 +144,15 @@ public class DREAMWizard extends Wizard {
 	@Override
 	public void addPages() {
 
-		addPage(new Page_WelcomeScreen());	
-		addPage(new Page_ScenarioSet(data));	
-		addPage(new Page_ScenarioSetup(data));
-		addPage(new Page_MonitoringParameters(data));
-		if(Constants.buildDev) addPage(new Page_DegradationParameters(data)); //For now, we are only doing this if we're in our "dev" version
-		addPage(new Page_InferenceTest(data));
-		addPage(new Page_RunSettings(data));
-		addPage(new Page_ExcludeWells(data));
-		addPage(new Page_ReviewAndRun(data));
+		addPage(new Page_Welcome());	
+		addPage(new Page_InputDirectory(data));	
+		addPage(new Page_ScenarioWeighting(data));
+		addPage(new Page_LeakageCriteria(data));
+		if(Constants.buildDev) addPage(new Page_DegradationCriteria(data)); //For now, we are only doing this if we're in our "dev" version
+		addPage(new Page_DetectionCriteria(data));
+		addPage(new Page_ConfigurationSettings(data));
+		addPage(new Page_ExcludeLocations(data));
+		addPage(new Page_RunDREAM(data));
 	}
 
 	@Override

@@ -22,6 +22,12 @@ import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.*; 
 
+/**
+ * Code to properly and efficiently process hdf5 files.
+ * For now, we read from the files and then close them.
+ * @author port091
+ */
+
 public class HDF5Parser {
 
 

@@ -5,6 +5,12 @@ import java.util.*;
 import utilities.Constants;
 import utilities.Point3i;
 
+/**
+ * Well functions and helper methods
+ * @author port091
+ * @author rodr144
+ */
+
 public class Well 
 {
 

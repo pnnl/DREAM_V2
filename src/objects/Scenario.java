@@ -1,5 +1,10 @@
 package objects;
 
+/**
+ * Basic class for keeping track of a leakage criteria
+ * @author port091
+ */
+
 public class Scenario implements Comparable<Scenario> {
 
 	private String scenario;

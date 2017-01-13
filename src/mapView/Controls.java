@@ -10,6 +10,12 @@ import javax.swing.JButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+/**
+ * class for putting together the UI as a whole, including controls to zoom in and out, pan, etc.
+ * @author port091
+ * @author rodr144
+ */
+
 public class Controls extends javax.swing.JPanel implements ActionListener {
 
 	private static final long serialVersionUID = 1L;

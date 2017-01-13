@@ -19,6 +19,11 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * Generic scrollable dialog.
+ * Currently unused.
+ * @author port091
+ */
 
 public class ScrollableDialog extends TitleAreaDialog {
 	private String title;

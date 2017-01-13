@@ -22,7 +22,13 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 
-public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPage {
+/**
+ * Page with all of the generic welcome information, disclaimers, and summaries.
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 
 	private ScrolledComposite sc;
 	private Composite container;
@@ -31,7 +37,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 	private boolean isCurrentPage = false;
 	private boolean hasBeenLoaded = false;
 
-	protected Page_WelcomeScreen() {
+	protected Page_Welcome() {
 		super("Welcome");
 	}
 
@@ -137,7 +143,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		acknowledgements.setText("                   <A>Acknowledgements</A>");
 		acknowledgements.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {			
-				MessageBox messageBox = new MessageBox(Page_WelcomeScreen.this.getShell(), SWT.OK );
+				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
 				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager), Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support.");		
 				messageBox.setText("Acknowledgements");
@@ -164,7 +170,7 @@ public class Page_WelcomeScreen  extends WizardPage implements AbstractWizardPag
 		references.setText("                   <A>References</A>");
 		references.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				MessageBox messageBox = new MessageBox(Page_WelcomeScreen.this.getShell(), SWT.OK );
+				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Yonkofski, C.M., Gastelum, J.A., Porter, E.A., Rodriguez, L.R., Bacon, D.H. and Brown, C.F., 2016. An optimization approach to design monitoring schemes for CO2 leakage detection. International Journal of Greenhouse Gas Control, 47, pp.233-239.");
 				messageBox.setText("References");
 				messageBox.open();

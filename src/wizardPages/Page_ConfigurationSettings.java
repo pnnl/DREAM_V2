@@ -24,9 +24,16 @@ import org.eclipse.swt.widgets.Text;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_MonitoringParameters.SensorData;
+import wizardPages.Page_LeakageCriteria.SensorData;
 
-public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
+/**
+ * Set algorithmic limitations for the simulated annealing process.
+ * See line 131
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_ConfigurationSettings extends WizardPage implements AbstractWizardPage {
 
 	private STORMData data;
 	private ScrolledComposite sc;
@@ -43,8 +50,8 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 
 	private boolean isCurrentPage = false;
 
-	protected Page_RunSettings(STORMData data) {
-		super("Run setup");
+	protected Page_ConfigurationSettings(STORMData data) {
+		super("Configuration Settings");
 		//	setDescription("Run setup");
 		this.data = data;			
 	}
@@ -122,19 +129,12 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The configuration settings specify hard constraints for the optimization algorithm. The solutions may not exceed the maximum cost or the maximum number of wells defined. The user must be careful to provide a high enough cost to meet the specified minimum requirements given in the previous window. The �Add starting point� field is the coordinate where the algorithm begins searching for new monitoring device placement. The Use average time to detection checkbox averages the time to first detection of leakage across all realizations using the same monitoring configuration.\nNote: DREAM assumes that wells span the entire z-axis of simulation grids and multiple detection devices may be placed within a single well.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The configuration settings specify hard constraints for the optimization algorithm. The solutions may not exceed the maximum cost or the maximum number of wells defined. The user must be careful to provide a high enough cost to meet the specified minimum requirements given in the previous window. The \"Add starting point\" field is the coordinate where the algorithm begins searching for new monitoring device placement. The Use average time to detection checkbox averages the time to first detection of leakage across all realizations using the same monitoring configuration.\nNote: DREAM assumes that wells span the entire z-axis of simulation grids and multiple detection devices may be placed within a single well.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
 		
-		/* Moving iterations to review and run page
-		Label iterationLabel = new Label(container, SWT.NULL);
-		iterationLabel.setText("Iterations");
-		iterations= new Text(container, SWT.BORDER | SWT.SINGLE);
-		iterations.setText(String.valueOf(data.getSet().getCostConstraint()));
-		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
-		iterations.setLayoutData(costGD);
-		 */
+
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Sensor Budget");
 		costConstraint= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -218,17 +218,7 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		wellCost.setVisible(Constants.buildDev);
 		wellCostLabel.setVisible(Constants.buildDev);
 
-	/*
-		Label addLabel = new Label(container, SWT.NULL);
-		addLabel.setText("Add Point");
-		addPoint= new Text(container, SWT.BORDER | SWT.SINGLE);
-		addPoint.setText(data.getSet().getAddPoint().toString());
-		GridData addGD = new GridData(GridData.FILL_HORIZONTAL);
-		addPoint.setLayoutData(addGD);
 
-		addPoint.setVisible(Constants.buildDev);
-		addLabel.setVisible(Constants.buildDev);		
-	*/
 		averageTTD = new Button(container, SWT.CHECK);
 		averageTTD.setText("Use average time to detection");
 		new Label(container, SWT.NULL);
@@ -249,15 +239,6 @@ public class Page_RunSettings extends WizardPage implements AbstractWizardPage {
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 
-	/*
-	public int getIterations() {
-		try {
-			return Integer.parseInt(iterations.getText());
-		} catch(Exception e) {
-			return 100;
-		}
-	}
-	 */
 
 	public float getCostConstraint() { 
 		try {

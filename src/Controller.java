@@ -14,6 +14,7 @@ import utilities.Point3i;
 
 /**
  * Helper class, will handle function calls and setup
+ * Not used - Luke
  * @author port091
  *
  */

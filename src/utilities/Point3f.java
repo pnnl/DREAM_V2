@@ -2,6 +2,11 @@ package utilities;
 
 import java.util.Comparator;
 
+/**
+ * 3-dimensional float class
+ * @author port091
+ */
+
 public class Point3f implements Comparable<Point3f> {
 
 	private float x;

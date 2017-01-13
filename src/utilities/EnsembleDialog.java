@@ -38,6 +38,11 @@ import org.eclipse.swt.widgets.Text;
 
 import wizardPages.DREAMWizard.STORMData;
 
+/**
+ * Dialog for running the multi-run ensemble
+ * @author rodr144
+ */
+
 public class EnsembleDialog extends TitleAreaDialog {
 
 	private ScrolledComposite sc;

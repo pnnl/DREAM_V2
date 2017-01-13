@@ -13,6 +13,11 @@ import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 
+/**
+ * Depreciated code?
+ * @author port091
+ */
+
 public class Results {
 
 		

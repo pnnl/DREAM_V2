@@ -13,6 +13,11 @@ import utilities.Constants;
 import utilities.Constants.ModelOption;
 import utilities.Point3f;
 
+/**
+ * Extension of the configuration class that provides much more functionality and information
+ * @author port091
+ * @author rodr144
+ */
 
 public class ExtendedConfiguration extends Configuration {
 	
@@ -548,10 +553,8 @@ public class ExtendedConfiguration extends Configuration {
 
 	}
 	
+	//specifically for when running in ALL_SENSORS mode
 	private Object addAllSensor(ScenarioSet scenarioSet) {
-
-		// Timer
-		// long startTime = System.currentTimeMillis();
 
 		// We will try to add here first.
 		int addPoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
@@ -609,30 +612,6 @@ public class ExtendedConfiguration extends Configuration {
 	private Object moveAllSensor(ScenarioSet scenarioSet) {
 		return moveAllSensor(sensors, scenarioSet);	// Otherwise just move a random one
 	}
-
-	/*
-	 * This is the beginnings of a stand-alone sensor-swap. TODO: Remove?
-	 * 
-	private Object switchSensor(ScenarioSet scenarioSet) {
-		//Pick a current sensor
-		Sensor thisSensor = sensors.get(Constants.random.nextInt(sensors.size()));
-		System.out.println("Switching the type of sensor: " + thisSensor);
-		
-		//Get the list of valid types to switch with, return if empty (only one allowed)
-		List<String> types = scenarioSet.getDataTypes();
-		if(!types.remove(thisSensor.getSensorType())) System.out.println("This sensor type wasn't in the list. That shouldn't happen.");
-		if(types.isEmpty()){
-			System.out.println("Cannot switch sensor type - only one is allowed");
-			return null;
-		}
-		
-		//Make sure that there's not already other sensors 
-		
-		
-		
-
-	}
-	*/
 	
 	private Object moveWell(ScenarioSet scenarioSet) {
 		if(wells.size() == 0)

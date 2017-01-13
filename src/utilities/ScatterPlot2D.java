@@ -19,6 +19,11 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 
+/**
+ * Depreciated code?
+ * @author port091
+ */
+
 public class ScatterPlot2D extends ChartPanel {
 
 	private static final long serialVersionUID = 3725867696858493678L;

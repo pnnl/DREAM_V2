@@ -4,6 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
+/**
+ * Techplot helper functions
+ * @author port091
+ * @author rodr144
+ */
+
 public class TecplotNode {
 	
 	private class Node {

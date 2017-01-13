@@ -24,6 +24,12 @@ import utilities.Constants;
 import utilities.Point3f;
 import utilities.Point3i;
 
+/**
+ * Holds the logic for a specific sensor type and threshold
+ * @author port091
+ * @author rodr144
+ */
+
 public class SensorSetting {
 	
 	public static HashMap<String, String> sensorTypeToDataType;
@@ -512,7 +518,7 @@ public class SensorSetting {
 	}
 	
 
-	
+	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
 	public static HashSet<Integer> paretoOptimalAll(HashSet<Integer> allNodes, List<Scenario> sortedScenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		Collections.sort(sortedScenarios);

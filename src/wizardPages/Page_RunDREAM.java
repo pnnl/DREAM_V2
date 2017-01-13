@@ -78,7 +78,14 @@ import utilities.Point3i;
 import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage {
+/**
+ * Review the summary of your setup, and choose what kind of run you would like to execute with DREAM.
+ * See line 186
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 
 	private STORMData data;
 	private ScrolledComposite sc;
@@ -96,8 +103,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	
 	private boolean isCurrentPage = false;
 	
-	protected Page_ReviewAndRun(STORMData data) {
-		super("Review");
+	protected Page_RunDREAM(STORMData data) {
+		super("Run DREAM");
 		//	setDescription("Review");
 		this.data = data;			
 	}
@@ -176,7 +183,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The Best TTD Possible per Sensor-type button allows the user to generate a summary of the average times to detection for all scenarios and all sensor-types individually and as a whole. The �Weighted percent of scenarios that are detectable� is also presented, giving the user an idea for how many of the leakage scenarios read into DREAM had leaks detected according to the leakage criteria specified. The algorithm behind this button assumes an unlimited budget and an unlimited number of wells to achieve this goal. In other words, a monitoring point is placed in every node in the solution space; therefore, the results give no indication of optimal monitoring configurations. The purpose of this button is to allow the user to have an understanding of the problem before running the iterative procedure. Results identify the best possible time to detection and highest percent of scenarios detecting a leak possible.\nThe Run Iterative Procedure button will run the simulated annealing optimization algorithm the number of times specified on the number of configurations specified.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Best TTD Possible per Sensor-type button allows the user to generate a summary of the average times to detection for all scenarios and all sensor-types individually and as a whole. The \"Weighted percent of scenarios that are detectable\" is also presented, giving the user an idea for how many of the leakage scenarios read into DREAM had leaks detected according to the leakage criteria specified. The algorithm behind this button assumes an unlimited budget and an unlimited number of wells to achieve this goal. In other words, a monitoring point is placed in every node in the solution space; therefore, the results give no indication of optimal monitoring configurations. The purpose of this button is to allow the user to have an understanding of the problem before running the iterative procedure. Results identify the best possible time to detection and highest percent of scenarios detecting a leak possible.\nThe Run Iterative Procedure button will run the simulated annealing optimization algorithm the number of times specified on the number of configurations specified.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
@@ -494,8 +501,8 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 			@Override
 			public void handleEvent(Event arg0) {
 				/*
-				JFrame temp = new JFrame();
-				JTextArea textArea = new JTextArea();
+				Method for creating ntab file of the cloud.
+				Note that neither of the authors were familiar with ntab, so this is a setup that seems to work but may have underlying issues.
 				*/
 				StringBuilder text = new StringBuilder();
 				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
@@ -607,55 +614,13 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		});
 		
 		cloudButton.setVisible(Constants.buildDev);
-		
-
-//		Button bestTTDButton = new Button(container, SWT.BALLOON);
-//		bestTTDButton.setSelection(true);
-//		bestTTDButton.setText("Best TTD Possible");
-//		bestTTDButton.addListener(SWT.Selection, new Listener() {
-//			@Override
-//			public void handleEvent(Event arg0) {
-//				ExtendedConfiguration configuration = new ExtendedConfiguration();
-//				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-//					for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
-//						configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-//					}
-//				}
-//				data.runObjective(configuration);
-//				String text = "";
-//				
-//				float totalTimeToDetection = 0.0f;
-//				int detectedScenarios = 0;
-//				int totalScenarios = 0;
-//				for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-//					float timeToDetection = configuration.getTimesToDetection().get(scenario);
-//					if(timeToDetection == 1000000) {
-//						text += scenario.getScenario() + ": did not detect\n";
-//					} else {
-//						detectedScenarios++;
-//						totalTimeToDetection += timeToDetection;
-//						text += scenario.getScenario() + ":" + timeToDetection + "\n";
-//					}
-//					totalScenarios++;
-//				}
-//				
-//				text = "TTD in detected scenarios: " + totalTimeToDetection/detectedScenarios + "\n"
-//				     + "Detected scenarios: " + detectedScenarios + "/" + totalScenarios + "\n\n" 
-//				     + text;
-//				
-//				JFrame temp = new JFrame();
-//				temp.setTitle("Best possible time to detection");
-//				JTextArea textArea = new JTextArea();
-//				textArea.setText(text);
-//				temp.add(new JScrollPane(textArea));
-//				temp.setSize(400, 400);
-//				temp.setVisible(true);
-//			}	       
-//		});		
+			
 		
 		//TODO: These!!
 		Label spacer2 = new Label(container, SWT.NULL);
 		
+		//This probably needs a new name. Used to create a scatterplot, hence the button, but this is the multi-run ensemble code.
+		//We can probably get rid of the scatterplot functionality.
 		Button scatterplotButton = new Button(container, SWT.BALLOON);
 		scatterplotButton.setSelection(true);
 		scatterplotButton.setText("Multi-Run Ensemble");
@@ -789,6 +754,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		Button comparisonButton = new Button(container, SWT.BALLOON);
 		comparisonButton.setSelection(true);
 		comparisonButton.setText("Compare two sensors");
+		//TODO: This is an area for future improvement to functionality. I believe Catherine has specific vision?
 		comparisonButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -933,7 +899,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 		return combos;
 	}
 	
-	/*SCATTERPLOT BUTTON FUNCTION STORAGE
+	/*SCATTERPLOT BUTTON FUNCTION STORAGE - a place for old code that was once useful that could be again if we continue to re-imagine this functionality.
 	 * 
 				printSolutionSpaceTab();
 				int minNum = Integer.parseInt(minNumSensors.getText());
@@ -1073,29 +1039,7 @@ public class Page_ReviewAndRun extends WizardPage implements AbstractWizardPage 
 	}
 
 	public void convertFile(File file) throws IOException {
-		/*
-		System.out.println("i, x edge, x center");
-		for(int i = 1; i <= data.getSet().getNodeStructure().getIJKDimensions().getI(); i++) {
-			Point3i node = data.getSet().getNodeStructure().getIJKFromNodeNumber(data.getSet().getNodeStructure().getNodeNumber(i, 1, 1));
-			double edge = data.getSet().getNodeStructure().getXYZFromIJK(node).getX();
-			double center = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node).getX();
-			System.out.println(i + ", " + edge + ", " + center);
-		}
-		System.out.println("\n\nj, y edge, y center");
-		for(int j = 1; j <= data.getSet().getNodeStructure().getIJKDimensions().getJ(); j++) {
-			Point3i node = data.getSet().getNodeStructure().getIJKFromNodeNumber(data.getSet().getNodeStructure().getNodeNumber(1, j, 1));
-			double edge = data.getSet().getNodeStructure().getXYZFromIJK(node).getY();
-			double center = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node).getY();
-			System.out.println(j + ", " + edge + ", " + center);
-		}
-		System.out.println("\n\nk, z edge, z center");
-		for(int k = 1; k <= data.getSet().getNodeStructure().getIJKDimensions().getK(); k++) {
-			Point3i node = data.getSet().getNodeStructure().getIJKFromNodeNumber(data.getSet().getNodeStructure().getNodeNumber(1, 1, k));
-			double edge = data.getSet().getNodeStructure().getXYZFromIJK(node).getZ();
-			double center = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node).getZ();
-			System.out.println(k + ", " + edge + ", " + center);
-		}
-		 */
+
 		List<String> lines = FileUtils.readLines(file);
 		StringBuffer fileOut = new StringBuffer();
 		for(String line: lines) {

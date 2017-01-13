@@ -38,7 +38,14 @@ import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage {
+/**
+ * Page with checkboxes for choosing which wells to include in the final run.
+ * See line 180
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_ExcludeLocations extends WizardPage implements AbstractWizardPage {
 
 	STORMData data;
 
@@ -58,8 +65,8 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
 
-	public Page_ExcludeWells(STORMData data) {
-		super("Inference Test");
+	public Page_ExcludeLocations(STORMData data) {
+		super("Exclude Locations");
 		this.data = data;		
 	}
 	@Override
@@ -191,16 +198,9 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 		launchMapButton.setLayoutData(launchButtonData);
 		
 		
-		/*
-		Label spacer = new Label(container, SWT.NULL);
-		GridData spacerGridData = new GridData(GridData.FILL_HORIZONTAL);
-//		spacerGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns-12;
-		spacerGridData.horizontalSpan = Math.max(12, ((GridLayout)container.getLayout()).numColumns-12);
-		spacerGridData.verticalSpan = 4;
-		spacer.setLayoutData(spacerGridData);
-		*/
-		
 		Label corner = new Label(container, SWT.NULL);
+		/* This page can only handle so many checkboxes.
+		 * If we exceed this amount, we disable this functionality and display none. */
 		if((maxJ-minJ)*(maxI-minI) > 9000){
 			corner.setText("Domain is too large for individual well exclusion.");
 		}
@@ -261,6 +261,7 @@ public class Page_ExcludeWells extends WizardPage implements AbstractWizardPage 
 
 							@Override
 							public void windowClosed(WindowEvent e) {
+								//Transform the data from the google map view back to the format we use here
 								System.out.println("Window is closing!!");
 								for(IJ ij: ijs) {	
 									if(buttons.containsKey(ij.i) && buttons.get(ij.i).containsKey(ij.j)) {

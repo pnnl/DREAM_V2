@@ -20,6 +20,11 @@ import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.ui.RectangleInsets;
 
+/**
+ * Depreciated code
+ * @author port091
+ */
+
 public class Histogram2D extends ChartPanel {
 
 	private static final long serialVersionUID = 8966381864360082983L;

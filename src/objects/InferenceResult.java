@@ -2,6 +2,11 @@ package objects;
 
 import utilities.Constants;
 
+/**
+ * Simple class to store whether or not a detection has been inferred for a particular scenario.
+ * @author port091
+ */
+
 public class InferenceResult {
 
 	private boolean inferred;

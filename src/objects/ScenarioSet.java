@@ -17,6 +17,7 @@ import utilities.Point3i;
 /**
  * Selections made by the user for a given run should be set here.
  * @author port091
+ * @author rodr144
  *
  */
 public class ScenarioSet {

@@ -16,6 +16,11 @@ import utilities.Point2i;
 import utilities.Point3f;
 import utilities.Point3i;
 
+/**
+ * Extension of Function that is not currently used by DREAM
+ * @author port091
+ */
+
 public class Vortex extends Function {
 
 

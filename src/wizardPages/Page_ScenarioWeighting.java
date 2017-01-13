@@ -28,7 +28,14 @@ import org.eclipse.swt.widgets.Text;
 
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage {
+/**
+ * Select which scenarios should be considered and give them relative weights. In the end, only relative rankings matter ({1,1,1} == {2,2,2} != {1,2,2})
+ * See line 130
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_ScenarioWeighting extends WizardPage implements AbstractWizardPage {
 
 	Map<Scenario, Text> weights;
 	Map<Scenario, Button> selectedScenarios;
@@ -41,8 +48,8 @@ public class Page_ScenarioSetup extends WizardPage implements AbstractWizardPage
 	
 	private boolean isCurrentPage;
 		
-	protected Page_ScenarioSetup(STORMData data) {
-		super("Scenario Set");
+	protected Page_ScenarioWeighting(STORMData data) {
+		super("Scenario Weighting");
 		this.data = data;	
 	}
 

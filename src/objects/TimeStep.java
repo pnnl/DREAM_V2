@@ -2,6 +2,12 @@ package objects;
 
 import utilities.Constants;
 
+/**
+ * Formalizing the comparison of time steps
+ * @author port091
+ * @author rodr144
+ */
+
 public class TimeStep implements Comparable<TimeStep> {
 
 	private volatile int timeStep;

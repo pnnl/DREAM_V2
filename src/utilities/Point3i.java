@@ -1,5 +1,11 @@
 package utilities;
 
+/**
+ * 3-dimensional integer class
+ * @author port091
+ * @author rodr144
+ */
+
 public class Point3i {
 
 	private final int i;

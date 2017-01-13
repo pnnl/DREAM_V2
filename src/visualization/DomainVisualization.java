@@ -48,6 +48,16 @@ import utilities.Constants;
 import utilities.Point3f;
 import utilities.Point3i;
 
+/**
+ * Backend for interfacing between DomainViewer and the DREAM data.
+ * The main display has three different kinds of data:
+ * 1) sensor - actual locations of sensors from proposed configurations
+ * 2) cloud - all locations that meet the leakage criteria
+ * 3) valid - only the locations that are pareto-optimal
+ * @author port091
+ * @author rodr144
+ */
+
 public class DomainVisualization {
 
 	private Shell shell;

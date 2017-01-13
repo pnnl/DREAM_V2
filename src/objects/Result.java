@@ -9,6 +9,11 @@ import java.util.TreeMap;
 import utilities.Point2d;
 import utilities.Point2i;
 
+/**
+ * Another result class? not currently used -Luke
+ * @author port091
+ */
+
 public class Result implements Comparable<Result> {
 
 	private Map<Point2i, List<Point2i>> sensorLocationsByWellIJK; // {(i,j)->(node#:k, node#:k, node#:k...), (i,j)->(node#:k, ...), ...}

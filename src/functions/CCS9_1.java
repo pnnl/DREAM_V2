@@ -22,6 +22,8 @@ import utilities.Constants;
 
 /**
  * Will handle all the functions as defined in the RIMVA 9.1 Code
+ * This is the function that we use by deafult/exclusively, at the moment
+ * @author port091
  */
 
 public class CCS9_1 extends Function {

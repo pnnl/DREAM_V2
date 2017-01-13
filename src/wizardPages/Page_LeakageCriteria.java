@@ -54,7 +54,14 @@ import utilities.Point3i;
 import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_MonitoringParameters extends WizardPage implements AbstractWizardPage {
+/**
+ * Page for setting detection criteria for each sensor type to be used.
+ * See line 608
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPage {
 	
 	private ScrolledComposite sc;
 	private Composite container;
@@ -70,8 +77,8 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 	private Map<String, SensorData> sensorData;
 	
 		
-	protected Page_MonitoringParameters(STORMData data) {
-		super("Sensors");
+	protected Page_LeakageCriteria(STORMData data) {
+		super("Leakage Criteria");
 		this.data = data;	
 	}
 	
@@ -113,6 +120,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		private Label nodeLabel;
 		private boolean hasErrors;	
 		
+		//Class for storing the data about one particular sensor type.
 		public SensorData(SensorSetting sensorSettings, String sensorName) {
 			
 			if(sensorSettings.getType().equals(sensorName)) isDuplicate = false;
@@ -566,11 +574,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 								
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
-				//This is what we need to do to add
-				//data.getSet().addSensorSetting(dataType+"1", dataType);
-				//data.getSet().getInferenceTest().setMinimumRequiredForType(dataType+"1", -1);
-				//sensorData.put(dataType+"1", new SensorData(data.getSet().getSensorSettings(dataType+"1"), dataType+"1"));
-				//End here
+
 			}
 		}
 		
@@ -598,7 +602,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the �Alias for Monitoring Technology� box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
@@ -771,25 +775,6 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 								temp.nodeLabel.setText(temp.alias + ": Not set");
 						}
 					}
-					/*
-					//TODO: remove this hard-coded z check
-					for(String scenario: data.getScenarioSet().getAllPossibleDataTypes()){
-						if(data.getSet().getSensorSettings(scenario) == null) continue;
-						float minZ = sensorSettings.get(scenario).minZ;
-						float maxZ = sensorSettings.get(scenario).maxZ;
-						//Set these just in case we need them later
-						data.getSet().getSensorSettings(scenario).setMaxZ(maxZ);
-						data.getSet().getSensorSettings(scenario).setMinZ(minZ);
-						//Find the nodes that fit this z restriction
-						HashSet<Integer> temp = new HashSet<Integer>();
-						for(Integer node: data.getSet().getSensorSettings(scenario).getValidNodes()){
-							Point3d test = data.getScenarioSet().getNodeStructure().getXYZFromIJK(data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(node));
-							if (minZ <= test.getZ() && test.getZ() <= maxZ)
-								temp.add(node);
-						}
-						data.getSet().getSensorSettings(scenario).setValidNodes(temp);
-					}
-					*/
 
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -797,8 +782,6 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 			}	       
 		});	
 				
-
-		//new Label(composite_scale, SWT.NULL);
 
 		Label col = new Label(composite_scale, SWT.NULL);
 		col.setText("Set up the solution space using ...");
@@ -879,77 +862,8 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		data.getSet().getInferenceTest().setMinimumRequiredForType(newName, -1);
 		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 	}
-/*
- // Keeping old method for comparison if the new one gives us weird results
-	private void volumeOfAquiferDegraded(){
-		long current = System.currentTimeMillis();
-		int detectionCriteriaStorage = data.getSet().getInferenceTest().getOverallMinimum();
-		Map<String, Integer> detectionCriteriaStorageByType = new HashMap<String, Integer>();
-		InferenceTest test = data.getSet().getInferenceTest();
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			detectionCriteriaStorageByType.put(sensorType, test.getMinimumForType(sensorType));
-			test.setMinimumRequiredForType(sensorType, 1);
-		}
-		test.setMinimum(1);
-		data.getSet().setInferenceTest(test);
-		
-		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
-		
-		HashSet<Integer> nodes = new HashSet<Integer>();
-		
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
-		}
-		for(Integer nodeNumber: nodes){
-			ExtendedConfiguration configuration = new ExtendedConfiguration();
-			for(String sensorType: data.getSet().getSensorSettings().keySet()){
-				configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-			}
-			data.runObjective(configuration, Constants.runThreaded);
-			for(Scenario scenario: configuration.getTimesToDetection().keySet()){
-				if(!timeToDegradationPerNode.containsKey(scenario)) timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
-				timeToDegradationPerNode.get(scenario).put(nodeNumber, configuration.getTimesToDetection().get(scenario));
-			}
-		}
 	
-		Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<Scenario, HashMap<Float, Float>>();
-		HashSet<Float> years = new HashSet<Float>();
-		for(Scenario scenario: timeToDegradationPerNode.keySet()){
-			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
-			for(Integer nodeNumber: timeToDegradationPerNode.get(scenario).keySet()){
-				Float year = timeToDegradationPerNode.get(scenario).get(nodeNumber);
-				years.add(year);
-				Point3i location = data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
-				if(!volumeDegradedByYear.get(scenario).containsKey(year)) volumeDegradedByYear.get(scenario).put(year, data.getSet().getNodeStructure().getVolumeOfNode(location));
-				else volumeDegradedByYear.get(scenario).put(year, volumeDegradedByYear.get(scenario).get(year) + data.getSet().getNodeStructure().getVolumeOfNode(location));
-			}
-		}
-		
-		ArrayList<Float> sortedYears = new ArrayList<Float>(years);
-		java.util.Collections.sort(sortedYears);
-		for(Scenario scenario: volumeDegradedByYear.keySet()){
-			if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(0))) volumeDegradedByYear.get(scenario).put(sortedYears.get(0), 0f);
-			for(int i=1; i<sortedYears.size(); ++i){
-				if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(i))) volumeDegradedByYear.get(scenario).put(sortedYears.get(i), 0f);
-				volumeDegradedByYear.get(scenario).put(sortedYears.get(i), volumeDegradedByYear.get(scenario).get(sortedYears.get(i)) + volumeDegradedByYear.get(scenario).get(sortedYears.get(i-1)));
-			}
-		}
-		
-		//set the set back to the original parameters (not 1 overall)
-		test.setMinimum(detectionCriteriaStorage);
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			test.setMinimumRequiredForType(sensorType, detectionCriteriaStorageByType.get(sensorType));
-		}
-		data.getSet().setInferenceTest(test);
-		
-		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
-
-		long total = System.currentTimeMillis() - current;
-		System.out.println("Volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
-		//for right now, we're returning the straight sum of the volume degraded (max = nodes_in_cloud*number_of_scenarios)
-	}
-*/
-	
+	//Right now we assume that leakage criteria are degradation criteria if we're not in dev mode, and need this function for that. Essentially cloned code from Page_DegradationCriteria.
 	private void volumeOfAquiferDegraded(){	
 		long current = System.currentTimeMillis();
 		
@@ -1014,110 +928,7 @@ public class Page_MonitoringParameters extends WizardPage implements AbstractWiz
 		long total = System.currentTimeMillis() - current;
 		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
-/*
-	private void countParetoRedundant(){	
-		long current = System.currentTimeMillis();
-		
-		HashSet<Integer> nodes = new HashSet<Integer>();
-		
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			System.out.println(sensorType);
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
-			System.out.println(nodes.size());
-		}
-		
-		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		List<Scenario> sortedScenarios = data.getSet().getScenarios();
-		Collections.sort(sortedScenarios);
-		
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			System.out.println(sensorType);
-			for(Integer nodeNumber: nodes){
-				//build up the string ID and the list of ttds (for the ones that detect)
-				ArrayList<Float> ttds = new ArrayList<Float>();
-				for(Scenario scenario: sortedScenarios){
-					Float timeToDegredation = Float.MAX_VALUE;
-					for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
-						try {
-							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						if(timeToDegredation != Float.MAX_VALUE) break;
-					}
-					ttds.add(timeToDegredation);
-				}
-				ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
-				boolean everyReasonTo = false;
-				boolean everyReasonNot = false;
-				for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
-					ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
-					boolean greater = false;
-					boolean less = false;
-					for(int i=0; i<paretoSolution.size(); ++i){
-						if(paretoSolution.get(i) < ttds.get(i)) greater = true;
-						if(paretoSolution.get(i) > ttds.get(i)) less = true;
-					}
-					if(greater && less){
-						//don't need to do anything, both of these are pairwise pareto optimal
-					}
-					else if(greater && !less){
-						everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
-						break; //we don't need to look anymore, don't include this new configuration
-					}
-					else if(!greater && less){
-						everyReasonTo = true; //This solution is pareto optimal to this stored one
-						toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
-					}
-					else if(!greater && !less){
-						//everyReasonNot = true; //These two spots are equal, so we might as well get rid of the one we're looking at
-						break; //We don't need to check other spots if these are equal.
-					}
-				}
-				if(everyReasonTo){
-					//We need to add this one and remove some.
-					for(Integer x : toRemove){
-						optimalSolutions.remove(x);
-					}
-					optimalSolutions.put(nodeNumber, ttds);
-				}
-				else if(everyReasonNot){
-					//Lets not add this one, it's redundant
-				}
-				else{
-					//No reason not to add it and it didn't replace one, it must be another pareto optimal answer. Let's add it.
-					optimalSolutions.put(nodeNumber, ttds);
-				}
-			}
-		}
-
-		System.out.println("Number of initial spots: " + nodes.size());
-		
-		int count = optimalSolutions.size();
-		
-		System.out.println("Number of solutions left: " + count);
-		
-		StringBuilder x = new StringBuilder();
-		for(Integer location: optimalSolutions.keySet()){
-			Point3i point = data.getSet().getNodeStructure().getIJKFromNodeNumber(location);
-			x.append(location + " (" + point.getI() + " " + point.getJ() + " " + point.getK() + "):,");
-			for(Float y : optimalSolutions.get(location)){
-				x.append(y + ", ");
-			}
-			x.append(optimalSolutions.get(location).size());
-			x.append("\n");
-		}
-		try {
-			FileUtils.write(new File("C:/Users/rodr144/Documents/SVN Projects/DREAM/DREAM/testoutput.csv"), x.toString());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		long total = System.currentTimeMillis() - current;
-		System.out.println("Pareto thing time:\t" + total/1000 + "." + total%1000);
-	}
-*/	
+	
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;

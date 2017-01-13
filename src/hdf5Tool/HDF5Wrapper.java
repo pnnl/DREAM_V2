@@ -30,6 +30,11 @@ import ncsa.hdf.object.h5.H5File;
 import utilities.Constants;
 import utilities.Point3i;
 
+/**
+ * Utility functions for use in reading and parsing hdf5 files to DREAM formats
+ * @author port091
+ */
+
 public class HDF5Wrapper {
 
 	public static float queryMinFromMemory(String dataType) {

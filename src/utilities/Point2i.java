@@ -1,5 +1,10 @@
 package utilities;
 
+/**
+ * 2-dimensional integer class
+ * @author port091
+ */
+
 public class Point2i implements Comparable<Point2i> {
 
 	private int i;

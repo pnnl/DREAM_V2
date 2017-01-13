@@ -30,6 +30,11 @@ import javax.swing.event.ChangeListener;
 
 import gridviz.GridError;
 
+/**
+ * Slider to enable the selection of timesteps when the files to be converted have different numbers of them.
+ * @author rodr144
+ */
+
 public class TimestepSelectionSlider extends javax.swing.JPanel {
 
 

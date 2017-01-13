@@ -21,10 +21,16 @@ import ncsa.hdf.object.Dataset;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.H5File;
 
+/**
+ * Constants for use throughout code, the booleans at the top and random seed can be changed to alter functionality
+ * @author port091
+ * @author rodr144
+ */
+
 public class Constants {
 	
-	// Catherine change this to true when you want to build production version!!!
-	public static boolean buildDev = false;
+	// These probably be eventually wrapped into the code directly, but for now give us functionality for debugging/developing extensions without breaking the working release
+	public static boolean buildDev = true;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
@@ -57,7 +63,9 @@ public class Constants {
 	// "Diana Bacon Runs 03"; 
 	public static String RUN_TEST =  "STORM";//"Bacon Base Case with Flux 3-D";//"120517_small_domain_STOMP_runs";//"Bacon Base Case with Flux 3-D";
 
-	public static Random random = new Random(1);/* {
+	public static Random random = new Random(1); //Right now this is seeded, this way we have reproducable results. Should probably un-seed for release.
+	
+	/* {
 
 		private static final long serialVersionUID = 1L;
 		

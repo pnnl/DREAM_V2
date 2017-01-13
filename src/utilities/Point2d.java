@@ -2,6 +2,11 @@ package utilities;
 
 import java.util.Comparator;
 
+/**
+ * 2-dimensional double object
+ * @author port091
+ */
+
 public class Point2d implements Comparable<Point2d> {
 
 	private double x;

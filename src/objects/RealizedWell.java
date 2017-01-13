@@ -12,6 +12,7 @@ import utilities.Point3i;
 
 /**
  * Same as a regular well, but will have one of each sensor in all z's
+ * Not currently used anywhere, but could be with different run parameters - Luke
  * @author port091
  */
 public class RealizedWell extends Well {

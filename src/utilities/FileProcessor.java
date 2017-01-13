@@ -13,6 +13,11 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 
+/**
+ * Legacy code, not actually sure what this does... -Luke
+ * @author port091
+ */
+
 public class FileProcessor {
 
 	public enum Statistic {

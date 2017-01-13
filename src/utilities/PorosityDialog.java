@@ -1,7 +1,5 @@
 package utilities;
 
-
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -37,6 +35,14 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import wizardPages.DREAMWizard.STORMData;
+
+/**
+ * Dialog that allows the user to select porosity values for the domain to be investigated.
+ * Note that DREAM first looks for porosity information in the hdf5 file, but if it cannot find it it will launch this dialog.
+ * Users can set up complex spaces using zones, and then save the data in an easily-injestable format for use in future runs.
+ * Alternately, files can be written externally and then loaded into DREAM.
+ * @author rodr144
+ */
 
 public class PorosityDialog extends TitleAreaDialog {
 	

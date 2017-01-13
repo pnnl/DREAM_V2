@@ -26,9 +26,9 @@ import utilities.Constants;
 import utilities.Point3f;
 
 /**
- * Utility methods for printing a results
+ * Utility methods for printing results
  * @author port091
- *
+ * @author rodr144
  */
 public class ResultPrinter {
 

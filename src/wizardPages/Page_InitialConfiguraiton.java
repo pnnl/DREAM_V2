@@ -23,6 +23,12 @@ import org.eclipse.swt.widgets.Text;
 
 import wizardPages.DREAMWizard.STORMData;
 
+/**
+ * Pretty sure we don't use this page, right now. You can probably ignore it?
+ * @author port091
+ * @author rodr144
+ */
+
 public class Page_InitialConfiguraiton extends WizardPage implements AbstractWizardPage {
 
 	STORMData data;

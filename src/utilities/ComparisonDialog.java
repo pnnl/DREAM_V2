@@ -42,6 +42,11 @@ import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import wizardPages.DREAMWizard.STORMData;
 
+/**
+ * Dialog for comparing two sensors
+ * @author rodr144
+ */
+
 public class ComparisonDialog extends TitleAreaDialog {
 
 	private ScrolledComposite sc;

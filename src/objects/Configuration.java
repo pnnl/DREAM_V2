@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Base class for a particular distribution of sensors and its quality
+ * @author port091
+ */
+
 public class Configuration {
 
 	protected List<Sensor> sensors = new ArrayList<Sensor>();	

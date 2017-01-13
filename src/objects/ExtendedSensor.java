@@ -11,6 +11,12 @@ import java.util.TreeMap;
 import utilities.Constants;
 import utilities.Point3i;
 
+/**
+ * Extended version of the Sensor class, provides more functionality and information.
+ * @author port091
+ * @author rodr144
+ */
+
 public class ExtendedSensor extends Sensor {
 	
     private Well well; // Reference to well, may be null

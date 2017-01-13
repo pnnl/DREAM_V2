@@ -11,6 +11,11 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * checklist for the filebrowser interface
+ * @author port091
+ */
+
 public class CheckList extends JScrollPane {
 	
 	private static final long serialVersionUID = 391900764189521629L;

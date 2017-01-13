@@ -20,9 +20,10 @@ import utilities.Point3i;
 import utilities.Point3f;
 
 /**
- * Basic structure for STOMP plot file data
+ * Basic structure the grid containing the data, including node- and edge-centered xyz values.
  * 
  * @author port091
+ * @author rodr144
  */
 public class NodeStructure {
 

@@ -4,6 +4,11 @@ import utilities.Constants;
 //import org.eclipse.jface.wizard.WizardDialog;
 //import org.eclipse.swt.widgets.*;
 
+/**
+ * Legacy code, not used
+ * @author port091
+ */
+
 public class STORM {
 
 	//private final String homeDirectory;

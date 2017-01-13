@@ -49,6 +49,7 @@ import utilities.Point3i;
  * @author Wade Walker
  * @version 1.0
  */
+
 public class DomainViewer {
 
 	private GLCanvas glcanvas;

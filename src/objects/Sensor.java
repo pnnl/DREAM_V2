@@ -5,6 +5,12 @@ import java.util.Map;
 import utilities.Point3f;
 import utilities.Point3i;
 
+/**
+ * Basic monitoring technology class
+ * @author port091
+ * @author rodr144
+ */
+
 public class Sensor {
 	
 	//Static functions for accessing the aliases

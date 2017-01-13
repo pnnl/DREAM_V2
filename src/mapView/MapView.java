@@ -6,6 +6,10 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+/**
+ * Not used.
+ */
+
 public class MapView extends JFrame {
 
 	private static final long serialVersionUID = 1L;

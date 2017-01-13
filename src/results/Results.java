@@ -14,6 +14,12 @@ import objects.ScenarioSet;
 import objects.Sensor;
 import utilities.Constants;
 
+/**
+ * Catch-all class used to store the results of a particular run.
+ * @author port091
+ * @author rodr144
+ */
+
 public class Results {
 
 	public static enum Type { 

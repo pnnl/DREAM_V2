@@ -9,6 +9,12 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 
+/**
+ * Class to store the criteria for what constitutes a detection.
+ * @author port091
+ * @author rodr144
+ */
+
 public class InferenceTest {
 
 	List<String> dataTypes;	

@@ -1,7 +1,8 @@
 package mapView;
 
-/*
+/**
  * Class for deciding which cells on the grid should be grayed out (allowed or not allowed for well placement)
+ * @author rodr144
  */
 public class IJ {
 	public final int i;

@@ -16,6 +16,11 @@ import objects.Scenario;
 import objects.ScenarioSet;
 import objects.SensorSetting;
 
+/**
+ * Depreciated code?
+ * @author port091
+ */
+
 public class ResultSet {
 
 

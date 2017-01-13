@@ -25,6 +25,12 @@ import javax.swing.JPanel;
 
 import utilities.Constants;
 
+/**
+ * Main class for the google map view, includes hacks to line up grid and select/deselect.
+ * The locations and zoom level are approximate and based on a few best-guess constants.
+ * @author rodr144
+ */
+
 public class DREAMMap {
 
 	public List<Float> xlines = new ArrayList<Float>();

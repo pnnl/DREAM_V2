@@ -29,6 +29,11 @@ import org.jfree.ui.RectangleInsets;
 
 import utilities.Constants;
 
+/**
+ * Plots displayed for the user if they enable "show plots" on the last page. Show how configurations are performing over time.
+ * @author port091
+ */
+
 public class TimeToDetectionPlots extends JFrame {
 
 	private static final long serialVersionUID = 1L;

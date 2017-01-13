@@ -25,6 +25,10 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+/**
+ * I don't think that this is actually used, but am not sure if it is something that provides the basis for th DREAM feel -Luke
+ */
+
 public class SwingWizard extends JFrame {
 
 	private static final long serialVersionUID = 1L;

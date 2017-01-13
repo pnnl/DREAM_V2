@@ -34,7 +34,14 @@ import utilities.Constants.ModelOption;
 import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
-public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
+/**
+ * Select the directory with the hdf5 files to be used, as well as the style of algorithm to run. Currently has 2 modes supported.
+ * See line 164
+ * @author port091
+ * @author rodr144
+ */
+
+public class Page_InputDirectory extends WizardPage implements AbstractWizardPage {
 
 	private ScrolledComposite sc;
 	private Composite container;
@@ -47,8 +54,8 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 	private boolean isCurrentPage = false;
 	private Label modelDescription;
 	
-	protected Page_ScenarioSet(STORMData data) {
-		super("STORM");
+	protected Page_InputDirectory(STORMData data) {
+		super("Input Directory");
 		this.data = data;
 	}
 
@@ -189,6 +196,7 @@ public class Page_ScenarioSet extends WizardPage implements AbstractWizardPage {
 		hdf5Text.setText(Constants.homeDirectory);
 		hdf5Text.setLayoutData(myGd);
 	
+		//This is the old code for when we had drop-downs, in case a design decision is made to revert to that functionality.
 		/*
 		Label functionLabel = new Label(container, SWT.NULL);
 		functionLabel.setText("Simulation tool");
