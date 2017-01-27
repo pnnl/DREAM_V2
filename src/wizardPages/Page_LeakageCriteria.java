@@ -511,8 +511,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
 			//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
 			/*
-			HashMap<Integer, HashSet<Integer>> ijs = new HashMap<Integer, HashSet<Integer>>();
-			HashMap<Float, HashSet<Float>> xys = new HashMap<Float, HashSet<Float>>();
+			HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
+			HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
 			HashSet<Integer> validNodes = new HashSet<Integer>();
 			for(String label: data.getSet().getSensorSettings().keySet()){
 				validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
@@ -520,21 +520,23 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			for(Integer node: validNodes){
 				Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
 				Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
-				if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashSet<Integer>());
-				ijs.get(ijk.getI()).add(ijk.getJ());
-				if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashSet<Float>());
-				xys.get(xyz.getX()).add(xyz.getY());
+				if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
+				if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
+				else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
+				if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
+				if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
+				else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
 			}
 			StringBuilder ijStringBuilder = new StringBuilder();
 			for(Integer i: ijs.keySet()){
-				for(Integer j: ijs.get(i)){
-					ijStringBuilder.append(i.toString() + "," + j.toString() + "\n");
+				for(Integer j: ijs.get(i).keySet()){
+					ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
 				}
 			}
 			StringBuilder xyStringBuilder = new StringBuilder();
 			for(Float x: xys.keySet()){
-				for(Float y: xys.get(x)){
-					xyStringBuilder.append(x.toString() + "," + y.toString() + "\n");
+				for(Float y: xys.get(x).keySet()){
+					xyStringBuilder.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
 				}
 			}
 			
@@ -549,7 +551,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
 			}
 			catch(Exception e){
-				System.err.println("Could not write to well files");
+				System.err.println("Could nwrite to well files");
 			}
 			*/
 			DREAMWizard.visLauncher.setEnabled(true);
