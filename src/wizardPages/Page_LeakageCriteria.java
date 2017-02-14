@@ -509,6 +509,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
+			
 			//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
 			/*
 			HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
@@ -533,25 +534,35 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
 				}
 			}
-			StringBuilder xyStringBuilder = new StringBuilder();
+			StringBuilder xyStringBuilder1 = new StringBuilder();
 			for(Float x: xys.keySet()){
 				for(Float y: xys.get(x).keySet()){
-					xyStringBuilder.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
+					xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
+				}
+			}
+			StringBuilder xyStringBuilder2 = new StringBuilder();
+			for(Float x: xys.keySet()){
+				for(Float y: xys.get(x).keySet()){
+					xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
 				}
 			}
 			
 			try{
-				File xyLocationFile = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY.txt");
-				if(!xyLocationFile.exists())
-					xyLocationFile.createNewFile();
-				FileUtils.writeStringToFile(xyLocationFile, xyStringBuilder.toString());	
+				File xyLocationFile1 = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY_v1.txt");
+				if(!xyLocationFile1.exists())
+					xyLocationFile1.createNewFile();
+				FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
+				File xyLocationFile2 = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY_v2.txt");
+				if(!xyLocationFile2.exists())
+					xyLocationFile2.createNewFile();
+				FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
 				File ijLocationFile = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsIJ.txt");
 				if(!ijLocationFile.exists())
 					ijLocationFile.createNewFile();
 				FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
 			}
 			catch(Exception e){
-				System.err.println("Could nwrite to well files");
+				System.err.println("Couldn't write to well files");
 			}
 			*/
 			DREAMWizard.visLauncher.setEnabled(true);
