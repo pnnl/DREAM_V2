@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -72,7 +73,10 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	private boolean isCurrentPage = false;
 	private Button scenarioUnionButton;
 	private Button sensorUnionButton;
+	private Button e4dButton;
+	private Button buttonSelectDir;
 	private boolean toggling = false;
+	private Text e4dFolder;
 	
 	private Map<String, SensorData> sensorData;
 	
@@ -504,69 +508,19 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				sensorAliases.put(label, alias.equals("") ? label: alias);
 				SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 			}
-			DREAMWizard.visLauncher.setEnabled(false);			
+			DREAMWizard.visLauncher.setEnabled(false);
+			e4dButton.setEnabled(false);
+			e4dFolder.setEnabled(false);
+			buttonSelectDir.setEnabled(false);
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
 			
-			//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
-			/*
-			HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
-			HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
-			HashSet<Integer> validNodes = new HashSet<Integer>();
-			for(String label: data.getSet().getSensorSettings().keySet()){
-				validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
-			}
-			for(Integer node: validNodes){
-				Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
-				Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
-				if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
-				if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
-				else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
-				if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
-				if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
-				else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
-			}
-			StringBuilder ijStringBuilder = new StringBuilder();
-			for(Integer i: ijs.keySet()){
-				for(Integer j: ijs.get(i).keySet()){
-					ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
-				}
-			}
-			StringBuilder xyStringBuilder1 = new StringBuilder();
-			for(Float x: xys.keySet()){
-				for(Float y: xys.get(x).keySet()){
-					xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
-				}
-			}
-			StringBuilder xyStringBuilder2 = new StringBuilder();
-			for(Float x: xys.keySet()){
-				for(Float y: xys.get(x).keySet()){
-					xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
-				}
-			}
-			
-			try{
-				File xyLocationFile1 = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY_v1.txt");
-				if(!xyLocationFile1.exists())
-					xyLocationFile1.createNewFile();
-				FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
-				File xyLocationFile2 = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsXY_v2.txt");
-				if(!xyLocationFile2.exists())
-					xyLocationFile2.createNewFile();
-				FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
-				File ijLocationFile = new File("C:\\Users\\rodr144\\Documents\\SVN Projects\\DREAM", "wellLocationsIJ.txt");
-				if(!ijLocationFile.exists())
-					ijLocationFile.createNewFile();
-				FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
-			}
-			catch(Exception e){
-				System.err.println("Couldn't write to well files");
-			}
-			*/
-			//Hey!
 			DREAMWizard.visLauncher.setEnabled(true);
+			e4dButton.setEnabled(true);
+			e4dFolder.setEnabled(true);
+			buttonSelectDir.setEnabled(true);
 			
 
 		}
@@ -745,9 +699,15 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						}
 					}
 					DREAMWizard.visLauncher.setEnabled(false);
+					e4dButton.setEnabled(false);
+					e4dFolder.setEnabled(false);
+					buttonSelectDir.setEnabled(false);
 					data.setupSensors(reset, sensorSettings);
 					//volumeOfAquiferDegraded(); //Don't need this because you have to run it when you hit "next", and this way the overhead time does not apply to finding a solution space that you like.
 					DREAMWizard.visLauncher.setEnabled(true);
+					e4dButton.setEnabled(true);
+					e4dFolder.setEnabled(true);
+					buttonSelectDir.setEnabled(true);
 					for(String label: sensorData.keySet()){
 						SensorData temp = sensorData.get(label);
 						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
@@ -854,7 +814,108 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	    sensorUnionButton.setSelection(true);
 	    sensorUnionButton.setText("union of sensors");
 	    sensorIntersectionButton.setText("intersection of sensors");
-	    
+
+		////The following code writes outputs for the e4d model
+		//Layout the buttons
+	    final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
+	    e4dButton = new Button(container, SWT.PUSH);
+	    e4dButton.setText("  Write E4D Files  ");
+		
+		e4dFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
+		File resultsFolder = new File(new File(".").getParent(), "_e4d");
+		if(!resultsFolder.exists())
+			resultsFolder.mkdir();		
+		e4dFolder.setText(resultsFolder.getAbsolutePath());
+		GridData e4dGd = new GridData(GridData.FILL_HORIZONTAL);
+		e4dGd.horizontalSpan = 3;
+		e4dFolder.setLayoutData(e4dGd);
+		
+		buttonSelectDir = new Button(container, SWT.PUSH);
+		buttonSelectDir.setText("...");
+		
+	    //Select the save directory
+		buttonSelectDir.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				directoryDialog.setFilterPath(e4dFolder.getText());
+				directoryDialog.setMessage("Please select a directory and click OK");
+				String dir = directoryDialog.open();
+				if (dir != null) {
+					e4dFolder.setText(dir);
+				}
+			}
+		});	
+
+		//Save the E4D files
+		e4dButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
+				//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
+				if(System.getProperty("os.name").contains("Mac")){
+					for(String sensor : sensorData.keySet()){
+						if(sensorData.get(sensor).isIncluded){
+							sensorData.get(sensor).aliasText.setFocus();
+							break;
+						}
+					}
+				}
+				System.out.println("Writing E4D Files to " + e4dFolder.getText());
+				
+				//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
+				HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
+				HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
+				HashSet<Integer> validNodes = new HashSet<Integer>();
+				for(String label: data.getSet().getSensorSettings().keySet()){
+					validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
+				}
+				for(Integer node: validNodes){
+					Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
+					Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
+					if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
+					if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
+					else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
+					if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
+					if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
+					else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
+				}
+				StringBuilder ijStringBuilder = new StringBuilder();
+				for(Integer i: ijs.keySet()){
+					for(Integer j: ijs.get(i).keySet()){
+						ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
+					}
+				}
+				StringBuilder xyStringBuilder1 = new StringBuilder();
+				for(Float x: xys.keySet()){
+					for(Float y: xys.get(x).keySet()){
+						xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
+					}
+				}
+				StringBuilder xyStringBuilder2 = new StringBuilder();
+				for(Float x: xys.keySet()){
+					for(Float y: xys.get(x).keySet()){
+						xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
+					}
+				}
+				
+				try{
+					File xyLocationFile1 = new File(e4dFolder.getText(), "wellLocationsXY_v1.txt");
+					if(!xyLocationFile1.exists())
+						xyLocationFile1.createNewFile();
+					FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
+					File xyLocationFile2 = new File(e4dFolder.getText(), "wellLocationsXY_v2.txt");
+					if(!xyLocationFile2.exists())
+						xyLocationFile2.createNewFile();
+					FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
+					File ijLocationFile = new File(e4dFolder.getText(), "wellLocationsIJ.txt");
+					if(!ijLocationFile.exists())
+						ijLocationFile.createNewFile();
+					FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
+				}
+				catch(Exception e){
+					System.err.println("Couldn't write to well files");
+				}
+			}
+		});
 		
 		container.layout();	
 		
@@ -866,8 +927,11 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
 				enableVis = true;
 		}
-
+		
 		DREAMWizard.visLauncher.setEnabled(enableVis);
+		e4dButton.setEnabled(enableVis);
+		e4dFolder.setEnabled(enableVis);
+		buttonSelectDir.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 	
