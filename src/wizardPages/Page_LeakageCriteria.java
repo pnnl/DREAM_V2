@@ -1,5 +1,6 @@
 package wizardPages;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -815,6 +817,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	    sensorUnionButton.setText("union of sensors");
 	    sensorIntersectionButton.setText("intersection of sensors");
 
+	    
 		////The following code writes outputs for the e4d model
 		//Layout the buttons
 	    final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
@@ -832,6 +835,19 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 		
 		buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("...");
+		
+		//Change text red when directory is invalid
+		e4dFolder.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				File resultsFolder = new File(e4dFolder.getText());
+				boolean dir = resultsFolder.isDirectory();
+				if (dir == true)
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+			}				
+		});
 		
 	    //Select the save directory
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
@@ -859,9 +875,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						}
 					}
 				}
-				System.out.println("Writing E4D Files to " + e4dFolder.getText());
 				
-				//Write out the x-y and i-j well locations - currently hacked in for E4D collaboration
+				//Write out the x-y and i-j well locations
 				HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
 				HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
 				HashSet<Integer> validNodes = new HashSet<Integer>();
@@ -910,6 +925,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					if(!ijLocationFile.exists())
 						ijLocationFile.createNewFile();
 					FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
+					System.out.println("Writing E4D Files to " + e4dFolder.getText());
 				}
 				catch(Exception e){
 					System.err.println("Couldn't write to well files");

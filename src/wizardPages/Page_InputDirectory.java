@@ -8,6 +8,9 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -195,6 +198,19 @@ public class Page_InputDirectory extends WizardPage implements AbstractWizardPag
 		GridData myGd = new GridData(GridData.FILL_HORIZONTAL);
 		hdf5Text.setText(Constants.homeDirectory);
 		hdf5Text.setLayoutData(myGd);
+		
+		//Change text red when directory is invalid
+		hdf5Text.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				File resultsFolder = new File(hdf5Text.getText());
+				boolean dir = resultsFolder.isDirectory();
+				if (dir == true)
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+			}				
+		});
 	
 		//This is the old code for when we had drop-downs, in case a design decision is made to revert to that functionality.
 		/*
