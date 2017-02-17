@@ -154,4 +154,13 @@ public class Point3f implements Comparable<Point3f> {
 			return 0;
 		}
 	};
+	
+	@Override
+    public int hashCode() {
+		int result = 2;
+		result = 37*result + Float.floatToIntBits(x);
+		result = 37*result + Float.floatToIntBits(y);
+		result = 37*result + Float.floatToIntBits(z);
+    	return result;
+    } 
 }
