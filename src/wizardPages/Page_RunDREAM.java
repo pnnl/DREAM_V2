@@ -220,7 +220,6 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		costGD.horizontalSpan = 1;
 		outputFolder.setLayoutData(costGD);
 		
-		
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
