@@ -830,6 +830,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 		e4dGd.horizontalSpan = 3;
 		e4dFolder.setLayoutData(e4dGd);
 		
+		
 		buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("...");
 		
