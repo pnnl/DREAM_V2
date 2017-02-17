@@ -825,11 +825,11 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	    e4dButton.setText("  Write E4D Files  ");
 	    
 		e4dFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
-		e4dFolder.setText(System.getProperty("user.dir"));
+		File resultsFolder = new File(Constants.homeDirectory);
+		e4dFolder.setText(resultsFolder.getParent());
 		GridData e4dGd = new GridData(GridData.FILL_HORIZONTAL);
 		e4dGd.horizontalSpan = 3;
 		e4dFolder.setLayoutData(e4dGd);
-		
 		
 		buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText("...");

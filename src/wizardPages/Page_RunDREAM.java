@@ -214,12 +214,12 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 			}
 		});		
 	
-		outputFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
-		outputFolder.setText(System.getProperty("user.dir") + "\\_results");
+		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
+		File resultsFolder = new File(System.getProperty("user.dir"));
+		outputFolder.setText(resultsFolder.getParent() + "\\_results");
 		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
 		costGD.horizontalSpan = 1;
 		outputFolder.setLayoutData(costGD);
-		
 		
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
