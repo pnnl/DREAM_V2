@@ -823,12 +823,9 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	    final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 	    e4dButton = new Button(container, SWT.PUSH);
 	    e4dButton.setText("  Write E4D Files  ");
-		
+	    
 		e4dFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
-		File resultsFolder = new File(new File(".").getParent(), "_e4d");
-		if(!resultsFolder.exists())
-			resultsFolder.mkdir();		
-		e4dFolder.setText(resultsFolder.getAbsolutePath());
+		e4dFolder.setText(System.getProperty("user.dir"));
 		GridData e4dGd = new GridData(GridData.FILL_HORIZONTAL);
 		e4dGd.horizontalSpan = 3;
 		e4dFolder.setLayoutData(e4dGd);
@@ -842,10 +839,14 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(e4dFolder.getText());
 				boolean dir = resultsFolder.isDirectory();
-				if (dir == true)
+				if (dir == true) {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-				else
+					e4dButton.setEnabled(true);
+				}
+				else {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					e4dButton.setEnabled(false);
+				}
 			}				
 		});
 		

@@ -214,29 +214,12 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 			}
 		});		
 	
-		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
-		File resultsFolder = new File(new File(".").getParent(), "_results");
-		if(!resultsFolder.exists())
-			resultsFolder.mkdir();		
-		outputFolder.setText(resultsFolder.getAbsolutePath());
-	
+		outputFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
+		outputFolder.setText(System.getProperty("user.dir") + "\\_results");
 		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
 		costGD.horizontalSpan = 1;
 		outputFolder.setLayoutData(costGD);
 		
-		//Change text red when directory is invalid
-		outputFolder.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				File resultsFolder = new File(outputFolder.getText());
-				boolean dir = resultsFolder.isDirectory();
-				if (dir == true)
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-				else
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-			}				
-		});
-
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
