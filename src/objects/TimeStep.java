@@ -35,6 +35,7 @@ public class TimeStep implements Comparable<TimeStep> {
 
 	@Override
 	public int compareTo(TimeStep o) {
+		if(o == null) return 1;
 		return new Integer(timeStep).compareTo(o.getTimeStep());
 	}
 }

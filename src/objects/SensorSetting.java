@@ -83,8 +83,8 @@ public class SensorSetting {
 	private float lowerThreshold;
 	private float upperThreshold;
 
-	private HashSet<Integer> validNodes;
-	private HashSet<Integer> fullCloudNodes;
+	private HashSet<Integer> validNodes; //Pareto optimal locations (if set in Constants class)
+	private HashSet<Integer> fullCloudNodes; //Full set of allowed locations
 	private static Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear;
 	private static List<Float> years;
 	public static float globalMinZ;

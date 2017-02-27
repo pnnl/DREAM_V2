@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.InferenceTest;
@@ -55,6 +56,7 @@ import utilities.Constants;
 import utilities.Point3f;
 import utilities.Point3i;
 import utilities.Constants.ModelOption;
+import utilities.Point2i;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -511,8 +513,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 			}
 			DREAMWizard.visLauncher.setEnabled(false);
-			e4dButton.setEnabled(false);
-			e4dFolder.setEnabled(false);
 			buttonSelectDir.setEnabled(false);
 			Sensor.sensorAliases = sensorAliases;
 			data.setupSensors(false, sensorSettings);
@@ -520,8 +520,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
 			
 			DREAMWizard.visLauncher.setEnabled(true);
-			e4dButton.setEnabled(true);
-			e4dFolder.setEnabled(true);
 			buttonSelectDir.setEnabled(true);
 			
 
@@ -705,7 +703,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					e4dFolder.setEnabled(false);
 					buttonSelectDir.setEnabled(false);
 					data.setupSensors(reset, sensorSettings);
-					//volumeOfAquiferDegraded(); //Don't need this because you have to run it when you hit "next", and this way the overhead time does not apply to finding a solution space that you like.
 					DREAMWizard.visLauncher.setEnabled(true);
 					e4dButton.setEnabled(true);
 					e4dFolder.setEnabled(true);
@@ -895,11 +892,21 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
 				}
 				StringBuilder ijStringBuilder = new StringBuilder();
+				//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+				HashSet<Point2i> wellLocations = new HashSet<Point2i>();
+				// <-
 				for(Integer i: ijs.keySet()){
 					for(Integer j: ijs.get(i).keySet()){
+						//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+						wellLocations.add(new Point2i(i,j));
+						// <-
 						ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
 					}
 				}
+				//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+				data.e4dInterface = new E4DSensors(data.getSet(), wellLocations);
+				data.e4dInterface.printDetectionTimes();
+				// <-
 				StringBuilder xyStringBuilder1 = new StringBuilder();
 				for(Float x: xys.keySet()){
 					for(Float y: xys.get(x).keySet()){

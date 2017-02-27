@@ -56,4 +56,11 @@ public class Point2i implements Comparable<Point2i> {
 		return new Integer(j).compareTo(pt.getJ());
 	}
 	
+	@Override
+	public int hashCode(){
+		int result = 5;
+		result = 37*result + i;
+		result = 37*result + j;
+		return result;
+	}
 }

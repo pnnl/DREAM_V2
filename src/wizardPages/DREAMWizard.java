@@ -10,6 +10,8 @@ import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+
+import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
@@ -279,6 +281,7 @@ public class DREAMWizard extends Wizard {
 		private MUTATE mutate;
 		private ExtendedConfiguration initialConfiguration;
 		private DREAMWizard wizard;
+		public E4DSensors e4dInterface; //TODO: Figure out exactly how we want to handle these things.
 
 		public Constants.ModelOption modelOption;
 

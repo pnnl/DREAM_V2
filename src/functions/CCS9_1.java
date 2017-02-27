@@ -169,10 +169,10 @@ public class CCS9_1 extends Function {
 				if (inferenceResult.isInferred())
 					break;
 			}
-
+			//E4D TODO: check the E4D matrix for the minimum entry among pairs of well locations. Create an inference result for E4D
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
-			if (ts != null && inferenceResult.isInferred()) {
+			if (ts != null && inferenceResult.isInferred()) { //E4D TODO: change this logic to accommodate second inferenceResult from E4D matrix
 				timeInYears = ts.getRealTime();
 				// Only keep track if we've hit inference
 				con.addTimeToDetection(scenario, timeInYears);
@@ -200,6 +200,7 @@ public class CCS9_1 extends Function {
 				// We haven't tested this before
 				if(triggered == null) {
 					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
+					// for the case in which we detect with a given radius from the individual sensor
 					
 					triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}		
