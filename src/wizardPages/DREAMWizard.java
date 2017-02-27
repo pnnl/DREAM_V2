@@ -281,7 +281,6 @@ public class DREAMWizard extends Wizard {
 		private MUTATE mutate;
 		private ExtendedConfiguration initialConfiguration;
 		private DREAMWizard wizard;
-		public E4DSensors e4dInterface; //TODO: Figure out exactly how we want to handle these things.
 
 		public Constants.ModelOption modelOption;
 

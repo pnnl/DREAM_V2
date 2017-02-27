@@ -904,8 +904,14 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					}
 				}
 				//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-				data.e4dInterface = new E4DSensors(data.getSet(), wellLocations);
-				data.e4dInterface.printDetectionTimes();
+				data.getSet().e4dInterface = new E4DSensors(data.getSet(), wellLocations);
+				File tempout = new File(e4dFolder.getText(), "mapValues.txt");
+				try {
+					if(!tempout.exists()) tempout.createNewFile();
+					FileUtils.writeStringToFile(tempout, data.getSet().e4dInterface.printDetectionTimes());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 				// <-
 				StringBuilder xyStringBuilder1 = new StringBuilder();
 				for(Float x: xys.keySet()){

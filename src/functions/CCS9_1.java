@@ -106,7 +106,8 @@ public class CCS9_1 extends Function {
 					public void run() {
 						try {
 							long startTime = System.currentTimeMillis();	
-							innerLoopParallel(configuration, set, scenario);
+							if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
+							else InnerLoopParallelE4D(configuration, set, scenario);
 							Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -119,7 +120,8 @@ public class CCS9_1 extends Function {
 			} else {
 				startTime = System.currentTimeMillis();	
 				try {
-					innerLoopParallel(configuration, set, scenario);
+					if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
+					else InnerLoopParallelE4D(configuration, set, scenario);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -169,7 +171,6 @@ public class CCS9_1 extends Function {
 				if (inferenceResult.isInferred())
 					break;
 			}
-			//E4D TODO: check the E4D matrix for the minimum entry among pairs of well locations. Create an inference result for E4D
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
 			if (ts != null && inferenceResult.isInferred()) { //E4D TODO: change this logic to accommodate second inferenceResult from E4D matrix
@@ -184,6 +185,43 @@ public class CCS9_1 extends Function {
 		}
 	}
 
+	private void InnerLoopParallelE4D(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception
+	{
+		if (set.getScenarioWeights().get(scenario) > 0)
+		{
+			Float detectTimeE4D = set.e4dInterface.getDetectionTime(scenario.toString(), con);
+			TimeStep ts = null;
+			InferenceResult inferenceResult = null;
+			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps())
+			{
+				ts = timeStep;
+				long startTime = System.currentTimeMillis();	
+				inferenceResult = runOneTime(con, set, timeStep, scenario, true);
+				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
+				if (inferenceResult.isInferred()) //break here if non-E4D has detected
+					break;
+				//TODO: This next line hacks in setting the inference result to true if E4D has detected by this point.
+				//		I have not given careful consideration to whether or not this is exactly how we want to handle it,
+				//		but it seems like this is at least a reasonable place to start.
+				if(ts.getRealTime() >= detectTimeE4D){ //also break if E4D has detected, and make sure inference result is true for later logic
+					inferenceResult = new InferenceResult(true);
+					break;
+				}
+			}
+			// maxTime is an index, we want the value there
+			float timeInYears = 1000000;			
+			if (ts != null && inferenceResult.isInferred()) { //E4D TODO: How do we want to work E4D into the inference result? I'm not sure. Currently hacked in above.
+				timeInYears = ts.getRealTime();
+				// Only keep track if we've hit inference
+				con.addTimeToDetection(scenario, timeInYears);
+			} else {
+				con.getTimesToDetection().remove(scenario);
+			}
+			con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
+			con.addInferenceResult(scenario, inferenceResult);
+		}
+	}
+	
 	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
 	{
 

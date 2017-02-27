@@ -47,6 +47,15 @@ public class Point2i implements Comparable<Point2i> {
 	}
 
 	@Override
+	public boolean equals(Object obj){
+		if(obj == null) return false;
+		Point2i pt = (Point2i) obj;
+		if(this.i != pt.i) return false;
+		if(this.j != pt.j) return false;
+		return true;
+	}
+	
+	@Override
 	public int compareTo(Point2i pt) {
 		// Compare by i
 		int is = new Integer(i).compareTo(pt.getI());

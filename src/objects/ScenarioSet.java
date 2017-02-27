@@ -57,6 +57,9 @@ public class ScenarioSet {
 	 */
 	private List<Well> wells;
 	
+	public E4DSensors e4dInterface = null; //TODO: Figure out exactly how we want to handle these things.
+
+	
 	public ScenarioSet() {
 		
 		runLoaded = false;
