@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import utilities.Constants;
@@ -59,8 +60,10 @@ public class DREAMWizard extends Wizard {
 	private DomainVisualization domainViewer;
 	private WizardDialog dialog;
 
+	public static Label errorMessage;
 	public static Button convertDataButton;
 	public static Button visLauncher;
+	public static Button nextButton;
 	
 	boolean wasCancelled;
 
@@ -198,12 +201,17 @@ public class DREAMWizard extends Wizard {
 				//On a mac, this was being "pressed" when enter was hit. This way it does nothing and does not exit.
 			}
 
-
-
+			
 			@Override
-			protected void createButtonsForButtonBar(Composite parent) {		
-
-
+			protected void createButtonsForButtonBar(Composite parent) {
+				
+				GridData errorMessageData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+				errorMessageData.horizontalSpan = 4;
+				errorMessage = new Label(parent, SWT.RIGHT);
+				errorMessage.setText("                                                                                     ");//needs enough characters to error messages
+				errorMessage.setForeground(display.getSystemColor(SWT.COLOR_RED));
+				errorMessage.setLayoutData(errorMessageData);
+				
 				convertDataButton = new Button(parent, SWT.PUSH); 	
 				convertDataButton.setText("Launch Converter");
 				convertDataButton.setToolTipText("Convert simulation data to DREAM h5 format"); 	
@@ -241,6 +249,7 @@ public class DREAMWizard extends Wizard {
 
 
 				super.createButtonsForButtonBar(parent);
+				nextButton = super.getButton(IDialogConstants.NEXT_ID);
 
 				// Hide the buttons we don't use
 				Button cancel = super.getButton(IDialogConstants.CANCEL_ID);	

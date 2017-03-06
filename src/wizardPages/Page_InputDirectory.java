@@ -205,10 +205,19 @@ public class Page_InputDirectory extends WizardPage implements AbstractWizardPag
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(hdf5Text.getText());
 				boolean dir = resultsFolder.isDirectory();
-				if (dir == true)
+				if (dir == true) {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-				else
+					DREAMWizard.nextButton.setEnabled(true);
+					//setErrorMessage(null);
+					DREAMWizard.errorMessage.setText("");
+				}
+				else {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					DREAMWizard.nextButton.setEnabled(false);
+					setControl(new Composite(container, SWT.NULL));
+					//setErrorMessage("Invalid Directory");
+					DREAMWizard.errorMessage.setText("Invalid Directory");
+				}
 			}				
 		});
 	
