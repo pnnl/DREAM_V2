@@ -208,14 +208,11 @@ public class Page_InputDirectory extends WizardPage implements AbstractWizardPag
 				if (dir == true) {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
 					DREAMWizard.nextButton.setEnabled(true);
-					//setErrorMessage(null);
 					DREAMWizard.errorMessage.setText("");
 				}
 				else {
 					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
 					DREAMWizard.nextButton.setEnabled(false);
-					setControl(new Composite(container, SWT.NULL));
-					//setErrorMessage("Invalid Directory");
 					DREAMWizard.errorMessage.setText("Invalid Directory");
 				}
 			}				
