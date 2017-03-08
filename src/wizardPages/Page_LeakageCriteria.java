@@ -124,9 +124,10 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 		private Text maxZText;
 		private Label minZLabel;
 		private Text minZText;
+		private Float maxZBound;
+		private Float minZBound;
 		
-		private Label nodeLabel;
-		private boolean hasErrors;	
+		private Label nodeLabel;	
 		
 		//Class for storing the data about one particular sensor type.
 		public SensorData(SensorSetting sensorSettings, String sensorName) {
@@ -141,6 +142,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			cost = sensorSettings.getCost();
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
+			minZBound = minZ;
+			maxZBound = maxZ;
 			
 			
 			// These may be backwards?
@@ -257,8 +260,30 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				@Override
 				public void modifyText(ModifyEvent e){
 					alias = ((Text)e.getSource()).getText();
-					if(alias.contains(",")) ((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					else ((Text)e.getSource()).setForeground(new Color(container.getDisplay(),0,0,0));
+					if(alias.contains(",")) // Verify that there are no commas in entry
+						redText(e, true, "  Cannot use commas in alias.");
+					else // Red text because entry has a comma
+						redText(e, false, "  Cannot use commas in alias.");
+					// Had to separate out red text and error message to handle complex logic
+					int duplicateCount = 0;
+					for(SensorData data1: sensorData.values()) {
+						data1.aliasText.setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						for(SensorData data2: sensorData.values()) {
+							if(data1.alias.equals(data2.alias) && !data1.sensorName.equals(data2.sensorName)) {
+								data1.aliasText.setForeground(new Color(container.getDisplay(), 255, 0, 0));
+								duplicateCount++;
+							}		
+						}
+					}
+					if(duplicateCount==0)
+						if (DREAMWizard.errorMessage.getText().contains("  Duplicate alias."))
+							DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText().replaceAll("  Duplicate alias.", ""));
+						DREAMWizard.nextButton.setEnabled(true);
+					if(duplicateCount>0) {
+						if (!DREAMWizard.errorMessage.getText().contains("  Duplicate alias."))
+							DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText() + "  Duplicate alias.");
+						DREAMWizard.nextButton.setEnabled(false);
+					}
 				}
 			});
 			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -272,12 +297,13 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			costText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try {
-						cost = Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					try { // Verify that entry is a real number
+						cost = Float.parseFloat(((Text)e.getSource()).getText());
+						redText(e, false, "  Cost is not a real number.");
 						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					} catch (NumberFormatException ne) { // Red text because entry is not a real number
+						if(cost != 0)
+							redText(e, true, "  Cost is not a real number.");
 						testReady();
 					}
 				}				
@@ -314,12 +340,12 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
 						
-						if(valueInput != null)
-							valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));						
+						//if(valueInput != null)
+							//valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						testReady();
 					} catch (NumberFormatException ex) {
-						if(valueInput != null)
-							valueInput.setForeground(new Color(container.getDisplay(), 255, 0, 0));
+						//if(valueInput != null)
+							//valueInput.setForeground(new Color(container.getDisplay(), 255, 0, 0));
 						testReady();
 					}
 					toggleEnabled();
@@ -349,7 +375,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			valueInput.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try {						
+					try { // Verify that entry is a real number			
 						
 						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 							min = 0;
@@ -363,10 +389,10 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
 						
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						redText(e, false, "  Value is not a real number.");
 						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					} catch (NumberFormatException ne) { // Red text because entry is not a real number
+						redText(e, true, "  Value is not a real number.");
 						testReady();
 					}
 				}				
@@ -383,12 +409,16 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try {
-						minZ = Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					try { // Verify that entry is a real number
+						minZ = Float.parseFloat(((Text)e.getSource()).getText());
+						redText(e, false, "  Min is not a real number.");
+						if (minZ < minZBound || minZ > maxZBound)// Verify that entry is within domain bounds
+							redText(e, true, "  Min outside domain bounds.");
+						else // Red text because entry is outside domain bounds
+							redText(e, false, "  Min outside domain bounds.");
 						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					} catch (NumberFormatException ne) { // Red text because entry is not a real number
+						redText(e, true, "  Min is not a real number.");
 						testReady();
 					}
 				}				
@@ -406,11 +436,15 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				@Override
 				public void modifyText(ModifyEvent e) {
 					try {
-						maxZ = Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						maxZ = Float.parseFloat(((Text)e.getSource()).getText());
+						redText(e, false, "  Max is not a real number.");
+						if (maxZ > maxZBound || maxZ < minZBound)// Verify that entry is within domain bounds
+							redText(e, true, "  Max outside domain bounds.");
+						else // Red text because entry is outside domain bounds
+							redText(e, false, "  Max outside domain bounds.");
 						testReady();
-					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					} catch (NumberFormatException ne) { // Red text because entry is not a real number
+						redText(e, true, "  Max is not a real number.");
 						testReady();
 					}
 				}				
@@ -602,8 +636,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		valueLabel.setText("Value");
-		minZLabel.setText("Minimum Z");
-		maxZLabel.setText("Maximum Z");
+		minZLabel.setText("Zone Bottom");
+		maxZLabel.setText("Zone Top");
 			
 		monitorParams.setFont(boldFont1);
 		aliasLabel.setFont(boldFont1);
@@ -1045,6 +1079,22 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	@Override
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
+	}
+	
+	public void redText(ModifyEvent e, boolean error, String errorText) {
+		if (error==true) {
+			((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+			if (!DREAMWizard.errorMessage.getText().contains(errorText))
+				DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText() + errorText);
+			DREAMWizard.nextButton.setEnabled(false);
+		}
+		else {
+			((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+			if (DREAMWizard.errorMessage.getText().contains(errorText))
+				DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText().replaceAll(errorText, ""));
+			if (DREAMWizard.errorMessage.getText().isEmpty()==true)
+				DREAMWizard.nextButton.setEnabled(true);
+		}
 	}
 	
 	private void testReady() {
