@@ -45,7 +45,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -339,7 +338,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
 						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
-						
+						// I don't think these are necessary anymore...
 						//if(valueInput != null)
 							//valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						testReady();
@@ -605,7 +604,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
 				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
-			}			
+			}
 		});
 		infoLink.setLayoutData(infoLinkData);
 		
@@ -851,18 +850,32 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	    
 		////The following code writes outputs for the e4d model
 		//Layout the buttons
+	    Composite composite_E4D = new Composite(container, SWT.NULL);
+		GridLayout gridLayout_E4D = new GridLayout();
+		gridLayout_E4D.numColumns = 8;
+		composite_E4D.setLayout(gridLayout_E4D);
+		GridData gridData_E4D = new GridData(GridData.FILL_HORIZONTAL);
+		gridData_E4D.horizontalSpan=8;
+		composite_E4D.setLayoutData(gridData_E4D);
+	    
+	  	Label infoLinkE4D = new Label(composite_E4D, SWT.NULL);
+	  	infoLinkE4D.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+	    
 	    final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
-	    e4dButton = new Button(container, SWT.PUSH);
+	    e4dButton = new Button(composite_E4D, SWT.PUSH);
 	    e4dButton.setText("  Write E4D Files  ");
 	    
-		e4dFolder = new Text(container, SWT.BORDER | SWT.SINGLE);
+		e4dFolder = new Text(composite_E4D, SWT.BORDER | SWT.SINGLE);
 		e4dFolder.setText(System.getProperty("user.dir"));
-		GridData e4dGd = new GridData(GridData.FILL_HORIZONTAL);
-		e4dGd.horizontalSpan = 3;
-		e4dFolder.setLayoutData(e4dGd);
+		GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
+		e4dTextData.horizontalSpan = 3;
+		e4dFolder.setLayoutData(e4dTextData);
 		
-		buttonSelectDir = new Button(container, SWT.PUSH);
+		buttonSelectDir = new Button(composite_E4D, SWT.PUSH);
 		buttonSelectDir.setText("...");
+		
+		Label e4dFiller = new Label(composite_E4D, SWT.NULL);
+		e4dFiller.setText("                                                                 ");
 		
 		//Change text red when directory is invalid
 		e4dFolder.addModifyListener(new ModifyListener() {
@@ -892,6 +905,15 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 				}
 			}
 		});	
+		
+		//Add an info icon to explain the E4D Buttons
+  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
+  			@Override
+  			public void handleEvent(Event event) {
+  				// TODO: Catherine edit text here!
+  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
+  			}			
+  		});
 
 		//Save the E4D files
 		e4dButton.addListener(SWT.Selection, new Listener() {
