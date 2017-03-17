@@ -59,6 +59,8 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPage {
 	
+	public Boolean flipZ;
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
@@ -508,6 +510,7 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	@Override
 	public void completePage() throws Exception {
 		try{
+			flipZ = true; //Flip Z axis by default until a single entry uses elevation
 			isCurrentPage = false;		
 			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 			Map<String, String> sensorAliases = new HashMap<String, String>();
@@ -515,10 +518,22 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 			for(String label: sensorData.keySet()) {
 				SensorData data = sensorData.get(label);
+				if (data.isIncluded==true && data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
+					flipZ = false;
 				String alias = data.alias;
 				sensorSettings.put(label, data);
 				sensorAliases.put(label, alias.equals("") ? label: alias);
 				SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
+			}
+			if(flipZ = true) { //All activated sensors had their axis flipped
+				// TODO: Jon handle flipped Z axis... need better understanding of full process first
+				/*
+				for (SensorData flipTheAxis : sensorSettings.values()) {
+					Float temp = flipTheAxis.minZBound;
+					flipTheAxis.minZBound = flipTheAxis.maxZBound;
+					flipTheAxis.maxZBound = temp;
+				}
+				*/
 			}
 			DREAMWizard.visLauncher.setEnabled(false);
 			buttonSelectDir.setEnabled(false);
