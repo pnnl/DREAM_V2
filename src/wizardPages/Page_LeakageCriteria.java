@@ -1,24 +1,16 @@
 package wizardPages;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import objects.E4DSensors;
-import objects.ExtendedConfiguration;
-import objects.ExtendedSensor;
-import objects.InferenceTest;
-import objects.NodeStructure;
 import objects.Scenario;
-import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
 import objects.TimeStep;
@@ -299,11 +291,9 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					try { // Verify that entry is a real number
 						cost = Float.parseFloat(((Text)e.getSource()).getText());
 						redText(e, false, "  Cost is not a real number.");
-						testReady();
 					} catch (NumberFormatException ne) { // Red text because entry is not a real number
 						if(cost != 0)
 							redText(e, true, "  Cost is not a real number.");
-						testReady();
 					}
 				}				
 			});
@@ -326,27 +316,18 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 					boolean isRelativeDetla = ((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_DELTA.toString());
 					trigger = isMinimumThreshold ? Trigger.MAXIMUM_THRESHOLD : (isMaximumThreshold ? 
 							Trigger.MINIMUM_THRESHOLD : isRelativeDetla ? Trigger.RELATIVE_DELTA : Trigger.ABSOLUTE_DELTA);	
-					try {
-						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
-							min = 0;
-							max = Float.parseFloat(valueInput.getText());
-						} else {	
-							min = Float.parseFloat(valueInput.getText());
-							max = Float.MAX_VALUE;
-						}
-						
-						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
-						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
-						else deltaType = DeltaType.BOTH;
-						// I don't think these are necessary anymore...
-						//if(valueInput != null)
-							//valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));
-						testReady();
-					} catch (NumberFormatException ex) {
-						//if(valueInput != null)
-							//valueInput.setForeground(new Color(container.getDisplay(), 255, 0, 0));
-						testReady();
+					if(trigger == Trigger.MAXIMUM_THRESHOLD) {
+						min = 0;
+						max = Float.parseFloat(valueInput.getText());
+					} else {	
+						min = Float.parseFloat(valueInput.getText());
+						max = Float.MAX_VALUE;
 					}
+						
+					if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
+					else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
+					else deltaType = DeltaType.BOTH;
+
 					toggleEnabled();
 				}				
 			});
@@ -389,10 +370,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 						else deltaType = DeltaType.BOTH;
 						
 						redText(e, false, "  Value is not a real number.");
-						testReady();
 					} catch (NumberFormatException ne) { // Red text because entry is not a real number
 						redText(e, true, "  Value is not a real number.");
-						testReady();
 					}
 				}				
 			});
@@ -415,10 +394,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 							redText(e, true, "  Min outside domain bounds.");
 						else // Red text because entry is outside domain bounds
 							redText(e, false, "  Min outside domain bounds.");
-						testReady();
 					} catch (NumberFormatException ne) { // Red text because entry is not a real number
 						redText(e, true, "  Min is not a real number.");
-						testReady();
 					}
 				}				
 			});
@@ -441,10 +418,8 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 							redText(e, true, "  Max outside domain bounds.");
 						else // Red text because entry is outside domain bounds
 							redText(e, false, "  Max outside domain bounds.");
-						testReady();
 					} catch (NumberFormatException ne) { // Red text because entry is not a real number
 						redText(e, true, "  Max is not a real number.");
-						testReady();
 					}
 				}				
 			});
@@ -553,9 +528,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
 			
 			DREAMWizard.visLauncher.setEnabled(true);
-			buttonSelectDir.setEnabled(true);
-			
-
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -1117,29 +1089,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 			if (DREAMWizard.errorMessage.getText().isEmpty()==true)
 				DREAMWizard.nextButton.setEnabled(true);
 		}
-	}
-	
-	private void testReady() {
-		/*
-		boolean isReady = true;
-		
-		for(SensorData data: sensorData.values()) {
-
-
-			if(data.costText.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-				isReady = false;
-				break;
-			}
-
-			if(data.valueInput.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-				isReady = false;
-				break;
-			}
-
-		}
-		if(this.isPageComplete() != isReady)
-			this.setPageComplete(isReady);
-			*/
 	}
 	
 }
