@@ -44,7 +44,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author rodr144
  */
 
-public class Page_InputDirectory extends WizardPage implements AbstractWizardPage {
+public class Page_InputDirectory extends DreamWizardPage implements AbstractWizardPage {
 
 	private ScrolledComposite sc;
 	private Composite container;
@@ -205,16 +205,10 @@ public class Page_InputDirectory extends WizardPage implements AbstractWizardPag
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(hdf5Text.getText());
 				boolean dir = resultsFolder.isDirectory();
-				if (dir == true) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					DREAMWizard.nextButton.setEnabled(true);
-					DREAMWizard.errorMessage.setText("");
-				}
-				else {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					DREAMWizard.nextButton.setEnabled(false);
-					DREAMWizard.errorMessage.setText("Invalid Directory");
-				}
+				if (dir == true)
+					redText(e, false, "  Invalid Directory.");
+				else
+					redText(e, true, "  Invalid Directory.");
 			}				
 		});
 	
@@ -307,7 +301,5 @@ public class Page_InputDirectory extends WizardPage implements AbstractWizardPag
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
 	}
-	
-	
 
 }

@@ -207,8 +207,9 @@ public class DREAMWizard extends Wizard {
 				
 				GridData errorMessageData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				errorMessageData.horizontalSpan = 4;
+				errorMessageData.grabExcessHorizontalSpace = true;
+				errorMessageData.horizontalAlignment = GridData.FILL;
 				errorMessage = new Label(parent, SWT.RIGHT);
-				errorMessage.setText("                                                                                                                                        ");//needs enough characters to error messages
 				errorMessage.setForeground(display.getSystemColor(SWT.COLOR_RED));
 				errorMessage.setLayoutData(errorMessageData);
 				

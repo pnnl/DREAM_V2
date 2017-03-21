@@ -57,7 +57,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author rodr144
  */
 
-public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPage {
+public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWizardPage {
 	
 	public Boolean flipZ;
 	
@@ -1088,22 +1088,6 @@ public class Page_LeakageCriteria extends WizardPage implements AbstractWizardPa
 	@Override
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
-	}
-	
-	public void redText(ModifyEvent e, boolean error, String errorText) {
-		if (error==true) {
-			((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-			if (!DREAMWizard.errorMessage.getText().contains(errorText))
-				DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText() + errorText);
-			DREAMWizard.nextButton.setEnabled(false);
-		}
-		else {
-			((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-			if (DREAMWizard.errorMessage.getText().contains(errorText))
-				DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText().replaceAll(errorText, ""));
-			if (DREAMWizard.errorMessage.getText().isEmpty()==true)
-				DREAMWizard.nextButton.setEnabled(true);
-		}
 	}
 	
 }
