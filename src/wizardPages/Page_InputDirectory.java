@@ -5,12 +5,10 @@ import java.io.File;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -21,16 +19,12 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import functions.CCS9_1;
-import functions.Function;
 import functions.MutationFunction.MUTATE;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
@@ -55,7 +49,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private STORMData data;
 	private Text hdf5Text;
 	private boolean isCurrentPage = false;
-	private Label modelDescription;
 	
 	protected Page_InputDirectory(STORMData data) {
 		super("Input Directory");
@@ -274,8 +267,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		radioButton.setLayoutData(buttonGridData);
 		//Add other options here
 				
-		modelDescription = new Label(container, SWT.NULL);
-		
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
 		GridData noteGridData = new GridData(GridData.FILL_HORIZONTAL);

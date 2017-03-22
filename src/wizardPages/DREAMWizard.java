@@ -11,7 +11,7 @@ import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import objects.E4DSensors;
+//import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import utilities.Constants;
-import utilities.Point3f;
+//import utilities.Point3f;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 import wizardPages.Page_LeakageCriteria.SensorData;
