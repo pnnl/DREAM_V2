@@ -11,9 +11,13 @@ import objects.Scenario;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -21,6 +25,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -35,7 +40,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author rodr144
  */
 
-public class Page_ScenarioWeighting extends WizardPage implements AbstractWizardPage {
+public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractWizardPage {
 
 	Map<Scenario, Text> weights;
 	Map<Scenario, Button> selectedScenarios;
@@ -177,7 +182,8 @@ public class Page_ScenarioWeighting extends WizardPage implements AbstractWizard
 		
 		for(Scenario scenario: scenarios) {
 			Button button = new Button(container, SWT.CHECK);
-			Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
+			final Text text1 = new Text(container, SWT.BORDER | SWT.SINGLE);
+			
 			if(data.getSet().getScenarios().contains(scenario)){
 				button.setSelection(true);
 				text1.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
@@ -190,6 +196,69 @@ public class Page_ScenarioWeighting extends WizardPage implements AbstractWizard
 			text1.setLayoutData(gd);
 			selectedScenarios.put(scenario, button);
 			weights.put(scenario, text1);
+			
+			//Add a listener for actions with the button
+			button.addSelectionListener(new SelectionListener() {
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					//required to have this... not sure when it is triggered.
+				}
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					boolean isIncluded = ((Button)e.getSource()).getSelection();
+					text1.setEnabled(isIncluded);
+					
+					//Throws an error message when no scenarios are selected
+					int scenarioCount = 0;
+					for(Scenario scenario1: selectedScenarios.keySet()) {
+						if(selectedScenarios.get(scenario1).getSelection())
+							scenarioCount++;
+					}
+					if(scenarioCount>0)
+						errorWithoutRedText(false, "  Must select one scenario.");
+					else
+						errorWithoutRedText(true, "  Must select one scenario.");
+					
+					//Special handling if weight is not real number and scenario unchecked...
+					boolean error = false;
+					for(Scenario scenario2: weights.keySet()) {
+						if(selectedScenarios.get(scenario2).getSelection()) { //Unchecked
+							try {
+								Float.parseFloat(weights.get(scenario2).getText());
+							} catch (NumberFormatException ne) {
+								error = true;
+							}
+						}
+					}
+					if(error==true)
+						errorWithoutRedText(true, "  Weight is not a real number.");
+					else
+						errorWithoutRedText(false, "  Weight is not a real number.");
+				}
+			});
+			
+			//Add a listener for actions with weight values
+			text1.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					int countInvalid = 0;
+					for(Scenario scenario3: weights.keySet()) {
+						if(!selectedScenarios.get(scenario3).getSelection())
+							continue;
+						boolean valid = isValidNumber(weights.get(scenario3).getText());
+						if(valid==false) {
+							weights.get(scenario3).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							countInvalid++;
+						}
+						else
+							weights.get(scenario3).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					}
+					if(countInvalid>0)
+						errorWithoutRedText(true, "  Weight is not a real number.");
+					else
+						errorWithoutRedText(false, "  Weight is not a real number.");
+				}
+			});
 		}
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
