@@ -10,7 +10,6 @@ public abstract class DreamWizardPage extends WizardPage {
 
 	protected DreamWizardPage(String pageName) {
 		super(pageName);
-		// TODO Auto-generated constructor stub
 	}
 
 	//Method that turns text red and initiates an error message and cancels the next button

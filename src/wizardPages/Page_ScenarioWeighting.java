@@ -190,6 +190,8 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			} else{
 				button.setSelection(false);
 				text1.setText("1.0");
+				if(!button.getSelection())
+					text1.setEnabled(false);
 			}
 			button.setText(scenario.getScenario());
 			GridData gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -206,7 +208,6 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					boolean isIncluded = ((Button)e.getSource()).getSelection();
-					text1.setEnabled(isIncluded);
 					
 					//Throws an error message when no scenarios are selected
 					int scenarioCount = 0;
@@ -215,25 +216,30 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 							scenarioCount++;
 					}
 					if(scenarioCount>0)
-						errorWithoutRedText(false, "  Must select one scenario.");
+						errorWithoutRedText(false, "  Select at least one scenario.");
 					else
-						errorWithoutRedText(true, "  Must select one scenario.");
+						errorWithoutRedText(true, "  Select at least one scenario.");
 					
 					//Special handling if weight is not real number and scenario unchecked...
 					boolean error = false;
 					for(Scenario scenario2: weights.keySet()) {
-						if(selectedScenarios.get(scenario2).getSelection()) { //Unchecked
+						if(selectedScenarios.get(scenario2).getSelection()) {
 							try {
 								Float.parseFloat(weights.get(scenario2).getText());
 							} catch (NumberFormatException ne) {
 								error = true;
 							}
+						} else { //Handles a bug where a disabled non-float wan't allowing the page to advance
+							text1.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							text1.setText("1.0");
 						}
 					}
 					if(error==true)
 						errorWithoutRedText(true, "  Weight is not a real number.");
 					else
 						errorWithoutRedText(false, "  Weight is not a real number.");
+					
+					text1.setEnabled(isIncluded);
 				}
 			});
 			
