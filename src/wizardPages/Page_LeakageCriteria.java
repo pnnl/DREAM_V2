@@ -294,7 +294,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					//Special handling of red text for duplicates
 					if (duplicateError==false)
 						for(SensorData data: sensorData.values())
-							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							if (data.isIncluded && !data.alias.contains(",") && !data.alias.isEmpty())
+								data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 				}
 			});
 			

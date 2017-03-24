@@ -202,10 +202,10 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				boolean dir = resultsFolder.isDirectory();
 				if (dir == true) {
 					errorFound(false, "  Invalid Directory.");
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 				} else {
 					errorFound(true, "  Invalid Directory.");
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
 				}
 			}				
 		});
