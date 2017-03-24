@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -223,13 +224,77 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			includeButton.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) { 
-					isIncluded = ((Button)e.getSource()).getSelection(); 					
-					toggleEnabled();
+					//required to have this... not sure when it is triggered.
 				}
 				@Override
-				public void widgetSelected(SelectionEvent e) { 
-					isIncluded = ((Button)e.getSource()).getSelection(); 
+				public void widgetSelected(SelectionEvent e) {
+					isIncluded = ((Button)e.getSource()).getSelection();
 					toggleEnabled();					
+					
+					//Special handling if errors are negated when parameters are unchecked...
+					//We have to search through all possible errors to see if any are negated
+					boolean commaError = false;
+					boolean duplicateError = false;
+					boolean emptyError = false;
+					boolean costError = false;
+					boolean valueError = false;
+					boolean botError = false;
+					boolean botBoundError = false;
+					boolean topError = false;
+					boolean topBoundError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						//Alias
+						for(SensorData data2: sensorData.values()) {
+							if(!data2.isIncluded) //Skip unchecked parameters
+								continue;
+							if(data.alias.equals(data2.alias) && !data.sensorName.equals(data2.sensorName)) {
+								duplicateError = true;
+								data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							}
+						}
+						if(data.alias.contains(",")) //Contains a comma
+							commaError = true;
+						if(data.alias.isEmpty()) //No alias
+							emptyError = true;
+						//Cost
+						if(!isValidNumber(data.costText.getText()))
+							costError = true;
+						//Value
+						if(!isValidNumber(data.valueInput.getText()) && !data.valueInput.getText().equals(""))
+							valueError = true;
+						//Zone bottom
+						if(!isValidNumber(data.minZText.getText()))
+							botError = true;
+						else {
+							minZ = Float.parseFloat(data.minZText.getText());
+							if (minZ < data.minZBound || minZ > data.maxZBound)
+								botBoundError = true;
+						}
+						//Zone top
+						if(!isValidNumber(data.maxZText.getText()))
+							topError = true;
+						else {
+							maxZ = Float.parseFloat(data.maxZText.getText());
+							if (maxZ < data.minZBound || maxZ > data.maxZBound)
+								topBoundError = true;
+						}
+					}
+					errorFound(duplicateError, "  Duplicate alias.");
+					errorFound(commaError, "  Cannot use commas in alias.");
+					errorFound(emptyError, "  Need to enter an alias.");
+					errorFound(costError, "  Cost is not a real number.");
+					errorFound(valueError, "  Value is not a real number.");
+					errorFound(botError, "  Bottom is not a real number.");
+					errorFound(botBoundError, "  Bottom outside domain bounds.");
+					errorFound(topError, "  Top is not a real number.");
+					errorFound(topBoundError, "  Top outside domain bounds.");
+					
+					//Special handling of red text for duplicates
+					if (duplicateError==false)
+						for(SensorData data: sensorData.values())
+							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 				}
 			});
 			
@@ -252,30 +317,39 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				@Override
 				public void modifyText(ModifyEvent e){
 					alias = ((Text)e.getSource()).getText();
-					if(alias.contains(",")) // Verify that there are no commas in entry
-						redText(e, true, "  Cannot use commas in alias.");
-					else // Red text because entry has a comma
-						redText(e, false, "  Cannot use commas in alias.");
-					// Had to separate out red text and error message to handle complex logic
-					int duplicateCount = 0;
-					for(SensorData data1: sensorData.values()) {
-						data1.aliasText.setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					boolean commaError = false;
+					boolean duplicateError = false;
+					boolean emptyError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						data.aliasText.setForeground(new Color(container.getDisplay(), 0, 0, 0));
 						for(SensorData data2: sensorData.values()) {
-							if(data1.alias.equals(data2.alias) && !data1.sensorName.equals(data2.sensorName)) {
-								data1.aliasText.setForeground(new Color(container.getDisplay(), 255, 0, 0));
-								duplicateCount++;
-							}		
+							if(!data2.isIncluded) //Skip unchecked parameters
+								continue;
+							if(data.alias.trim().equals(data2.alias.trim()) && !data.sensorName.equals(data2.sensorName)) {
+								data.aliasText.setForeground(new Color(container.getDisplay(), 255, 0, 0));
+								duplicateError = true;
+							}
 						}
 					}
-					if(duplicateCount==0)
-						if (DREAMWizard.errorMessage.getText().contains("  Duplicate alias."))
-							DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText().replaceAll("  Duplicate alias.", ""));
-						DREAMWizard.nextButton.setEnabled(true);
-					if(duplicateCount>0) {
-						if (!DREAMWizard.errorMessage.getText().contains("  Duplicate alias."))
-							DREAMWizard.errorMessage.setText(DREAMWizard.errorMessage.getText() + "  Duplicate alias.");
-						DREAMWizard.nextButton.setEnabled(false);
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(data.alias.contains(",")) { //Contains a comma
+							data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							commaError = true;
+						} else if (duplicateError==false) //No comma
+							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						if(data.alias.isEmpty()) { //No alias
+							data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							emptyError = true;
+						} else if (duplicateError==false && commaError==false) //Has alias
+							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 					}
+					errorFound(duplicateError, "  Duplicate alias.");
+					errorFound(commaError, "  Cannot use commas in alias.");
+					errorFound(emptyError, "  Need to enter an alias.");
 				}
 			});
 			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -283,20 +357,25 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			aliasText.setLayoutData(aliasTextData);
 			
 			
-			// Cost
+			//Cost input
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			costText.setText(Constants.decimalFormat.format(cost));
 			costText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try { // Verify that entry is a real number
-						cost = Float.parseFloat(((Text)e.getSource()).getText());
-						redText(e, false, "  Cost is not a real number.");
-					} catch (NumberFormatException ne) { // Red text because entry is not a real number
-						if(cost != 0)
-							redText(e, true, "  Cost is not a real number.");
+					boolean costError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(isValidNumber(data.costText.getText())) //Valid number
+							data.costText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						else { //Not a valid number
+							data.costText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							costError = true;
+						}
 					}
-				}				
+					errorFound(costError, "  Cost is not a real number.");
+				}
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			costTextData.widthHint = 60;
@@ -336,7 +415,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdComboData.widthHint = 140;
 			thresholdCombo.setLayoutData(thresholdComboData);
 			
-			// Specifics fields
+			//Value input
 			valueInput = new Text(container, SWT.BORDER | SWT.SINGLE);
 			if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 				if(max != 0) {// What if a user wants to set this to 0? 
@@ -356,8 +435,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			valueInput.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try { // Verify that entry is a real number			
-						
+					boolean valueError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(!isValidNumber(data.valueInput.getText()) && !data.valueInput.getText().equals("")) { //Valid number
+							data.valueInput.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							valueError = true;
+						} else
+							data.valueInput.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					}
+					errorFound(valueError, "  Value is not a real number.");
+					
+					try { // Verify that entry is a real number
 						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 							min = 0;
 							max = Float.parseFloat(valueInput.getText());
@@ -369,12 +459,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
 						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
-						
-						redText(e, false, "  Value is not a real number.");
-					} catch (NumberFormatException ne) { // Red text because entry is not a real number
-						redText(e, true, "  Value is not a real number.");
+					} catch (NumberFormatException ne) {
+						//only add real numbers
 					}
-				}				
+				}
 			});
 			GridData minInputData = new GridData(SWT.FILL, SWT.END, false, false);
 			minInputData.widthHint = 60;
@@ -388,17 +476,26 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try { // Verify that entry is a real number
-						minZ = Float.parseFloat(((Text)e.getSource()).getText());
-						redText(e, false, "  Min is not a real number.");
-						if (minZ < minZBound || minZ > maxZBound)// Verify that entry is within domain bounds
-							redText(e, true, "  Min outside domain bounds.");
-						else // Red text because entry is outside domain bounds
-							redText(e, false, "  Min outside domain bounds.");
-					} catch (NumberFormatException ne) { // Red text because entry is not a real number
-						redText(e, true, "  Min is not a real number.");
+					boolean botError = false;
+					boolean botBoundError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(isValidNumber(data.minZText.getText())) { //Valid number
+							data.minZText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							minZ = Float.parseFloat(data.maxZText.getText());
+							if (minZ < minZBound || minZ > maxZBound) {
+								data.minZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								botBoundError = true;
+							}
+						} else { //Not a valid number
+							data.minZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							botError = true;
+						}
 					}
-				}				
+					errorFound(botError, "  Bottom is not a real number.");
+					errorFound(botBoundError, "  Bottom outside domain bounds.");
+				}
 			});
 			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			minZTextData.widthHint = 60;
@@ -412,17 +509,26 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					try {
-						maxZ = Float.parseFloat(((Text)e.getSource()).getText());
-						redText(e, false, "  Max is not a real number.");
-						if (maxZ > maxZBound || maxZ < minZBound)// Verify that entry is within domain bounds
-							redText(e, true, "  Max outside domain bounds.");
-						else // Red text because entry is outside domain bounds
-							redText(e, false, "  Max outside domain bounds.");
-					} catch (NumberFormatException ne) { // Red text because entry is not a real number
-						redText(e, true, "  Max is not a real number.");
+					boolean topError = false;
+					boolean topBoundError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(isValidNumber(data.maxZText.getText())) { //Valid number
+							data.maxZText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							maxZ = Float.parseFloat(data.maxZText.getText());
+							if (maxZ < minZBound || maxZ > maxZBound) {
+								data.maxZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								topBoundError = true;
+							}
+						} else { //Not a valid number
+							data.maxZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							topError = true;
+						}
 					}
-				}				
+					errorFound(topError, "  Top is not a real number.");
+					errorFound(topBoundError, "  Top outside domain bounds.");
+				}
 			});
 			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			maxZTextData.widthHint = 60;

@@ -210,22 +210,19 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 					boolean isIncluded = ((Button)e.getSource()).getSelection();
 					
 					//Throws an error message when no scenarios are selected
-					int scenarioCount = 0;
-					for(Scenario scenario1: selectedScenarios.keySet()) {
-						if(selectedScenarios.get(scenario1).getSelection())
-							scenarioCount++;
+					boolean countError = true;
+					for(Scenario scenario: selectedScenarios.keySet()) {
+						if(selectedScenarios.get(scenario).getSelection())
+							countError = false;
 					}
-					if(scenarioCount>0)
-						errorWithoutRedText(false, "  Select at least one scenario.");
-					else
-						errorWithoutRedText(true, "  Select at least one scenario.");
+					errorFound(countError, "  Select at least one scenario.");
 					
 					//Special handling if weight is not real number and scenario unchecked...
 					boolean error = false;
-					for(Scenario scenario2: weights.keySet()) {
-						if(selectedScenarios.get(scenario2).getSelection()) {
+					for(Scenario scenario: weights.keySet()) {
+						if(selectedScenarios.get(scenario).getSelection()) {
 							try {
-								Float.parseFloat(weights.get(scenario2).getText());
+								Float.parseFloat(weights.get(scenario).getText());
 							} catch (NumberFormatException ne) {
 								error = true;
 							}
@@ -234,10 +231,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 							text1.setText("1.0");
 						}
 					}
-					if(error==true)
-						errorWithoutRedText(true, "  Weight is not a real number.");
-					else
-						errorWithoutRedText(false, "  Weight is not a real number.");
+					errorFound(error, "  Weight is not a real number.");
 					
 					text1.setEnabled(isIncluded);
 				}
@@ -247,22 +241,18 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			text1.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					int countInvalid = 0;
-					for(Scenario scenario3: weights.keySet()) {
-						if(!selectedScenarios.get(scenario3).getSelection())
+					boolean weightError = false;
+					for(Scenario scenario: weights.keySet()) {
+						if(!selectedScenarios.get(scenario).getSelection()) //Skip unchecked scenarios
 							continue;
-						boolean valid = isValidNumber(weights.get(scenario3).getText());
-						if(valid==false) {
-							weights.get(scenario3).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-							countInvalid++;
+						if(isValidNumber(weights.get(scenario).getText())) //Valid number
+							weights.get(scenario).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						else { //Not a valid number
+							weights.get(scenario).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							weightError = true;
 						}
-						else
-							weights.get(scenario3).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 					}
-					if(countInvalid>0)
-						errorWithoutRedText(true, "  Weight is not a real number.");
-					else
-						errorWithoutRedText(false, "  Weight is not a real number.");
+					errorFound(weightError, "  Weight is not a real number.");
 				}
 			});
 		}

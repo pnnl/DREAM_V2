@@ -9,6 +9,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -19,6 +20,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -198,10 +200,13 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(hdf5Text.getText());
 				boolean dir = resultsFolder.isDirectory();
-				if (dir == true)
-					redText(e, false, "  Invalid Directory.");
-				else
-					redText(e, true, "  Invalid Directory.");
+				if (dir == true) {
+					errorFound(false, "  Invalid Directory.");
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				} else {
+					errorFound(true, "  Invalid Directory.");
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				}
 			}				
 		});
 	
