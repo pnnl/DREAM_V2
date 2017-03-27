@@ -109,24 +109,24 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// A couple of these may need to be global
 		private Label nodeLabel;
 		private Label sensorTypeLabel;
-		private Label valueLabel;
+		private Label degradationLabel;
 		private Label minZLabel;
 		private Label maxZLabel;
 		
 		private Text aliasText;
 		private Text costText;
-		private Text valueInput;
+		private Text degradationText;
 		private Text minZText;
 		private Text maxZText;
 		
 		private Color aliasForeground;
 		private Color costForeground;
-		private Color valueForeground;
+		private Color degradationForeground;
 		private Color minZForeground;
 		private Color maxZForeground;
 		
 		private String costErrorText;
-		private String valueErrorText;
+		private String degradationErrorText;
 		private String minZErrorText;
 		private String maxZErrorText;
 		
@@ -149,7 +149,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZBound = minZ;
 			maxZBound = maxZ;
 			costErrorText = Constants.decimalFormat.format(cost);
-			valueErrorText = "0";
+			degradationErrorText = "0";
 			minZErrorText = Constants.decimalFormat.format(minZ);
 			maxZErrorText = Constants.decimalFormat.format(maxZ);
 			
@@ -286,7 +286,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(!isValidNumber(data.costText.getText()))
 							costError = true;
 						//Value
-						if(!isValidNumber(data.valueInput.getText()) && !data.valueInput.getText().equals(""))
+						if(!isValidNumber(data.degradationText.getText()) && !data.degradationText.getText().equals(""))
 							valueError = true;
 						//Zone bottom
 						if(!isValidNumber(data.minZText.getText()))
@@ -429,14 +429,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							Trigger.MINIMUM_THRESHOLD : isRelativeDetla ? Trigger.RELATIVE_DELTA : Trigger.ABSOLUTE_DELTA);	
 					if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 						min = 0;
-						max = Float.parseFloat(valueInput.getText());
+						max = Float.parseFloat(degradationText.getText());
 					} else {	
-						min = Float.parseFloat(valueInput.getText());
+						min = Float.parseFloat(degradationText.getText());
 						max = Float.MAX_VALUE;
 					}
 						
-					if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
-					else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
+					if(degradationText.getText().contains("+")) deltaType = DeltaType.INCREASE;
+					else if(degradationText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
 
 					toggleEnabled();
@@ -447,9 +447,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.setLayoutData(thresholdComboData);
 			
 			//Value input
-			valueInput = new Text(container, SWT.BORDER | SWT.SINGLE);
-			valueInput.setText(valueErrorText);
-			valueInput.setForeground(valueForeground);
+			degradationText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			degradationText.setText(degradationErrorText);
+			degradationText.setForeground(degradationForeground);
 			
 			//TODO: Verify that this is unnecessary
 			//Not sure what this is about... it was causing errors, so I commented out
@@ -471,34 +471,34 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(deltaType == DeltaType.INCREASE) valueInput.setText("+" + valueInput.getText());
 			*/
 			
-			valueInput.addModifyListener(new ModifyListener() {
+			degradationText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					valueErrorText = ((Text)e.getSource()).getText();
+					degradationErrorText = ((Text)e.getSource()).getText();
 					boolean valueError = false;
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(!isValidNumber(data.valueInput.getText()) && !data.valueInput.getText().equals("")) { //Valid number
-							data.valueInput.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+						if(!isValidNumber(data.degradationText.getText()) && !data.degradationText.getText().equals("")) { //Valid number
+							data.degradationText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
 							valueError = true;
 						} else
-							data.valueInput.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.degradationText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 					}
 					errorFound(valueError, "  Value is not a real number.");
-					valueForeground = valueInput.getForeground();
+					degradationForeground = degradationText.getForeground();
 					
 					try { // Verify that entry is a real number
 						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 							min = 0;
-							max = Float.parseFloat(valueInput.getText());
+							max = Float.parseFloat(degradationText.getText());
 						} else {	
-							min = Float.parseFloat(valueInput.getText());
+							min = Float.parseFloat(degradationText.getText());
 							max = Float.MAX_VALUE;
 						}
 						
-						if(valueInput.getText().contains("+")) deltaType = DeltaType.INCREASE;
-						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
+						if(degradationText.getText().contains("+")) deltaType = DeltaType.INCREASE;
+						else if(degradationText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
 					} catch (NumberFormatException ne) {
 						//only add real numbers
@@ -507,7 +507,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			GridData minInputData = new GridData(SWT.FILL, SWT.END, false, false);
 			minInputData.widthHint = 60;
-			valueInput.setLayoutData(minInputData);
+			degradationText.setLayoutData(minInputData);
 
 			
 			
@@ -593,10 +593,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				costText.setEnabled(isIncluded);
 			if(thresholdCombo != null && !thresholdCombo.isDisposed())
 				thresholdCombo.setEnabled(isIncluded);					
-			if(valueInput != null && !valueInput.isDisposed())
-				valueInput.setEnabled(isIncluded);
-			if(valueLabel != null && !valueLabel.isDisposed())
-				valueLabel.setEnabled(isIncluded);
+			if(degradationText != null && !degradationText.isDisposed())
+				degradationText.setEnabled(isIncluded);
+			if(degradationLabel != null && !degradationLabel.isDisposed())
+				degradationLabel.setEnabled(isIncluded);
 			if(minZLabel != null && !minZLabel.isDisposed())
 				minZLabel.setEnabled(isIncluded);
 			if(minZText != null && !minZText.isDisposed())
