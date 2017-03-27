@@ -90,7 +90,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		
+		DREAMWizard.errorMessage.setText("");
 		if(!hasBeenLoaded){
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 

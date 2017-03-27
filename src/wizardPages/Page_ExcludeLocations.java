@@ -121,6 +121,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 
 	@Override
 	public void loadPage() {
+		DREAMWizard.errorMessage.setText("");
 		isCurrentPage = true;
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.

@@ -107,6 +107,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
+		DREAMWizard.errorMessage.setText("");
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}

@@ -235,6 +235,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// Include button
 			Button includeButton = new Button(container,  SWT.CHECK);
 			includeButton.setSelection(isIncluded);
+			for(SensorData data: sensorData.values()) {
+				if(data.isIncluded) {
+					errorFound(false, "  Must select a monitoring parameter.");
+					break;
+				}
+				errorFound(true, "  Must select a monitoring parameter.");
+			}
 			includeButton.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) { 
@@ -243,10 +250,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					isIncluded = ((Button)e.getSource()).getSelection();
-					toggleEnabled();					
+					toggleEnabled();
 					
 					//Special handling if errors are negated when parameters are unchecked...
 					//We have to search through all possible errors to see if any are negated
+					boolean checkError = true;
 					boolean commaError = false;
 					boolean duplicateError = false;
 					boolean emptyError = false;
@@ -259,6 +267,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
+						else
+							checkError = false;
 						//Alias
 						for(SensorData data2: sensorData.values()) {
 							if(!data2.isIncluded) //Skip unchecked parameters
@@ -295,6 +305,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								topBoundError = true;
 						}
 					}
+					errorFound(checkError, "  Must select a monitoring parameter.");
 					errorFound(duplicateError, "  Duplicate alias.");
 					errorFound(commaError, "  Cannot use commas in alias.");
 					errorFound(emptyError, "  Need to enter an alias.");
@@ -694,7 +705,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-				
+		DREAMWizard.errorMessage.setText("");
 		if(sensorData == null || data.needToResetMonitoringParameters) {
 			data.needToResetMonitoringParameters = false;
 			// New UI
@@ -762,7 +773,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		aliasLabel.setText("Alias for Monitoring Technology");
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
-		valueLabel.setText("Value");
+		valueLabel.setText("Detection Value");
 		minZLabel.setText("Zone Bottom");
 		maxZLabel.setText("Zone Top");
 			
@@ -1147,7 +1158,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		e4dFolder.setEnabled(enableVis);
 		buttonSelectDir.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
-	}
+	} //ends load page
 	
 	private void addSensor(String dataType, String newName){
 		data.getSet().addSensorSetting(newName, dataType);

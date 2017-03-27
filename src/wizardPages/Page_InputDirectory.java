@@ -137,6 +137,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
+		DREAMWizard.errorMessage.setText("");
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
