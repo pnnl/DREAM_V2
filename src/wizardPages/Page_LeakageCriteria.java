@@ -89,6 +89,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public String sensorName;
 		public String alias;
 		public float cost;
+		public float detection;
+		public float leakage;
 		public float maxZ;
 		public float minZ;
 		public Trigger trigger;
@@ -109,24 +111,28 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// A couple of these may need to be global
 		private Label nodeLabel;
 		private Label sensorTypeLabel;
-		private Label degradationLabel;
+		private Label detectionLabel;
+		private Label leakageLabel;
 		private Label minZLabel;
 		private Label maxZLabel;
 		
 		private Text aliasText;
 		private Text costText;
-		private Text degradationText;
+		private Text detectionText;
+		private Text leakageText;
 		private Text minZText;
 		private Text maxZText;
 		
 		private Color aliasForeground;
 		private Color costForeground;
-		private Color degradationForeground;
+		private Color detectionForeground;
+		private Color leakageForeground;
 		private Color minZForeground;
 		private Color maxZForeground;
 		
 		private String costErrorText;
-		private String degradationErrorText;
+		private String detectionErrorText;
+		private String leakageErrorText;
 		private String minZErrorText;
 		private String maxZErrorText;
 		
@@ -144,12 +150,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			alias = sensorName;
 			isIncluded = false; // By default
 			cost = sensorSettings.getCost();
+			detection = sensorSettings.getDetection();
+			leakage = sensorSettings.getLeakage();
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
 			minZBound = minZ;
 			maxZBound = maxZ;
 			costErrorText = Constants.decimalFormat.format(cost);
-			degradationErrorText = "0";
+			detectionErrorText = Constants.decimalFormat.format(detection);
+			leakageErrorText = Constants.decimalFormat.format(leakage);
 			minZErrorText = Constants.decimalFormat.format(minZ);
 			maxZErrorText = Constants.decimalFormat.format(maxZ);
 			
@@ -259,7 +268,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean duplicateError = false;
 					boolean emptyError = false;
 					boolean costError = false;
-					boolean valueError = false;
+					boolean detectionError = false;
+					boolean leakageError = false;
 					boolean botError = false;
 					boolean botBoundError = false;
 					boolean topError = false;
@@ -285,9 +295,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						//Cost
 						if(!isValidNumber(data.costText.getText()))
 							costError = true;
-						//Value
-						if(!isValidNumber(data.degradationText.getText()) && !data.degradationText.getText().equals(""))
-							valueError = true;
+						//Detection
+						if(!isValidNumber(data.detectionText.getText()) && !data.detectionText.getText().equals(""))
+							detectionError = true;
+						//Leakage
+						if(!isValidNumber(data.leakageText.getText()) && !data.leakageText.getText().equals(""))
+							leakageError = true;
 						//Zone bottom
 						if(!isValidNumber(data.minZText.getText()))
 							botError = true;
@@ -310,7 +323,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(commaError, "  Cannot use commas in alias.");
 					errorFound(emptyError, "  Need to enter an alias.");
 					errorFound(costError, "  Cost is not a real number.");
-					errorFound(valueError, "  Value is not a real number.");
+					errorFound(detectionError, "  Detection is not a real number.");
+					errorFound(leakageError, "  Leakage is not a real number.");
 					errorFound(botError, "  Bottom is not a real number.");
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
 					errorFound(topError, "  Top is not a real number.");
@@ -429,14 +443,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							Trigger.MINIMUM_THRESHOLD : isRelativeDetla ? Trigger.RELATIVE_DELTA : Trigger.ABSOLUTE_DELTA);	
 					if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 						min = 0;
-						max = Float.parseFloat(degradationText.getText());
+						max = Float.parseFloat(detectionText.getText());
 					} else {	
-						min = Float.parseFloat(degradationText.getText());
+						min = Float.parseFloat(detectionText.getText());
 						max = Float.MAX_VALUE;
 					}
 						
-					if(degradationText.getText().contains("+")) deltaType = DeltaType.INCREASE;
-					else if(degradationText.getText().contains("-")) deltaType = DeltaType.DECREASE;
+					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
+					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
 
 					toggleEnabled();
@@ -446,10 +460,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdComboData.widthHint = 140;
 			thresholdCombo.setLayoutData(thresholdComboData);
 			
-			//Value input
-			degradationText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			degradationText.setText(degradationErrorText);
-			degradationText.setForeground(degradationForeground);
+			//Detection input
+			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			detectionText.setText(detectionErrorText);
+			detectionText.setForeground(detectionForeground);
 			
 			//TODO: Verify that this is unnecessary
 			//Not sure what this is about... it was causing errors, so I commented out
@@ -471,44 +485,70 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(deltaType == DeltaType.INCREASE) valueInput.setText("+" + valueInput.getText());
 			*/
 			
-			degradationText.addModifyListener(new ModifyListener() {
+			detectionText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					degradationErrorText = ((Text)e.getSource()).getText();
-					boolean valueError = false;
+					detectionErrorText = ((Text)e.getSource()).getText();
+					boolean detectionError = false;
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(!isValidNumber(data.degradationText.getText()) && !data.degradationText.getText().equals("")) { //Valid number
-							data.degradationText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-							valueError = true;
+						if(!isValidNumber(data.detectionText.getText()) && !data.detectionText.getText().equals("")) { //Valid number
+							data.detectionText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							detectionError = true;
 						} else
-							data.degradationText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.detectionText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 					}
-					errorFound(valueError, "  Value is not a real number.");
-					degradationForeground = degradationText.getForeground();
+					errorFound(detectionError, "  Detection is not a real number.");
+					detectionForeground = detectionText.getForeground();
 					
 					try { // Verify that entry is a real number
 						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 							min = 0;
-							max = Float.parseFloat(degradationText.getText());
+							max = Float.parseFloat(detectionText.getText());
 						} else {	
-							min = Float.parseFloat(degradationText.getText());
+							min = Float.parseFloat(detectionText.getText());
 							max = Float.MAX_VALUE;
 						}
 						
-						if(degradationText.getText().contains("+")) deltaType = DeltaType.INCREASE;
-						else if(degradationText.getText().contains("-")) deltaType = DeltaType.DECREASE;
+						if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
+						else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
 					} catch (NumberFormatException ne) {
 						//only add real numbers
 					}
 				}
 			});
-			GridData minInputData = new GridData(SWT.FILL, SWT.END, false, false);
-			minInputData.widthHint = 60;
-			degradationText.setLayoutData(minInputData);
+			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
+			detectionInputData.widthHint = 60;
+			detectionText.setLayoutData(detectionInputData);
 
+			
+			//Leakage input
+			leakageText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			leakageText.setText(leakageErrorText);
+			leakageText.setForeground(leakageForeground);
+			leakageText.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					leakageErrorText = ((Text)e.getSource()).getText();
+					boolean leakageError = false;
+					for(SensorData data: sensorData.values()) {
+						if(!data.isIncluded) //Skip unchecked parameters
+							continue;
+						if(!isValidNumber(data.leakageText.getText()) && !data.leakageText.getText().equals("")) { //Valid number
+							data.leakageText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							leakageError = true;
+						} else
+							data.leakageText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					}
+					errorFound(leakageError, "  Leakage is not a real number.");
+					leakageForeground = leakageText.getForeground();
+				}
+			});
+			GridData leakageInputData = new GridData(SWT.FILL, SWT.END, false, false);
+			leakageInputData.widthHint = 60;
+			leakageText.setLayoutData(leakageInputData);
 			
 			
 			// Set minimum z
@@ -593,10 +633,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				costText.setEnabled(isIncluded);
 			if(thresholdCombo != null && !thresholdCombo.isDisposed())
 				thresholdCombo.setEnabled(isIncluded);					
-			if(degradationText != null && !degradationText.isDisposed())
-				degradationText.setEnabled(isIncluded);
-			if(degradationLabel != null && !degradationLabel.isDisposed())
-				degradationLabel.setEnabled(isIncluded);
+			if(detectionText != null && !detectionText.isDisposed())
+				detectionText.setEnabled(isIncluded);
+			if(detectionLabel != null && !detectionLabel.isDisposed())
+				detectionLabel.setEnabled(isIncluded);
+			if(leakageText != null && !leakageText.isDisposed())
+				leakageText.setEnabled(isIncluded);
+			if(leakageLabel != null && !leakageLabel.isDisposed())
+				leakageLabel.setEnabled(isIncluded);
 			if(minZLabel != null && !minZLabel.isDisposed())
 				minZLabel.setEnabled(isIncluded);
 			if(minZText != null && !minZText.isDisposed())
@@ -649,7 +693,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
-		layout.numColumns = 8;
+		layout.numColumns = 9;
 //		layout.makeColumnsEqualWidth = false;
 		
 		sc.setContent(container);
@@ -663,7 +707,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	public void completePage() throws Exception {
 		try{
 			flipZ = true; //Flip Z axis by default until a single entry uses elevation
-			isCurrentPage = false;		
+			isCurrentPage = false;
 			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 			Map<String, String> sensorAliases = new HashMap<String, String>();
 			if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
@@ -764,7 +808,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Label aliasLabel = new Label(container, SWT.LEFT);
 		Label costPerSensor = new Label(container, SWT.LEFT);
 		Label detectionCriteria = new Label(container, SWT.LEFT);
-		Label valueLabel = new Label(container, SWT.LEFT);
+		Label detectionLabel = new Label(container, SWT.LEFT);
+		Label leakageLabel = new Label(container, SWT.LEFT);
 		Label minZLabel = new Label(container, SWT.LEFT);
 		Label maxZLabel = new Label(container, SWT.LEFT);
 		
@@ -773,7 +818,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		aliasLabel.setText("Alias for Monitoring Technology");
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
-		valueLabel.setText("Detection Value");
+		detectionLabel.setText("Detection Value");
+		leakageLabel.setText("Leakage Criteria");
 		minZLabel.setText("Zone Bottom");
 		maxZLabel.setText("Zone Top");
 			
@@ -781,7 +827,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		aliasLabel.setFont(boldFont1);
 		costPerSensor.setFont(boldFont1);
 		detectionCriteria.setFont(boldFont1);
-		valueLabel.setFont(boldFont1);
+		detectionLabel.setFont(boldFont1);
+		leakageLabel.setFont(boldFont1);
 		minZLabel.setFont(boldFont1);
 		maxZLabel.setFont(boldFont1);
 				

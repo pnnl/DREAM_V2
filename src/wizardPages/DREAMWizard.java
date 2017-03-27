@@ -117,7 +117,7 @@ public class DREAMWizard extends Wizard {
 		if(this.domainViewer != null) 
 			this.domainViewer.show();
 	}
-
+	
 	@Override
 	public IWizardPage getNextPage(IWizardPage current) {
 
@@ -153,7 +153,7 @@ public class DREAMWizard extends Wizard {
 		addPage(new Page_InputDirectory(data));	
 		addPage(new Page_ScenarioWeighting(data));
 		addPage(new Page_LeakageCriteria(data));
-		if(Constants.buildDev) addPage(new Page_DegradationCriteria(data)); //For now, we are only doing this if we're in our "dev" version
+		//if(Constants.buildDev) addPage(new Page_DegradationCriteria(data)); //For now, we are only doing this if we're in our "dev" version
 		addPage(new Page_DetectionCriteria(data));
 		addPage(new Page_ConfigurationSettings(data));
 		addPage(new Page_ExcludeLocations(data));

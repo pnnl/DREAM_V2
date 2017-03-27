@@ -3,8 +3,6 @@ package objects;
 import hdf5Tool.HDF5Wrapper;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,17 +10,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import functions.CCS9_1;
-import objects.SensorSetting.Trigger;
 import utilities.Constants;
 import utilities.Point3f;
-import utilities.Point3i;
 
 /**
  * Holds the logic for a specific sensor type and threshold
@@ -71,6 +65,8 @@ public class SensorSetting {
 	
 	private String type;	
 	private float cost;
+	private float detection;
+	private float leakage;
 
 	private Float min;
 	private Float max;
@@ -107,6 +103,8 @@ public class SensorSetting {
 		this.scenarios = scenarios;
 		this.type = type;
 		this.cost = 100;
+		this.detection = 0;
+		this.leakage = 0;
 
 		setMin();
 		setMax();
@@ -639,11 +637,17 @@ public class SensorSetting {
 		isReady = false;
 	}
 
-
 	public float getCost() {
 		return cost;
 	}
-
+	
+	public float getDetection() {
+		return detection;
+	}
+	
+	public float getLeakage() {
+		return leakage;
+	}
 
 	public void setCost(float cost) {
 		this.cost = cost;
@@ -736,19 +740,19 @@ public class SensorSetting {
 		this.deltaType = deltaType;
 	}
 
-	public static float getMinZ() {
+	public float getMinZ() {
 		return globalMinZ;
 	}
 
-	public static void setMinZ(float minZ) {
+	public void setMinZ(float minZ) {
 		globalMinZ = minZ;
 	}
 
-	public static float getMaxZ() {
+	public float getMaxZ() {
 		return globalMaxZ;
 	}
 
-	public static void setMaxZ(float maxZ) {
+	public void setMaxZ(float maxZ) {
 		globalMaxZ = maxZ;
 	}
 	
