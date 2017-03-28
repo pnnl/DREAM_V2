@@ -6,7 +6,6 @@ import java.util.Map;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
@@ -18,6 +17,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -27,7 +27,6 @@ import objects.Sensor;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_LeakageCriteria.SensorData;
 
 /**
  * Page for setting what sensors need to trigger to signify a detection
@@ -36,7 +35,7 @@ import wizardPages.Page_LeakageCriteria.SensorData;
  * @author rodr144
  */
 
-public class Page_DetectionCriteria extends WizardPage implements AbstractWizardPage {
+public class Page_DetectionCriteria extends DreamWizardPage implements AbstractWizardPage {
 
 	STORMData data;
 	
@@ -48,6 +47,7 @@ public class Page_DetectionCriteria extends WizardPage implements AbstractWizard
 
 	private boolean isCurrentPage = false;
 	private Text minText;
+	private int count;
 	
 	protected Page_DetectionCriteria(STORMData data) {
 		super("Detection Criteria");
@@ -73,7 +73,7 @@ public class Page_DetectionCriteria extends WizardPage implements AbstractWizard
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 			
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -119,7 +119,6 @@ public class Page_DetectionCriteria extends WizardPage implements AbstractWizard
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 2;
 		infoLabel.setLayoutData(infoGridData);
-		// TODO
 		
 		if(minimumSensors == null)
 			minimumSensors = new HashMap<String, Text>();
@@ -129,79 +128,84 @@ public class Page_DetectionCriteria extends WizardPage implements AbstractWizard
 		
 		Label setLabel = new Label(container, SWT.NULL);
 		setLabel.setText("Monitoring Parameter");
+		setLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		new Label(container, SWT.NULL);
 		Label probabilityLabel = new Label(container, SWT.NULL);
 		probabilityLabel.setText("Minimum Triggered Sensors");
+		probabilityLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		
 		setLabel.setFont(boldFont);
 		probabilityLabel.setFont(boldFont);
 		
-			if(!(data.modelOption == ModelOption.ALL_SENSORS)){
+		if(!(data.modelOption == ModelOption.ALL_SENSORS)){
 			for(String dataType: data.getSet().getDataTypes()) {
 				
 				final Label dataLabel = new Label(container, SWT.NULL);
-				dataLabel.setText(Sensor.sensorAliases.get(dataType));			
+				dataLabel.setText(Sensor.sensorAliases.get(dataType));
+				dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+				new Label(container, SWT.NULL);
 				
-				Text minText = new Text(container, SWT.BORDER | SWT.SINGLE);
+				Text indText = new Text(container, SWT.BORDER | SWT.SINGLE);
 				if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
-					minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
-				if(minText.getText().isEmpty() ||minText.getText().trim().equals("0")) {
-					(dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
-				} else {
-					(dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
-				}
-				minText.addModifyListener(new ModifyListener() {
+					indText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
+				indText.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
-						try {
-							Float.parseFloat(((Text)e.getSource()).getText());	
-							((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-							testReady();
-						} catch (NumberFormatException ne) {
-							((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-							testReady();
+						boolean individualError = false;
+						count = 0;
+						for(Text individualSensors: minimumSensors.values()) {
+							if(isValidNumber(individualSensors.getText())) { //Valid number
+								individualSensors.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+								count += Integer.parseInt(individualSensors.getText());
+							}
+							else {
+								individualSensors.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								individualError = true;
+							}
 						}
-						if(((Text)e.getSource()).getText().isEmpty() || ((Text)e.getSource()).getText().trim().equals("0")) {
-							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 255, 0, 0));						
-						} else {
-							if(!dataLabel.isDisposed()) (dataLabel).setForeground(new Color(container.getDisplay(), 0, 0, 0));						
-						}
-						
-					}				
+						errorFound(individualError, "  Min is not a real number.");
+						if (count > Integer.parseInt(minText.getText()))
+							minText.setText(Integer.toString(count));
+					}
 				});
-				GridData gdc = new GridData(GridData.FILL_HORIZONTAL);
-				minText.setLayoutData(gdc);
-				minimumSensors.put(dataType, minText);
-				
-			}	
+				indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+				minimumSensors.put(dataType, indText);
+			}
 		}
 		else{
 			for(String dataType: data.getSet().getDataTypes()) {
 				minimumSensors.put(dataType, null);
 			}
 		}
-		
+		Label orFiller1 = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
+		orFiller1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		Label orText = new Label(container, SWT.NULL);
+		orText.setText("or");
+		orText.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		Label orFiller2 = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
+		orFiller2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+			
 		Label dataLabel = new Label(container, SWT.NULL);
-		dataLabel.setText("Overall Minimum Required ");			
+		dataLabel.setText("Overall Minimum Required ");
+		dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		new Label(container, SWT.NULL);
 		minText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		if(data.getSet().getInferenceTest().getOverallMinimum() >= 0)
 			minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getOverallMinimum()));	
-		GridData gdc = new GridData(GridData.FILL_HORIZONTAL);
+		minText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		minText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+				boolean overallError = false;
+				if(isValidNumber(((Text)e.getSource()).getText())) //Valid number
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				else {
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+					overallError = true;
 				}
-			}				
+				errorFound(overallError, "  Overall min is not a real number.");
+			}
 		});
-		minText.setLayoutData(gdc);
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -244,24 +248,4 @@ public class Page_DetectionCriteria extends WizardPage implements AbstractWizard
 		isCurrentPage = current;
 	}
 
-	private void testReady() {
-		boolean isReady = true;
-
-		for(Text data: minimumSensors.values()) {
-
-
-			if(data!=null && data.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-				isReady = false;
-				break;
-			}
-
-		}	
-
-		if(minText.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-		}
-		
-		if(this.isPageComplete() != isReady)
-			this.setPageComplete(isReady);
-	}
 }

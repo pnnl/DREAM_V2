@@ -708,14 +708,18 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		try{
 			flipZ = true; //Flip Z axis by default until a single entry uses elevation
 			isCurrentPage = false;
+			int count = 0;
 			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 			Map<String, String> sensorAliases = new HashMap<String, String>();
 			if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
 			SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 			for(String label: sensorData.keySet()) {
 				SensorData data = sensorData.get(label);
-				if (data.isIncluded==true && data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
-					flipZ = false;
+				if (data.isIncluded==true) {
+					count++;
+					if(data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
+						flipZ = false;
+				}
 				String alias = data.alias;
 				sensorSettings.put(label, data);
 				sensorAliases.put(label, alias.equals("") ? label: alias);
@@ -734,6 +738,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			DREAMWizard.visLauncher.setEnabled(false);
 			buttonSelectDir.setEnabled(false);
 			Sensor.sensorAliases = sensorAliases;
+			data.getSet().getInferenceTest().setMinimum(count);
 			data.setupSensors(false, sensorSettings);
 			data.needToResetWells = true;
 			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
@@ -1209,7 +1214,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	private void addSensor(String dataType, String newName){
 		data.getSet().addSensorSetting(newName, dataType);
-		data.getSet().getInferenceTest().setMinimumRequiredForType(newName, -1);
+		data.getSet().getInferenceTest().setMinimumRequiredForType(newName, 1);
 		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 	}
 	
