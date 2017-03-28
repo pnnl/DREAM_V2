@@ -30,7 +30,7 @@ public class InferenceTest {
 
 		for(String dataType: dataTypes) {
 			this.dataTypes.add(dataType);
-			minimumRequiredPerType.put(dataType, -1); // Every dataType must have 3 sensors triggering
+			minimumRequiredPerType.put(dataType, 1);
 		}
 		
 		
