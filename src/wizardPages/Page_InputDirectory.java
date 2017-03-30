@@ -200,15 +200,13 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			@Override
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(hdf5Text.getText());
-				boolean dir = resultsFolder.isDirectory();
-				if (dir == true) {
-					errorFound(false, "  Invalid Directory.");
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
-				} else {
-					errorFound(true, "  Invalid Directory.");
+				boolean dir = !resultsFolder.isDirectory();
+				if (dir == true)
 					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				}
-			}				
+				else
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				errorFound(dir, "  Invalid Directory.");
+			}
 		});
 	
 		//This is the old code for when we had drop-downs, in case a design decision is made to revert to that functionality.

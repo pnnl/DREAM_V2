@@ -705,50 +705,45 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	@Override
 	public void completePage() throws Exception {
-		try{
-			flipZ = true; //Flip Z axis by default until a single entry uses elevation
-			isCurrentPage = false;
-			int count = 0;
-			Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
-			Map<String, String> sensorAliases = new HashMap<String, String>();
-			if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
-			SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
-			for(String label: sensorData.keySet()) {
-				SensorData data = sensorData.get(label);
-				if (data.isIncluded==true) {
-					count++;
-					if(data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
-						flipZ = false;
-				}
-				String alias = data.alias;
-				sensorSettings.put(label, data);
-				sensorAliases.put(label, alias.equals("") ? label: alias);
-				SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
+		flipZ = true;
+		isCurrentPage = false;
+		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
+		Map<String, String> sensorAliases = new HashMap<String, String>();
+		if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
+		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
+		int count = 0;
+		for(String label: sensorData.keySet()) {
+			SensorData data = sensorData.get(label);
+			if (data.isIncluded==true) {
+				data.cost = Float.valueOf(data.costErrorText);
+				data.detection = Float.valueOf(data.detectionErrorText);
+				data.leakage = Float.valueOf(data.leakageErrorText);
+				sensorData.put(label, data);
+				count++;
+				if(data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
+					flipZ = false;
 			}
-			if(flipZ = true) { //All activated sensors had their axis flipped
-				// TODO: Jon handle flipped Z axis... need better understanding of full process first
-				/*
-				for (SensorData flipTheAxis : sensorSettings.values()) {
-					Float temp = flipTheAxis.minZBound;
-					flipTheAxis.minZBound = flipTheAxis.maxZBound;
-					flipTheAxis.maxZBound = temp;
-				}
-				*/
+			sensorSettings.put(label, data);
+			sensorAliases.put(label, data.alias);
+			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
+		}
+		if(flipZ = true) { //All activated sensors had their axis flipped
+			// TODO: Jon handle flipped Z axis... need better understanding of full process first
+			/*
+			for (SensorData flipTheAxis : sensorSettings.values()) {
+				Float temp = flipTheAxis.minZBound;
+				flipTheAxis.minZBound = flipTheAxis.maxZBound;
+				flipTheAxis.maxZBound = temp;
 			}
-			DREAMWizard.visLauncher.setEnabled(false);
-			buttonSelectDir.setEnabled(false);
-			Sensor.sensorAliases = sensorAliases;
-			data.getSet().getInferenceTest().setMinimum(count);
-			data.setupSensors(false, sensorSettings);
-			data.needToResetWells = true;
-			if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
-			
-			DREAMWizard.visLauncher.setEnabled(true);
+			*/
 		}
-		catch(Exception e){
-			e.printStackTrace();
-			throw e;
-		}
+		Sensor.sensorAliases = sensorAliases;
+		data.getSet().getInferenceTest().setMinimum(count);
+		data.setupSensors(false, sensorSettings);
+		data.needToResetWells = true;
+		if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
+		
+		DREAMWizard.visLauncher.setEnabled(true);
 	}
 
 	@Override

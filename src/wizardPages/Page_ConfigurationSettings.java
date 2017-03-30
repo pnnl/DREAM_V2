@@ -3,7 +3,6 @@ package wizardPages;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
@@ -16,6 +15,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Text;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_LeakageCriteria.SensorData;
 
 /**
  * Set algorithmic limitations for the simulated annealing process.
@@ -33,7 +32,7 @@ import wizardPages.Page_LeakageCriteria.SensorData;
  * @author rodr144
  */
 
-public class Page_ConfigurationSettings extends WizardPage implements AbstractWizardPage {
+public class Page_ConfigurationSettings extends DreamWizardPage implements AbstractWizardPage {
 
 	private STORMData data;
 	private ScrolledComposite sc;
@@ -145,15 +144,20 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 		costConstraint.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean minError = false;
+				if (numError==true)
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				else {
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getCostConstraint()) {
+						minError = true;
+						((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+					}
 				}
-			}				
+				errorFound(numError, "  Cost constraint is not a real number.");
+				errorFound(minError, "  Cost constraint cannot be less the minimum sensor requirement.");
+			}
 		});
 
 		Label wellLabel = new Label(container, SWT.NULL);
@@ -165,15 +169,13 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 		maxWells.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
-				}
-			}				
+				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				errorFound(numError, "  Wells is not a real number.");
+			}
 		});
 
 		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
@@ -185,15 +187,13 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 		exclusionRadius.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
-				}
-			}				
+				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				errorFound(numError, "  Distance is not a real number.");
+			}
 		});
 
 		Label wellCostLabel = new Label(container, SWT.NULL);
@@ -205,15 +205,13 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 		wellCost.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
-				}
-			}				
+				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				errorFound(numError, "  Cost is not a real number.");
+			}
 		});
 		
 		wellCost.setVisible(Constants.buildDev);
@@ -239,7 +237,7 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
-
+	
 
 	public float getCostConstraint() { 
 		try {
@@ -297,31 +295,5 @@ public class Page_ConfigurationSettings extends WizardPage implements AbstractWi
 	@Override
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
-	}
-	
-
-
-	private void testReady() {
-		boolean isReady = true;
-
-		if(costConstraint.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-		}
-
-		if(maxWells.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-		}
-
-		if(exclusionRadius.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-		}
-
-		if(Constants.buildDev && wellCost.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-		}
-
-
-		if(this.isPageComplete() != isReady)
-			this.setPageComplete(isReady);
 	}
 }
