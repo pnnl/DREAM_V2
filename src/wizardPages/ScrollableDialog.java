@@ -41,7 +41,7 @@ public class ScrollableDialog extends TitleAreaDialog {
 	private int currentIteration;
 	private int currentRun;
 	private Label temp;
-	private Label pText;
+	//private Label pText;
 	
 	public ScrollableDialog(Shell parentShell, String title, int runs, int iterations) {
 		super(parentShell);		

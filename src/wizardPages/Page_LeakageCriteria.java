@@ -200,16 +200,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						sensorData.remove(sensorName);
 						data.getSet().getSensorSettings().remove(sensorName);
 						loadPage();
-						//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
-						//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
-						if(System.getProperty("os.name").contains("Mac")){
-							for(String sensor : sensorData.keySet()){
-								if(sensorData.get(sensor).isIncluded){
-									sensorData.get(sensor).aliasText.setFocus();
-									break;
-								}
-							}
-						}
+						fixMacBug();
 					}
 			    });
 			    addButton.setText("-");
@@ -223,16 +214,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						addSensor(sensorType, sensorType + "_" + num_duplicates.get(sensorType));
 						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
 						loadPage();
-						//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
-						//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
-						if(System.getProperty("os.name").contains("Mac")){
-							for(String sensor : sensorData.keySet()){
-								if(sensorData.get(sensor).isIncluded){
-									sensorData.get(sensor).aliasText.setFocus();
-									break;
-								}
-							}
-						}
+						fixMacBug();
 					}
 			    });
 			    addButton.setText("+");
@@ -868,16 +850,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		queryButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
-				//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
-				if(System.getProperty("os.name").contains("Mac")){
-					for(String sensor : sensorData.keySet()){
-						if(sensorData.get(sensor).isIncluded){
-							sensorData.get(sensor).aliasText.setFocus();
-							break;
-						}
-					}
-				}
+				fixMacBug();
 				Constants.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;							
@@ -1090,16 +1063,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		e4dButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
-				//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
-				if(System.getProperty("os.name").contains("Mac")){
-					for(String sensor : sensorData.keySet()){
-						if(sensorData.get(sensor).isIncluded){
-							sensorData.get(sensor).aliasText.setFocus();
-							break;
-						}
-					}
-				}
+				fixMacBug();
 				
 				//Write out the x-y and i-j well locations
 				HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
@@ -1263,6 +1227,20 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		long total = System.currentTimeMillis() - current;
 		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
+	
+	//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
+	//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
+	public void fixMacBug() {
+		if(System.getProperty("os.name").contains("Mac")){
+			for(String sensor : sensorData.keySet()){
+				if(sensorData.get(sensor).isIncluded){
+					sensorData.get(sensor).aliasText.setFocus();
+					break;
+				}
+			}
+		}
+	}
+	
 	
 	@Override
 	public boolean isPageCurrent() {

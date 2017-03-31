@@ -1,28 +1,17 @@
 package wizardPages;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import objects.ExtendedConfiguration;
-import objects.ExtendedSensor;
-import objects.InferenceTest;
-import objects.NodeStructure;
 import objects.Scenario;
-import objects.ScenarioSet;
-import objects.Sensor;
 import objects.SensorSetting;
 import objects.TimeStep;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -51,7 +40,6 @@ import hdf5Tool.HDF5Wrapper;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
-import wizardPages.Page_LeakageCriteria.SensorData;
 
 /**
  * Page for aquifer degradation criteria - stripped down version of Page_MonitoringParameters, for the most part

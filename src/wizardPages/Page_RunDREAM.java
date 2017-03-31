@@ -5,30 +5,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -37,7 +28,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
@@ -47,27 +37,14 @@ import org.eclipse.swt.widgets.Text;
 //maybe these should move elsewhere?
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.CategoryAxis;
-import org.jfree.chart.axis.CategoryLabelPositions;
-import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.Range;
-import org.jfree.data.category.CategoryDataset;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.category.SlidingCategoryDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.RectangleInsets;
-//These.
-
-
 
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
-import objects.InferenceTest;
 import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
@@ -78,7 +55,6 @@ import utilities.Constants;
 import utilities.EnsembleDialog;
 import utilities.Point3f;
 import utilities.Point3i;
-import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -98,9 +74,9 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 	private Text runs;
 	private Text samples;
 	private Text iterations;
-	private Text minNumSensors;
-	private Text maxNumSensors;
-	private Text iterationsPerSensorNumber;
+	//private Text minNumSensors;
+	//private Text maxNumSensors;
+	//private Text iterationsPerSensorNumber;
 
 	private Button showPlots;
 	
