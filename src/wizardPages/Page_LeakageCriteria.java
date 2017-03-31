@@ -58,9 +58,7 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWizardPage {
-	
-	public Boolean flipZ;
-	
+		
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
@@ -470,19 +468,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			/*
 			if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 				if(max != 0) {// What if a user wants to set this to 0? 
-					valueInput.setText(Constants.decimalFormat.format(max));
+					detectionText.setText(Constants.decimalFormat.format(max));
 					if(max < 0.001)
-						valueInput.setText(Constants.exponentialFormat.format(max));
+						detectionText.setText(Constants.exponentialFormat.format(max));
 				}
 			} else { 
 				if(min != 0) {
-					valueInput.setText(Constants.decimalFormat.format(min));
+					detectionText.setText(Constants.decimalFormat.format(min));
 					if(min < 0.001)
-						valueInput.setText(Constants.exponentialFormat.format(min));
+						detectionText.setText(Constants.exponentialFormat.format(min));
 				}
 			}
 			
-			if(deltaType == DeltaType.INCREASE) valueInput.setText("+" + valueInput.getText());
+			if(deltaType == DeltaType.INCREASE) detectionText.setText("+" + detectionText.getText());
 			*/
 			
 			detectionText.addModifyListener(new ModifyListener() {
@@ -705,7 +703,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	@Override
 	public void completePage() throws Exception {
-		flipZ = true;
 		isCurrentPage = false;
 		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 		Map<String, String> sensorAliases = new HashMap<String, String>();
@@ -720,22 +717,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				data.leakage = Float.valueOf(data.leakageErrorText);
 				sensorData.put(label, data);
 				count++;
-				if(data.minZ < data.maxZ) //Found a "normal" Z axis with elevation
-					flipZ = false;
 			}
 			sensorSettings.put(label, data);
 			sensorAliases.put(label, data.alias);
 			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
-		}
-		if(flipZ = true) { //All activated sensors had their axis flipped
-			// TODO: Jon handle flipped Z axis... need better understanding of full process first
-			/*
-			for (SensorData flipTheAxis : sensorSettings.values()) {
-				Float temp = flipTheAxis.minZBound;
-				flipTheAxis.minZBound = flipTheAxis.maxZBound;
-				flipTheAxis.maxZBound = temp;
-			}
-			*/
 		}
 		Sensor.sensorAliases = sensorAliases;
 		data.getSet().getInferenceTest().setMinimum(count);
