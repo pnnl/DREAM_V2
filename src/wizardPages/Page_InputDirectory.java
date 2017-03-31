@@ -194,21 +194,44 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		GridData myGd = new GridData(GridData.FILL_HORIZONTAL);
 		hdf5Text.setText(Constants.homeDirectory);
 		hdf5Text.setLayoutData(myGd);
+		boolean h5Error = true;
+		File resultsFolder = new File(hdf5Text.getText());
+		File[] fList = resultsFolder.listFiles();
+		for (File file : fList) {
+			if(file.getName().contains(".h5")) {
+				h5Error = false;
+				break;
+			}
+		}
+		errorFound(h5Error, "  Directory must contain an h5 file.");
 		
 		//Change text red when directory is invalid
 		hdf5Text.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(hdf5Text.getText());
-				boolean dir = !resultsFolder.isDirectory();
-				if (dir == true)
+				boolean dirError = !resultsFolder.isDirectory();
+				boolean h5Error = true;
+				if (dirError == true) {
 					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				else
+					h5Error = false;
+				} else {
 					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
-				errorFound(dir, "  Invalid Directory.");
+					File[] fList = resultsFolder.listFiles();
+					for (File file : fList) {
+						if(file.getName().contains(".h5")) {
+							h5Error = false;
+							break;
+						}
+					}
+				}
+				errorFound(dirError, "  Invalid directory.");
+				errorFound(h5Error, "  Directory must contain an h5 file.");
 			}
 		});
-	
+		
+		
+		
 		//This is the old code for when we had drop-downs, in case a design decision is made to revert to that functionality.
 		/*
 		Label functionLabel = new Label(container, SWT.NULL);
