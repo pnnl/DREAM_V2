@@ -43,6 +43,7 @@ public class ScenarioSet {
 	private float exclusionRadius;
 	private float inclusionRadius;
 	private float wellCost;
+	private float remediationCost;
 	private boolean allowMultipleSensorsInWell;
 	
 	private Map<Scenario, Float> scenarioWeights;
@@ -78,6 +79,7 @@ public class ScenarioSet {
 		exclusionRadius = 0;
 		inclusionRadius = Float.MAX_VALUE;
 		wellCost = 65;
+		remediationCost = 85;
 		allowMultipleSensorsInWell = true;
 		
 		wells = new ArrayList<Well>();
@@ -120,6 +122,7 @@ public class ScenarioSet {
 		builder.append("\t\tExclusion radius: " + exclusionRadius + "\r\n");
 		if(Constants.buildDev){
 			builder.append("\t\tCost per unit depth of well: " + wellCost + "\r\n");
+			builder.append("\t\tRemediation cost per water unit: " + remediationCost + "\r\n");
 		}
 		builder.append("\t\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 		builder.append(getInferenceTest());
@@ -128,7 +131,7 @@ public class ScenarioSet {
 
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, boolean allowMultipleSensorsInWell) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, float remediationCost, boolean allowMultipleSensorsInWell) {
 	
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
@@ -136,6 +139,8 @@ public class ScenarioSet {
 		this.maxWells = maxWells;
 		this.costConstraint = costConstraint;
 		this.exclusionRadius = exclusionRadius;
+		this.wellCost = wellCost;
+		this.remediationCost = remediationCost;
 		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 		isReady = true;
 		//TEST!!!
@@ -257,6 +262,14 @@ public class ScenarioSet {
 
 	public void setWellCost(float wellCost) {
 		this.wellCost = wellCost;
+	}
+	
+	public float getRemediationCost() {
+		return remediationCost;
+	}
+
+	public void setRemediationCost(float remediationCost) {
+		this.remediationCost = remediationCost;
 	}
 
 	public boolean getAllowMultipleSensorsInWell() {

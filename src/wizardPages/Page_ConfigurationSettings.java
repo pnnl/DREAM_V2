@@ -44,6 +44,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text maxWells;
 	private Text exclusionRadius;
 	private Text wellCost;
+	private Text remediationCost;
 	private Button allowMultipleSensorsInWell;
 	private Button averageTTD;
 
@@ -134,7 +135,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		});
 		infoLink.setLayoutData(infoLinkData);
 		
-
+		//Cost constraint
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Sensor Budget");
 		costConstraint= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -160,6 +161,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 		});
 
+		//Maximum number of wells
 		Label wellLabel = new Label(container, SWT.NULL);
 		wellLabel.setText("Maximum Number of Wells");
 		maxWells= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -178,6 +180,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 		});
 
+		//Minimum distance between wells
 		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells");
 		exclusionRadius= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -196,6 +199,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 		});
 
+		//Cost per well depth
 		Label wellCostLabel = new Label(container, SWT.NULL);
 		wellCostLabel.setText("Cost of Well Per Unit Depth");
 		wellCost= new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -213,18 +217,38 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 				errorFound(numError, "  Cost is not a real number.");
 			}
 		});
-		
 		wellCost.setVisible(Constants.buildDev);
 		wellCostLabel.setVisible(Constants.buildDev);
+		
+		//Remediation cost
+		Label remediationCostLabel = new Label(container, SWT.NULL);
+		remediationCostLabel.setText("Remediation Cost Per Water Unit");
+		remediationCost= new Text(container, SWT.BORDER | SWT.SINGLE);
+		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
+		GridData remediationCostGD = new GridData(GridData.FILL_HORIZONTAL);
+		remediationCost.setLayoutData(remediationCostGD);
+		remediationCost.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+				else
+					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				errorFound(numError, "  Remediation cost is not a real number.");
+			}
+		});
+		remediationCost.setVisible(Constants.buildDev);
+		remediationCostLabel.setVisible(Constants.buildDev);
 
-
+		//Average time to detection check box
 		averageTTD = new Button(container, SWT.CHECK);
 		averageTTD.setText("Use average time to detection");
 		new Label(container, SWT.NULL);
 		averageTTD.setSelection(true);
-
 		averageTTD.setVisible(Constants.buildDev);
 
+		//Allow multiple sensors per well check box
 		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
 		allowMultipleSensorsInWell.setText("Allow Multiple Sensors in a Well");
 		new Label(container, SWT.NULL);
@@ -280,12 +304,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			return 0;
 		}
 	}
+	
+	public float getRemediationCost() {
+		try {
+			return Float.parseFloat(remediationCost.getText());
+		} catch(Exception e) {
+			return 0;
+		}
+	}
 
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 		Constants.returnAverageTTD = averageTTD.getSelection();
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), allowMultipleSensorsInWell.getSelection());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getRemediationCost(), allowMultipleSensorsInWell.getSelection());
 	}
 
 	@Override
