@@ -197,6 +197,7 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		costGD.horizontalSpan = 1;
 		outputFolder.setLayoutData(costGD);
 		
+		//If a sensor were placed at every node, provide the best possible time to detection
 		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
@@ -309,6 +310,7 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 			}	       
 		});	
 		
+		//Volume of aquifer degraded
 		Button vadButton = new Button(container, SWT.BALLOON);
 		vadButton.setSelection(true);
 		vadButton.setText("VAD");
@@ -355,9 +357,7 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 			}	       
 		});
 		
-		//Label spacer = new Label(container, SWT.NONE);
-
-
+		//Begin the process for determining array optimization
 		Button button = new Button(container, SWT.BALLOON);
 		button.setSelection(true);
 		button.setText("Run Iterative Procedure");
@@ -376,7 +376,6 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		iterations.setLayoutData(iterationGD);
 
 		button.addListener(SWT.Selection, new Listener() {
-
 			@Override
 			public void handleEvent(Event arg0) {
 				printSolutionSpaceTab();

@@ -159,7 +159,6 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		probabilityLabel.setText("Weight");
 		
 		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getAllScenarios());
-		Collections.sort(scenarios);
 
 		if(scenarios.size() > 1) {
 			Label setLabel2 = new Label(container, SWT.NULL);

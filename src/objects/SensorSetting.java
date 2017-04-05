@@ -450,13 +450,11 @@ public class SensorSetting {
 	
 	private void paretoOptimal(){
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		List<Scenario> sortedScenarios = scenarios;
-		Collections.sort(sortedScenarios);
 		
 		for(Integer nodeNumber: validNodes){
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
-			for(Scenario scenario: sortedScenarios){
+			for(Scenario scenario: scenarios){
 				Float timeToDegredation = Float.MAX_VALUE;
 				for (TimeStep timeStep: nodeStructure.getTimeSteps()){
 					try {
@@ -517,14 +515,13 @@ public class SensorSetting {
 	
 
 	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
-	public static HashSet<Integer> paretoOptimalAll(HashSet<Integer> allNodes, List<Scenario> sortedScenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
+	public static HashSet<Integer> paretoOptimalAll(HashSet<Integer> allNodes, List<Scenario> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		Collections.sort(sortedScenarios);
 		
 		for(Integer nodeNumber: allNodes){
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
-			for(Scenario scenario: sortedScenarios){
+			for(Scenario scenario: scenarios){
 				Float timeToDegredation = Float.MAX_VALUE;
 				for (TimeStep timeStep: ns.getTimeSteps()){
 					try {

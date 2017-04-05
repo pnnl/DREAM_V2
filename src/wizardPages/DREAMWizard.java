@@ -519,15 +519,9 @@ public class DREAMWizard extends Wizard {
 
 		//Returns whether or not the run was cancelled for future use
 		public boolean run(final int runs, final boolean showPlots) throws Exception {
-			if(showPlots){
-				// Resets the vis window
-				wizard.launchVisWindow(true, true);	
-				runner.setDomainViewer(wizard.domainViewer);
-			}
-			else{
-				wizard.launchVisWindow(true, false);
-				runner.setDomainViewer(wizard.domainViewer);
-			}
+			// Resets the vis window
+			wizard.launchVisWindow(true, showPlots);
+			runner.setDomainViewer(wizard.domainViewer);
 			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {

@@ -3,6 +3,8 @@ package hdf5Tool;
 import java.awt.Dialog;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -259,6 +261,18 @@ public class HDF5Wrapper {
 		for(String key: Constants.hdf5Files.keySet()) {
 			scenarios.add(key);
 		}
+		//Sort the scenarios - needed a special comparator for strings + numbers
+		Collections.sort(scenarios, new Comparator<String>() {
+			public int compare(String o1, String o2) {
+		        return extractInt(o1) - extractInt(o2);
+		    }
+
+		    int extractInt(String s) {
+		        String num = s.replaceAll("\\D", "");
+		        // return 0 if no digits found
+		        return num.isEmpty() ? 0 : Integer.parseInt(num);
+		    }
+		});
 		return scenarios;
 	}
 
