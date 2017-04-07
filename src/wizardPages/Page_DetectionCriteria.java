@@ -154,7 +154,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 						boolean individualError = false;
 						count = 0;
 						for(Text individualSensors: minimumSensors.values()) {
-							if(isValidNumber(individualSensors.getText())) { //Valid number
+							if(isValidFloat(individualSensors.getText())) { //Valid number
 								individualSensors.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 								count += Integer.parseInt(individualSensors.getText());
 							}
@@ -202,7 +202,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			public void modifyText(ModifyEvent e) {
 				boolean overallError = false;
 				boolean smallError = false;
-				if(isValidNumber(((Text)e.getSource()).getText())) { //Valid number
+				if(isValidFloat(((Text)e.getSource()).getText())) { //Valid number
 					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
 					if(Integer.parseInt(((Text)e.getSource()).getText()) < count) {
 						smallError = true;

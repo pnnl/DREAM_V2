@@ -279,7 +279,7 @@ public class ScenarioSet {
 	public void setAllowMultipleSensorsInWell(boolean allowMultipleSensorsInWell) {
 		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 	}
-
+	
 	public int getIterations() {
 		return iterations;
 	}
@@ -288,13 +288,12 @@ public class ScenarioSet {
 		this.iterations = iterations;
 	}
 
+	public InferenceTest getInferenceTest() {
+		return inferenceTest;
+	}
 	
 	public void setInferenceTest(InferenceTest test) {
 		this.inferenceTest = test;
-	}
-	
-	public InferenceTest getInferenceTest() {
-		return inferenceTest;
 	}
 
 	public float getCost(ExtendedConfiguration configuration) {

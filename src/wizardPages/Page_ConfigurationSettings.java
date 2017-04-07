@@ -7,7 +7,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -15,7 +14,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -47,7 +45,8 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text remediationCost;
 	private Button allowMultipleSensorsInWell;
 	private Button averageTTD;
-
+	
+	private float cost = 0; //Since data.getSet().getCostConstraint is set at the end of the previous page, use local variable
 	private boolean isCurrentPage = false;
 
 	protected Page_ConfigurationSettings(STORMData data) {
@@ -55,7 +54,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//	setDescription("Run setup");
 		this.data = data;			
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
@@ -138,23 +137,26 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Cost constraint
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Sensor Budget");
-		costConstraint= new Text(container, SWT.BORDER | SWT.SINGLE);
-		costConstraint.setText(String.valueOf(data.getSet().getCostConstraint()));
-		GridData iterGD = new GridData(GridData.FILL_HORIZONTAL);
-		costConstraint.setLayoutData(iterGD);
+		if (cost==0)
+			cost = data.getSet().getCostConstraint();
+		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
+		costConstraint.setText(String.valueOf(cost));
+		costConstraint.setForeground(black);
+		costConstraint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		costConstraint.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
 				boolean minError = false;
 				if (numError==true)
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+					((Text)e.getSource()).setForeground(red);
 				else {
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(black);
 					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getCostConstraint()) {
 						minError = true;
-						((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-					}
+						((Text)e.getSource()).setForeground(red);
+					} else
+						cost = Float.parseFloat(((Text)e.getSource()).getText());
 				}
 				errorFound(numError, "  Cost constraint is not a real number.");
 				errorFound(minError, "  Cost constraint cannot be less the minimum sensor requirement.");
@@ -164,18 +166,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Maximum number of wells
 		Label wellLabel = new Label(container, SWT.NULL);
 		wellLabel.setText("Maximum Number of Wells");
-		maxWells= new Text(container, SWT.BORDER | SWT.SINGLE);
+		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
 		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
-		GridData maxWellGD = new GridData(GridData.FILL_HORIZONTAL);
-		maxWells.setLayoutData(maxWellGD);
+		maxWells.setForeground(black);
+		maxWells.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		maxWells.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean numError = !isValidInt(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				else
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(red);
+				else {
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setMaxWells(Integer.parseInt(((Text)e.getSource()).getText()));
+				}
 				errorFound(numError, "  Wells is not a real number.");
 			}
 		});
@@ -183,18 +187,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Minimum distance between wells
 		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells");
-		exclusionRadius= new Text(container, SWT.BORDER | SWT.SINGLE);
+		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
 		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
-		GridData exclusionRadiusGD = new GridData(GridData.FILL_HORIZONTAL);
-		exclusionRadius.setLayoutData(exclusionRadiusGD);
+		exclusionRadius.setForeground(black);
+		exclusionRadius.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		exclusionRadius.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				else
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(red);
+				else {
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setExclusionRadius(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
 				errorFound(numError, "  Distance is not a real number.");
 			}
 		});
@@ -202,18 +208,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Cost per well depth
 		Label wellCostLabel = new Label(container, SWT.NULL);
 		wellCostLabel.setText("Cost of Well Per Unit Depth");
-		wellCost= new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-		GridData wellCostGD = new GridData(GridData.FILL_HORIZONTAL);
-		wellCost.setLayoutData(wellCostGD);
+		wellCost.setForeground(black);
+		wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		wellCost.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				else
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(red);
+				else {
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
 				errorFound(numError, "  Cost is not a real number.");
 			}
 		});
@@ -223,18 +231,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Remediation cost
 		Label remediationCostLabel = new Label(container, SWT.NULL);
 		remediationCostLabel.setText("Remediation Cost Per Water Unit");
-		remediationCost= new Text(container, SWT.BORDER | SWT.SINGLE);
+		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
-		GridData remediationCostGD = new GridData(GridData.FILL_HORIZONTAL);
-		remediationCost.setLayoutData(remediationCostGD);
+		remediationCost.setForeground(black);
+		remediationCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		remediationCost.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidNumber(((Text)e.getSource()).getText());
+				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-				else
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(red);
+				else {
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setRemediationCost(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
 				errorFound(numError, "  Remediation cost is not a real number.");
 			}
 		});

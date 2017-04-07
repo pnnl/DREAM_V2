@@ -17,9 +17,10 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -64,22 +65,37 @@ import wizardPages.DREAMWizard.STORMData;
  * @author rodr144
  */
 
-public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
+public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage {
 
 	private STORMData data;
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	private Text outputFolder;
-	private Text runs;
-	private Text samples;
-	private Text iterations;
-	//private Text minNumSensors;
-	//private Text maxNumSensors;
-	//private Text iterationsPerSensorNumber;
-
-	private Button showPlots;
 	
+	private Button bestTTDTableButton;
+	private Button vadButton;
+	private Button iterativeProceedureButton;
+	private Button showPlots;
+	private Button fullEnumerationButton;
+	private Button ijkToxyzButton;
+	private Button randomSampleButton;
+	private Button solutionSpaceButton;
+	private Button multiRunEnsembleButton;
+	private Button comparisonButton;
+	
+	private Text outputFolder;
+	private Text runsText;
+	private Text iterationsText;
+	private Text samplesText;
+	
+	private boolean outputError;
+	private boolean runsError;
+	private boolean iterationsError;
+	private boolean samplesError;
+	
+	private String outputs = System.getProperty("user.dir") + "\\_results";
+	private int runs = 1;
+	private int samples = 20;
 	private boolean isCurrentPage = false;
 	
 	protected Page_RunDREAM(STORMData data) {
@@ -191,14 +207,51 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		});		
 	
 		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
-		File resultsFolder = new File(System.getProperty("user.dir"));
-		outputFolder.setText(resultsFolder.getParent() + "\\_results");
-		GridData costGD = new GridData(GridData.FILL_HORIZONTAL);
-		costGD.horizontalSpan = 1;
-		outputFolder.setLayoutData(costGD);
+		outputFolder.setText(outputs);
+		outputFolder.setForeground(black);
+		outputFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		outputFolder.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				outputError = false;
+	            try {
+	            	File resultsFolder = new File(((Text)e.getSource()).getText());
+	            	outputs = resultsFolder.getCanonicalPath();
+	            	((Text)e.getSource()).setForeground(black);
+	            } catch (Exception ex) {
+	            	((Text)e.getSource()).setForeground(red);
+	            	outputError = true;
+	            }
+	            errorFound(outputError, "  Results folder must use valid characters.");
+				DREAMWizard.nextButton.setEnabled(false);
+				if (outputError) {
+					bestTTDTableButton.setEnabled(false);
+					vadButton.setEnabled(false);
+					iterativeProceedureButton.setEnabled(false);
+					fullEnumerationButton.setEnabled(false);
+					ijkToxyzButton.setEnabled(false);
+					randomSampleButton.setEnabled(false);
+					solutionSpaceButton.setEnabled(false);
+					multiRunEnsembleButton.setEnabled(false);
+					comparisonButton.setEnabled(false);
+				} else {
+					bestTTDTableButton.setEnabled(true);
+					vadButton.setEnabled(true);
+					if (!runsError && !iterationsError)
+						iterativeProceedureButton.setEnabled(true);
+					fullEnumerationButton.setEnabled(true);
+					ijkToxyzButton.setEnabled(true);
+					if (!samplesError)
+						randomSampleButton.setEnabled(true);
+					solutionSpaceButton.setEnabled(true);
+					multiRunEnsembleButton.setEnabled(true);
+					comparisonButton.setEnabled(true);
+				}
+			}
+		});
 		
 		//If a sensor were placed at every node, provide the best possible time to detection
-		Button bestTTDTableButton = new Button(container, SWT.BALLOON);
+		bestTTDTableButton = new Button(container, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
@@ -311,7 +364,7 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		});	
 		
 		//Volume of aquifer degraded
-		Button vadButton = new Button(container, SWT.BALLOON);
+		vadButton = new Button(container, SWT.BALLOON);
 		vadButton.setSelection(true);
 		vadButton.setText("VAD");
 		vadButton.addListener(SWT.Selection, new Listener() {
@@ -358,30 +411,16 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		});
 		
 		//Begin the process for determining array optimization
-		Button button = new Button(container, SWT.BALLOON);
-		button.setSelection(true);
-		button.setText("Run Iterative Procedure");
-
-		//Label temp2 = new Label(container, SWT.NULL);
-		runs= new Text(container, SWT.BORDER | SWT.SINGLE);
-		runs.setText("1");		
-		GridData runsGD = new GridData(GridData.FILL_HORIZONTAL);
-		runs.setLayoutData(runsGD);
-
-		Label iterationLabel = new Label(container, SWT.NULL);
-		iterationLabel.setText("Configurations to test");
-		iterations = new Text(container, SWT.BORDER | SWT.SINGLE);
-		iterations.setText(String.valueOf(data.getSet().getIterations()));
-		GridData iterationGD = new GridData(GridData.FILL_HORIZONTAL);
-		iterations.setLayoutData(iterationGD);
-
-		button.addListener(SWT.Selection, new Listener() {
+		iterativeProceedureButton = new Button(container, SWT.BALLOON);
+		iterativeProceedureButton.setSelection(true);
+		iterativeProceedureButton.setText("Run Iterative Procedure");
+		iterativeProceedureButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
 				printSolutionSpaceTab();
-				String numRuns = runs.getText();
+				String numRuns = runsText.getText();
 				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
-				int ittr = Integer.parseInt(iterations.getText());
+				int ittr = Integer.parseInt(iterationsText.getText());
 				data.setWorkingDirectory(outputFolder.getText());
 				data.getSet().setIterations(ittr);
 				try {
@@ -393,8 +432,58 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
 				} catch (Exception e) {
 					e.printStackTrace();
-				}				
-			}	       
+				}
+			}
+		});
+
+		runsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		runsText.setText(String.valueOf(runs));
+		runsText.setForeground(black);
+		runsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		runsText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				runsError = false;
+				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+					((Text)e.getSource()).setForeground(black);
+					runs = Integer.parseInt(((Text)e.getSource()).getText());
+				} else { //Not a valid number
+					((Text)e.getSource()).setForeground(red);
+					runsError = true;
+				}
+				errorFound(runsError, "  Runs is not a real number.");
+				DREAMWizard.nextButton.setEnabled(false);
+				if (iterationsError || runsError)
+					iterativeProceedureButton.setEnabled(false);
+				else if (!outputError)
+					iterativeProceedureButton.setEnabled(true);
+			}
+		});
+
+		Label iterationLabel = new Label(container, SWT.NULL);
+		iterationLabel.setText("Configurations to test");
+		iterationsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		iterationsText.setText(String.valueOf(data.getSet().getIterations()));
+		iterationsText.setForeground(black);
+		iterationsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		iterationsText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				iterationsError = false;
+				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setIterations(Integer.parseInt(((Text)e.getSource()).getText()));
+				} else { //Not a valid number
+					((Text)e.getSource()).setForeground(red);
+					iterationsError = true;
+				}
+				errorFound(iterationsError, "  Iterations is not a real number.");
+				DREAMWizard.nextButton.setEnabled(false);
+				if (iterationsError || runsError)
+					iterativeProceedureButton.setEnabled(false);
+				else if (!outputError)
+					iterativeProceedureButton.setEnabled(true);
+			}
 		});
 
 		showPlots = new Button(container, SWT.CHECK);
@@ -402,31 +491,27 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 		new Label(container, SWT.NULL);
 		showPlots.setSelection(true);
 
-		Button button3 = new Button(container, SWT.BALLOON);
-		button3.setSelection(true);
-		button3.setText(" Run Full Enumeration  ");
-
-		button3.addListener(SWT.Selection, new Listener() {
-
+		fullEnumerationButton = new Button(container, SWT.BALLOON);
+		fullEnumerationButton.setSelection(true);
+		fullEnumerationButton.setText(" Run Full Enumeration  ");
+		fullEnumerationButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
 				data.setWorkingDirectory(outputFolder.getText());
 				// TODO: Calculate iterations here
 				try {
-					data.runEnumeration();	
+					data.runEnumeration();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}	       
+			}
 		});
+		fullEnumerationButton.setVisible(Constants.buildDev);
 		
-		button3.setVisible(Constants.buildDev);
-
-		Button button4 = new Button(container, SWT.BALLOON);
-		button4.setSelection(true);
-		button4.setText("IJK to XYZ");
-		button4.addListener(SWT.Selection, new Listener() {
-
+		ijkToxyzButton = new Button(container, SWT.BALLOON);
+		ijkToxyzButton.setSelection(true);
+		ijkToxyzButton.setText("IJK to XYZ");
+		ijkToxyzButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
 				data.setWorkingDirectory(outputFolder.getText());
@@ -441,21 +526,15 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 				}
 			}	       
 		});
+		ijkToxyzButton.setVisible(Constants.buildDev);
 
-		button4.setVisible(Constants.buildDev);
-
-		//	Label temp = new Label(container, SWT.NULL);
-		//	Label temp3 = new Label(container, SWT.NULL);
-		Button button2 = new Button(container, SWT.BALLOON);
-		button2.setSelection(true);
-		button2.setText("  Run Random Sample   ");
-		samples= new Text(container, SWT.BORDER | SWT.SINGLE);
-		samples.setText("20");
-		button2.addListener(SWT.Selection, new Listener() {
-
+		randomSampleButton = new Button(container, SWT.BALLOON);
+		randomSampleButton.setSelection(true);
+		randomSampleButton.setText("  Run Random Sample   ");
+		randomSampleButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				int numSamples = Integer.parseInt(samples.getText());
+				int numSamples = Integer.parseInt(samplesText.getText());
 				data.setWorkingDirectory(outputFolder.getText());
 				try {
 					data.randomEnumeration(numSamples);
@@ -464,15 +543,37 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 				}
 			}	       
 		});		
+		randomSampleButton.setVisible(Constants.buildDev);
+		
+		samplesText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		samplesText.setText(String.valueOf(samples));
+		samplesText.setForeground(black);
+		samplesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		samplesText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				samplesError = false;
+				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+					((Text)e.getSource()).setForeground(black);
+					samples = Integer.parseInt(((Text)e.getSource()).getText());
+				} else { //Not a valid number
+					((Text)e.getSource()).setForeground(red);
+					samplesError = true;
+				}
+				errorFound(samplesError, "  Samples is not a real number.");
+				DREAMWizard.nextButton.setEnabled(false);
+				if (samplesError)
+					randomSampleButton.setEnabled(false);
+				else if (!outputError)
+					randomSampleButton.setEnabled(true);
+			}
+		});
+		samplesText.setVisible(Constants.buildDev);
 
-		button2.setVisible(Constants.buildDev);
-		samples.setVisible(Constants.buildDev);
-
-		Button cloudButton = new Button(container, SWT.BALLOON);
-		cloudButton.setSelection(true);
-		cloudButton.setText("Solution Space");
-		cloudButton.addListener(SWT.Selection, new Listener() {
-
+		solutionSpaceButton = new Button(container, SWT.BALLOON);
+		solutionSpaceButton.setSelection(true);
+		solutionSpaceButton.setText("Solution Space");
+		solutionSpaceButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
 				/*
@@ -587,22 +688,20 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 				printSolutionSpaceTab();
 			}
 		});
-		
-		cloudButton.setVisible(Constants.buildDev);
+		solutionSpaceButton.setVisible(Constants.buildDev);
 			
 		
 		//TODO: These!!
-		Label spacer2 = new Label(container, SWT.NULL);
 		
 		//This probably needs a new name. Used to create a scatterplot, hence the button, but this is the multi-run ensemble code.
 		//We can probably get rid of the scatterplot functionality.
-		Button scatterplotButton = new Button(container, SWT.BALLOON);
-		scatterplotButton.setSelection(true);
-		scatterplotButton.setText("Multi-Run Ensemble");
-		scatterplotButton.addListener(SWT.Selection, new Listener() {
+		multiRunEnsembleButton = new Button(container, SWT.BALLOON);
+		multiRunEnsembleButton.setSelection(true);
+		multiRunEnsembleButton.setText("Multi-Run Ensemble");
+		multiRunEnsembleButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				EnsembleDialog dialog = new EnsembleDialog(container.getShell(), data, Integer.valueOf(iterations.getText()));
+				EnsembleDialog dialog = new EnsembleDialog(container.getShell(), data, Integer.valueOf(iterationsText.getText()));
 				dialog.open();
 				if(dialog.readyToRun){
 					//Run the ensemble (formerly scatterplot)
@@ -723,17 +822,16 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 				}
 			}
 			});
+		multiRunEnsembleButton.setVisible(Constants.buildDev);
 		
-		scatterplotButton.setVisible(Constants.buildDev);
-		
-		Button comparisonButton = new Button(container, SWT.BALLOON);
+		comparisonButton = new Button(container, SWT.BALLOON);
 		comparisonButton.setSelection(true);
 		comparisonButton.setText("Compare two sensors");
 		//TODO: This is an area for future improvement to functionality. I believe Catherine has specific vision?
 		comparisonButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				ComparisonDialog dialog = new ComparisonDialog(container.getShell(), data, Integer.valueOf(iterations.getText()));
+				ComparisonDialog dialog = new ComparisonDialog(container.getShell(), data, Integer.valueOf(iterationsText.getText()));
 				dialog.open();
 				if(dialog.readyToRun){
 					String sensor1 = dialog.getSensor1();
@@ -786,7 +884,6 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 							}
 							fullSet.add(innerSet);
 						}
-						int i=0;
 						StringBuilder sb = new StringBuilder();
 						sb.append("Replaced Sensors,Volume Degraded,Objective Result");
 						List<Scenario> scenarios = data.getSet().getScenarios();
@@ -840,8 +937,6 @@ public class Page_RunDREAM extends WizardPage implements AbstractWizardPage {
 				}
 			}
 		});
-		GridData sampleGD = new GridData(GridData.FILL_HORIZONTAL);
-		samples.setLayoutData(sampleGD);
 		comparisonButton.setVisible(Constants.buildDev);
 		
 		container.layout();	

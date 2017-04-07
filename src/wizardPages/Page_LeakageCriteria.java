@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -265,7 +264,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								continue;
 							if(data.alias.equals(data2.alias) && !data.sensorName.equals(data2.sensorName)) {
 								duplicateError = true;
-								data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								data.aliasText.setForeground(red);
 							}
 						}
 						if(data.alias.contains(",")) //Contains a comma
@@ -273,16 +272,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(data.alias.isEmpty()) //No alias
 							emptyError = true;
 						//Cost
-						if(!isValidNumber(data.costText.getText()))
+						if(!isValidFloat(data.costText.getText()))
 							costError = true;
 						//Detection
-						if(!isValidNumber(data.detectionText.getText()) && !data.detectionText.getText().equals(""))
+						if(!isValidFloat(data.detectionText.getText()) && !data.detectionText.getText().equals(""))
 							detectionError = true;
 						//Leakage
-						if(!isValidNumber(data.leakageText.getText()) && !data.leakageText.getText().equals(""))
+						if(!isValidFloat(data.leakageText.getText()) && !data.leakageText.getText().equals(""))
 							leakageError = true;
 						//Zone bottom
-						if(!isValidNumber(data.minZText.getText()))
+						if(!isValidFloat(data.minZText.getText()))
 							botError = true;
 						else {
 							minZ = Float.parseFloat(data.minZText.getText());
@@ -290,7 +289,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								botBoundError = true;
 						}
 						//Zone top
-						if(!isValidNumber(data.maxZText.getText()))
+						if(!isValidFloat(data.maxZText.getText()))
 							topError = true;
 						else {
 							maxZ = Float.parseFloat(data.maxZText.getText());
@@ -314,7 +313,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if (duplicateError==false)
 						for(SensorData data: sensorData.values())
 							if (data.isIncluded && !data.alias.contains(",") && !data.alias.isEmpty())
-								data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+								data.aliasText.setForeground(black);
 				}
 			});
 			
@@ -344,12 +343,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						data.aliasText.setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						data.aliasText.setForeground(black);
 						for(SensorData data2: sensorData.values()) {
 							if(!data2.isIncluded) //Skip unchecked parameters
 								continue;
 							if(data.alias.trim().equals(data2.alias.trim()) && !data.sensorName.equals(data2.sensorName)) {
-								data.aliasText.setForeground(new Color(container.getDisplay(), 255, 0, 0));
+								data.aliasText.setForeground(red);
 								duplicateError = true;
 							}
 						}
@@ -358,15 +357,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
 						if(data.alias.contains(",")) { //Contains a comma
-							data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							data.aliasText.setForeground(red);
 							commaError = true;
 						} else if (duplicateError==false) //No comma
-							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.aliasText.setForeground(black);
 						if(data.alias.isEmpty()) { //No alias
-							data.aliasText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							data.aliasText.setForeground(red);
 							emptyError = true;
 						} else if (duplicateError==false && commaError==false) //Has alias
-							data.aliasText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.aliasText.setForeground(black);
 					}
 					errorFound(duplicateError, "  Duplicate alias.");
 					errorFound(commaError, "  Cannot use commas in alias.");
@@ -391,10 +390,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(isValidNumber(data.costText.getText())) //Valid number
-							data.costText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						if(isValidFloat(data.costText.getText())) //Valid number
+							data.costText.setForeground(black);
 						else { //Not a valid number
-							data.costText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							data.costText.setForeground(red);
 							costError = true;
 						}
 					}
@@ -473,11 +472,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(!isValidNumber(data.detectionText.getText()) && !data.detectionText.getText().equals("")) { //Valid number
-							data.detectionText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+						if(!isValidFloat(data.detectionText.getText()) && !data.detectionText.getText().equals("")) { //Valid number
+							data.detectionText.setForeground(red);
 							detectionError = true;
 						} else
-							data.detectionText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.detectionText.setForeground(black);
 					}
 					errorFound(detectionError, "  Detection is not a real number.");
 					detectionForeground = detectionText.getForeground();
@@ -516,11 +515,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(!isValidNumber(data.leakageText.getText()) && !data.leakageText.getText().equals("")) { //Valid number
-							data.leakageText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+						if(!isValidFloat(data.leakageText.getText()) && !data.leakageText.getText().equals("")) { //Valid number
+							data.leakageText.setForeground(red);
 							leakageError = true;
 						} else
-							data.leakageText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							data.leakageText.setForeground(black);
 					}
 					errorFound(leakageError, "  Leakage is not a real number.");
 					leakageForeground = leakageText.getForeground();
@@ -544,15 +543,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(isValidNumber(data.minZText.getText())) { //Valid number
-							data.minZText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						if(isValidFloat(data.minZText.getText())) { //Valid number
+							data.minZText.setForeground(black);
 							minZ = Float.parseFloat(data.maxZText.getText());
 							if (minZ < minZBound || minZ > maxZBound) {
-								data.minZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								data.minZText.setForeground(red);
 								botBoundError = true;
 							}
 						} else { //Not a valid number
-							data.minZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							data.minZText.setForeground(red);
 							botError = true;
 						}
 					}
@@ -580,15 +579,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData data: sensorData.values()) {
 						if(!data.isIncluded) //Skip unchecked parameters
 							continue;
-						if(isValidNumber(data.maxZText.getText())) { //Valid number
-							data.maxZText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+						if(isValidFloat(data.maxZText.getText())) { //Valid number
+							data.maxZText.setForeground(black);
 							maxZ = Float.parseFloat(data.maxZText.getText());
 							if (maxZ < minZBound || maxZ > maxZBound) {
-								data.maxZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+								data.maxZText.setForeground(red);
 								topBoundError = true;
 							}
 						} else { //Not a valid number
-							data.maxZText.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							data.maxZText.setForeground(red);
 							topError = true;
 						}
 					}
@@ -1028,11 +1027,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				File resultsFolder = new File(e4dFolder.getText());
 				boolean dir = resultsFolder.isDirectory();
 				if (dir == true) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(black);
 					e4dButton.setEnabled(true);
 				}
 				else {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					((Text)e.getSource()).setForeground(red);
 					e4dButton.setEnabled(false);
 				}
 			}				

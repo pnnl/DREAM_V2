@@ -9,7 +9,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -20,7 +19,6 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -51,6 +49,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private STORMData data;
 	private Text hdf5Text;
 	private boolean isCurrentPage = false;
+	
+	private String directory = Constants.homeDirectory;
 	
 	protected Page_InputDirectory(STORMData data) {
 		super("Input Directory");
@@ -111,8 +111,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	}
 
 	public String getModelOption() {
-		//Change this back if we are going back to drop-downs
-		//return modelOption.getText();
 		return modelOption;
 	}
 
@@ -191,32 +189,30 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData myGd = new GridData(GridData.FILL_HORIZONTAL);
-		hdf5Text.setText(Constants.homeDirectory);
-		hdf5Text.setLayoutData(myGd);
-		boolean h5Error = true;
+		hdf5Text.setText(directory);
+		hdf5Text.setForeground(black);
+		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		File resultsFolder = new File(hdf5Text.getText());
 		File[] fList = resultsFolder.listFiles();
 		for (File file : fList) {
 			if(file.getName().contains(".h5")) {
-				h5Error = false;
+				errorFound(false, "  Directory must contain an h5 file.");
 				break;
 			}
 		}
-		errorFound(h5Error, "  Directory must contain an h5 file.");
-		
 		//Change text red when directory is invalid
 		hdf5Text.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				File resultsFolder = new File(hdf5Text.getText());
+				File resultsFolder = new File(((Text)e.getSource()).getText());
 				boolean dirError = !resultsFolder.isDirectory();
 				boolean h5Error = true;
 				if (dirError == true) {
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+					((Text)e.getSource()).setForeground(red);
 					h5Error = false;
 				} else {
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+					((Text)e.getSource()).setForeground(black);
+					directory = ((Text)e.getSource()).getText();
 					File[] fList = resultsFolder.listFiles();
 					for (File file : fList) {
 						if(file.getName().contains(".h5")) {
@@ -229,43 +225,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				errorFound(h5Error, "  Directory must contain an h5 file.");
 			}
 		});
-		
-		
-		
-		//This is the old code for when we had drop-downs, in case a design decision is made to revert to that functionality.
-		/*
-		Label functionLabel = new Label(container, SWT.NULL);
-		functionLabel.setText("Simulation tool");
-		simulation = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
-		for(Function function: new Function[]{new CCS9_1()}) {
-			simulation.add("Sensor placement optimization: " + function.toString());
-		}
-		simulation.setText(simulation.getItem(0));
-		GridData wellgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-		simulation.setLayoutData(wellgd);
-		*/
-		/*
-		simulation = new Group(container, SWT.SHADOW_ETCHED_IN);
-		simulation.setText("Simulation tool");
-		simulation.setLayout(new RowLayout(SWT.VERTICAL));
-		Button selected1 = new Button(simulation, SWT.RADIO);
-		selected1.setText("Sensor placement optimization: " + (new CCS9_1()).toString());
-		selected1.setSelection(true);
-		//Add other options below
-		*/
-		/*
-		Label modelOptionLabel = new Label(container, SWT.NULL);
-		modelOptionLabel.setText("Model option");
-		modelOption = new Combo(container,  SWT.DROP_DOWN | SWT.READ_ONLY);
-		
-		modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
-		if(Constants.buildDev) modelOption.add(Constants.ModelOption.ALL_SENSORS.toString());
-		if(Constants.buildDev) modelOption.add(Constants.ModelOption.INDIVIDUAL_SENSORS.toString());
-		if(Constants.buildDev) modelOption.add(Constants.ModelOption.REALIZED__WELLS.toString());
-		modelOption.setText(modelOption.getItem(0));
-		GridData modelgd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-		modelOption.setLayoutData(modelgd);
-		*/
 
 		GridData buttonGridData = new GridData(GridData.FILL_HORIZONTAL);
 		buttonGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
@@ -289,10 +248,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				modelOption = Constants.ModelOption.ALL_SENSORS.toString();
 			}
 		});
-		
-		
 		radioButton.setLayoutData(buttonGridData);
-		//Add other options here
 				
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
