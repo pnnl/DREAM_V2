@@ -3,7 +3,6 @@ package objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,7 +10,6 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 import utilities.Constants.ModelOption;
-import utilities.Point3f;
 
 /**
  * Extension of the configuration class that provides much more functionality and information
@@ -559,7 +557,7 @@ public class ExtendedConfiguration extends Configuration {
 		// We will try to add here first.
 		int addPoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
 		Map<String, List<Integer>> affordableSensors = new HashMap<String, List<Integer>>();
-		List<String> types = new ArrayList<String>();
+		//List<String> types = new ArrayList<String>();
 		boolean atAddPoint = false;
 		List<Integer> validNodes = scenarioSet.getValidNodes("all", this, true, true, true);
 		if(!validNodes.isEmpty()) {

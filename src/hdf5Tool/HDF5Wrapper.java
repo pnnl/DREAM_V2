@@ -1,8 +1,6 @@
 package hdf5Tool;
 
-import java.awt.Dialog;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,10 +12,6 @@ import java.util.TreeMap;
 import javax.swing.JOptionPane;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
 import objects.NodeStructure;
 import objects.SensorSetting.DeltaType;
@@ -197,8 +191,8 @@ public class HDF5Wrapper {
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // Search for the data node (should be first)
 			if(root.getMemberList().get(rootIndex).getName().equals("data")) {	// We can get the node structure data from this one
-				float[] steps, times, xValues, yValues, zValues, porosities;
-				steps = times = xValues = yValues = zValues = porosities = null;		
+				float[] times, xValues, yValues, zValues, porosities;
+				times = xValues = yValues = zValues = porosities = null;		
 				Dataset porosityDataset = null;
 				boolean porosityFound = false;
 				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
@@ -279,7 +273,7 @@ public class HDF5Wrapper {
 	public static float queryMinFromFiles(NodeStructure nodeStructure, String dataType) throws Exception {
 		float min = Float.MAX_VALUE;
 		for(H5File hdf5File: Constants.hdf5Files.values()) { // For every scenario
-			int hdf5FileID = hdf5File.open();
+			hdf5File.open();
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			List<HObject> groups = root.getMemberList();
 			for(HObject group: groups) {
@@ -313,7 +307,7 @@ public class HDF5Wrapper {
 	public static float queryMaxFromFiles(NodeStructure nodeStructure, String dataType) throws Exception {
 		float max = -Float.MAX_VALUE;
 		for(H5File hdf5File: Constants.hdf5Files.values()) { // For every scenario
-			int hdf5FileID = hdf5File.open();
+			hdf5File.open();
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			for(Object group: root.getMemberList()) {
 				boolean hasDataset = false;

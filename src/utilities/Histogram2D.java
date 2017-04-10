@@ -2,9 +2,7 @@ package utilities;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -120,7 +118,7 @@ public class Histogram2D extends ChartPanel {
 	}
 	
 	public static void main(String[] args) {
-		Map<String, List<double[]>> data = new HashMap<String, List<double[]>>();
+		//Map<String, List<double[]>> data = new HashMap<String, List<double[]>>();
 		Random rand = new Random();			
 		double[] points = new double[200];
 		for(int i = 0; i < 200; i++) {

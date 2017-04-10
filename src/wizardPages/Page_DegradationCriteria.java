@@ -14,14 +14,12 @@ import objects.SensorSetting.Trigger;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -48,7 +46,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author rodr144
  */
 
-public class Page_DegradationCriteria extends WizardPage implements AbstractWizardPage {
+public class Page_DegradationCriteria extends DreamWizardPage implements AbstractWizardPage {
 	
 	private ScrolledComposite sc;
 	private Composite container;
@@ -58,7 +56,6 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 	private boolean isCurrentPage = false;
 
 	private Text volumeCostText;
-	private double volumeCostValue;
 	
 	private Map<String, DegradationData> degradationData;
 		
@@ -173,10 +170,10 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 						else deltaType = DeltaType.BOTH;
 						
 						if(valueInput != null)
-							valueInput.setForeground(new Color(container.getDisplay(), 0, 0, 0));						
+							valueInput.setForeground(black);						
 					} catch (NumberFormatException ex) {
 						if(valueInput != null)
-							valueInput.setForeground(new Color(container.getDisplay(), 255, 0, 0));
+							valueInput.setForeground(red);
 					}
 					toggleEnabled();
 				}				
@@ -219,9 +216,9 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 						else if(valueInput.getText().contains("-")) deltaType = DeltaType.DECREASE;
 						else deltaType = DeltaType.BOTH;
 						
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						((Text)e.getSource()).setForeground(black);
 					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+						((Text)e.getSource()).setForeground(red);
 					}
 				}				
 			});
@@ -239,9 +236,9 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 				public void modifyText(ModifyEvent e) {
 					try {
 						minZ = Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						((Text)e.getSource()).setForeground(black);
 					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+						((Text)e.getSource()).setForeground(red);
 					}
 				}				
 			});
@@ -259,9 +256,9 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 				public void modifyText(ModifyEvent e) {
 					try {
 						maxZ = Float.parseFloat(((Text)e.getSource()).getText());	
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+						((Text)e.getSource()).setForeground(black);
 					} catch (NumberFormatException ne) {
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+						((Text)e.getSource()).setForeground(red);
 					}
 				}				
 			});
@@ -456,10 +453,10 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 			@Override
 			public void modifyText(ModifyEvent e) {
 				try {
-					volumeCostValue = Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
+					Float.parseFloat(((Text)e.getSource()).getText());	
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});
@@ -478,7 +475,7 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
-		Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
+		//Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
 		for(SensorSetting sensorSetting: sensorSettings){
 			for(Scenario scenario: data.getSet().getScenarios()) {
 				// Query for valid nodes per scenario
@@ -549,7 +546,7 @@ public class Page_DegradationCriteria extends WizardPage implements AbstractWiza
 		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
 
 		long total = System.currentTimeMillis() - current;
-		//System.out.println("Updated volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+		System.out.println("Updated volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
 	}
 	
 	@Override

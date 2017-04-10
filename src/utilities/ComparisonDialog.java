@@ -1,45 +1,23 @@
 package utilities;
 
 
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import objects.Sensor;
-import objects.SensorSetting.DeltaType;
-import objects.SensorSetting.Trigger;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -128,8 +106,8 @@ public class ComparisonDialog extends TitleAreaDialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		Button cancelButton = createButton(parent, CANCEL, "Cancel", true);
-		Button okButton = createButton(parent, OK, "Run", true);
+		createButton(parent, CANCEL, "Cancel", true);
+		createButton(parent, OK, "Run", true);
 	}
 
 	protected Button createButton(Composite parent, int id, String label, boolean defaultButton){
@@ -167,7 +145,4 @@ public class ComparisonDialog extends TitleAreaDialog {
 		return aliasToType.get(sensor2);
 	}
 	
-	private void testReady(){
-		
-	}
 }

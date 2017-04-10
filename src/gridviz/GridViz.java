@@ -108,7 +108,7 @@ public class GridViz {
 					axis.remove(tester.grid.getNormalAxis());
 				}
 				// Get some options to test
-				List<OptionSet> options = tester.getListOfOptions(6);        
+				//List<OptionSet> options = tester.getListOfOptions(6);        
 
 				File directory = new File("./output/" + plotFile);
 				if(!directory.exists())

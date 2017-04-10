@@ -1,34 +1,19 @@
 package hdf5Tool;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import gridviz.GridError;
 
 /**
  * Slider to enable the selection of timesteps when the files to be converted have different numbers of them.
@@ -126,7 +111,7 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 		map.put(5, strings1);
 
 		TimestepSelectionSlider slider = new TimestepSelectionSlider(data, map);
-		int result = JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
+		JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
 
 	}
 

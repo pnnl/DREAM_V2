@@ -1,38 +1,22 @@
 package utilities;
 
 
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -64,6 +48,8 @@ public class EnsembleDialog extends TitleAreaDialog {
 	private Integer iterations;
 	private Float wellDistance;
 
+	public Color black = new Color(Display.getCurrent(), 0, 0, 0);
+	public Color red = new Color(Display.getCurrent(), 255, 0, 0);
 	
 	public EnsembleDialog(Shell parentShell, STORMData data, Integer iterations) {
 		super(parentShell);
@@ -127,11 +113,9 @@ public class EnsembleDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent e) {
 				try {
 					Integer.parseInt(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});
@@ -147,11 +131,9 @@ public class EnsembleDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent e) {
 				try {
 					Integer.parseInt(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});
@@ -167,11 +149,9 @@ public class EnsembleDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent e) {
 				try {
 					Integer.parseInt(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});
@@ -187,11 +167,9 @@ public class EnsembleDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent e) {
 				try {
 					Integer.parseInt(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});	
@@ -207,11 +185,9 @@ public class EnsembleDialog extends TitleAreaDialog {
 			public void modifyText(ModifyEvent e) {
 				try {
 					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(black);
 				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 255, 0, 0));
-					testReady();
+					((Text)e.getSource()).setForeground(red);
 				}
 			}				
 		});
@@ -224,8 +200,8 @@ public class EnsembleDialog extends TitleAreaDialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		Button cancelButton = createButton(parent, CANCEL, "Cancel", true);
-		Button okButton = createButton(parent, OK, "Run", true);
+		createButton(parent, CANCEL, "Cancel", true);
+		createButton(parent, OK, "Run", true);
 	}
 
 	protected Button createButton(Composite parent, int id, String label, boolean defaultButton){
@@ -261,31 +237,6 @@ public class EnsembleDialog extends TitleAreaDialog {
 			super.close();
 		}
 	}
-	
-	private void testReady(){
-		isReady = true;
-		if(minNumSensors.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-			return;
-		}
-		if(maxNumSensors.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-			return;
-		}
-		if(iterationsPerSensorNumber.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-			return;
-		}
-		if(iterationsPerRun.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-			return;
-		}
-		if(minDistanceBetweenWells.getForeground().equals(new Color(container.getDisplay(), 255, 0, 0))) {
-			isReady = false;
-			return;
-		}
-	}
-	
 	
 	public int getMin(){
 		return minSensors;

@@ -1,7 +1,6 @@
 package utilities;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,10 +17,7 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -161,9 +157,9 @@ public class PorosityDialog extends TitleAreaDialog {
 	
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		Button loadButton = createButton(parent, loadFile, "Load Porosities From File", false);
-		Button saveButton = createButton(parent, saveFile, "Save Current Porosities", false);
-		Button okButton = createButton(parent, OK, "OK", true);
+		createButton(parent, loadFile, "Load Porosities From File", false);
+		createButton(parent, saveFile, "Save Current Porosities", false);
+		createButton(parent, OK, "OK", true);
 	}
 
 	protected Button createButton(Composite parent, int id, String label, boolean defaultButton){

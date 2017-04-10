@@ -49,7 +49,7 @@ public class DataSlice {
 	private Extrema extrema; // This one will be set by the data in the slice
 	private Extrema globalExtrema;	// This one will be set by the global extrema
 	
-	private Extrema scaledExtrema;
+	//private Extrema scaledExtrema;
 
 	private boolean useGlobalExtrema;
 
@@ -382,14 +382,12 @@ public class DataSlice {
 	//	TransferFunctionSingleton xfer = TransferFunctionSingleton.getInstance();
 	//	GradientOption gradient = xfer.getGradient(gradientIndex);
 	
-		Color color;
-
 		BufferedImage image = new BufferedImage(w, h,
 				BufferedImage.TYPE_3BYTE_BGR);
 
 		for (int i=0; i<h; i++) {
 			for (int j=0; j<w; j++) {
-			//	color = gradient.getGradientColor((float)values[i][j]);
+			//	Color color = gradient.getGradientColor((float)values[i][j]);
 			//	image.setRGB(j, i, color.getRGB());
 			}
 		}

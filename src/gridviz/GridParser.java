@@ -1,6 +1,5 @@
 package gridviz;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -11,12 +10,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.TreeMap;
 
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3f;
-
-import org.apache.commons.io.FileUtils;
 
 import hdf5Tool.FileBrowser;
 

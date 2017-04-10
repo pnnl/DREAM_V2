@@ -1,6 +1,5 @@
 package results;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -11,8 +10,6 @@ import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.ScenarioSet;
-import objects.Sensor;
-import utilities.Constants;
 
 /**
  * Catch-all class used to store the results of a particular run.

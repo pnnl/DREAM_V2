@@ -17,7 +17,6 @@ import objects.ExtendedSensor;
 import results.ResultPrinter;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
-import visualization.DomainViewer;
 import visualization.DomainVisualization;
 
 /**
