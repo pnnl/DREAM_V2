@@ -137,7 +137,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Cost constraint
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Sensor Budget");
-		if (cost==0)
+		if (cost<data.getSet().getCostConstraint())
 			cost = data.getSet().getCostConstraint();
 		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
 		costConstraint.setText(String.valueOf(cost));
