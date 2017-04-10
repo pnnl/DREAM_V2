@@ -192,14 +192,17 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		hdf5Text.setText(directory);
 		hdf5Text.setForeground(black);
 		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		boolean h5Error = true;
 		File resultsFolder = new File(hdf5Text.getText());
 		File[] fList = resultsFolder.listFiles();
 		for (File file : fList) {
 			if(file.getName().contains(".h5")) {
-				errorFound(false, "  Directory must contain an h5 file.");
+				h5Error = false;
 				break;
 			}
 		}
+		errorFound(h5Error, "  Directory must contain an h5 file.");
+		
 		//Change text red when directory is invalid
 		hdf5Text.addModifyListener(new ModifyListener() {
 			@Override

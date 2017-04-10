@@ -10,21 +10,18 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import objects.Sensor;
-import utilities.Constants;
 import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -138,7 +135,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		probabilityLabel.setFont(boldFont);
 		
 		if(!(data.modelOption == ModelOption.ALL_SENSORS)){
-			for(String dataType: data.getSet().getDataTypes()) {
+			for(final String dataType: data.getSet().getDataTypes()) {
 				
 				final Label dataLabel = new Label(container, SWT.NULL);
 				dataLabel.setText(Sensor.sensorAliases.get(dataType));
@@ -146,20 +143,22 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				new Label(container, SWT.NULL);
 				
 				Text indText = new Text(container, SWT.BORDER | SWT.SINGLE);
-				if(data.getSet().getInferenceTest().getMinimumForType(dataType) > 0)
-					indText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getMinimumForType(dataType)));
+				indText.setText(String.valueOf(data.getSet().getInferenceTest().getMinimumForType(dataType)));
+				indText.setForeground(black);
+				indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 				indText.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
+						if (isValidInt(((Text)e.getSource()).getText()))
+							data.getSet().getInferenceTest().setMinimumForType(dataType, Integer.parseInt(((Text)e.getSource()).getText()));
 						boolean individualError = false;
 						count = 0;
 						for(Text individualSensors: minimumSensors.values()) {
-							if(isValidFloat(individualSensors.getText())) { //Valid number
-								individualSensors.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							if(isValidInt(individualSensors.getText())) { //Valid number
+								individualSensors.setForeground(black);
 								count += Integer.parseInt(individualSensors.getText());
-							}
-							else {
-								individualSensors.setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+							} else {
+								individualSensors.setForeground(red);
 								individualError = true;
 							}
 						}
@@ -167,12 +166,11 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 						if (count > Integer.parseInt(minText.getText()))
 							minText.setText(Integer.toString(count));
 						else {
-							minText.setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+							minText.setForeground(black);
 							errorFound(false, "  Overall cannot be less than the sum of individual sensors.");
 						}
 					}
 				});
-				indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 				minimumSensors.put(dataType, indText);
 			}
 		}
@@ -194,26 +192,25 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
 		new Label(container, SWT.NULL);
 		minText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		if(data.getSet().getInferenceTest().getOverallMinimum() >= 0)
-			minText.setText(Constants.decimalFormat.format(data.getSet().getInferenceTest().getOverallMinimum()));	
+		minText.setText(String.valueOf(data.getSet().getInferenceTest().getOverallMinimum()));
+		minText.setForeground(black);
 		minText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		minText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean overallError = false;
+				boolean numError = !isValidInt(((Text)e.getSource()).getText());
 				boolean smallError = false;
-				if(isValidFloat(((Text)e.getSource()).getText())) { //Valid number
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 0, 0, 0));
+				if(numError) { //Not a valid number
+					((Text)e.getSource()).setForeground(red);
+				} else { //Valid number
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().getInferenceTest().setOverallMinimum(Integer.parseInt(((Text)e.getSource()).getText()));
 					if(Integer.parseInt(((Text)e.getSource()).getText()) < count) {
 						smallError = true;
-						((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
+						((Text)e.getSource()).setForeground(red);
 					}
 				}
-				else {
-					((Text)e.getSource()).setForeground(new Color(Display.getCurrent(), 255, 0, 0));
-					overallError = true;
-				}
-				errorFound(overallError, "  Overall min is not a real number.");
+				errorFound(numError, "  Overall min is not a real number.");
 				errorFound(smallError, "  Overall cannot be less than the sum of individual sensors.");
 			}
 		});

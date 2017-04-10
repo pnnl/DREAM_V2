@@ -421,7 +421,7 @@ public class DREAMWizard extends Wizard {
 								} else {
 									monitor.subTask(sensorType.toLowerCase() + " - removing");
 									set.removeSensorSettings(sensorType);
-									set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);
+									set.getInferenceTest().setMinimumForType(sensorType, 0);
 									monitor.worked(2);
 								}
 							}
@@ -461,7 +461,7 @@ public class DREAMWizard extends Wizard {
 										set.getSensorSettings().get(sensorType).setNodesReady(false);
 									} else {
 										set.removeSensorSettings(sensorType);
-										set.getInferenceTest().setMinimumRequiredForType(sensorType, 0);							
+										set.getInferenceTest().setMinimumForType(sensorType, 0);							
 									}
 								}
 							} 
@@ -497,9 +497,9 @@ public class DREAMWizard extends Wizard {
 					monitor.beginTask("Inference test ", requiredSensors.size());	
 					for(String sensorType: requiredSensors.keySet()) {
 						monitor.subTask("setting sensors required for " + sensorType.toLowerCase());
-						set.getInferenceTest().setMinimumRequiredForType(sensorType, requiredSensors.get(sensorType));
+						set.getInferenceTest().setMinimumForType(sensorType, requiredSensors.get(sensorType));
 					}
-					set.getInferenceTest().setMinimum(totalMinimum);
+					set.getInferenceTest().setOverallMinimum(totalMinimum);
 					monitor.worked(1);
 				}
 			});			

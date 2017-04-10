@@ -691,20 +691,21 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 		int count = 0;
 		for(String label: sensorData.keySet()) {
-			SensorData data = sensorData.get(label);
-			if (data.isIncluded==true) {
-				data.cost = Float.valueOf(data.costErrorText);
-				data.detection = Float.valueOf(data.detectionErrorText);
-				data.leakage = Float.valueOf(data.leakageErrorText);
-				sensorData.put(label, data);
-				count++;
+			SensorData senData = sensorData.get(label);
+			if (senData.isIncluded==true) {
+				senData.cost = Float.valueOf(senData.costErrorText);
+				senData.detection = Float.valueOf(senData.detectionErrorText);
+				senData.leakage = Float.valueOf(senData.leakageErrorText);
+				sensorData.put(label, senData);
+				count += data.getSet().getInferenceTest().getMinimumForType(label);
 			}
-			sensorSettings.put(label, data);
-			sensorAliases.put(label, data.alias);
+			sensorSettings.put(label, senData);
+			sensorAliases.put(label, senData.alias);
 			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 		}
 		Sensor.sensorAliases = sensorAliases;
-		data.getSet().getInferenceTest().setMinimum(count);
+		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
+			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.setupSensors(false, sensorSettings);
 		data.needToResetWells = true;
 		if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
@@ -1157,7 +1158,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	private void addSensor(String dataType, String newName){
 		data.getSet().addSensorSetting(newName, dataType);
-		data.getSet().getInferenceTest().setMinimumRequiredForType(newName, 1);
+		data.getSet().getInferenceTest().setMinimumForType(newName, 1);
 		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 	}
 	

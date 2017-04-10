@@ -55,15 +55,6 @@ public class InferenceTest {
 	 * @param dataType
 	 * @param minimumRequired
 	 */
-	public void setMinimumRequiredForType(String dataType, int minimumRequired) {
-		minimumRequiredPerType.put(dataType, minimumRequired);
-		Constants.log(Level.CONFIG, "Inference test: configuration", this);
-	}
-	
-	public void setMinimum(int minimumRequired) {
-		this.minimumRequired = minimumRequired;
-	}	
-	
 	// Default inference test 
 	public Boolean reachedInference(Map<String, Integer> triggeredByType) {
 		boolean inferred = true;
@@ -123,10 +114,17 @@ public class InferenceTest {
 	public int getMinimumForType(String dataType) {
 		return minimumRequiredPerType.get(dataType);
 	}
-
-	public int getOverallMinimum() {
-		return this.minimumRequired;
+	
+	public void setMinimumForType(String dataType, int minimum) {
+		minimumRequiredPerType.put(dataType, minimum);
+		Constants.log(Level.CONFIG, "Inference test: configuration", this);
 	}
 	
+	public int getOverallMinimum() {
+		return minimumRequired;
+	}
 	
+	public void setOverallMinimum(int minimum) {
+		this.minimumRequired = minimum;
+	}	
 }
