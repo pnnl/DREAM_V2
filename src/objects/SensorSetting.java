@@ -65,8 +65,6 @@ public class SensorSetting {
 	
 	private String type;	
 	private float cost;
-	private float detection;
-	private float leakage;
 
 	private Float min;
 	private Float max;
@@ -76,8 +74,10 @@ public class SensorSetting {
 	private Trigger trigger;
 	private DeltaType deltaType;
 
-	private float lowerThreshold;
-	private float upperThreshold;
+	private float lowerDetectionThreshold;
+	private float upperDetectionThreshold;
+	private float lowerLeakageThreshold;
+	private float upperLeakageThreshold;
 
 	private HashSet<Integer> validNodes; //Pareto optimal locations (if set in Constants class)
 	private HashSet<Integer> fullCloudNodes; //Full set of allowed locations
@@ -103,16 +103,16 @@ public class SensorSetting {
 		this.scenarios = scenarios;
 		this.type = type;
 		this.cost = 100;
-		this.detection = 0;
-		this.leakage = 0;
 
 		setMin();
 		setMax();
 
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0;
-		this.upperThreshold = (max-min)/2+min;
+		this.lowerDetectionThreshold = 0;
+		this.upperDetectionThreshold = 0;
+		this.lowerLeakageThreshold = 0;
+		this.upperLeakageThreshold = 0;
 
 		this.validNodes = new HashSet<Integer>(); // None yet
 		
@@ -141,8 +141,10 @@ public class SensorSetting {
 
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0;
-		this.upperThreshold = (max-min)/2+min;
+		this.lowerDetectionThreshold = 0;
+		this.upperDetectionThreshold = 0;
+		this.lowerLeakageThreshold = 0;
+		this.upperLeakageThreshold = 0;
 
 		this.validNodes = new HashSet<Integer>(); // None yet
 		this.color = Color.GREEN;	
@@ -272,7 +274,7 @@ public class SensorSetting {
 	}
 	
 
-	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
+	public void setUserSettings(float cost, Color color, float lowerDetectionThreshold, float upperDetectionThreshold, Trigger trigger, boolean reset,
 			DeltaType deltaType, float minZ, float maxZ) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
@@ -292,13 +294,13 @@ public class SensorSetting {
 			changeOccured = true;
 		}			
 
-		if(Float.compare(this.lowerThreshold, lowerThreshold) != 0) {
-			this.lowerThreshold = lowerThreshold;
+		if(Float.compare(this.lowerDetectionThreshold, lowerDetectionThreshold) != 0) {
+			this.lowerDetectionThreshold = lowerDetectionThreshold;
 			changeOccured = true;
 		}
 		
-		if(Float.compare(this.upperThreshold, upperThreshold) != 0) {
-			this.upperThreshold = upperThreshold;
+		if(Float.compare(this.upperDetectionThreshold, upperDetectionThreshold) != 0) {
+			this.upperDetectionThreshold = upperDetectionThreshold;
 			changeOccured = true;
 		}
 		
@@ -361,8 +363,8 @@ public class SensorSetting {
 				// Query for valid nodes per scenario
 				try {
 					HashSet<Integer> nodes = Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor) : 
-								HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
+							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerDetectionThreshold, upperDetectionThreshold, monitor) : 
+								HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerDetectionThreshold, upperDetectionThreshold, monitor);
 							validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -396,8 +398,8 @@ public class SensorSetting {
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = !Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor) :
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
+							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerDetectionThreshold, upperDetectionThreshold, getTrigger(), getDeltaType(), monitor) :
+							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerDetectionThreshold, upperDetectionThreshold, getTrigger(), getDeltaType(), monitor);
 					if(first) {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
@@ -637,14 +639,6 @@ public class SensorSetting {
 	public float getCost() {
 		return cost;
 	}
-	
-	public float getDetection() {
-		return detection;
-	}
-	
-	public float getLeakage() {
-		return leakage;
-	}
 
 	public void setCost(float cost) {
 		this.cost = cost;
@@ -713,22 +707,42 @@ public class SensorSetting {
 		return trigger;
 	}
 	
-	public Float getLowerThreshold() {
-		return lowerThreshold;
-	}
-
-	public Float getUpperThreshold() {
-		return upperThreshold;
-	}
-
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
 	}
-
-	public void setUpperThreshold(Float upperThreshold) {
-		this.upperThreshold = upperThreshold;
+	
+	public float getLowerDetectionThreshold() {
+		return lowerDetectionThreshold;
+	}
+	
+	public void setLowerDetectionThreshold(Float lowerDetectionThreshold) {
+		this.lowerDetectionThreshold = lowerDetectionThreshold;
 	}
 
+	public float getUpperDetectionThreshold() {
+		return upperDetectionThreshold;
+	}
+
+	public void setUpperDetectionThreshold(Float upperDetectionThreshold) {
+		this.upperDetectionThreshold = upperDetectionThreshold;
+	}
+	
+	public float getLowerLeakageThreshold() {
+		return lowerLeakageThreshold;
+	}
+	
+	public void setLowerLeakageThreshold(Float lowerLeakageThreshold) {
+		this.lowerLeakageThreshold = lowerLeakageThreshold;
+	}
+
+	public float getUpperLeakageThreshold() {
+		return upperLeakageThreshold;
+	}
+
+	public void setUpperLeakageThreshold(Float upperLeakageThreshold) {
+		this.upperLeakageThreshold = upperLeakageThreshold;
+	}
+	
 	public DeltaType getDeltaType() {
 		return deltaType;
 	}
@@ -736,7 +750,7 @@ public class SensorSetting {
 	public void setDeltaType(DeltaType deltaType) {
 		this.deltaType = deltaType;
 	}
-
+	
 	public float getMinZ() {
 		return globalMinZ;
 	}

@@ -351,7 +351,7 @@ public class Page_DegradationCriteria extends DreamWizardPage implements Abstrac
 					SensorSetting x = new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), label, data.getScenarioSet().getScenarios());
 					x.setTrigger(degData.trigger);
 					if(degData.trigger == Trigger.MAXIMUM_THRESHOLD){
-						x.setUpperThreshold(degData.max);
+						x.setUpperDetectionThreshold(degData.max);
 					}
 					x.setUserSettings(0f, null, degData.min, degData.max, degData.trigger, false, degData.deltaType, degData.minZ, degData.maxZ);
 					sensorSettings.add(x);
@@ -482,9 +482,9 @@ public class Page_DegradationCriteria extends DreamWizardPage implements Abstrac
 				try {
 					HashSet<Integer> innerNodes = Constants.hdf5Data.isEmpty() ? 
 							HDF5Wrapper.queryNodesFromFiles(data.getSet().getNodeStructure(), scenario.toString(), sensorSetting.getType(),
-									sensorSetting.getLowerThreshold(), sensorSetting.getUpperThreshold(), null) : 
+									sensorSetting.getLowerDetectionThreshold(), sensorSetting.getUpperDetectionThreshold(), null) : 
 								HDF5Wrapper.queryNodesFromMemory(data.getSet().getNodeStructure(), scenario.toString(), sensorSetting.getType(),
-										sensorSetting.getLowerThreshold(), sensorSetting.getUpperThreshold(), null);
+										sensorSetting.getLowerDetectionThreshold(), sensorSetting.getUpperDetectionThreshold(), null);
 							nodes.addAll(innerNodes);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -508,6 +508,10 @@ public class DREAMWizard extends Wizard {
 		public ScenarioSet getSet() {
 			return set;
 		}
+		
+		public SensorSetting getSensorSettings(String scenario) {
+			return set.getSensorSettings(scenario);
+		}
 
 		public MUTATE getMutate() {
 			return mutate;

@@ -93,7 +93,7 @@ public class Controller {
 		
 		if(threshold != null) {
 			set.getSensorSettings(this.sensorType).setTrigger(Trigger.MAXIMUM_THRESHOLD);
-			set.getSensorSettings(this.sensorType).setUpperThreshold(threshold);
+			set.getSensorSettings(this.sensorType).setUpperDetectionThreshold(threshold);
 			System.out.println("Setting "+ sensorType +" threshold to: " + threshold);
 		}
 		// Set the cost to 1

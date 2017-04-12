@@ -147,8 +147,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			alias = sensorName;
 			isIncluded = false; // By default
 			cost = sensorSettings.getCost();
-			detection = sensorSettings.getDetection();
-			leakage = sensorSettings.getLeakage();
+			//detection = sensorSettings.getDetection();
+			//leakage = sensorSettings.getLeakage();
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
 			minZBound = minZ;
