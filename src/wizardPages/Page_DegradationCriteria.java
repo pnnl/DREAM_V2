@@ -1,3 +1,4 @@
+/*
 package wizardPages;
 
 import java.util.ArrayList;
@@ -38,14 +39,14 @@ import hdf5Tool.HDF5Wrapper;
 import utilities.Constants;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
-
+*/
 /**
  * Page for aquifer degradation criteria - stripped down version of Page_MonitoringParameters, for the most part
  * Info description line 421
  * @author port091
  * @author rodr144
  */
-
+/*
 public class Page_DegradationCriteria extends DreamWizardPage implements AbstractWizardPage {
 	
 	private ScrolledComposite sc;
@@ -64,7 +65,7 @@ public class Page_DegradationCriteria extends DreamWizardPage implements Abstrac
 		this.data = data;	
 	}
 	
-	/* Subclass meant for storing the criteria per sensor type */
+	//Subclass meant for storing the criteria per sensor type
 	public class DegradationData {
 
 		public String sensorType;
@@ -560,3 +561,4 @@ public class Page_DegradationCriteria extends DreamWizardPage implements Abstrac
 	}
 	
 }
+*/
