@@ -26,7 +26,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -86,22 +85,21 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public String sensorName;
 		public String alias;
 		public float cost;
-		public float detection;
-		public float leakage;
-		public float maxZ;
-		public float minZ;
 		public Trigger trigger;
 		public DeltaType deltaType;
-
+		public float lowerDetectionThreshold;
+		public float upperDetectionThreshold;
+		public float lowerLeakageThreshold;
+		public float upperLeakageThreshold;
+		public float minZ;
+		public float maxZ;
 		public float min;
 		public float max;
-		private float dataMin;
-		private float dataMax;
+		
+		//private float dataMin;
+		//private float dataMax;
 		private Float maxZBound;
 		private Float minZBound;
-
-		public boolean asRelativeChange;
-		public boolean asAbsoluteChange;
 		public boolean isIncluded;
 		private boolean isDuplicate;
 		
@@ -120,19 +118,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private Text minZText;
 		private Text maxZText;
 		
-		private Color aliasForeground;
-		private Color costForeground;
-		private Color detectionForeground;
-		private Color leakageForeground;
-		private Color minZForeground;
-		private Color maxZForeground;
-		
-		private String costErrorText;
-		private String detectionErrorText;
-		private String leakageErrorText;
-		private String minZErrorText;
-		private String maxZErrorText;
-		
 		private Combo thresholdCombo;
 		
 		
@@ -147,33 +132,30 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			alias = sensorName;
 			isIncluded = false; // By default
 			cost = sensorSettings.getCost();
-			//detection = sensorSettings.getDetection();
-			//leakage = sensorSettings.getLeakage();
+			upperDetectionThreshold = sensorSettings.getUpperDetectionThreshold();
+			lowerDetectionThreshold = sensorSettings.getLowerDetectionThreshold();
+			upperLeakageThreshold = sensorSettings.getUpperLeakageThreshold();
+			lowerLeakageThreshold = sensorSettings.getLowerLeakageThreshold();
 			maxZ = sensorSettings.getMaxZ();
 			minZ = sensorSettings.getMinZ();
 			minZBound = minZ;
 			maxZBound = maxZ;
-			costErrorText = Constants.decimalFormat.format(cost);
-			detectionErrorText = Constants.decimalFormat.format(detection);
-			leakageErrorText = Constants.decimalFormat.format(leakage);
-			minZErrorText = Constants.decimalFormat.format(minZ);
-			maxZErrorText = Constants.decimalFormat.format(maxZ);
+			//dataMin = sensorSettings.getMin();
+			//dataMax = sensorSettings.getMax();
 			
 			// These may be backwards?
 			trigger = Trigger.MINIMUM_THRESHOLD;
 			deltaType = sensorSettings.getDeltaType();
 			
-			// Try to be a little smarter about pressure
-			if(sensorType.toLowerCase().contains("pressure") || sensorType.toLowerCase().equals("p"))
+			// Trigger should be relative delta when pressure
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p"))
 				trigger = Trigger.RELATIVE_DELTA;
 			
-			// Removing this, its buggy...
-			if(sensorType.toLowerCase().equals("ph"))
+			// Trigger should be maximum threshold when pH
+			if(sensorType.trim().toLowerCase().equals("ph"))
 				trigger = Trigger.MAXIMUM_THRESHOLD;
 			
-			dataMin = sensorSettings.getMin();
-			dataMax = sensorSettings.getMax();
-			
+			/*
 			// Default threshold goes from half way to max
 			if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 				min = 0;
@@ -182,13 +164,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				min = (dataMax-dataMin)/2+dataMin;
 				max = Float.MAX_VALUE;
 			}
-			
-			asRelativeChange = true;
-			asAbsoluteChange = false;
+			*/
 			
 		}	
 		
-		public void buildUI() {
+		public void buildUI(String scenario) {
 			
 			//Add a button here
 			if(isDuplicate){
@@ -223,8 +203,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// Include button
 			Button includeButton = new Button(container,  SWT.CHECK);
 			includeButton.setSelection(isIncluded);
-			for(SensorData data: sensorData.values()) {
-				if(data.isIncluded) {
+			includeButton.setText(sensorType);
+			for(SensorData temp: sensorData.values()) {
+				if(temp.isIncluded) {
 					errorFound(false, "  Must select a monitoring parameter.");
 					break;
 				}
@@ -253,47 +234,47 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean botBoundError = false;
 					boolean topError = false;
 					boolean topBoundError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) //Skip unchecked parameters
 							continue;
 						else
 							checkError = false;
 						//Alias
-						for(SensorData data2: sensorData.values()) {
-							if(!data2.isIncluded) //Skip unchecked parameters
+						for(SensorData temp2: sensorData.values()) {
+							if(!temp2.isIncluded) //Skip unchecked parameters
 								continue;
-							if(data.alias.equals(data2.alias) && !data.sensorName.equals(data2.sensorName)) {
+							if(temp.alias.trim().equals(temp2.alias.trim()) && !temp.sensorName.equals(temp2.sensorName)) {
 								duplicateError = true;
-								data.aliasText.setForeground(red);
+								temp.aliasText.setForeground(red);
 							}
 						}
-						if(data.alias.contains(",")) //Contains a comma
+						if(temp.alias.contains(",")) //Contains a comma
 							commaError = true;
-						if(data.alias.isEmpty()) //No alias
+						if(temp.alias.isEmpty()) //No alias
 							emptyError = true;
 						//Cost
-						if(!isValidFloat(data.costText.getText()))
+						if(!isValidFloat(temp.costText.getText()))
 							costError = true;
 						//Detection
-						if(!isValidFloat(data.detectionText.getText()) && !data.detectionText.getText().equals(""))
+						if(!isValidFloat(temp.detectionText.getText()))
 							detectionError = true;
 						//Leakage
-						if(!isValidFloat(data.leakageText.getText()) && !data.leakageText.getText().equals(""))
+						if(!isValidFloat(temp.leakageText.getText()))
 							leakageError = true;
 						//Zone bottom
-						if(!isValidFloat(data.minZText.getText()))
+						if(!isValidFloat(temp.minZText.getText()))
 							botError = true;
 						else {
-							minZ = Float.parseFloat(data.minZText.getText());
-							if (minZ < data.minZBound || minZ > data.maxZBound)
+							float minZValue = Float.parseFloat(temp.minZText.getText());
+							if (minZValue < temp.minZBound || minZValue > temp.maxZBound)
 								botBoundError = true;
 						}
 						//Zone top
-						if(!isValidFloat(data.maxZText.getText()))
+						if(!isValidFloat(temp.maxZText.getText()))
 							topError = true;
 						else {
-							maxZ = Float.parseFloat(data.maxZText.getText());
-							if (maxZ < data.minZBound || maxZ > data.maxZBound)
+							float maxZValue = Float.parseFloat(temp.maxZText.getText());
+							if (maxZValue < temp.minZBound || maxZValue > temp.maxZBound)
 								topBoundError = true;
 						}
 					}
@@ -317,6 +298,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			});
 			
+			/*
 			// Label [min, max]
 			String minStr =  Constants.decimalFormat.format(dataMin);		
 			if(dataMin < 0.001)
@@ -326,51 +308,46 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				maxStr =  Constants.exponentialFormat.format(dataMax);
 		
 			if(minStr.length() > 8) minStr = Constants.exponentialFormat.format(dataMin);
-			if(maxStr.length() > 8) maxStr = Constants.exponentialFormat.format(dataMax);			
+			if(maxStr.length() > 8) maxStr = Constants.exponentialFormat.format(dataMax);
+			*/
 			
-			includeButton.setText(sensorType);
-			
+			//Alias Input
 			aliasText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			aliasText.setText(alias);
-			aliasText.setForeground(aliasForeground);
+			aliasText.setText(sensorData.get(scenario).alias);
+			aliasText.setForeground(black);
 			aliasText.addModifyListener(new ModifyListener(){
 				@Override
 				public void modifyText(ModifyEvent e){
-					alias = ((Text)e.getSource()).getText();
+					aliasText = ((Text)e.getSource());
 					boolean commaError = false;
 					boolean duplicateError = false;
 					boolean emptyError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						data.aliasText.setForeground(black);
-						for(SensorData data2: sensorData.values()) {
-							if(!data2.isIncluded) //Skip unchecked parameters
-								continue;
-							if(data.alias.trim().equals(data2.alias.trim()) && !data.sensorName.equals(data2.sensorName)) {
-								data.aliasText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						//temp.aliasText.setForeground(black);
+						for(SensorData temp2: sensorData.values()) {
+							if(!temp2.isIncluded) continue; //Skip unchecked parameters
+							if(temp.aliasText.getText().trim().equals(temp2.aliasText.getText().trim()) && !temp.sensorName.equals(temp2.sensorName)) {
+								temp.aliasText.setForeground(red);
 								duplicateError = true;
 							}
 						}
-					}
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(data.alias.contains(",")) { //Contains a comma
-							data.aliasText.setForeground(red);
+						if(temp.aliasText.getText().contains(",")) { //Contains a comma
+							temp.aliasText.setForeground(red);
 							commaError = true;
-						} else if (duplicateError==false) //No comma
-							data.aliasText.setForeground(black);
-						if(data.alias.isEmpty()) { //No alias
-							data.aliasText.setForeground(red);
+						}
+						if(temp.aliasText.getText().trim().isEmpty()) { //Empty alias
+							temp.aliasText.setForeground(red);
 							emptyError = true;
-						} else if (duplicateError==false && commaError==false) //Has alias
-							data.aliasText.setForeground(black);
+						}
+						if (duplicateError==false && commaError==false && emptyError==false) { //No errors
+							temp.aliasText.setForeground(black);
+							temp.alias = temp.aliasText.getText();
+						}
 					}
 					errorFound(duplicateError, "  Duplicate alias.");
 					errorFound(commaError, "  Cannot use commas in alias.");
 					errorFound(emptyError, "  Need to enter an alias.");
-					aliasForeground = aliasText.getForeground();
 				}
 			});
 			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -378,34 +355,34 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			aliasText.setLayoutData(aliasTextData);
 			
 			
-			//Cost input
+			//Cost Input
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			costText.setText(costErrorText);
-			costText.setForeground(costForeground);
+			costText.setText(String.valueOf(sensorData.get(scenario).cost));
+			costText.setForeground(black);
 			costText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					costErrorText = ((Text)e.getSource()).getText();
+					costText = ((Text)e.getSource());
 					boolean costError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(isValidFloat(data.costText.getText())) //Valid number
-							data.costText.setForeground(black);
-						else { //Not a valid number
-							data.costText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						if(isValidFloat(temp.costText.getText())) { //Valid number
+							temp.costText.setForeground(black);
+							temp.cost = Float.valueOf(temp.costText.getText());
+						} else { //Not a valid number
+							temp.costText.setForeground(red);
 							costError = true;
 						}
 					}
 					errorFound(costError, "  Cost is not a real number.");
-					costForeground = costText.getForeground();
 				}
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			costTextData.widthHint = 60;
 			costText.setLayoutData(costTextData);
 			
-			// Drop down menu
+			
+			//Detection Criteria
 			thresholdCombo = new Combo(container, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			thresholdCombo.add(Trigger.MAXIMUM_THRESHOLD.toString());
 			thresholdCombo.add(Trigger.MINIMUM_THRESHOLD.toString());
@@ -427,60 +404,45 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						min = Float.parseFloat(detectionText.getText());
 						max = Float.MAX_VALUE;
 					}
-						
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-
-					toggleEnabled();
 				}				
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
-			thresholdComboData.widthHint = 140;
+			thresholdComboData.widthHint = 105;
 			thresholdCombo.setLayoutData(thresholdComboData);
 			
-			//Detection input
+			
+			//Detection Value
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			detectionText.setText(detectionErrorText);
-			detectionText.setForeground(detectionForeground);
-			
-			//TODO: Verify that this is unnecessary
-			//Not sure what this is about... it was causing errors, so I commented out
-			/*
-			if(trigger == Trigger.MAXIMUM_THRESHOLD) {
-				if(max != 0) {// What if a user wants to set this to 0? 
-					detectionText.setText(Constants.decimalFormat.format(max));
-					if(max < 0.001)
-						detectionText.setText(Constants.exponentialFormat.format(max));
-				}
-			} else { 
-				if(min != 0) {
-					detectionText.setText(Constants.decimalFormat.format(min));
-					if(min < 0.001)
-						detectionText.setText(Constants.exponentialFormat.format(min));
-				}
-			}
-			
-			if(deltaType == DeltaType.INCREASE) detectionText.setText("+" + detectionText.getText());
-			*/
-			
+			if(trigger == Trigger.MAXIMUM_THRESHOLD)
+				detectionText.setText(String.valueOf(sensorData.get(scenario).upperDetectionThreshold));
+			else
+				detectionText.setText(String.valueOf(sensorData.get(scenario).lowerDetectionThreshold));
+			detectionText.setForeground(black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					detectionErrorText = ((Text)e.getSource()).getText();
+					detectionText = ((Text)e.getSource());
 					boolean detectionError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(!isValidFloat(data.detectionText.getText()) && !data.detectionText.getText().equals("")) { //Valid number
-							data.detectionText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						if(isValidFloat(temp.detectionText.getText())) { //Valid number
+							temp.detectionText.setForeground(black);
+							if(temp.trigger == Trigger.MAXIMUM_THRESHOLD) {
+								temp.lowerDetectionThreshold = 0;
+								temp.upperDetectionThreshold = Float.valueOf(temp.detectionText.getText());
+							} else {
+								temp.lowerDetectionThreshold = Float.valueOf(temp.detectionText.getText());
+								temp.upperDetectionThreshold = Float.MAX_VALUE;
+							}
+						} else { //Not a valid number
+							temp.detectionText.setForeground(red);
 							detectionError = true;
-						} else
-							data.detectionText.setForeground(black);
+						}
 					}
 					errorFound(detectionError, "  Detection is not a real number.");
-					detectionForeground = detectionText.getForeground();
-					
 					try { // Verify that entry is a real number
 						if(trigger == Trigger.MAXIMUM_THRESHOLD) {
 							min = 0;
@@ -501,28 +463,37 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
 			detectionInputData.widthHint = 60;
 			detectionText.setLayoutData(detectionInputData);
-
 			
-			//Leakage input
+			
+			//Leakage Criteria
 			leakageText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			leakageText.setText(leakageErrorText);
-			leakageText.setForeground(leakageForeground);
+			if(trigger == Trigger.MAXIMUM_THRESHOLD)
+				leakageText.setText(String.valueOf(sensorData.get(scenario).upperLeakageThreshold));
+			else
+				leakageText.setText(String.valueOf(sensorData.get(scenario).lowerLeakageThreshold));
+			leakageText.setForeground(black);
 			leakageText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					leakageErrorText = ((Text)e.getSource()).getText();
+					leakageText = ((Text)e.getSource());
 					boolean leakageError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(!isValidFloat(data.leakageText.getText()) && !data.leakageText.getText().equals("")) { //Valid number
-							data.leakageText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						if(isValidFloat(temp.leakageText.getText())) { //Valid number
+							temp.leakageText.setForeground(black);
+							if(temp.trigger == Trigger.MAXIMUM_THRESHOLD) {
+								temp.lowerLeakageThreshold = 0;
+								temp.upperLeakageThreshold = Float.valueOf(temp.leakageText.getText());
+							} else {
+								temp.lowerLeakageThreshold = Float.valueOf(temp.leakageText.getText());
+								temp.upperLeakageThreshold = Float.MAX_VALUE;
+							}
+						} else { //Not a valid number
+							temp.leakageText.setForeground(red);
 							leakageError = true;
-						} else
-							data.leakageText.setForeground(black);
+						}
 					}
 					errorFound(leakageError, "  Leakage is not a real number.");
-					leakageForeground = leakageText.getForeground();
 				}
 			});
 			GridData leakageInputData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -532,32 +503,32 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			// Set minimum z
 			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			minZText.setText(minZErrorText);
-			minZText.setForeground(minZForeground);
+			minZText.setText(String.valueOf(sensorData.get(scenario).minZ));
+			minZText.setForeground(black);
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					minZErrorText = ((Text)e.getSource()).getText();
+					minZText = ((Text)e.getSource());
 					boolean botError = false;
 					boolean botBoundError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(isValidFloat(data.minZText.getText())) { //Valid number
-							data.minZText.setForeground(black);
-							minZ = Float.parseFloat(data.maxZText.getText());
-							if (minZ < minZBound || minZ > maxZBound) {
-								data.minZText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						if(isValidFloat(temp.minZText.getText())) { //Valid number
+							float minZValue = Float.valueOf(temp.minZText.getText());
+							if (minZValue < minZBound || minZValue > maxZBound) {
+								temp.minZText.setForeground(red);
 								botBoundError = true;
+							} else {
+								temp.minZText.setForeground(black);
+								temp.minZ = minZValue;
 							}
 						} else { //Not a valid number
-							data.minZText.setForeground(red);
+							temp.minZText.setForeground(red);
 							botError = true;
 						}
 					}
 					errorFound(botError, "  Bottom is not a real number.");
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
-					minZForeground = minZText.getForeground();
 				}
 			});
 			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -565,40 +536,40 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZText.setLayoutData(minZTextData);
 			
 			
-			
 			// Set maximum z
 			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			maxZText.setText(maxZErrorText);
-			maxZText.setForeground(maxZForeground);
+			maxZText.setText(String.valueOf(sensorData.get(scenario).maxZ));
+			maxZText.setForeground(black);
 			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					maxZErrorText = ((Text)e.getSource()).getText();
+					maxZText = ((Text)e.getSource());
 					boolean topError = false;
 					boolean topBoundError = false;
-					for(SensorData data: sensorData.values()) {
-						if(!data.isIncluded) //Skip unchecked parameters
-							continue;
-						if(isValidFloat(data.maxZText.getText())) { //Valid number
-							data.maxZText.setForeground(black);
-							maxZ = Float.parseFloat(data.maxZText.getText());
-							if (maxZ < minZBound || maxZ > maxZBound) {
-								data.maxZText.setForeground(red);
+					for(SensorData temp: sensorData.values()) {
+						if(!temp.isIncluded) continue; //Skip unchecked parameters
+						if(isValidFloat(temp.maxZText.getText())) { //Valid number
+							float maxZValue = Float.valueOf(temp.maxZText.getText());
+							if (maxZValue < minZBound || maxZValue > maxZBound) {
+								temp.maxZText.setForeground(red);
 								topBoundError = true;
+							} else {
+								temp.maxZText.setForeground(black);
+								temp.maxZ = maxZValue;
 							}
 						} else { //Not a valid number
-							data.maxZText.setForeground(red);
+							temp.maxZText.setForeground(red);
 							topError = true;
 						}
 					}
 					errorFound(topError, "  Top is not a real number.");
 					errorFound(topBoundError, "  Top outside domain bounds.");
-					maxZForeground = maxZText.getForeground();
 				}
 			});
 			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
 			maxZTextData.widthHint = 60;
 			maxZText.setLayoutData(maxZTextData);
+			
 			
 			toggleEnabled();
 		}		
@@ -662,7 +633,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		compositeData.heightHint = 400;
 		compositeData.minimumHeight = 400;
 		sc.setLayoutData(compositeData);
-	//	sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(720, 400).create());
         sc.setExpandHorizontal(true);
         sc.getVerticalBar().setIncrement(20);
         sc.setExpandVertical(true);
@@ -673,7 +643,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		layout.verticalSpacing = 12;
 		container.setLayout(layout);
 		layout.numColumns = 9;
-//		layout.makeColumnsEqualWidth = false;
 		
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -692,13 +661,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		int count = 0;
 		for(String label: sensorData.keySet()) {
 			SensorData senData = sensorData.get(label);
-			if (senData.isIncluded==true) {
-				senData.cost = Float.valueOf(senData.costErrorText);
-				senData.detection = Float.valueOf(senData.detectionErrorText);
-				senData.leakage = Float.valueOf(senData.leakageErrorText);
-				sensorData.put(label, senData);
+			if (senData.isIncluded==true)
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
-			}
 			sensorSettings.put(label, senData);
 			sensorAliases.put(label, senData.alias);
 			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
@@ -721,18 +685,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			data.needToResetMonitoringParameters = false;
 			// New UI
 			sensorData = new TreeMap<String, SensorData>();
-		
-			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
-								
+			for(String dataType: data.getSet().getAllPossibleDataTypes())	
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
-
-			}
 		}
 		
-		for(Control control: container.getChildren()) {
+		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
-		}		
-	
+		
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
@@ -767,7 +726,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoLabel.setLayoutData(infoGridData);
 				
 		// Headers
-		
 		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
 		
 		Label blankFiller = new Label(container, SWT.LEFT);	
@@ -800,7 +758,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		maxZLabel.setFont(boldFont1);
 				
 		for(SensorData data: sensorData.values()) {
-			data.buildUI();
+			data.buildUI(data.sensorName);
 		}
 
 		Composite composite_scale = new Composite(container, SWT.BORDER);
@@ -853,8 +811,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				fixMacBug();
 				Constants.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
-				boolean reset = true;							
-				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();	
+				boolean reset = true;
+				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 
 
 				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
@@ -875,11 +833,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							data.getSet().getSensorSettings(dataType).setNodesReady(false);
 						}
 					}
-					DREAMWizard.visLauncher.setEnabled(false);
-					e4dButton.setEnabled(false);
-					e4dFolder.setEnabled(false);
-					buttonSelectDir.setEnabled(false);
-					data.setupSensors(reset, sensorSettings);
+					data.setupSensors(reset, sensorSettings); //Passes along variables
 					DREAMWizard.visLauncher.setEnabled(true);
 					e4dButton.setEnabled(true);
 					e4dFolder.setEnabled(true);
