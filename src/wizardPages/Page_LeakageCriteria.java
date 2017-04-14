@@ -209,6 +209,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					isIncluded = ((Button)e.getSource()).getSelection();
+					if(isIncluded==true)
+						data.getSet().getInferenceTest().setMinimumForType(((Button)e.getSource()).getText(), 1);
+					else
+						data.getSet().getInferenceTest().setMinimumForType(((Button)e.getSource()).getText(), 0);
 					toggleEnabled();
 					
 					//Special handling if errors are negated when parameters are unchecked...
@@ -642,8 +646,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.setupSensors(false, sensorSettings);
 		data.needToResetWells = true;
-		if(!Constants.buildDev) volumeOfAquiferDegraded(); // we only need to do this if we're not going to have the whole separate page
-		
+		volumeOfAquiferDegraded();
 		DREAMWizard.visLauncher.setEnabled(true);
 	}
 
