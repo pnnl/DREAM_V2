@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Text;
 public class ScrollableDialog extends TitleAreaDialog {
 	private String title;
 	private String text;
-	private String scrollableText;
+	//private String scrollableText;
 	Text scrollable;
 	Composite composite;
 	List<String> lines = new ArrayList<String>();
@@ -51,7 +51,7 @@ public class ScrollableDialog extends TitleAreaDialog {
 		this.runs = runs;
 		this.iterations = iterations;
 		this.text = "Run: " + currentRun + "/" + runs + "\tIteration:" + currentIteration + "/" + iterations;
-		this.scrollableText = "";
+		//this.scrollableText = "";
 		this.progressMax = runs*iterations;
 
 	}

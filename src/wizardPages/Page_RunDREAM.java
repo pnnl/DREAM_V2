@@ -338,9 +338,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append("N/A" + ",");
 						text.append("N/A" + ",");
 						text.append("N/A");
-						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+						for(int i = 0; i < data.getScenarioSet().getScenarios().size(); i++)
 							text.append(",N/A");
-						}
 						text.append("\n");
 					}
 				}
@@ -596,10 +595,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				StringBuilder varRanks = new StringBuilder();
 				varRanks.append("[1, 2, 3, ");
 				int rank = 4;
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					varRanks.append((rank++) + ", ");
-				}
-				
+				for(int i = 0; i < data.getSet().getSensorSettings().keySet().size(); i++)
+					varRanks.append((rank++) + ", ");				
 				text.append("VARLOCATION = (" + varRanks.toString().substring(0, varRanks.length() - 2) + "]" + " = NODAL)\n");
 
 				// X values
