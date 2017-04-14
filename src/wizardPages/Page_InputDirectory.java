@@ -189,7 +189,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
-		if(directory.contains("whit162"))
+		if(directory.contains("whit162") && directory==Constants.homeDirectory)
 			directory = directory + "\\Desktop\\Ex-Edwards";
 		hdf5Text.setText(directory);
 		hdf5Text.setForeground(black);

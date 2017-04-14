@@ -275,17 +275,17 @@ public class CCS9_1 extends Function {
 
 		// See if we exceeded threshold
 		if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = temp.getLowerDetectionThreshold() <= currentValue && currentValue <= temp.getUpperDetectionThreshold();
+			triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
 		} else if(currentValue != null && temp.getTrigger() == Trigger.RELATIVE_DELTA) {
 			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerDetectionThreshold() <= change;
-			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerDetectionThreshold() >= change;
-			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerDetectionThreshold() <= Math.abs(change);					
+			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);					
 		} else if(currentValue != null && temp.getTrigger() == Trigger.ABSOLUTE_DELTA) {
 			float change = currentValue - valueAtTime0;
-			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerDetectionThreshold() <= change;
-			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerDetectionThreshold() >= change;
-			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerDetectionThreshold() <= Math.abs(change);		
+			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
+			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
+			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
 		} else {
 			triggered = false;
 		}
@@ -314,17 +314,17 @@ public class CCS9_1 extends Function {
 
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = setting.getLowerDetectionThreshold() <= currentValue && currentValue <= setting.getUpperDetectionThreshold();
+			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
 		} else if(currentValue != null && setting.getTrigger() == Trigger.RELATIVE_DELTA) {
 			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerDetectionThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerDetectionThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerDetectionThreshold() <= Math.abs(change);					
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);					
 		} else if(currentValue != null && setting.getTrigger() == Trigger.ABSOLUTE_DELTA) {
 			float change = currentValue - valueAtTime0;
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerDetectionThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerDetectionThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerDetectionThreshold() <= Math.abs(change);		
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);		
 		} else {
 			triggered = false;
 		}
@@ -351,17 +351,17 @@ public class CCS9_1 extends Function {
 
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = setting.getLowerDetectionThreshold() <= currentValue && currentValue <= setting.getUpperDetectionThreshold();
+			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
 		} else if(currentValue != null && setting.getTrigger() == Trigger.RELATIVE_DELTA) {
 			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerDetectionThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerDetectionThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerDetectionThreshold() <= Math.abs(change);					
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);					
 		} else if(currentValue != null && setting.getTrigger() == Trigger.ABSOLUTE_DELTA) {
 			float change = currentValue - valueAtTime0;
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerDetectionThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerDetectionThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerDetectionThreshold() <= Math.abs(change);		
+			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
+			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
+			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);		
 		} else {
 			triggered = false;
 		}
