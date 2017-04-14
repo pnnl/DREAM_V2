@@ -417,7 +417,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		iterativeProceedureButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				printSolutionSpaceTab();
+				printSolutionSpace();
 				String numRuns = runsText.getText();
 				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
 				int ittr = Integer.parseInt(iterationsText.getText());
@@ -685,7 +685,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					e.printStackTrace();
 				}
 
-				printSolutionSpaceTab();
+				printSolutionSpace();
 			}
 		});
 		solutionSpaceButton.setVisible(Constants.buildDev);
@@ -705,7 +705,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				dialog.open();
 				if(dialog.readyToRun){
 					//Run the ensemble (formerly scatterplot)
-					printSolutionSpaceTab();
+					printSolutionSpace();
 					int minNum = dialog.getMin();
 					int maxNum = dialog.getMax();
 					int its = dialog.getIterationsPerSensor();
@@ -971,7 +971,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	
 	/*SCATTERPLOT BUTTON FUNCTION STORAGE - a place for old code that was once useful that could be again if we continue to re-imagine this functionality.
 	 * 
-				printSolutionSpaceTab();
+				printSolutionSpace();
 				int minNum = Integer.parseInt(minNumSensors.getText());
 				int maxNum = Integer.parseInt(maxNumSensors.getText());
 				int its = Integer.parseInt(iterationsPerSensorNumber.getText());
@@ -1073,7 +1073,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	 * 
 	 */
 	
-	public void printSolutionSpaceTab(){
+	public void printSolutionSpace(){
 		StringBuilder text = new StringBuilder();
 		Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
 		text.append("x y z");
@@ -1098,12 +1098,12 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			File outFolder = new File(outputFolder.getText());
 			if(!outFolder.exists())
 				outFolder.mkdirs();
-			File outFile = new File(new File(outputFolder.getText()), "solution_space.tab");
+			File outFile = new File(new File(outputFolder.getText()), "solution_space.txt");
 			if(!outFile.exists())
 				outFile.createNewFile();
 			FileUtils.writeStringToFile(outFile, text.toString());
 		}catch (IOException e) {		
-			JOptionPane.showMessageDialog(null, "Could not write to solution_space.tab, make sure the file is not currently open");
+			JOptionPane.showMessageDialog(null, "Could not write to solution_space.txt, make sure the file is not currently open");
 			e.printStackTrace();
 		}
 	}
