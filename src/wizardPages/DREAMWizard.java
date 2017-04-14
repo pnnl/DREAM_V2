@@ -359,15 +359,19 @@ public class DREAMWizard extends Wizard {
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					// Run tasks:
 					monitor.beginTask("Scenario set settings", scenarioWeights.size() + scenariosToRemove.size());
-
-					monitor.subTask("applying scenario weights");
-					set.setScenarioWeights(scenarioWeights);
-					monitor.worked(scenarioWeights.size());
-
+					
+					for(Scenario scenario: scenarioWeights.keySet()) {
+						if(Float.compare(scenarioWeights.get(scenario), data.getSet().getScenarioWeights().get(scenario)) != 0) { //Changed weights
+							monitor.subTask("applying scenario weight: " + scenario);
+							set.setScenarioWeights(scenario, scenarioWeights.get(scenario));
+							monitor.worked(scenarioWeights.size());
+						}
+					}
+					
 					for(Scenario scenario: scenariosToRemove) {
 						monitor.subTask("removing unused scenario: " + scenario);
 						set.removeScenario(scenario);
-						monitor.worked(1);
+						monitor.worked(scenariosToRemove.size());
 					}
 				}
 			});		

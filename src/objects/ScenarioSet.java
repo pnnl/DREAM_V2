@@ -99,21 +99,18 @@ public class ScenarioSet {
 			builder.append("\tData loaded:\r\n");
 			builder.append("\t\t" + nodeStructure.getRun() + "\r\n");
 			builder.append("\tScenarios: " + scenarios.toString() + "\r\n");
-			if(defaultWeights) {
+			if(defaultWeights)
 				builder.append("\tDefault weights: ");
-			} else {
+			else
 				builder.append("\tWeights: ");
-			}
 			builder.append(scenarioWeights.toString() + "\r\n");
-		} else {
+		} else
 			builder.append("\tNot ready - no data loaded.\r\n");
-		}
 		
-		if(!isReady()) {
+		if(!isReady())
 			builder.append("\tUser settings not set - using defaults:\r\n");
-		} else {
+		else
 			builder.append("\tUser settings:\r\n");
-		}
 
 		builder.append("\t\tAdd point: " + addPoint.toString() + "\r\n");
 		builder.append("\t\tMax wells: " + maxWells + "\r\n");
@@ -228,8 +225,10 @@ public class ScenarioSet {
 		return scenarioWeights;
 	}
 
-	public void setScenarioWeights(Map<Scenario, Float> scenarioWeights) {
-		this.scenarioWeights = scenarioWeights;
+	public void setScenarioWeights(Scenario scenario, float weight) {
+		this.scenarioWeights.replace(scenario, weight);
+		defaultWeights = false;
+		
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
@@ -592,13 +591,6 @@ public class ScenarioSet {
 	public static void main(String[] args) {
 		ScenarioSet set = new ScenarioSet();
 		set.loadRunData(Constants.RUN_TEST);
-	}
-
-	public void setScenarioWeight(Scenario scenario, float weight) {
-		if(scenarioWeights.containsKey(scenario) && Float.compare(scenarioWeights.get(scenario), weight) == 0)
-			return; // Nothing new
-		defaultWeights = false;
-		scenarioWeights.put(scenario, weight);
 	}
 
 	public void removeScenario(Scenario scenario) {
