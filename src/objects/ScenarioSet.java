@@ -32,6 +32,7 @@ public class ScenarioSet {
 	private NodeStructure nodeStructure;
 	private List<Scenario> allScenarios;
 	private List<Scenario> scenarios;
+	private List<String> sensorList;
 	
 	/**
 	 * User settings - 
@@ -71,6 +72,7 @@ public class ScenarioSet {
 		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
+		sensorList = new ArrayList<String>();
 
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
@@ -100,10 +102,12 @@ public class ScenarioSet {
 			builder.append("\t\t" + nodeStructure.getRun() + "\r\n");
 			builder.append("\tScenarios: " + scenarios.toString() + "\r\n");
 			if(defaultWeights)
-				builder.append("\tDefault weights: ");
+				builder.append("\tDefault weights: [");
 			else
-				builder.append("\tWeights: ");
-			builder.append(scenarioWeights.toString() + "\r\n");
+				builder.append("\tWeights: [");
+			for(Scenario scenario: scenarios)
+				builder.append(scenario + "=" + scenarioWeights.get(scenario) + ", ");
+			builder.replace(builder.length()-2, builder.length(), "]\r\n");
 		} else
 			builder.append("\tNot ready - no data loaded.\r\n");
 		
@@ -158,6 +162,7 @@ public class ScenarioSet {
 	
 		nodeStructure = new NodeStructure(run);
 		sensorSettings.clear();
+		sensorList.clear();
 		allScenarios.clear();
 		scenarios.clear();
 		
@@ -228,7 +233,6 @@ public class ScenarioSet {
 	public void setScenarioWeights(Scenario scenario, float weight) {
 		this.scenarioWeights.replace(scenario, weight);
 		defaultWeights = false;
-		
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
@@ -588,6 +592,14 @@ public class ScenarioSet {
 		return new ArrayList<String>(sensorSettings.keySet());
 	}	
 	
+	public void setSensorList(List<String> sensorList) {
+		this.sensorList = sensorList;
+	}
+
+	public List<String> getSensorList() {
+		return sensorList;
+	}
+	
 	public static void main(String[] args) {
 		ScenarioSet set = new ScenarioSet();
 		set.loadRunData(Constants.RUN_TEST);
@@ -608,6 +620,7 @@ public class ScenarioSet {
 		allScenarios.clear();
 		scenarioWeights.clear();
 		sensorSettings.clear();
+		sensorList.clear();
 
 		addPoint = new Point3i(0,0,0);
 		maxWells = 10;

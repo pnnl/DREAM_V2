@@ -135,7 +135,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		probabilityLabel.setFont(boldFont);
 		
 		if(!(data.modelOption == ModelOption.ALL_SENSORS)){
-			for(final String dataType: data.getSet().getDataTypes()) {
+			for(final String dataType: data.getSet().getSensorList()) {
 				
 				final Label dataLabel = new Label(container, SWT.NULL);
 				dataLabel.setText(Sensor.sensorAliases.get(dataType));
