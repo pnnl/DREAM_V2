@@ -196,7 +196,7 @@ public class DomainViewer {
 		// Repaint loop
 		DomainViewer.this.display.asyncExec(new Runnable() {
 			public void run() {
-				if(glcanvas.isVisible() ){
+				if(!glcanvas.isDisposed() && glcanvas.isVisible() ){
 					draw();
 				}
 				DomainViewer.this.display.asyncExec(this);
