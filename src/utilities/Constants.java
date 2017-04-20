@@ -34,7 +34,10 @@ public class Constants {
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
 	
-	public enum ModelOption { 
+	static File userDir = new File(System.getProperty("user.dir"));
+	public static String parentDir = userDir.getParent();
+	
+	public enum ModelOption {
 		
 		INDIVIDUAL_SENSORS_2("Individual Sensors 2.0", "Prioritize moving a well over adjusting sensors in a well."),
 		ALL_SENSORS("Aggregated Sensor Technology", "Place a sensor of every type at each monitoring location");

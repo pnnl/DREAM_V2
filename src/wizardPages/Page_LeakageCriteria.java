@@ -941,7 +941,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	    e4dButton.setText("  Write E4D Files  ");
 	    
 		e4dFolder = new Text(composite_E4D, SWT.BORDER | SWT.SINGLE);
-		e4dFolder.setText(System.getProperty("user.dir"));
+		e4dFolder.setText(Constants.parentDir);
 		GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
 		e4dTextData.horizontalSpan = 3;
 		e4dFolder.setLayoutData(e4dTextData);
