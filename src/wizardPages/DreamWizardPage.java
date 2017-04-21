@@ -46,4 +46,10 @@ public abstract class DreamWizardPage extends WizardPage {
 			return false;
 		}
 	}
+	
+	@Override
+	public boolean canFlipToNextPage() {
+		super.canFlipToNextPage();
+		return DREAMWizard.errorMessage.getText().trim().isEmpty();
+	} 
 }
