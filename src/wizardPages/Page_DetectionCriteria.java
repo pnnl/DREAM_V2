@@ -30,6 +30,7 @@ import wizardPages.DREAMWizard.STORMData;
  * See line 110
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 
 public class Page_DetectionCriteria extends DreamWizardPage implements AbstractWizardPage {

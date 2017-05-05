@@ -51,7 +51,7 @@ import functions.MutationFunction.MUTATE;
  * Also contains main function for launching DREAM
  * @author port091
  * @author rodr144
- *
+ * @author whit162
  */
 
 public class DREAMWizard extends Wizard {
@@ -377,18 +377,6 @@ public class DREAMWizard extends Wizard {
 			});		
 		}
 
-		/*
-		 * if(data.isIncluded) {
-						settings.add(data.cost);
-						settings.add(data.trigger == Trigger.THRESHOLD);
-						settings.add(data.asPercent);
-						settings.add(data.min);
-						settings.add(data.max);
-						settings.add(data.trigger == Trigger.DELTA);
-						settings.add(-1);
-						settings.add(data.delta);
-					} 
-		 */
 		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData) throws Exception {
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {

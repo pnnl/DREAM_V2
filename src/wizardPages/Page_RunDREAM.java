@@ -63,6 +63,7 @@ import wizardPages.DREAMWizard.STORMData;
  * See line 186
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 
 public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage {
@@ -965,110 +966,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		
 		return combos;
 	}
-	
-	/*SCATTERPLOT BUTTON FUNCTION STORAGE - a place for old code that was once useful that could be again if we continue to re-imagine this functionality.
-	 * 
-				printSolutionSpace();
-				int minNum = Integer.parseInt(minNumSensors.getText());
-				int maxNum = Integer.parseInt(maxNumSensors.getText());
-				int its = Integer.parseInt(iterationsPerSensorNumber.getText());
-				
-				//these will be an ordered list corresponding to x and y coordinates on the scatterplots
-				List<Float> configurationCosts = new ArrayList<Float>();
-				List<Float> configurationAverageTTDs = new ArrayList<Float>();
-				List<Float> configurationPercentDetected = new ArrayList<Float>();
-				List<Float> configurationTTDs = new ArrayList<Float>();
-				List<Float> averageVolumeDegraded = new ArrayList<Float>();
-				List<Configuration> configs = new ArrayList<Configuration>();
-				List<Float> budgets = new ArrayList<Float>();
-				List<Integer> wells = new ArrayList<Integer>();
-				float budget = data.getSet().getCostConstraint();
-				int well = data.getSet().getMaxWells();
-				//Generate the set of budges and well numbers to run over
-				float budgetIncrement = budget/2;
-				int wellIncrement = well/2;
-				for(int i=1; i<=3; i++){
-					budgets.add(budgetIncrement*i);
-					wells.add(wellIncrement*i);
-				}
-				float minCost = Float.MAX_VALUE;
-				float maxCost = 0;
-//				for(Float budgeti: budgets){
-//					for(Integer wellj: wells){
-				for(int i=minNum; i<=maxNum; ++i){
-					for(int j=0; j<its; ++j){
-						//For each budget and well number, run the iterative procedure and get the best configurations by TTED
-						int innerWells = i;
-						int innerSensors = i*100;
-						System.out.println(innerSensors + " " + innerWells);
-						data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
-						int ittr = Integer.parseInt(iterations.getText());
-						data.setWorkingDirectory(outputFolder.getText());
-						data.getSet().setIterations(ittr);
-						try {
-							ResultPrinter.runScripts = false;
-							data.run(1, false); //This should never show plots, we are running too many iterations.
-							//get the best TTD
-							
-							float ttd = ResultPrinter.results.bestObjValue;
-							HashSet<Configuration> bestConfigs = ResultPrinter.results.bestConfigSumList;
-							for(Configuration config: bestConfigs){
-								configurationTTDs.add(ttd);
-								float cost = data.getScenarioSet().costOfConfiguration(config);
-								if(cost < minCost) minCost = cost;
-								if(cost > maxCost) maxCost = cost;
-								configurationCosts.add(cost);
-								configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
-								configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
-								averageVolumeDegraded.add(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
-								configs.add(config);
-							}
-							
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
-//					}
-//				}
-				//Set this back to what it was so we don't mess up future runs
-				data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getAllowMultipleSensorsInWell());
-				
-				//Print our results in a csv file
-				try {
-					ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, configs, averageVolumeDegraded);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				//Make the plot with our points
-				XYSeriesCollection result = new XYSeriesCollection();
-				XYSeries highSeries = new XYSeries("High Cost");
-				XYSeries mediumSeries = new XYSeries("Medium Cost");
-				XYSeries lowSeries = new XYSeries("Low Cost");
-				for(int i=0; i<configurationTTDs.size(); i++){
-					if(configurationCosts.get(i) < (maxCost - minCost)/3 + minCost) lowSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
-					else if(configurationCosts.get(i) > -(maxCost - minCost)/3 + maxCost) highSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i)); 
-					else mediumSeries.add(configurationPercentDetected.get(i), configurationAverageTTDs.get(i));
-				}
-				result.addSeries(highSeries);
-				result.addSeries(mediumSeries);
-				result.addSeries(lowSeries);
-				
-				JFreeChart chart = ChartFactory.createScatterPlot(
-						"Average TTD of Detecting Scenarios as a Function of the Percent of Scenarios Detected", //title
-						"Percent of Scenarios Detected", //x axis label
-						"Average Time to Detection of Detecting Scenarios", //y axis label
-						result, //data
-						PlotOrientation.VERTICAL, //orientation
-						true, //legend
-						false, //tooltips 
-						false); //urls
-				ChartFrame frame = new ChartFrame("Cost-TTD Scatter", chart);
-				frame.pack();
-				frame.setVisible(true);
-	 * 
-	 */
 	
 	public void printSolutionSpace(){
 		StringBuilder text = new StringBuilder();
