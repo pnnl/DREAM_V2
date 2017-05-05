@@ -81,10 +81,6 @@ public class FileBrowser extends javax.swing.JFrame {
 	private JTextField jTextField_inputDir;
 	private JTextField jTextField_outputDir;
 
-	private JTextField jTextField_shiftI;
-	private JTextField jTextField_shiftJ;
-	private JTextField jTextField_fillField;
-
 	private File file_inputDir;
 	private File file_outputDir;
 
@@ -252,24 +248,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		jTextField_inputDir.setEnabled(false);
 		jTextField_outputDir.setEnabled(false);
 
-		jTextField_shiftI = new JTextField();
-		jTextField_shiftJ = new JTextField();
-		jTextField_fillField = new JTextField("0");
-
-		JPanel dataShiftPanel = new JPanel();
-		dataShiftPanel.setLayout(new BoxLayout(dataShiftPanel, BoxLayout.LINE_AXIS));
-		dataShiftPanel.add(new JLabel("Shift I:"));
-		dataShiftPanel.add(Box.createRigidArea(new Dimension(5,0)));
-		dataShiftPanel.add(jTextField_shiftI);
-		dataShiftPanel.add(Box.createRigidArea(new Dimension(15,0)));
-		dataShiftPanel.add(new JLabel("Shift J:"));
-		dataShiftPanel.add(Box.createRigidArea(new Dimension(5,0)));
-		dataShiftPanel.add(jTextField_shiftJ);
-		dataShiftPanel.add(Box.createRigidArea(new Dimension(15,0)));
-		dataShiftPanel.add(new JLabel("Fill:"));
-		dataShiftPanel.add(Box.createRigidArea(new Dimension(5,0)));
-		dataShiftPanel.add(jTextField_fillField);        
-
 		statusLabel = new JLabel("");
 		statusLabel.setFont(statusLabel.getFont().deriveFont(Font.ITALIC));
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -299,9 +277,6 @@ public class FileBrowser extends javax.swing.JFrame {
 												.addComponent(jButton_outputDir)
 												.addGap(69, 69, 69))
 												.addGroup(layout.createSequentialGroup()
-														.addGap(8, 8, 8)
-														.addComponent(dataShiftPanel))
-														.addGroup(layout.createSequentialGroup()
 																.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 																		.addComponent(jPanel_scenarios, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 																		.addComponent(jLabel_scenarios)
@@ -333,9 +308,6 @@ public class FileBrowser extends javax.swing.JFrame {
 										.addComponent(jButton_outputDir))
 										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-												.addComponent(dataShiftPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-												.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-												.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 														.addComponent(jLabel_scenarios)
 														.addComponent(jLabel_data))
 														.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -964,26 +936,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		int jMax = new Long(dims3D[1]).intValue();
 		int kMax = new Long(dims3D[2]).intValue();
 
-		int shiftI = 0;
-		int shiftJ = 0;
-		float fill = 0;
-
-		// In case the user wants to shift the data
-		try { shiftI = Integer.parseInt(jTextField_shiftI.getText()); } catch (NumberFormatException e) {}
-		try { shiftJ = Integer.parseInt(jTextField_shiftJ.getText()); } catch (NumberFormatException e) {}
-		try { fill = Float.parseFloat(jTextField_fillField.getText()); } catch (NumberFormatException e) {}
-
-		if(addGridInfo) {
-			if(Math.abs(shiftI) > iMax) {
-				JOptionPane.showMessageDialog(this, "Shift I moves data out of the domain, shift will be set to 0.");
-				shiftI = 0;
-			}
-			if(Math.abs(shiftJ) > jMax) {
-				JOptionPane.showMessageDialog(this, "Shift J moves data out of the domain, shift will be set to 0.");
-				shiftJ = 0;
-			}
-		}
-
 		for(JCheckBox dataField: dataFields) {
 			startTime = System.currentTimeMillis();
 			String field = dataField.getText();    		
@@ -999,34 +951,16 @@ public class FileBrowser extends javax.swing.JFrame {
 			try {
 
 				float[] dataAsFloats = ntabData.data.get(field)[timeStepIndex];
-				float[] tempForShift = new float[dataAsFloats.length];
+				float[] temp = new float[dataAsFloats.length];
 				
-				// Fill the data with the fill value
-
-				long getDataStartTime = System.currentTimeMillis();
-				fill = Math.abs(fill);
-				for(int i = 0; i < dataAsFloats.length; i++) {
-					tempForShift[i] = fill;
-				}
-			
-				System.out.println("Time to convert to absolute value: " + (System.currentTimeMillis() - getDataStartTime));
-
 				int counter = 0;
 				// Ordering is different for ntab, i's, j's, then k's?
 				for(int i = 1; i <= iMax; i++) {		
 					for(int j = 1; j <= jMax; j++) {			
 						for(int k = 1; k <= kMax; k++) {	
-							// Apply the shift (if one exists)						
-							int shiftedI = i-shiftI;
-							int shiftedJ = j-shiftJ;
-
-							// If we're out of bounds, use the fill number?
-							if(shiftedI > 0 && shiftedJ > 0 && shiftedI <= iMax && shiftedJ <= jMax) {
-								int shiftedNodeNumber = (k-1) * iMax * jMax + (shiftedJ-1) * iMax + (shiftedI);
-								//if((shiftedNodeNumber - 1) != counter) {
-								//	System.out.println("Problem...");
-								//}
-								tempForShift[counter] = Math.abs(dataAsFloats[shiftedNodeNumber-1]);
+							if(i > 0 && j > 0 && i <= iMax && j <= jMax) {
+								int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
+								temp[counter] = Math.abs(dataAsFloats[nodeNumber-1]);
 							}
 							counter++;
 						}
@@ -1034,7 +968,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 
 
-				hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, tempForShift);
+				hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
 				if(debug)
 					System.out.println("SUCCESS");
 			} catch(Exception e) {
@@ -1075,15 +1009,6 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		int iMax = new Long(dims3D[0]).intValue();
 		int jMax = new Long(dims3D[1]).intValue();
-
-		int shiftI = 0;
-		int shiftJ = 0;
-		float fill = 0;
-
-		// In case the user wants to shift the data
-		try { shiftI = Integer.parseInt(jTextField_shiftI.getText()); } catch (NumberFormatException e) {}
-		try { shiftJ = Integer.parseInt(jTextField_shiftJ.getText()); } catch (NumberFormatException e) {}
-		try { fill = Float.parseFloat(jTextField_fillField.getText()); } catch (NumberFormatException e) {}
 		
 		if(addGridInfo) {
 			// Times/Timesteps
@@ -1181,26 +1106,14 @@ public class FileBrowser extends javax.swing.JFrame {
 					porosityReader.close();
 					float[] dataAsFloats = new float[dataAsDoubles.length];
 
-					// Fill the data with the fill value
-					fill = Math.abs(fill);
-					for(int i = 0; i < dataAsDoubles.length; i++) {
-						dataAsFloats[i] = fill;
-					}
-
 					int counter = 0;	
 					for(int i = 1; i <= iMax; i++) {
 						for(int j = 1; j <= jMax; j++) {	
-							for(int k = 1; k <= dims3D[2]; k++) {				
-								// Apply the shift (if one exists)						
-								int shiftedI = i-shiftI;
-								int shiftedJ = j-shiftJ;
-
-								// If we're out of bounds, use the fill number?
-								if(shiftedI > 0 && shiftedJ > 0 && shiftedI <= iMax && shiftedJ <= jMax) {
-									int shiftedNodeNumber = (k-1) * iMax * jMax + (shiftedJ-1) * iMax + (shiftedI);
-									dataAsFloats[counter] = Math.abs(dataAsDoubles[shiftedNodeNumber-1]);
+							for(int k = 1; k <= dims3D[2]; k++) {
+								if(i > 0 && j > 0 && i <= iMax && j <= jMax) {
+									int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
+									dataAsFloats[counter] = Math.abs(dataAsDoubles[nodeNumber-1]);
 								}
-
 								counter++;
 							}
 						}	
@@ -1214,19 +1127,6 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		// Create a group for each time in the set
 		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
-
-
-
-		if(addGridInfo) {
-			if(Math.abs(shiftI) > iMax) {
-				JOptionPane.showMessageDialog(this, "Shift I moves data out of the domain, shift will be set to 0.");
-				shiftI = 0;
-			}
-			if(Math.abs(shiftJ) > jMax) {
-				JOptionPane.showMessageDialog(this, "Shift J moves data out of the domain, shift will be set to 0.");
-				shiftJ = 0;
-			}
-		}
 
 		for(JCheckBox dataField: dataFields) {
 			startTime = System.currentTimeMillis();
@@ -1249,26 +1149,14 @@ public class FileBrowser extends javax.swing.JFrame {
 
 				float[] dataAsFloats = new float[dataAsDoubles.length];
 
-				// Fill the data with the fill value
-				fill = Math.abs(fill);
-				for(int i = 0; i < dataAsDoubles.length; i++) {
-					dataAsFloats[i] = fill;
-				}
-
 				int counter = 0;	
 				for(int i = 1; i <= iMax; i++) {
 					for(int j = 1; j <= jMax; j++) {	
 						for(int k = 1; k <= dims3D[2]; k++) {				
-							// Apply the shift (if one exists)						
-							int shiftedI = i-shiftI;
-							int shiftedJ = j-shiftJ;
-
-							// If we're out of bounds, use the fill number?
-							if(shiftedI > 0 && shiftedJ > 0 && shiftedI <= iMax && shiftedJ <= jMax) {
-								int shiftedNodeNumber = (k-1) * iMax * jMax + (shiftedJ-1) * iMax + (shiftedI);
-								dataAsFloats[counter] = Math.abs(dataAsDoubles[shiftedNodeNumber-1]);
+							if(i > 0 && j > 0 && i <= iMax && j <= jMax) {
+								int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
+								dataAsFloats[counter] = Math.abs(dataAsDoubles[nodeNumber-1]);
 							}
-
 							counter++;
 						}
 					}	
@@ -1293,25 +1181,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
-		}  
-		/*
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FileBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FileBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FileBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(FileBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-		 */
+		}
 		java.awt.EventQueue.invokeLater(new Runnable() {
 
 			public void run() {
