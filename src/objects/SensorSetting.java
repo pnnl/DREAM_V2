@@ -1,6 +1,6 @@
 package objects;
 
-import hdf5Tool.HDF5Wrapper;
+import hdf5Tool.HDF5Interface;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -356,8 +356,8 @@ public class SensorSetting {
 				// Query for valid nodes per scenario
 				try {
 					HashSet<Integer> nodes = Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor) : 
-								HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
+							HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor) : 
+								HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
 							validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -391,8 +391,8 @@ public class SensorSetting {
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = !Constants.hdf5Data.isEmpty() ? 
-							HDF5Wrapper.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor) :
-							HDF5Wrapper.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
+							HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor) :
+							HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
 					if(first) {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
@@ -583,14 +583,14 @@ public class SensorSetting {
 		long startTime = System.currentTimeMillis();
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
 			try {
-				min = HDF5Wrapper.queryMinFromFiles(nodeStructure, getType());
+				min = HDF5Interface.queryMinFromFiles(nodeStructure, getType());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else if(Constants.hdf5Data.isEmpty()) {
-			min = HDF5Wrapper.queryMinFromCloud(getType());
+			min = HDF5Interface.queryMinFromCloud(getType());
 		} else {
-			min = HDF5Wrapper.queryMinFromMemory(getType());			
+			min = HDF5Interface.queryMinFromMemory(getType());			
 		}
 		System.out.println("Time to query for min: " + (System.currentTimeMillis() - startTime));
 	}
@@ -601,14 +601,14 @@ public class SensorSetting {
 		long startTime = System.currentTimeMillis();
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
 			try {
-				max = HDF5Wrapper.queryMaxFromFiles(nodeStructure, getType());
+				max = HDF5Interface.queryMaxFromFiles(nodeStructure, getType());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		} else if(Constants.hdf5Data.isEmpty()) {
-			max = HDF5Wrapper.queryMaxFromCloud(getType());
+			max = HDF5Interface.queryMaxFromCloud(getType());
 		} else {
-			max = HDF5Wrapper.queryMaxFromMemory(getType());			
+			max = HDF5Interface.queryMaxFromMemory(getType());			
 		}
 		System.out.println("Time to query for max: " + (System.currentTimeMillis()-startTime));
 	}

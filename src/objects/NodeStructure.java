@@ -1,6 +1,6 @@
 package objects;
 
-import hdf5Tool.HDF5Wrapper;
+import hdf5Tool.HDF5Interface;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -92,7 +92,7 @@ public class NodeStructure {
 		Constants.log(Level.INFO, "Node structure: loading run data ", run);
 		this.setRun(run);
 		try {
-			HDF5Wrapper.fillNodeStructureFromFiles(this);
+			HDF5Interface.fillNodeStructureFromFiles(this);
 		} catch (Exception e) {
 			// Something went wrong...
 			e.printStackTrace();

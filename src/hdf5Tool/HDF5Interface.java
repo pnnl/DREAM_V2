@@ -31,7 +31,7 @@ import utilities.Point3i;
  * @author port091
  */
 
-public class HDF5Wrapper {
+public class HDF5Interface {
 
 	public static float queryMinFromMemory(String dataType) {
 		float min = Float.MAX_VALUE;

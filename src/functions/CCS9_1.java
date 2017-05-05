@@ -1,6 +1,6 @@
 package functions;
 
-import hdf5Tool.HDF5Wrapper;
+import hdf5Tool.HDF5Interface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -263,14 +263,14 @@ public class CCS9_1 extends Function {
 		Float valueAtTime0 = 0.0f;
 
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Wrapper.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
+			currentValue = HDF5Interface.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
+			valueAtTime0 = HDF5Interface.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
 		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);	
+			currentValue =  HDF5Interface.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);	
+			valueAtTime0 =  HDF5Interface.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);	
 		} else {
-			currentValue =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);				
+			currentValue =  HDF5Interface.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);		
+			valueAtTime0 =  HDF5Interface.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);				
 		}
 
 		// See if we exceeded threshold
@@ -302,14 +302,14 @@ public class CCS9_1 extends Function {
 		Float valueAtTime0 = 0.0f;
 
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
+			currentValue = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
+			valueAtTime0 = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
 		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
+			currentValue =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
+			valueAtTime0 =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
 		} else {
-			currentValue =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
+			currentValue =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
+			valueAtTime0 =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
 		}
 
 		// See if we exceeded threshold
@@ -339,14 +339,14 @@ public class CCS9_1 extends Function {
 		Float valueAtTime0 = 0.0f;
 
 		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Wrapper.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
+			currentValue = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
+			valueAtTime0 = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
 		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Wrapper.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
+			currentValue =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
+			valueAtTime0 =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
 		} else {
-			currentValue =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Wrapper.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
+			currentValue =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
+			valueAtTime0 =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
 		}
 
 		// See if we exceeded threshold

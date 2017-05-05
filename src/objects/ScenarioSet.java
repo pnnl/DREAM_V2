@@ -1,6 +1,6 @@
 package objects;
 
-import hdf5Tool.HDF5Wrapper;
+import hdf5Tool.HDF5Interface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,7 +172,7 @@ public class ScenarioSet {
 		
 		Constants.log(Level.FINE, "Scenario set: QUERY", query);
 		
-		List<String> scenarios = HDF5Wrapper.queryScenarioNamesFromFiles();
+		List<String> scenarios = HDF5Interface.queryScenarioNamesFromFiles();
 
 		if(!scenarios.isEmpty()) {
 			for(String scenario: scenarios) {
