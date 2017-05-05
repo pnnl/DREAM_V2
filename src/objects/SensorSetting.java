@@ -432,7 +432,7 @@ public class SensorSetting {
 		HashSet<Integer> temp = new HashSet<Integer>();
 		for(Integer node: validNodes){
 			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
-			if (minZ <= test.getZ() && test.getZ() <= maxZ){
+			if (getThisMinZ() <= test.getZ() && test.getZ() <= getThisMaxZ()){
 				temp.add(node);
 			}
 			else{
