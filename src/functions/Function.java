@@ -9,6 +9,7 @@ import java.util.logging.Level;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import hdf5Tool.HDF5Interface;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
 import objects.Scenario;
@@ -552,7 +553,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 	protected synchronized void storeHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType, Boolean triggered) {
 
-		if(!Constants.hdf5Data.isEmpty())
+		if(!HDF5Interface.hdf5Data.isEmpty())
 			return; // Don't need this
 		
 		if(history == null)
@@ -579,7 +580,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 	protected synchronized Boolean getHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType) {
 
-		if(!Constants.hdf5Data.isEmpty())
+		if(!HDF5Interface.hdf5Data.isEmpty())
 			return null; // Don't need this
 		
 		if(history == null)

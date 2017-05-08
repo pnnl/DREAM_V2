@@ -1,5 +1,6 @@
 package hdf5Tool;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,15 +30,36 @@ import utilities.Point3i;
 /**
  * Utility functions for use in reading and parsing hdf5 files to DREAM formats
  * @author port091
+ * @author whit162
  */
 
 public class HDF5Interface {
-
+	// Storing the files
+	public static Map<String, H5File> hdf5Files;
+	// If we can store this in memory
+	public static Map<String, Map<Float, Map<String, float[]>>> hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>();
+	// Represents the optimized solution
+	public static Map<String, Map<Float, Map<String, Map<Integer, Float>>>> hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
+	
+	
+	public static float queryValue(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
+        // If cloud data exits, use me first
+        if(!hdf5CloudData.isEmpty()) {
+        	return queryValueFromCloud(nodeStructure, scenario, timestep, dataType, index);
+        // Otherwise, try memory, but the full set
+        } else if(!hdf5Data.isEmpty()) {
+        	return queryValueFromMemory(nodeStructure, scenario, timestep, dataType, index);                     
+        // Sad day, read from the file :(
+        } else {
+        	return queryValueFromFile(nodeStructure, scenario, timestep, dataType, index);
+        }
+	}
+	
 	public static float queryMinFromMemory(String dataType) {
 		float min = Float.MAX_VALUE;
-		for(String scenario: Constants.hdf5Data.keySet()) {
-			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
-				for(float value: Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)) {
+		for(String scenario: hdf5Data.keySet()) {
+			for(float timeStep: hdf5Data.get(scenario).keySet()) {
+				for(float value: hdf5Data.get(scenario).get(timeStep).get(dataType)) {
 					if(value < min)
 						min = value;
 				}
@@ -49,9 +71,9 @@ public class HDF5Interface {
 
 	public static float queryMaxFromMemory(String dataType) {
 		float max = -Float.MAX_VALUE;
-		for(String scenario: Constants.hdf5Data.keySet()) {
-			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
-				for(float value: Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)) {
+		for(String scenario: hdf5Data.keySet()) {
+			for(float timeStep: hdf5Data.get(scenario).keySet()) {
+				for(float value: hdf5Data.get(scenario).get(timeStep).get(dataType)) {
 					if(value > max)
 						max = value;
 				}
@@ -74,11 +96,11 @@ public class HDF5Interface {
 		int totalNodes = i*j*k;		
 		for(int index = 0; index < totalNodes; index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
-			for(float timeStep: Constants.hdf5Data.get(scenario).keySet()) {
+			for(float timeStep: hdf5Data.get(scenario).keySet()) {
 
 				if(monitor.isCanceled()) return nodes;
 				
-				float value = Constants.hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
+				float value = hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
 				if(value >= lowerThreshold && value < upperThreshold) {
 					//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 					nodes.add(nodeNumber);
@@ -106,12 +128,12 @@ public class HDF5Interface {
 
 				if(monitor.isCanceled()) return nodes;
 				
-				float valueAtStartTime = Constants.hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTime()).get(dataType)[index];	
+				float valueAtStartTime = hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTime()).get(dataType)[index];	
 
 				// Always compare from 0 in this case, end is then actually beginning
 				if(startTimeIndex == 0)
 					continue; // Not this one...
-				float valueAtTime0 = Constants.hdf5Data.get(scenario).get(timeSteps.get(0).getRealTime()).get(dataType)[index];
+				float valueAtTime0 = hdf5Data.get(scenario).get(timeSteps.get(0).getRealTime()).get(dataType)[index];
 				float valueAtCurrentTime = valueAtStartTime;
 
 				float change = trigger == Trigger.RELATIVE_DELTA ? 
@@ -141,14 +163,14 @@ public class HDF5Interface {
 
 	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
 		float years = timestep.getRealTime();
-		return Constants.hdf5Data.get(scenario).get(years).get(dataType)[index-1];
+		return hdf5Data.get(scenario).get(years).get(dataType)[index-1];
 	}
 
 	public static float queryMinFromCloud(String dataType) {
 		float min = Float.MAX_VALUE;
-		for(String scenario: Constants.hdf5CloudData.keySet()) {
-			for(float timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
-				for(float value: Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
+		for(String scenario: hdf5CloudData.keySet()) {
+			for(float timeStep: hdf5CloudData.get(scenario).keySet()) {
+				for(float value: hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
 					if(value < min)
 						min = value;
 				}
@@ -160,9 +182,9 @@ public class HDF5Interface {
 
 	public static float queryMaxFromCloud(String dataType) {
 		float max = -Float.MAX_VALUE;
-		for(String scenario: Constants.hdf5CloudData.keySet()) {
-			for(float timeStep: Constants.hdf5CloudData.get(scenario).keySet()) {
-				for(float value: Constants.hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
+		for(String scenario: hdf5CloudData.keySet()) {
+			for(float timeStep: hdf5CloudData.get(scenario).keySet()) {
+				for(float value: hdf5CloudData.get(scenario).get(timeStep).get(dataType).values()) {
 					if(value > max)
 						max = value;
 				}
@@ -175,18 +197,18 @@ public class HDF5Interface {
 	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
 		float years = timestep.getRealTime();
 		if(
-				Constants.hdf5CloudData.containsKey(scenario) && 
-				Constants.hdf5CloudData.get(scenario).containsKey(years) &&
-				Constants.hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
-				Constants.hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
-			return Constants.hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
+				hdf5CloudData.containsKey(scenario) && 
+				hdf5CloudData.get(scenario).containsKey(years) &&
+				hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
+				hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
+			return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
 		}
 		return null;
 	}
 
 	public static void fillNodeStructureFromFiles(NodeStructure nodeStructure) throws Exception {
 		// We assume all the files have the same node structure over all scenarios
-		H5File hdf5File = Constants.hdf5Files.get(Constants.hdf5Files.keySet().toArray()[0]);
+		H5File hdf5File = hdf5Files.get(hdf5Files.keySet().toArray()[0]);
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // Search for the data node (should be first)
@@ -252,7 +274,7 @@ public class HDF5Interface {
 
 	public static List<String> queryScenarioNamesFromFiles() {
 		List<String> scenarios = new ArrayList<String>();
-		for(String key: Constants.hdf5Files.keySet()) {
+		for(String key: hdf5Files.keySet()) {
 			scenarios.add(key);
 		}
 		//Sort the scenarios - needed a special comparator for strings + numbers
@@ -272,7 +294,7 @@ public class HDF5Interface {
 
 	public static float queryMinFromFiles(NodeStructure nodeStructure, String dataType) throws Exception {
 		float min = Float.MAX_VALUE;
-		for(H5File hdf5File: Constants.hdf5Files.values()) { // For every scenario
+		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
 			hdf5File.open();
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			List<HObject> groups = root.getMemberList();
@@ -306,7 +328,7 @@ public class HDF5Interface {
 
 	public static float queryMaxFromFiles(NodeStructure nodeStructure, String dataType) throws Exception {
 		float max = -Float.MAX_VALUE;
-		for(H5File hdf5File: Constants.hdf5Files.values()) { // For every scenario
+		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
 			hdf5File.open();
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			for(Object group: root.getMemberList()) {
@@ -336,7 +358,7 @@ public class HDF5Interface {
 	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, 
 			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) throws Exception {
 		HashSet<Integer> nodes = new HashSet<Integer>();		
-		H5File hdf5File = Constants.hdf5Files.get(scenario); // For the given scenario
+		H5File hdf5File = hdf5Files.get(scenario); // For the given scenario
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		TreeMap<Float, Group> sortedTimes = new TreeMap<Float, Group>();
@@ -389,23 +411,23 @@ public class HDF5Interface {
 
 	private static void addNodeToCloud(String scenario, float timeInYears, String dataType, int nodeNumber, float value) {
 		try {
-		if(Constants.hdf5CloudData == null)
-			Constants.hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
-		if(!Constants.hdf5CloudData.containsKey(scenario))
-			Constants.hdf5CloudData.put(scenario, new HashMap<Float, Map<String, Map<Integer, Float>>>());
-		if(!Constants.hdf5CloudData.get(scenario).containsKey(timeInYears))
-			Constants.hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
-		if(!Constants.hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
-			Constants.hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
-		Constants.hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);	
+		if(hdf5CloudData == null)
+			hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
+		if(!hdf5CloudData.containsKey(scenario))
+			hdf5CloudData.put(scenario, new HashMap<Float, Map<String, Map<Integer, Float>>>());
+		if(!hdf5CloudData.get(scenario).containsKey(timeInYears))
+			hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
+		if(!hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
+			hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
+		hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);	
 		} catch (Exception e) {
 			float totalNodes = 0;
-			for(String sc : Constants.hdf5CloudData.keySet()) {
-				for(float ts: Constants.hdf5CloudData.get(sc).keySet()) {
-					for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
-						totalNodes = Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
-						if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
-							System.out.println(sc + ", " + ts + ", " + dt + " , " + Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
+			for(String sc : hdf5CloudData.keySet()) {
+				for(float ts: hdf5CloudData.get(sc).keySet()) {
+					for(String dt: hdf5CloudData.get(sc).get(ts).keySet()) {
+						totalNodes = hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
+						if(hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
+							System.out.println(sc + ", " + ts + ", " + dt + " , " + hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
 					}
 				}
 			}
@@ -419,7 +441,7 @@ public class HDF5Interface {
 	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, 
 			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 
-		H5File h5file = Constants.hdf5Files.get(scenario);
+		H5File h5file = hdf5Files.get(scenario);
 		h5file.open();
 		
 		// Get the root node:
@@ -512,7 +534,7 @@ public class HDF5Interface {
 	}
 
 	public static float queryValueFromFile(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int nodeNumber) throws Exception {
-		H5File hdf5File = Constants.hdf5Files.get(scenario); // Get the correct file for the scenario
+		H5File hdf5File = hdf5Files.get(scenario); // Get the correct file for the scenario
 		hdf5File.open();
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
@@ -563,43 +585,93 @@ public class HDF5Interface {
 		return plotsAreTimeIndices;
 	}
 	
-	/*
-	public static Integer getNodeNumber(Point3i max, int index) {
-		return getNodeNumber(max.getI(), max.getJ(), max.getK(), index);
-	}
+	public static void loadHdf5Files(String location) {
+		
+		File hdf5Folder = new File(location);
+		hdf5Files = new HashMap<String, H5File>();
+		
+		boolean readToMemory = false; // TODO: Need a check to see if our size is small enough...
+		NodeStructure nodeStructure = null;
+		int totalNodes = 0;
+		int iMax = 0;
+		int jMax = 0;
+		int kMax = 0;
+		
+		long floatCount = 0;
+		if(hdf5Folder.exists() && hdf5Folder.isDirectory()) {
+			long size = 0;
+			for(File file: hdf5Folder.listFiles()) {
+				size += file.length();
+			}
+			System.out.println("Directory size: " + size); // TODO: Pick a size
+			
+			// Loop through contents for hdf5 files TODO: Check for file size
+			for(File file: hdf5Folder.listFiles()) {
+				String scenario = file.getName().replaceAll("\\.h5" , "");
+				// FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
+				try {
+					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);	
+					hdf5Files.put(scenario,hdf5File);
 
-	public static Integer getNodeNumber(int iMax, int jMax, int kMax, int index) {
-		if(indexToNodeId.containsKey(index))
-			return indexToNodeId.get(index);
-		int kLoops = index;
-		int jLoops = index/kMax;
-		int iLoops = index/(kMax*jMax);		
-		int nodeId = (kLoops % kMax) * iMax * jMax + (jLoops % jMax) * iMax + (iLoops % iMax + 1);
-		indexToNodeId.put(index, nodeId);
-		return nodeId;
-	}
-
-	public static Integer getIndex(Point3i max, int nodeNumber) {
-		return getIndex(max.getI(), max.getJ(), max.getK(), nodeNumber);
-	}
-
-	public static Integer getIndex(int iMax, int jMax, int kMax, int nodeNumber) {
-		if(nodeIdToIndex.containsKey(nodeNumber))
-			return nodeIdToIndex.get(nodeNumber);
-		int counter = 0;
-		for(int i = 1; i <= iMax; i++) {
-			for(int j = 1; j <= jMax; j++) {
-				for(int k = 1; k <= kMax; k++) {
-					int myNodeNumber= (k-1) * iMax * jMax + (j-1) * iMax + i;
-					if(myNodeNumber == nodeNumber) {
-						indexToNodeId.put(nodeNumber, counter);
-						return counter;
-					}
-					counter++;
+					if(!readToMemory)
+						continue;
+					
+					if(nodeStructure == null) {
+						nodeStructure = new NodeStructure("");
+						System.out.println("Domain size: " + nodeStructure.getIJKDimensions());
+						totalNodes = nodeStructure.getIJKDimensions().getI()*nodeStructure.getIJKDimensions().getJ()*nodeStructure.getIJKDimensions().getK();
+						iMax = nodeStructure.getIJKDimensions().getI();
+						jMax = nodeStructure.getIJKDimensions().getJ();
+						kMax = nodeStructure.getIJKDimensions().getK();
+					}					
+					
+					// Try and store it into memory?
+					if(hdf5Data == null)
+						hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>(hdf5Folder.listFiles().length, 0.9f);
+					if(!hdf5Data.containsKey(scenario))
+						hdf5Data.put(scenario, new HashMap<Float, Map<String, float[]>>(nodeStructure.getTimeSteps().size(), 0.9f));
+					
+					// Get the root node:
+					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+					// Get the data group
+					for(int ts = 0; ts < root.getMemberList().size(); ts++) {
+						String name = root.getMemberList().get(ts).getName();
+						if(!name.startsWith("plot"))
+							continue;
+						Integer timeStep = Integer.parseInt(name.replaceAll("plot", ""));
+						boolean plotsAreTimeIndices = HDF5Interface.plotFileHack(nodeStructure, root);
+						timeStep = plotsAreTimeIndices ? nodeStructure.getTimeAt(timeStep).intValue() : timeStep;
+						Object group =  root.getMemberList().get(ts); // timesteps	
+						
+						if(!hdf5Data.get(scenario).containsKey(timeStep))
+							hdf5Data.get(scenario).put(nodeStructure.getTimeAt(timeStep), new HashMap<String, float[]>(((Group)group).getMemberList().size(), 0.9f));
+						//Object group =  root.getMemberList().get(timestep+1); // timesteps
+						for(int i = 0; i < ((Group)group).getMemberList().size(); i++) {
+							Object child = ((Group)group).getMemberList().get(i);// z is index 0
+							if(child instanceof Dataset) {
+								Dataset dataset = (Dataset)child;
+								String dataName = dataset.getName();
+								int dataset_id = dataset.open();
+								float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
+								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);				
+								float[] nodeOrder = new float[totalNodes];
+								for(int j = 0; j < totalNodes; j++) {
+									nodeOrder[Constants.getNodeNumber(iMax, jMax, kMax, j)-1] = dataRead[j];
+								}								
+								hdf5Data.get(scenario).get(timeStep).put(dataName, nodeOrder);
+								dataset.close(dataset_id);
+								floatCount+=totalNodes;
+					//			System.out.println(floatCount);
+							}
+						}
+						
+					}	
+														
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			}	
+			}
 		}
-		return 0;
+		System.out.println("#Floats stored in memory: " + floatCount);
 	}
-	 */
 }

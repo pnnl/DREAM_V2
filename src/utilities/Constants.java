@@ -4,21 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import hdf5Tool.HDF5Interface;
-import objects.NodeStructure;
-import ncsa.hdf.hdf5lib.H5;
-import ncsa.hdf.hdf5lib.HDF5Constants;
-import ncsa.hdf.object.Dataset;
-import ncsa.hdf.object.Group;
-import ncsa.hdf.object.h5.H5File;
 
 /**
  * Constants for use throughout code, the booleans at the top and random seed can be changed to alter functionality
@@ -67,39 +57,6 @@ public class Constants {
 
 	public static Random random = new Random(1); //Right now this is seeded, this way we have reproducable results. Should probably un-seed for release.
 	
-	/* {
-
-		private static final long serialVersionUID = 1L;
-		
-		@Override 
-		public float nextFloat() {
-			float nextFloat = super.nextFloat();
-			System.out.println(nextFloat);
-			return nextFloat;
-		}
-		@Override 
-		public double nextDouble() {
-			double nextDouble = super.nextDouble();
-			System.out.println(nextDouble);
-			return nextDouble;
-		}
-		@Override 
-		public int nextInt() {
-			int nextInt = super.nextInt();
-			System.out.println(nextInt);
-			return nextInt;
-		}
-		@Override 
-		public int nextInt(int max) {
-			int nextInt = super.nextInt(max);
-			if(nextInt == 102 || nextInt == 2 || nextInt == 55) {
-				System.out.println("This one");
-			}
-			System.out.println(nextInt);
-			return nextInt;
-		}
-	};*/
-
 	public static DecimalFormat decimalFormat = new DecimalFormat("###.###");
 	public static DecimalFormat percentageFormat = new DecimalFormat("###.##");
 	public static DecimalFormat exponentialFormat = new DecimalFormat("0.00000000E00");
@@ -113,104 +70,7 @@ public class Constants {
 	public static boolean returnAverageTTD = true;
 	public static boolean scenarioUnion = true;
 	
-	public static Map<String, H5File> hdf5Files;
-	
-	// If we can store this in memory, try it?
-	public static Map<String, Map<Float, Map<String, float[]>>> hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>();
-	
-	public static Map<String, Map<Float, Map<String, Map<Integer, Float>>>> hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
-	
 	public static Timer timer = new Constants().new Timer();
-			
-	public static void loadHdf5Files(String location) {
-		
-		File hdf5Folder = new File(location);
-		hdf5Files = new HashMap<String, H5File>();
-		
-		boolean readToMemory = false; // TODO: Need a check to see if our size is small enough...
-		NodeStructure nodeStructure = null;
-		int totalNodes = 0;
-		int iMax = 0;
-		int jMax = 0;
-		int kMax = 0;
-		
-		long floatCount = 0;
-		if(hdf5Folder.exists() && hdf5Folder.isDirectory()) {
-			long size = 0;
-			for(File file: hdf5Folder.listFiles()) {
-				size += file.length();
-			}
-			System.out.println("Directory size: " + size); // TODO: Pick a size
-			
-			// Loop through contents for hdf5 files TODO: Check for file size
-			for(File file: hdf5Folder.listFiles()) {
-				String scenario = file.getName().replaceAll("\\.h5" , "");
-				// FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
-				try {
-					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);	
-					hdf5Files.put(scenario,hdf5File);
-
-					if(!readToMemory)
-						continue;
-					
-					if(nodeStructure == null) {
-						nodeStructure = new NodeStructure("");
-						System.out.println("Domain size: " + nodeStructure.getIJKDimensions());
-						totalNodes = nodeStructure.getIJKDimensions().getI()*nodeStructure.getIJKDimensions().getJ()*nodeStructure.getIJKDimensions().getK();
-						iMax = nodeStructure.getIJKDimensions().getI();
-						jMax = nodeStructure.getIJKDimensions().getJ();
-						kMax = nodeStructure.getIJKDimensions().getK();
-					}					
-					
-					// Try and store it into memory?
-					if(hdf5Data == null)
-						hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>(hdf5Folder.listFiles().length, 0.9f);
-					if(!hdf5Data.containsKey(scenario))
-						hdf5Data.put(scenario, new HashMap<Float, Map<String, float[]>>(nodeStructure.getTimeSteps().size(), 0.9f));
-					
-					// Get the root node:
-					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-					// Get the data group
-					for(int ts = 0; ts < root.getMemberList().size(); ts++) {
-						String name = root.getMemberList().get(ts).getName();
-						if(!name.startsWith("plot"))
-							continue;
-						Integer timeStep = Integer.parseInt(name.replaceAll("plot", ""));
-						boolean plotsAreTimeIndices = HDF5Interface.plotFileHack(nodeStructure, root);
-						timeStep = plotsAreTimeIndices ? nodeStructure.getTimeAt(timeStep).intValue() : timeStep;
-						Object group =  root.getMemberList().get(ts); // timesteps	
-						
-						if(!hdf5Data.get(scenario).containsKey(timeStep))
-							hdf5Data.get(scenario).put(nodeStructure.getTimeAt(timeStep), new HashMap<String, float[]>(((Group)group).getMemberList().size(), 0.9f));
-						//Object group =  root.getMemberList().get(timestep+1); // timesteps
-						for(int i = 0; i < ((Group)group).getMemberList().size(); i++) {
-							Object child = ((Group)group).getMemberList().get(i);// z is index 0
-							if(child instanceof Dataset) {
-								Dataset dataset = (Dataset)child;
-								String dataName = dataset.getName();
-								int dataset_id = dataset.open();
-								float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
-								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);				
-								float[] nodeOrder = new float[totalNodes];
-								for(int j = 0; j < totalNodes; j++) {
-									nodeOrder[getNodeNumber(iMax, jMax, kMax, j)-1] = dataRead[j];
-								}								
-								hdf5Data.get(scenario).get(timeStep).put(dataName, nodeOrder);
-								dataset.close(dataset_id);
-								floatCount+=totalNodes;
-					//			System.out.println(floatCount);
-							}
-						}
-						
-					}	
-														
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		System.out.println("#Floats stored in memory: " + floatCount);
-	}
 	
 	/*	
 	 *  Example of node number vs. index. Each cell has: 
@@ -233,9 +93,8 @@ public class Constants {
 	 * 
 	 */
 	
-	/*
-	 * This function takes a 0-indexed index and returns a 1-indexed node number. (See above)
-	 */
+	
+	// This function takes a 0-indexed index and returns a 1-indexed node number. (See above)
 	public static int getNodeNumber(Point3i ijkDimensions, int index) {
 		return getNodeNumber(ijkDimensions.getI(), ijkDimensions.getJ(), ijkDimensions.getK(), index);
 	}
@@ -244,9 +103,7 @@ public class Constants {
 		return (index % kMax) * iMax * jMax + (index/kMax % jMax) * iMax + (index/(kMax*jMax) % iMax + 1);
 	}
 	
-	/*
-	 * This function takes a 1-indexed node number and returns a 0-indexed index. (See above)
-	 */
+	// This function takes a 1-indexed node number and returns a 0-indexed index. (See above)
 	public static int getIndex(Point3i ijkDimensions, int nodeNumber) {
 		return getIndex(ijkDimensions.getI(), ijkDimensions.getJ(), ijkDimensions.getK(), nodeNumber);
 	}
@@ -303,7 +160,7 @@ public class Constants {
 	}
 
 	public static void disposeLogger() {
-		// TODO: wnat this to let go of lock
+		// TODO: want this to let go of lock
 		//	LOGGER.getH
 	}
 	

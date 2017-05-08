@@ -11,7 +11,6 @@ import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-//import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
@@ -37,8 +36,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+
+import hdf5Tool.HDF5Interface;
 import utilities.Constants;
-//import utilities.Point3f;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 import wizardPages.Page_LeakageCriteria.SensorData;
@@ -325,7 +325,7 @@ public class DREAMWizard extends Wizard {
 					monitor.subTask("reading hdf5 files");
 
 					if(!hdf5.isEmpty()) 
-						Constants.loadHdf5Files(hdf5);	// Load the hdf5 files into the constants
+						HDF5Interface.loadHdf5Files(hdf5);	// Load the hdf5 files into the constants
 					monitor.worked(5);
 
 					monitor.subTask("clearing previous data");				
@@ -466,12 +466,12 @@ public class DREAMWizard extends Wizard {
 				});
 			} catch (Exception e) {
 				float totalNodes = 0;
-				for(String sc : Constants.hdf5CloudData.keySet()) {
-					for(float ts: Constants.hdf5CloudData.get(sc).keySet()) {
-						for(String dt: Constants.hdf5CloudData.get(sc).get(ts).keySet()) {
-							totalNodes += Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
-							if(Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
-								System.out.println(sc + ", " + ts + ", " + dt + " , " + Constants.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
+				for(String sc : HDF5Interface.hdf5CloudData.keySet()) {
+					for(float ts: HDF5Interface.hdf5CloudData.get(sc).keySet()) {
+						for(String dt: HDF5Interface.hdf5CloudData.get(sc).get(ts).keySet()) {
+							totalNodes += HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
+							if(HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
+								System.out.println(sc + ", " + ts + ", " + dt + " , " + HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
 						}
 					}
 				}

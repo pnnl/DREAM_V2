@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import functions.*;
+import hdf5Tool.HDF5Interface;
 import utilities.Constants;
 import utilities.Point3f;
 import utilities.Point3i;
@@ -787,7 +788,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			@Override
 			public void handleEvent(Event arg0) {
 				fixMacBug();
-				Constants.hdf5CloudData.clear();
+				HDF5Interface.hdf5CloudData.clear();
 				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();

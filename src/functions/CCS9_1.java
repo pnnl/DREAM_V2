@@ -261,17 +261,8 @@ public class CCS9_1 extends Function {
 		// Get the value at the current time step
 		Float currentValue = 0.0f;
 		Float valueAtTime0 = 0.0f;
-
-		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Interface.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Interface.queryValueFromFile(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
-		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Interface.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Interface.queryValueFromCloud(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);	
-		} else {
-			currentValue =  HDF5Interface.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Interface.queryValueFromMemory(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);				
-		}
+		currentValue = HDF5Interface.queryValue(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
+		valueAtTime0 = HDF5Interface.queryValue(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
 
 		// See if we exceeded threshold
 		if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
@@ -300,17 +291,8 @@ public class CCS9_1 extends Function {
 		// Get the value at the current time step
 		Float currentValue = 0.0f;
 		Float valueAtTime0 = 0.0f;
-
-		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
-		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
-		} else {
-			currentValue =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
-		}
+		currentValue = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
+		valueAtTime0 = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
 
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
@@ -337,18 +319,9 @@ public class CCS9_1 extends Function {
 		// Get the value at the current time step
 		Float currentValue = 0.0f;
 		Float valueAtTime0 = 0.0f;
-
-		if(Constants.hdf5Data.isEmpty() && Constants.hdf5CloudData.isEmpty()) {
-			currentValue = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-			valueAtTime0 = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
-		} else if(Constants.hdf5Data.isEmpty()) {
-			currentValue =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);	
-			valueAtTime0 =  HDF5Interface.queryValueFromCloud(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);	
-		} else {
-			currentValue =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);		
-			valueAtTime0 =  HDF5Interface.queryValueFromMemory(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);				
-		}
-
+		currentValue = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
+		valueAtTime0 = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
+		
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
 			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
