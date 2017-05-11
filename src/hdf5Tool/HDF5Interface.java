@@ -55,6 +55,51 @@ public class HDF5Interface {
         }
 	}
 	
+	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
+		float years = timestep.getRealTime();
+		if(
+				hdf5CloudData.containsKey(scenario) && 
+				hdf5CloudData.get(scenario).containsKey(years) &&
+				hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
+				hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
+			return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
+		}
+		return null;
+	}
+	
+	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
+		float years = timestep.getRealTime();
+		return hdf5Data.get(scenario).get(years).get(dataType)[index-1];
+	}
+	
+	public static float queryValueFromFile(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int nodeNumber) throws Exception {
+		H5File hdf5File = hdf5Files.get(scenario); // Get the correct file for the scenario
+		hdf5File.open();
+		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+		boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
+		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+			// Found the right time step
+			if(root.getMemberList().get(rootIndex).getName().contains("data"))
+				continue;
+			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == (plotsAreTimeIndices ? timestep.getTimeStep(): (int) timestep.getRealTime())) {
+				Object group =  root.getMemberList().get(rootIndex);
+				for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
+					Object child = ((Group)group).getMemberList().get(groupIndex);
+					if(child instanceof Dataset && ((Dataset)child).getName().equals(dataType)) {
+						// Found the right data type
+						int dataset_id = ((Dataset)child).open();
+						float[] dataRead = new float[nodeStructure.getTotalNodes()];
+						H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
+						((Dataset)child).close(dataset_id);
+						return dataRead[Constants.getIndex(nodeStructure.getIJKDimensions().getI(), nodeStructure.getIJKDimensions().getJ(), nodeStructure.getIJKDimensions().getK(), nodeNumber)];	// Return data at the right index											
+					}
+				}
+			}
+		}
+		hdf5File.close();
+		return 0f;
+	}
+	
 	public static float queryMinFromMemory(String dataType) {
 		float min = Float.MAX_VALUE;
 		for(String scenario: hdf5Data.keySet()) {
@@ -160,12 +205,7 @@ public class HDF5Interface {
 		}		
 		return nodes;
 	}
-
-	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
-		float years = timestep.getRealTime();
-		return hdf5Data.get(scenario).get(years).get(dataType)[index-1];
-	}
-
+	
 	public static float queryMinFromCloud(String dataType) {
 		float min = Float.MAX_VALUE;
 		for(String scenario: hdf5CloudData.keySet()) {
@@ -192,18 +232,6 @@ public class HDF5Interface {
 			}
 		}
 		return max;		
-	}
-
-	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
-		float years = timestep.getRealTime();
-		if(
-				hdf5CloudData.containsKey(scenario) && 
-				hdf5CloudData.get(scenario).containsKey(years) &&
-				hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
-				hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
-			return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
-		}
-		return null;
 	}
 
 	public static void fillNodeStructureFromFiles(NodeStructure nodeStructure) throws Exception {
@@ -532,35 +560,6 @@ public class HDF5Interface {
 		return nodes;
 
 	}
-
-	public static float queryValueFromFile(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int nodeNumber) throws Exception {
-		H5File hdf5File = hdf5Files.get(scenario); // Get the correct file for the scenario
-		hdf5File.open();
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-		boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
-		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
-			// Found the right time step
-			if(root.getMemberList().get(rootIndex).getName().contains("data"))
-				continue;
-			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == (plotsAreTimeIndices ? timestep.getTimeStep(): (int) timestep.getRealTime())) {
-				Object group =  root.getMemberList().get(rootIndex);
-				for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
-					Object child = ((Group)group).getMemberList().get(groupIndex);
-					if(child instanceof Dataset && ((Dataset)child).getName().equals(dataType)) {
-						// Found the right data type
-						int dataset_id = ((Dataset)child).open();
-						float[] dataRead = new float[nodeStructure.getTotalNodes()];
-						H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
-						((Dataset)child).close(dataset_id);
-						return dataRead[Constants.getIndex(nodeStructure.getIJKDimensions().getI(), nodeStructure.getIJKDimensions().getJ(), nodeStructure.getIJKDimensions().getK(), nodeNumber)];	// Return data at the right index											
-					}
-				}
-			}
-		}
-		hdf5File.close();
-		return 0f;
-	}
-	
 	
 	public static boolean plotFileHack(NodeStructure nodeStructure, Group root) {
 		// plotxyz is inconsitent between h5 files, it will either be plot[timeIndex] or plot[realTime]
@@ -584,6 +583,27 @@ public class HDF5Interface {
 		}
 		return plotsAreTimeIndices;
 	}
+	
+	/*	
+	 *  Example of node number vs. index. Each cell has: 
+	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
+	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
+	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
+	 *  _________________________    _________________________    _________________________    
+	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
+	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
+	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
+	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
+	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
+	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
+	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
+	 * 
+	 */
 	
 	public static void loadHdf5Files(String location) {
 		

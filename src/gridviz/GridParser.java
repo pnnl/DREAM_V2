@@ -149,12 +149,9 @@ public class GridParser {
 		filesToMerge.add(file);
 	}
 
-	private DataGrid extractStompData() throws GridError {
+	public DataGrid extractStompData() throws GridError {
 		// will contain all the extracted data from the file
 		DataGrid grid = null;
-
-		// Prints file read information
-		boolean debug = false;
 
 		// This will hold the size of the grid to extract
 		Point3i size = new Point3i(0, 0, 0);
@@ -176,12 +173,20 @@ public class GridParser {
 			while (dataScanner.hasNextLine() && !dataScanner.hasNext("[XYZ]\\-Direction")) {
 
 				String line = dataScanner.nextLine().trim();
-
-				// Modified 2.11.13 to handle new data types
-
-				int splitIndex = line.indexOf('=') + 1;
-				String substring = line.substring(splitIndex).trim();
-
+				
+				if(!line.contains("=")) continue; //skip lines without an equal sign in header
+				
+				if(line.startsWith("Time") && line.contains(",yr")) {
+					int startIndex = line.indexOf(",wk") + 3;
+					int endIndex = line.indexOf(",yr");
+					String sub = line.substring(startIndex,endIndex).trim();
+					try {
+						timestep = Float.parseFloat(sub);
+					} catch (Exception e) {
+						System.out.println("Years Error: " + sub);
+					}
+				}
+				/*
 				if(line.startsWith("Time") && line.contains("=")) {
 					String[] tokens = line.split("[, ]");
 					if(tokens.length >= 2) {
@@ -190,33 +195,28 @@ public class GridParser {
 						} catch (Exception e) {	
 							System.out.println("years: " + tokens[tokens.length-2]);
 						}
-
 					}
 				}
-
-				boolean foundLine = false;
+				*/
 				for(Stomp key: Stomp.values()) {
 					if(line.startsWith(key.getKey())) {
+						int splitIndex = line.indexOf('=') + 1;
+						String substring = line.substring(splitIndex).trim();
 						if(key.isInteger())
 							info.put(key, Integer.parseInt(substring));
 						else
 							info.put(key, Float.parseFloat(substring));
-						if(debug) System.out.println("Reading [" + key.getKey() + "] - " + line);	
-						foundLine = true;
+						//System.out.println("Reading [" + key.getKey() + "] - " + line);	
 						break; // Already handled it, skip the rest of the keys
-					} 					
-				}
-				if(!foundLine && debug) {
-					//zoe taking this out for now as it was spamming the log
-					//System.out.println("Skipping - " + line);	
+					}
 				}
 			}
-
+			
 			size.x = (Integer)info.get(Stomp.X_NODES);
 			size.y = (Integer)info.get(Stomp.Y_NODES);
 			size.z = (Integer)info.get(Stomp.Z_NODES);
 
-			// If we have origin information we need to increment the size value
+			// If we have origin information we need to increment the size value TODO: Has XYZ values, but not with these names
 			for(Stomp originKey: new Stomp[] {Stomp.X_ORGIN_HEXAHEDRA, Stomp.X_ORGIN_SURFACE, Stomp.X_ORGIN}) {
 				if(info.containsKey(originKey)) {
 					center.x = Float.parseFloat(info.get(originKey).toString());
@@ -333,7 +333,6 @@ public class GridParser {
 						}
 					}
 				}
-
 			}	
 			dataScanner.close();
 		} catch (Exception err) {
@@ -342,11 +341,7 @@ public class GridParser {
 			System.out.println(this.dataFile);
 			throw new GridError("Extraction failed: " + err.getMessage());
 		}
-
-
-		if(dataScanner != null)
-			dataScanner.close();
-
+		
 		// A bit of extra work for 2d meshes.
 		if(grid.is2D()) {
 			// Fetch the value set for the given field
@@ -356,22 +351,12 @@ public class GridParser {
 				values.setValue(i, 0.0f);
 			}
 		}
-
 		dataScanner.close();
 
 		return grid;
-
 	}
-
-	/// Extracts grid data from a stomp file
-	public DataGrid extractData() throws GridError {
-		if(fileType.equals(FileType.PLOT)) {
-			return extractStompData();
-		} else {
-			throw new GridError("Extract data should only be called for stomp files");
-		}
-	}
-
+	
+	
 	public DataStructure extractTecplotData() throws Exception {
 
 		DataStructure structure = new DataStructure();
@@ -843,9 +828,6 @@ public class GridParser {
 		}
 
 		if(appendMetaData) {
-			//	structure.i = ijks[0];
-			//	structure.j = ijks[1];
-			//	structure.k = ijks[2];
 			structure.x = x;
 			structure.y = y;
 			structure.z = z;
@@ -857,7 +839,7 @@ public class GridParser {
 
 	public Object[] getDataTypes(String fileType) throws GridError {
 		if(fileType.equals(FileBrowser.STOMP)) {
-			return extractData().getFieldNames().toArray();
+			return extractStompData().getFieldNames().toArray();
 		} else if(fileType.equals(FileBrowser.NTAB)) {
 			List<String> fieldNames = new ArrayList<String>();			
 			List<File> allFiles = new ArrayList<File>(filesToMerge);

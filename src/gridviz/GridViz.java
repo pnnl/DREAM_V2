@@ -168,7 +168,7 @@ public class GridViz {
 		}
 	}
 
-	private List<OptionSet> getListOfOptions(int numOptions) {
+	/*private List<OptionSet> getListOfOptions(int numOptions) {
 		List<OptionSet> options = new ArrayList<OptionSet>();
 
 		for(int color: new int[]{0, 1, 2}) {
@@ -189,13 +189,13 @@ public class GridViz {
 			}
 		}
 		return options;
-	}
+	}*/
 
 	/// Loads grid data from a file
 	public void loadData(String fileName) throws GridError {
 		System.out.format("Parsing data file: %s\n", fileName);
 		parser = new GridParser( fileName );
-		grid = parser.extractData();
+		grid = parser.extractStompData();
 		System.out.format("Data loaded successfully.\n");
 	}
 

@@ -1,4 +1,4 @@
-package utilities;
+/*package utilities;
 
 import gridviz.DataGrid;
 import gridviz.GridParser;
@@ -21,13 +21,13 @@ import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.*; 
-
+*/
 /**
  * Code to properly and efficiently process hdf5 files.
  * For now, we read from the files and then close them.
  * @author port091
  */
-
+/*
 public class HDF5Parser {
 
 
@@ -158,9 +158,6 @@ public class HDF5Parser {
 			System.out.println("\t\tDone loading plot file: plotFileName");
 	}
 
-
-
-
 	private static void readFromDatasetLeavingFilesOpen() throws Exception {
 
 
@@ -231,7 +228,6 @@ public class HDF5Parser {
 
 
 	}
-	
 
 	private static void readFromDatasetFaster() throws Exception {
 
@@ -374,7 +370,6 @@ public class HDF5Parser {
 
 	}
 
-
 	private void printData(H5File hdf5File) throws Exception {
 		// Get the root
 		System.out.println("Printing File: " + hdf5File.getName());
@@ -396,5 +391,5 @@ public class HDF5Parser {
 	}
 
 }
-
+*/
 

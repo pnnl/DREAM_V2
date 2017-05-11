@@ -72,28 +72,6 @@ public class Constants {
 	
 	public static Timer timer = new Constants().new Timer();
 	
-	/*	
-	 *  Example of node number vs. index. Each cell has: 
-	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
-	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
-	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
-	 *  _________________________    _________________________    _________________________    
-	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
-	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
-	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
-	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
-	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
-	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
-	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
-	 * 
-	 */
-	
-	
 	// This function takes a 0-indexed index and returns a 1-indexed node number. (See above)
 	public static int getNodeNumber(Point3i ijkDimensions, int index) {
 		return getNodeNumber(ijkDimensions.getI(), ijkDimensions.getJ(), ijkDimensions.getK(), index);
