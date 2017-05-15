@@ -186,7 +186,7 @@ public class GridParser {
 						System.out.println("Years Error: " + sub);
 					}
 				}
-				/*
+				/*//replaced by Jonathan... makes me wonder if there are several versions from STOMP outputs...
 				if(line.startsWith("Time") && line.contains("=")) {
 					String[] tokens = line.split("[, ]");
 					if(tokens.length >= 2) {

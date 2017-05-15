@@ -92,6 +92,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private boolean debug = false;
 
 	private Map<String, Map<Integer, GridParser>> gridsByTimeAndScenario;
+	private Map<String, List<Float>> statisticsByDataField;
 	private ProgressMonitor monitor;
 	private int processedTasks = 0;
 
@@ -503,6 +504,7 @@ public class FileBrowser extends javax.swing.JFrame {
 						addDataFromFolders(parser, hdf5File, "plot" + timeStep.getText(), firstFile);
 						firstFile = false;
 					}
+					computeStatistics(hdf5File, timeSteps.length);
 				//TECPLOT
 				} else if(jComboBox_fileType.getSelectedItem().toString().equals(TECPLOT)) {
 					// Only file type with the option to be a single folder or multiple folders
@@ -548,7 +550,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
 		// Open a folder
 		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>();
-		//statisticsByDatafield = new TreeMap<String, List<Float>>();
+		statisticsByDataField = new TreeMap<String, List<Float>>();
 
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new File("C:\\"));
@@ -991,11 +993,11 @@ public class FileBrowser extends javax.swing.JFrame {
 			for(int i = 0; i < zCoordinates.length; i++) {
 				zCoordinates[i] = new Double(grid.getFieldValues("z").getValue(i*(xCoordinates.length*yCoordinates.length))).floatValue();
 			}
-
+			
 			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{xCoordinates.length}, null, null, 0, xCoordinates);
 			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{yCoordinates.length}, null, null, 0, yCoordinates);
 			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{zCoordinates.length}, null, null, 0, zCoordinates);	
-
+			
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
 			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
 			
@@ -1042,82 +1044,84 @@ public class FileBrowser extends javax.swing.JFrame {
 					hdf5File.createScalarDS("porosities", dataGroup, dtype, dims3D, null, null, 0, dataAsFloats);
 				}
 				System.out.println("Time to add porosity info: " + (System.currentTimeMillis() - startTime));
-				/*
-				// Create a group with statistics for each field
-				startTime = System.currentTimeMillis();
-				Group statisticsGroup = hdf5File.createGroup("Statistics", root);
-				for(JCheckBox dataField: dataFields) {
-					String fieldClean = dataField.getText().split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-					float[] statisticsArray = new float[3]; //min, max, average
-					float[] dataAsDoubles = grid.getFieldValues(dataField.getText()).getValues();
-					float[] dataAsFloats = new float[dataAsDoubles.length];
-					int counter = 0;
-					float sum = 0;
-					statisticsArray[0] = Float.MAX_VALUE;
-					statisticsArray[1] = Float.MIN_VALUE;
-					for(int i = 1; i <= iMax; i++) {
-						for(int j = 1; j <= jMax; j++) {	
-							for(int k = 1; k <= kMax; k++) {				
-								int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
-								dataAsFloats[counter] = Math.abs(dataAsDoubles[nodeNumber-1]);
-								sum =+ sum;
-								if(dataAsFloats[counter] < statisticsArray[0]) statisticsArray[0] = dataAsFloats[counter];
-								if(dataAsFloats[counter] > statisticsArray[1]) statisticsArray[1] = dataAsFloats[counter];
-								counter++;
-							}
-						}
-					}
-					statisticsArray[2] = sum/counter;
-					hdf5File.createScalarDS(fieldClean, statisticsGroup, dtype, dims3D, null, null, 0, statisticsArray);
-				}
-				System.out.println("Time to add statistics info: " + (System.currentTimeMillis() - startTime));*/
 			}
 		}
 		
 		// Create a group for each time in the set
 		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
 		
+		
 		for(JCheckBox dataField: dataFields) {
 			startTime = System.currentTimeMillis();
 			String field = dataField.getText();
-			if(!dataField.isSelected())
-				continue;
-			if(field.equals("x") || field.equals("y") || field.equals("z"))
-				continue;
+			if(!dataField.isSelected()) continue;
+			if(field.equals("x") || field.equals("y") || field.equals("z")) continue;
 			// Replacing strange characters in the field name
 			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-			System.out.print("\t\t\tAdding field: " + fieldClean + "...");
+			System.out.print("\tAdding " + fieldClean + "... ");
 			
 			try {
 				// Convert to float[] and reorder for hdf5
-				long getDataStartTime = System.currentTimeMillis();
+				//long getDataStartTime = System.currentTimeMillis();
 				float[] dataAsDoubles = grid.getFieldValues(field).getValues();
-				System.out.println("Time to read "+field+" info: " + (System.currentTimeMillis() - getDataStartTime));
-
+				//System.out.println(" Time to read info: " + (System.currentTimeMillis() - getDataStartTime));
+				
 				float[] dataAsFloats = new float[dataAsDoubles.length];
-
+				List<Float> stats = new ArrayList<Float>();
+				
 				int counter = 0;
+				float sum = 0;
+				float min = Float.MAX_VALUE;
+				float max = Float.MIN_VALUE;
 				for(int i = 1; i <= iMax; i++) {
 					for(int j = 1; j <= jMax; j++) {	
-						for(int k = 1; k <= dims3D[2]; k++) {				
+						for(int k = 1; k <= kMax; k++) {				
 							int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
 							dataAsFloats[counter] = Math.abs(dataAsDoubles[nodeNumber-1]);
+							sum = sum + dataAsFloats[counter];
+							if(dataAsFloats[counter] < min) min = dataAsFloats[counter];
+							if(dataAsFloats[counter] > max) max = dataAsFloats[counter];
 							counter++;
 						}
 					}	
 				}
+				if(statisticsByDataField.containsKey(fieldClean)) {
+					stats.add(0, Math.min(statisticsByDataField.get(fieldClean).get(0), min));
+					stats.add(1, sum/counter + statisticsByDataField.get(fieldClean).get(1));//Sum averages now, divide by time step later
+					stats.add(2, Math.max(statisticsByDataField.get(fieldClean).get(2), max));
+				} else {
+					stats.add(0, min);
+					stats.add(1, sum/counter); //Average for time step
+					stats.add(2, max);
+				}
+				statisticsByDataField.put(fieldClean, stats);
+				
 				hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, dataAsFloats);
-				System.out.println("SUCCESS");
+				System.out.print("SUCCESS. ");
 			} catch(Exception e) {
-				System.out.println("FAILED");
+				System.out.print("FAILED. ");
 			}
-
-			System.out.println("Time to add "+field+" info: " + (System.currentTimeMillis() - startTime));
+			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
 		}
-		if(debug)
-			System.out.println("\t\tDone loading plot file: plotFileName");
+		System.out.println("Done loading plot file: " + plotFileName);
 	}
-
+	
+	private void computeStatistics(H5File hdf5File, int timeSteps) throws Exception {
+		// Get the root
+		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
+		
+		Group statisticsGroup;
+		statisticsGroup = hdf5File.createGroup("Statistics", root);
+		for(String dataField: statisticsByDataField.keySet()) {
+			float[] statsArray = new float[statisticsByDataField.get(dataField).size()];
+			statsArray[0] = statisticsByDataField.get(dataField).get(0); //min
+			statsArray[1] = statisticsByDataField.get(dataField).get(1)/timeSteps; //average
+			statsArray[2] = statisticsByDataField.get(dataField).get(2); //max
+			hdf5File.createScalarDS(dataField, statisticsGroup, dtype, new long[]{statsArray.length}, null, null, 0, statsArray);
+		}
+	}
+	
 	public static void main(String args[]) {
 		try {
 			UIManager.setLookAndFeel(
