@@ -78,7 +78,7 @@ public class HDF5Interface {
 		boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
 			// Found the right time step
-			if(root.getMemberList().get(rootIndex).getName().contains("data"))
+			if(root.getMemberList().get(rootIndex).getName().contains("data") || root.getMemberList().get(rootIndex).getName().contains("statistics"))
 				continue;
 			if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == (plotsAreTimeIndices ? timestep.getTimeStep(): (int) timestep.getRealTime())) {
 				Object group =  root.getMemberList().get(rootIndex);
@@ -394,7 +394,7 @@ public class HDF5Interface {
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
 			Object group =  root.getMemberList().get(rootIndex);
 			String name = ((Group)group).getName().replaceAll("plot", "");
-			if(name.contains("data"))
+			if(name.contains("data") || name.contains("statistics"))
 				continue;
 			int timeIndex = Integer.parseInt(name);
 			// These have to be in order...
@@ -568,7 +568,7 @@ public class HDF5Interface {
 		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
 			Object group =  root.getMemberList().get(rootIndex);
 			String name = ((Group)group).getName().replaceAll("plot", "");
-			if(name.contains("data"))
+			if(name.contains("data") || name.contains("statistics"))
 				continue;
 			realTimeOrTimeIndex.add(Integer.parseInt(name));
 		}

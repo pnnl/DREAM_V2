@@ -1112,7 +1112,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
 		
 		Group statisticsGroup;
-		statisticsGroup = hdf5File.createGroup("Statistics", root);
+		statisticsGroup = hdf5File.createGroup("statistics", root);
 		for(String dataField: statisticsByDataField.keySet()) {
 			float[] statsArray = new float[statisticsByDataField.get(dataField).size()];
 			statsArray[0] = statisticsByDataField.get(dataField).get(0); //min
