@@ -90,7 +90,7 @@ public class SensorSetting {
 	private boolean nodesReady;
 
 	private List<Scenario> scenarios; // If this changes these will need to be updated
-	private NodeStructure nodeStructure;
+	public static NodeStructure nodeStructure;
 	
 	ScenarioSet scenarioSet;
 	
@@ -102,8 +102,8 @@ public class SensorSetting {
 		this.type = type;
 		this.cost = 100;
 
-		setMin();
-		setMax();
+		min = HDF5Interface.queryStatistic(type, 0);
+		max = HDF5Interface.queryStatistic(type, 2);
 
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
@@ -575,42 +575,6 @@ public class SensorSetting {
 		HashSet<Integer> solution = new HashSet<Integer>();
 		solution.addAll(optimalSolutions.keySet());
 		return solution;
-	}
-
-	private void setMin() { min = 0f;
-		if(min != null)
-			return;
-		long startTime = System.currentTimeMillis();
-		if(HDF5Interface.hdf5Data.isEmpty() && HDF5Interface.hdf5CloudData.isEmpty()) {
-			try {
-				min = HDF5Interface.queryMinFromFiles(nodeStructure, getType());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else if(HDF5Interface.hdf5Data.isEmpty()) {
-			min = HDF5Interface.queryMinFromCloud(getType());
-		} else {
-			min = HDF5Interface.queryMinFromMemory(getType());			
-		}
-		System.out.println("Time to query for min: " + (System.currentTimeMillis() - startTime));
-	}
-
-	private void setMax() { max =0f;
-		if(max != null)
-			return;
-		long startTime = System.currentTimeMillis();
-		if(HDF5Interface.hdf5Data.isEmpty() && HDF5Interface.hdf5CloudData.isEmpty()) {
-			try {
-				max = HDF5Interface.queryMaxFromFiles(nodeStructure, getType());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else if(HDF5Interface.hdf5Data.isEmpty()) {
-			max = HDF5Interface.queryMaxFromCloud(getType());
-		} else {
-			max = HDF5Interface.queryMaxFromMemory(getType());			
-		}
-		System.out.println("Time to query for max: " + (System.currentTimeMillis()-startTime));
 	}
 
 
