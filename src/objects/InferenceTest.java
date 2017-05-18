@@ -42,11 +42,12 @@ public class InferenceTest {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append("\tRequired Sensors:\r\n");
+		builder.append("Required Sensors:\r\n");
 		for(String dataType: minimumRequiredPerType.keySet()) {
-			if(minimumRequiredPerType.get(dataType) != 0) builder.append("\t\tRequired for " + dataType + ": " + minimumRequiredPerType.get(dataType) + "\r\n");
+			if(minimumRequiredPerType.get(dataType) != 0) builder.append("\t" + dataType + ": " + minimumRequiredPerType.get(dataType) + "\r\n");
 		}
-		builder.append("\t\tOverall minimum required: " + minimumRequired + "\r\n");
+		builder.append("\tOverall minimum: " + minimumRequired + "\r\n");
+		
 		return builder.toString();
 	}
 	 

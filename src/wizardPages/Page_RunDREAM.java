@@ -189,6 +189,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		GridData summaryGD = new GridData(GridData.FILL_BOTH);
 		summaryGD.verticalSpan = 20;
 		summaryGD.widthHint = 260;
+		summaryGD.heightHint = SWT.FILL;
 		summaryGD.grabExcessVerticalSpace = true;
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);

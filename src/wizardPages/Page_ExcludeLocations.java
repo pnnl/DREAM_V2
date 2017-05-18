@@ -206,7 +206,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 			for(int i = minI; i <= maxI; i++) {			
 				Label label = new Label(container, SWT.NULL);
 				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
-				System.out.println(label.getText());
+				//System.out.println(label.getText());
 			}
 			for(int j = minJ; j <= maxJ; j++) {
 				Label label = new Label(container, SWT.NULL);

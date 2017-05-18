@@ -1,6 +1,7 @@
 package objects;
 
 import hdf5Tool.HDF5Interface;
+import objects.SensorSetting.Trigger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,11 +96,9 @@ public class ScenarioSet {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
+		// Details about the scenarios set read from the file being used
 		builder.append("Scenario set:\r\n");
-		
 		if(isRunLoaded()) {
-			builder.append("\tData loaded:\r\n");
-			builder.append("\t\t" + nodeStructure.getRun() + "\r\n");
 			builder.append("\tScenarios: " + scenarios.toString() + "\r\n");
 			if(defaultWeights)
 				builder.append("\tDefault weights: [");
@@ -111,29 +110,51 @@ public class ScenarioSet {
 		} else
 			builder.append("\tNot ready - no data loaded.\r\n");
 		
-		if(!isReady())
-			builder.append("\tUser settings not set - using defaults:\r\n");
-		else
-			builder.append("\tUser settings:\r\n");
-
-		builder.append("\t\tAdd point: " + addPoint.toString() + "\r\n");
-		builder.append("\t\tMax wells: " + maxWells + "\r\n");
-		builder.append("\t\tIterations: " + iterations + "\r\n");
-		builder.append("\t\tCost constraint: " + costConstraint + "\r\n");
-		builder.append("\t\tExclusion radius: " + exclusionRadius + "\r\n");
-		if(Constants.buildDev){
-			builder.append("\t\tCost per unit depth of well: " + wellCost + "\r\n");
-			builder.append("\t\tRemediation cost per water unit: " + remediationCost + "\r\n");
+		// Leakage criteria
+		builder.append("Sensor settings:\r\n");
+		for(String parameter: sensorSettings.keySet()) {
+			builder.append("\t" + parameter + ":\r\n");
+			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
+			builder.append("\t\tCost: " + sensorSettings.get(parameter).getCost() + "\r\n");
+			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
+				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getMax() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
+				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getMin() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.ABSOLUTE_DELTA || sensorSettings.get(parameter).getTrigger() == Trigger.RELATIVE_DELTA)
+				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getMin() + " to " + sensorSettings.get(parameter).getMax() + "\r\n");
+			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getMinZ() + "\r\n");
+			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getMaxZ() + "\r\n");
+			if(sensorSettings.get(parameter).areNodesReady()) {
+				int size = nodeStructure.getIJKDimensions().getI() * nodeStructure.getIJKDimensions().getJ() * nodeStructure.getIJKDimensions().getK();
+				builder.append("\t\tValid nodes: " + sensorSettings.get(parameter).getValidNodes(null).size() + " of " + size + "\r\n");
+			} else {
+				builder.append("\t\tValid nodes: not set\r\n");
+			}
 		}
-		builder.append("\t\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
-		builder.append(getInferenceTest());
+		
+		// Sensor minimums
+		builder.append(inferenceTest);
+		
+		// Configuration settings page inputs
+		if(!isReady())
+			builder.append("Configuration settings not set - using defaults:\r\n");
+		else
+			builder.append("Configuration settings:\r\n");
+		builder.append("\tSensor budget: " + costConstraint + "\r\n");
+		builder.append("\tMax wells: " + maxWells + "\r\n");
+		builder.append("\tMax distance between wells: " + exclusionRadius + "\r\n");
+		if(Constants.buildDev){
+			builder.append("\tCost per unit depth of well: " + wellCost + "\r\n");
+			builder.append("\tRemediation cost per water unit: " + remediationCost + "\r\n");
+		}
+		builder.append("\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 
 		return builder.toString();
-
 	}
 	
 	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, float remediationCost, boolean allowMultipleSensorsInWell) {
-	
+		
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
 		this.addPoint = addPoint;
@@ -159,7 +180,7 @@ public class ScenarioSet {
 	 * Loads data from the database, sets up scenarios
 	 */
 	public void loadRunData(String run) {
-	
+		
 		nodeStructure = new NodeStructure(run);
 		sensorSettings.clear();
 		sensorList.clear();
@@ -173,7 +194,7 @@ public class ScenarioSet {
 		Constants.log(Level.FINE, "Scenario set: QUERY", query);
 		
 		List<String> scenarios = HDF5Interface.queryScenarioNamesFromFiles();
-
+		
 		if(!scenarios.isEmpty()) {
 			for(String scenario: scenarios) {
 				Scenario s = new Scenario(scenario);
@@ -188,10 +209,10 @@ public class ScenarioSet {
 		for(final String type: nodeStructure.getDataTypes()) {
 			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
 		}
-
+		
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
-
+		
 		runLoaded = true;
 		
 		Constants.log(Level.CONFIG, "Scenario set: loaded run data", this);

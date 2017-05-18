@@ -63,7 +63,7 @@ public class SensorSetting {
 		}
 	}
 	
-	private String type;	
+	private String type;
 	private float cost;
 
 	private Float min;
@@ -235,38 +235,6 @@ public class SensorSetting {
 		}
 		return minVADMap;
 	}
-	
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append("Sensor settings "+type+":\n");
-
-		if(!isReady()) {
-			builder.append("\tUser settings not set - using defaults:\n");
-		} else {
-			builder.append("\tUser settings:\n");
-		}
-
-		builder.append("\t\tCost: " + cost + "\n");
-		builder.append("\t\tColor: " + color.toString() + "\n");
-
-		builder.append("\t\tMin value: " + min + "\n");
-		builder.append("\t\tMax value: " + max + "\n");
-		builder.append("\t\tTriggering on: " + getTrigger().toString()  + "\n");
-		
-		builder.append("\t\tminZ: " + globalMinZ + "\n");
-		builder.append("\t\tmaxZ: " + globalMaxZ + "\n");
-
-		if(areNodesReady()) {
-			builder.append("\t"+validNodes.size()+" Valid nodes: " + validNodes.toString() + "\n");
-		} else {
-			builder.append("\tValid nodes: not set\n");
-		}
-
-		return builder.toString();
-	}
-	
 
 	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
 			DeltaType deltaType, float minZ, float maxZ) {
