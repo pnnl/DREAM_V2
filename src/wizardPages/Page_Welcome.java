@@ -176,7 +176,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 				messageBox.open();
 			}
 		});
-
+		new Label(container, SWT.BEGINNING).setText("\t\t     Whiting, J.");
 		
 		// Lab logo at the bottom
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
