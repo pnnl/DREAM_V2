@@ -45,7 +45,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text wellCost;
 	private Text remediationCost;
 	private Button allowMultipleSensorsInWell;
-	private Button averageTTD;
 	
 	private float cost = 0; //Since data.getSet().getCostConstraint is set at the end of the previous page, use local variable
 	private boolean isCurrentPage = false;
@@ -252,12 +251,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		remediationCost.setVisible(Constants.buildDev);
 		remediationCostLabel.setVisible(Constants.buildDev);
 
-		//Average time to detection check box
-		averageTTD = new Button(container, SWT.CHECK);
-		averageTTD.setText("Use average time to detection");
-		new Label(container, SWT.NULL);
-		averageTTD.setSelection(true);
-		averageTTD.setVisible(Constants.buildDev);
 
 		//Allow multiple sensors per well check box
 		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
@@ -327,7 +320,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		Constants.returnAverageTTD = averageTTD.getSelection();
 		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getRemediationCost(), allowMultipleSensorsInWell.getSelection());
 	}
 

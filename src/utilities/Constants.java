@@ -67,7 +67,6 @@ public class Constants {
 	
 	public static String homeDirectory = System.getProperty("user.home");
 
-	public static boolean returnAverageTTD = true;
 	public static boolean scenarioUnion = true;
 	
 	public static Timer timer = new Constants().new Timer();
