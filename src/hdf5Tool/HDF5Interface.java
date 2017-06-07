@@ -168,6 +168,7 @@ public class HDF5Interface {
 					statistics.get(type)[1] = statistics.get(type)[1] / hdf5Files.size();
 				}
 			} catch (Exception e) {
+				System.out.println("Something went wrong while adding statistics.");
 				e.printStackTrace();
 			}
 		}
@@ -450,7 +451,7 @@ public class HDF5Interface {
 					String name = ((Group)group).getName().replaceAll("plot", "");
 					int timeIndex = Integer.parseInt(name);
 					valuesByScenarioAndTime.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, dataRead);
-
+					break; //found the correct parameter, move on now...
 				}
 			}
 		}
@@ -476,35 +477,36 @@ public class HDF5Interface {
 				// Grab the first time step
 				float timeStepAt0 = (Float) orderedTimes[0];
 				float valueAtTime0 = valuesByScenarioAndTime.get(timeStepAt0)[index]; // Get the value there
-				// Catherine, edit here!!!!
-				float change = trigger == Trigger.RELATIVE_DELTA ? 
-						// This is the calculation for the percentage (checked)
-						valueAtTime0 == 0 ? 0 : ((valueAtCurrentTime - valueAtTime0) / valueAtTime0) :
-							// This is the calculation for non percentage (not checked)
-							valueAtCurrentTime - valueAtTime0;
-						// Max change is what the user entered
-						if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {						
-							exceededInThis = true;
-							if(!nodes.contains(nodeNumber)) {
-								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-							}
-							break; // Done after we find one time step
-						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
-							exceededInThis = true;
-							if(!nodes.contains(nodeNumber)) {
-								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-							}
-							break; // Done after we find one time step
-						} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
-							exceededInThis = true;
-							if(!nodes.contains(nodeNumber)) {
-								addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-								addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-							}
-							break; // Done after we find one time step
-						}			
+				float change = 0;
+				
+				// This is the calculation for the percentage change
+				if (trigger == Trigger.RELATIVE_DELTA) change = (valueAtCurrentTime - valueAtTime0) / valueAtTime0;
+				// This is the calculation for absolute change
+				else change = valueAtCurrentTime - valueAtTime0;
+				
+				// Handling the delta type, which can limit change in one direction (both by default)
+				if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				}
 			}
 			if(exceededInThis) {
 				nodes.add(nodeNumber);

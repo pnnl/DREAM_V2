@@ -142,7 +142,8 @@ public class DREAMWizard extends Wizard {
 			return next;
 		} catch (Exception e) {
 			currentPage.loadPage();
-			return current;	// Something went wrong stay on this page
+			System.out.println("Something went wrong, stay on this page.");
+			return current;
 		}
 	}
 
@@ -390,13 +391,13 @@ public class DREAMWizard extends Wizard {
 								if(data.isIncluded) {
 									monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
 									if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-										set.resetSensorSettings(sensorType, data.min, data.max);
+										set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
 									}
 									set.getSensorSettings().get(sensorType).setUserSettings(
 											data.cost, 
 											Color.BLUE,
-											data.min,
-											data.max,
+											data.lowerThreshold,
+											data.upperThreshold,
 											data.trigger, 
 											reset,
 											data.deltaType,
@@ -438,12 +439,12 @@ public class DREAMWizard extends Wizard {
 									SensorData data = sensorData.get(sensorType);
 									if(data.isIncluded) {
 										if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-											set.resetSensorSettings(sensorType, data.min, data.max);
+											set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
 											set.getSensorSettings().get(sensorType).setUserSettings(
 													data.cost, 
 													Color.BLUE,
-													data.min,
-													data.max,
+													data.lowerThreshold,
+													data.upperThreshold,
 													data.trigger, 
 													reset,
 													data.deltaType,

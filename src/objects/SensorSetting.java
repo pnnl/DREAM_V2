@@ -22,6 +22,7 @@ import utilities.Point3f;
  * Holds the logic for a specific sensor type and threshold
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 
 public class SensorSetting {
@@ -66,8 +67,8 @@ public class SensorSetting {
 	private String type;
 	private float cost;
 
-	private Float min;
-	private Float max;
+	private Float minValue;
+	private Float maxValue;
 	private float minZ;
 	private float maxZ;
 
@@ -102,18 +103,16 @@ public class SensorSetting {
 		this.type = type;
 		this.cost = 100;
 
-		min = HDF5Interface.queryStatistic(type, 0);
-		max = HDF5Interface.queryStatistic(type, 2);
-
+		this.minValue = HDF5Interface.queryStatistic(type, 0); //Global minimum value
+		this.maxValue = HDF5Interface.queryStatistic(type, 2); //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0;
-		this.upperThreshold = 0;
-
-		this.validNodes = new HashSet<Integer>(); // None yet
+		this.lowerThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.upperThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
+		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
 		
-		this.setMaxZ(Collections.max(this.nodeStructure.getZ()));
-		this.setMinZ(Collections.min(this.nodeStructure.getZ()));
+		this.validNodes = new HashSet<Integer>(); //None yet
 		this.color = Color.GREEN;	
 
 		this.isReady = false;
@@ -124,7 +123,7 @@ public class SensorSetting {
 
 	}
 	
-	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios, float min, float max) {
+	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios, float minValue, float maxValue) {
 
 		this.nodeStructure = nodeStructure;
 		this.scenarioSet = scenarioSet;
@@ -132,15 +131,16 @@ public class SensorSetting {
 		this.type = type;
 		this.cost = 100;
 
-		this.min = min;
-		this.max = max;
-
+		this.minValue = minValue; //Global minimum value
+		this.maxValue = maxValue; //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0;
-		this.upperThreshold = 0;
-
-		this.validNodes = new HashSet<Integer>(); // None yet
+		this.lowerThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.upperThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
+		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
+		
+		this.validNodes = new HashSet<Integer>(); //None yet
 		this.color = Color.GREEN;	
 
 		this.isReady = false;
@@ -276,12 +276,12 @@ public class SensorSetting {
 			changeOccured = true;
 		}
 		
-		if(this.getMinZ() != minZ) {
+		if(getThisMinZ() != minZ) {
 			this.minZ = realMinZ;
 			changeOccured = true;
 		}
 		
-		if(this.getMaxZ() != maxZ) {
+		if(getThisMaxZ() != maxZ) {
 			this.maxZ = realMaxZ;
 			changeOccured = true;
 		}
@@ -574,9 +574,9 @@ public class SensorSetting {
 	}
 	
 	public synchronized Set<Integer> getValidNodes(IProgressMonitor monitor) {
-		if(!areNodesReady() && monitor != null)
+		if(!nodesReady && monitor != null)
 			setValidNodes(monitor);
-		if(!areNodesReady() && monitor == null) {
+		if(!nodesReady && monitor == null) {
 			System.err.println("Nodes are not ready and we didn't provide a progress monitor, fix this.");
 		}
 		return validNodes;
@@ -608,11 +608,11 @@ public class SensorSetting {
 		this.nodesReady = nodesReady;
 	}
 
-	public float getMin() {
-		return min;
+	public float getMinValue() {
+		return minValue;
 	}
-	public float getMax() {
-		return max;
+	public float getMaxValue() {
+		return maxValue;
 	}
 	
 	public boolean isSet() {
@@ -660,19 +660,19 @@ public class SensorSetting {
 		this.deltaType = deltaType;
 	}
 	
-	public float getMinZ() {
+	public float getGlobalMinZ() {
 		return globalMinZ;
 	}
 
-	public void setMinZ(float minZ) {
+	public void setGlobalMinZ(float minZ) {
 		globalMinZ = minZ;
 	}
 
-	public float getMaxZ() {
+	public float getGlobalMaxZ() {
 		return globalMaxZ;
 	}
 
-	public void setMaxZ(float maxZ) {
+	public void setGlobalMaxZ(float maxZ) {
 		globalMaxZ = maxZ;
 	}
 	
