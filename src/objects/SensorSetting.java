@@ -322,11 +322,14 @@ public class SensorSetting {
 			Map<String, HashSet<Integer>> validNodesPerScenario = new HashMap<String, HashSet<Integer>>();
 			for(Scenario scenario: scenarios) {
 				// Query for valid nodes per scenario
+				HashSet<Integer> nodes = null;;
 				try {
-					HashSet<Integer> nodes = HDF5Interface.hdf5Data.isEmpty() ? 
-							HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor) : 
-								HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
-							validNodesPerScenario.put(scenario.toString(), nodes);
+					if(HDF5Interface.hdf5Data.isEmpty()) {
+						nodes = HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
+					} else {
+						nodes = HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
+					}
+					validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -358,9 +361,12 @@ public class SensorSetting {
 			boolean first = true;
 			for(Scenario scenario: scenarios) {
 				try {
-					HashSet<Integer> nodes = !HDF5Interface.hdf5Data.isEmpty() ? 
-							HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor) :
-							HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
+					HashSet<Integer> nodes = null;
+					if(!HDF5Interface.hdf5Data.isEmpty()) {
+						nodes = HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
+					} else {
+						nodes = HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
+					}
 					if(first) {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;

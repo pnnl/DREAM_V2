@@ -373,8 +373,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.add(Trigger.RELATIVE_DELTA.toString());
 			thresholdCombo.add(Trigger.ABSOLUTE_DELTA.toString());
 			thresholdCombo.setText(trigger.toString());
-			//thresholdCombo.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			thresholdCombo.setToolTipText("Minimum = " + minValue + "; Maximum = " + maxValue);
+			thresholdCombo.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
+			//thresholdCombo.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
 			thresholdCombo.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -411,8 +411,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// if (threshold = min or delta), pick larger entry between D and L
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detection));
-			//detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			detectionText.setToolTipText("Minimum = " + minValue + "; Maximum = " + maxValue);
+			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
+			//detectionText.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
 			detectionText.setForeground(black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
@@ -440,6 +440,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 					}
 					errorFound(detectionError, "  Detection is not a real number.");
+					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
@@ -453,8 +454,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Leakage Criteria
 			leakageText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			leakageText.setText(String.valueOf(sensorData.get(type).leakage));
-			//leakageText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			leakageText.setToolTipText("Minimum = " + minValue + "; Maximum = " + maxValue);
+			leakageText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
+			//leakageText.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
 			leakageText.setForeground(black);
 			leakageText.addModifyListener(new ModifyListener() {
 				@Override
@@ -482,6 +483,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 					}
 					errorFound(leakageError, "  Leakage is not a real number.");
+					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(leakageText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(leakageText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
@@ -561,9 +563,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZTextData.widthHint = 60;
 			maxZText.setLayoutData(maxZTextData);
 			
-			
 			toggleEnabled();
-		}		
+		}
 		
 		private void toggleEnabled() {
 			if(sensorTypeLabel != null && !sensorTypeLabel.isDisposed())
@@ -674,7 +675,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		DREAMWizard.errorMessage.setText("");
+		if(!DREAMWizard.errorMessage.getText().contains("  No nodes were found for the provided parameters."))
+			DREAMWizard.errorMessage.setText("");
 		if(sensorData == null || data.needToResetMonitoringParameters) {
 			data.needToResetMonitoringParameters = false;
 			// New UI
@@ -1112,12 +1114,18 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
+		boolean foundNodes = false;
 		
 		for(String sensorType: data.getSet().getSensorSettings().keySet()){
 			System.out.println(sensorType);
 			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
 			System.out.println("Number of nodes = " + nodes.size());
+			if(nodes.size()!=0) //At least one node was found for a type
+				foundNodes = true;
 		}
+		//If no nodes are found, we want to throw an error message to let them know why the page didn't advance
+		if (foundNodes==false)
+			errorFound(true, "  No nodes were found for the provided parameters.");
 		
 		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
 		
