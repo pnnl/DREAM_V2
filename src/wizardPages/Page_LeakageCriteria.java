@@ -1118,7 +1118,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		for(String sensorType: data.getSet().getSensorSettings().keySet()){
 			System.out.println(sensorType);
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here
+			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here (Jon, check that this isn't leaking memory... adding nulls)
 			System.out.println("Number of nodes = " + nodes.size());
 			if(nodes.size()!=0) //At least one node was found for a type
 				foundNodes = true;
@@ -1136,6 +1136,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
+							//TODO: for some reason, no values are coming out of here...
 							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 						} catch (Exception e) {
 							System.out.println("Unable to get time to degradation");
@@ -1143,8 +1144,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 						if(timeToDegredation != null) break;
 					}
+					//Break after finding the earliest time where a detection occurred for any sensor
 					if(timeToDegredation != null) break;
 				}
+				//Add the time to degradation for each node
 				if(timeToDegredation != null) timeToDegradationPerNode.get(scenario).put(nodeNumber, timeToDegredation);
 			}
 		}
