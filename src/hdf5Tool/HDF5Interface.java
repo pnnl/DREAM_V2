@@ -173,7 +173,7 @@ public class HDF5Interface {
 			}
 		}
 		//Handles duplicate variables not found in statistics
-		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){
+		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){ //Up to 99 variables
 			dataType = dataType.substring(0,dataType.indexOf("_"));
 		}
 		return statistics.get(dataType)[index];

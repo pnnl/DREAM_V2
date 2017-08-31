@@ -83,6 +83,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	public class SensorData {
 
+		private Button addButton;
 		public String sensorType;
 		public String sensorName;
 		public String alias;
@@ -164,7 +165,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public void buildUI(String type) {
 			//Add a button here
 			if(isDuplicate){
-				Button addButton = new Button(container, SWT.PUSH);
+				addButton = new Button(container, SWT.PUSH);
 			    addButton.addListener(SWT.Selection, new Listener() {
 					@Override
 					public void handleEvent(Event arg0) {
@@ -177,7 +178,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			    addButton.setText("-");
 			}
 			else{
-				Button addButton = new Button(container, SWT.PUSH);
+				addButton = new Button(container, SWT.PUSH);
 			    addButton.addListener(SWT.Selection, new Listener() {
 					@Override
 					public void handleEvent(Event arg0) {
@@ -186,6 +187,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
 						loadPage();
 						fixMacBug();
+						if(num_duplicates.get(sensorType)==100) //rare, but prevent more than 99 duplicates so statistics doesn't throw an error
+							for(SensorData temp: sensorData.values())
+								if(temp.sensorName==sensorType)
+									temp.addButton.setEnabled(false);
 					}
 			    });
 			    addButton.setText("+");
