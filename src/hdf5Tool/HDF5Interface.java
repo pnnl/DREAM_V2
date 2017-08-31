@@ -172,6 +172,10 @@ public class HDF5Interface {
 				e.printStackTrace();
 			}
 		}
+		//Handles duplicate variables not found in statistics
+		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){
+			dataType = dataType.substring(0,dataType.indexOf("_"));
+		}
 		return statistics.get(dataType)[index];
 	}
 	

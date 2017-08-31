@@ -191,7 +191,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
 		if(directory.contains("whit162") && directory==Constants.homeDirectory)
-			directory = directory + "\\Desktop\\Ex-Edwards";
+			directory = directory + "\\Desktop\\BCO-Leakage-Models";
 		if(directory.contains("rupr404") && directory==Constants.homeDirectory)
 			directory = directory + "\\Documents\\Projects\\NRAP\\Dream_runs";
 		hdf5Text.setText(directory);
