@@ -26,12 +26,12 @@ import utilities.Constants;
  * @author port091
  */
 
-public class CCS9_1 extends Function {
+public class SimulatedAnnealing extends Function {
 
-	public CCS9_1() {
+	public SimulatedAnnealing() {
 	}
 
-	public CCS9_1(MUTATE mutate) {
+	public SimulatedAnnealing(MUTATE mutate) {
 		this.mutate = mutate;
 	}
 

@@ -42,7 +42,7 @@ import utilities.Constants;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 import wizardPages.Page_LeakageCriteria.SensorData;
-import functions.CCS9_1;
+import functions.SimulatedAnnealing;
 import functions.Function;
 import functions.MutationFunction.MUTATE;
 
@@ -345,7 +345,7 @@ public class DREAMWizard extends Wizard {
 
 					monitor.subTask("initializing algorithm");
 					if(function.endsWith("CCS9.1"))
-						runner = new CCS9_1(mutate); // Set the function (this will always be CCS9_1 in this release)	
+						runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)	
 					monitor.worked(1);
 
 					monitor.subTask("done");					

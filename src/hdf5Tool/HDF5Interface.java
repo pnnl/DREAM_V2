@@ -172,7 +172,7 @@ public class HDF5Interface {
 				e.printStackTrace();
 			}
 		}
-		//Handles duplicate variables not found in statistics
+		//Handles duplicate variables with no statistics field of their own
 		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){ //Up to 99 variables
 			dataType = dataType.substring(0,dataType.indexOf("_"));
 		}

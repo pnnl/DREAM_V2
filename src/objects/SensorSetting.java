@@ -14,7 +14,7 @@ import java.util.logging.Level;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import functions.CCS9_1;
+import functions.SimulatedAnnealing;
 import utilities.Constants;
 import utilities.Point3f;
 
@@ -427,7 +427,7 @@ public class SensorSetting {
 				Float timeToDegredation = Float.MAX_VALUE;
 				for (TimeStep timeStep: nodeStructure.getTimeSteps()){
 					try {
-						if(CCS9_1.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						if(SimulatedAnnealing.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -496,7 +496,7 @@ public class SensorSetting {
 					try {
 						//Need a loop for each sensor type
 						for(SensorSetting setting: sensorSettings.values())
-						if(CCS9_1.paretoSensorTriggered(setting, ns, timeStep, scenario, setting.type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						if(SimulatedAnnealing.paretoSensorTriggered(setting, ns, timeStep, scenario, setting.type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

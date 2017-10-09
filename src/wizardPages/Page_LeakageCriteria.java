@@ -1142,7 +1142,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
 							//TODO: for some reason, no values are coming out of here...
-							if(CCS9_1.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+							if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
 						} catch (Exception e) {
 							System.out.println("Unable to get time to degradation");
 							e.printStackTrace();
