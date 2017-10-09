@@ -77,6 +77,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private Button vadButton;
 	private Button iterativeProceedureButton;
 	private Button showPlots;
+	private Button ertButton;
 	private Button fullEnumerationButton;
 	private Button ijkToxyzButton;
 	private Button randomSampleButton;
@@ -159,7 +160,10 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		}
 		container.layout();	
 		
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
+		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
+		Font boldFontSmall = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
+		GridData spanData = new GridData();
+		spanData.horizontalSpan = 2;
 
 		Label spacerLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		spacerLabel.setText("Run DREAM");
@@ -193,6 +197,11 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		summaryGD.grabExcessVerticalSpace = true;
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);
+		
+		Label runDreamHeader = new Label(container, SWT.NONE);
+		runDreamHeader.setText("———————— Run DREAM ————————");
+		runDreamHeader.setLayoutData(spanData);
+		runDreamHeader.setFont(boldFontSmall);
 		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
@@ -250,165 +259,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					comparisonButton.setEnabled(true);
 				}
 			}
-		});
-		
-		//If a sensor were placed at every node, provide the best possible time to detection
-		bestTTDTableButton = new Button(container, SWT.BALLOON);
-		bestTTDTableButton.setSelection(true);
-		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
-		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				List<List<String>> sensorsToTest = new ArrayList<List<String>>();
-				
-				// Run once with each sensor type
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-					List<String> justThisOne = new ArrayList<String>();
-					justThisOne.add(sensorType);
-					sensorsToTest.add(justThisOne);
-				}
-				// Run once with all sensor types - if there is more than one such type
-				if(sensorsToTest.size() > 1) sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
-				
-				float percentDetectable = 0;
-				
-				Map<String, Float> sensorTestedToTTD = new HashMap<String, Float>();
-				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
-				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new TreeMap<String, Map<String, Float>>();
-				
-				for(List<String> sensors: sensorsToTest) {
-					ExtendedConfiguration configuration = new ExtendedConfiguration();
-					for(String sensorType: sensors) {	
-						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)) {
-							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
-						}
-					}
-					
-					data.runObjective(configuration, Constants.runThreaded);
-					
-					float totalTimeToDetection = 0.0f;
-					int detectedScenarios = 0;
-					List<String> scenariosDetected = new ArrayList<String>();
-					Map<String, Float> ttdForEachDetected = new HashMap<String, Float>();
-					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-						float timeToDetection = configuration.getTimesToDetection().get(scenario);
-						detectedScenarios++;
-						totalTimeToDetection += timeToDetection;
-						scenariosDetected.add(scenario.getScenario());
-						ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
-						if(sensorsToTest.size() == 1 || sensors.size() > 1){
-							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
-						}
-					}
-					
-					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "Any";
-					sensorTestedToTTD.put(sensorTested, (totalTimeToDetection/detectedScenarios));
-					sensorTestedScenariosDetected.put(sensorTested, scenariosDetected);
-					
-					ttdPerSensorPerScenarioDetected.put(sensorTested, ttdForEachDetected);
-					
-					
-				}
-				
-				StringBuilder text = new StringBuilder();
-				
-				// Heading
-				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
-				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-					text.append("," + scenario.getScenario());
-				}
-				text.append("\n");
-								
-				for(String sensorType: sensorTestedToTTD.keySet()) {
-					
-					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
-						text.append(sensorType + ",");
-						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
-						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
-						int scenariosTested = data.getScenarioSet().getScenarios().size();
-						text.append(((float)detectedScenarios)/scenariosTested*100);
-						text.append(detectedScenarios + ",");
-						text.append(scenariosTested);
-						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
-							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
-									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
-						}
-						text.append("\n");
-					}
-					else{
-						text.append(sensorType + ",");
-						text.append("N/A" + ",");
-						text.append("N/A" + ",");
-						text.append("N/A");
-						for(int i = 0; i < data.getScenarioSet().getScenarios().size(); i++)
-							text.append(",N/A");
-						text.append("\n");
-					}
-				}
-				
-				text.append("\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100));
-								
-				try {
-					File outFolder = new File(outputFolder.getText());
-					if(!outFolder.exists())
-						outFolder.mkdirs();
-					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
-					if(!csvOutput.exists())
-						csvOutput.createNewFile();
-					FileUtils.writeStringToFile(csvOutput, text.toString());
-					Desktop.getDesktop().open(csvOutput);
-				} catch (IOException e) {		
-					JOptionPane.showMessageDialog(null, "Could not write to best_ttd_table.csv, make sure the file is not currently open");
-					e.printStackTrace();
-				}
-			}	       
-		});	
-		
-		//Volume of aquifer degraded
-		vadButton = new Button(container, SWT.BALLOON);
-		vadButton.setSelection(true);
-		vadButton.setText("VAD");
-		vadButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				
-				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
-				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
-				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
-				
-				StringBuilder text = new StringBuilder();
-				
-				// Heading
-				text.append("Timestep,Average VAD over all scenarios,Minimum VAD,Maximum VAD");
-				
-				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
-				Collections.sort(years);
-				
-				for(Float time: years){
-					text.append("\n");
-					text.append(time);
-					text.append(",");
-					text.append(averages.get(time));
-					text.append(",");
-					text.append(minimums.get(time));
-					text.append(",");
-					text.append(maximums.get(time));
-				}
-								
-				try {
-					File outFolder = new File(outputFolder.getText());
-					if(!outFolder.exists())
-						outFolder.mkdirs();
-					File csvOutput = new File(new File(outputFolder.getText()), "VAD.csv");
-					if(!csvOutput.exists())
-						csvOutput.createNewFile();
-					FileUtils.writeStringToFile(csvOutput, text.toString());
-					Desktop.getDesktop().open(csvOutput);
-				} catch (IOException e) {		
-					JOptionPane.showMessageDialog(null, "Could not write to VAD.csv, make sure the file is not currently open");
-					e.printStackTrace();
-				}
-			}	       
 		});
 		
 		//Begin the process for determining array optimization
@@ -486,12 +336,190 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					iterativeProceedureButton.setEnabled(true);
 			}
 		});
-
+		
+		//Only show the ERT Button if a results matrix is detected in the correct location
+		String ertInput = Constants.parentDir + "\\e4d\\ert-resultMatrix.csv";
+		File ertDir = new File(ertInput);
+		boolean exists = ertDir.exists();
+		if (exists) {
+			ertButton = new Button(container, SWT.CHECK);
+			ertButton.setText("Include ERT Technology");
+			ertButton.setSelection(true);
+			new Label(container, SWT.NULL);
+		}
+		
+		Label diagnosticToolsHeader = new Label(container, SWT.NONE);
+		diagnosticToolsHeader.setText("———————— Diagnostic Tools ————————");
+		diagnosticToolsHeader.setLayoutData(spanData);
+		diagnosticToolsHeader.setFont(boldFontSmall);
+		
 		showPlots = new Button(container, SWT.CHECK);
 		showPlots.setText("Show Plots");
-		new Label(container, SWT.NULL);
 		showPlots.setSelection(true);
-
+		new Label(container, SWT.NULL);
+		
+		//If a sensor were placed at every node, provide the best possible time to detection
+		bestTTDTableButton = new Button(container, SWT.BALLOON);
+		bestTTDTableButton.setSelection(true);
+		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
+		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				List<List<String>> sensorsToTest = new ArrayList<List<String>>();
+				
+				// Run once with each sensor type
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
+					List<String> justThisOne = new ArrayList<String>();
+					justThisOne.add(sensorType);
+					sensorsToTest.add(justThisOne);
+				}
+				// Run once with all sensor types - if there is more than one such type
+				if(sensorsToTest.size() > 1) sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
+				
+				float percentDetectable = 0;
+				
+				Map<String, Float> sensorTestedToTTD = new HashMap<String, Float>();
+				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
+				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new TreeMap<String, Map<String, Float>>();
+				
+				for(List<String> sensors: sensorsToTest) {
+					ExtendedConfiguration configuration = new ExtendedConfiguration();
+					for(String sensorType: sensors) {	
+						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)) {
+							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+						}
+					}
+					
+					data.runObjective(configuration, Constants.runThreaded);
+					
+					float totalTimeToDetection = 0.0f;
+					int detectedScenarios = 0;
+					List<String> scenariosDetected = new ArrayList<String>();
+					Map<String, Float> ttdForEachDetected = new HashMap<String, Float>();
+					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+						float timeToDetection = configuration.getTimesToDetection().get(scenario);
+						detectedScenarios++;
+						totalTimeToDetection += timeToDetection;
+						scenariosDetected.add(scenario.getScenario());
+						ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
+						if(sensorsToTest.size() == 1 || sensors.size() > 1){
+							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
+						}
+					}
+					
+					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "Any";
+					sensorTestedToTTD.put(sensorTested, (totalTimeToDetection/detectedScenarios));
+					sensorTestedScenariosDetected.put(sensorTested, scenariosDetected);
+					
+					ttdPerSensorPerScenarioDetected.put(sensorTested, ttdForEachDetected);
+				}
+				
+				StringBuilder text = new StringBuilder();
+				
+				// Heading
+				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
+				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+					text.append("," + scenario.getScenario());
+				}
+				text.append("\n");
+								
+				for(String sensorType: sensorTestedToTTD.keySet()) {
+					
+					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
+						text.append(sensorType + ",");
+						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
+						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
+						int scenariosTested = data.getScenarioSet().getScenarios().size();
+						text.append(((float)detectedScenarios)/scenariosTested*100);
+						text.append(detectedScenarios + ",");
+						text.append(scenariosTested);
+						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
+									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
+						}
+						text.append("\n");
+					}
+					else{
+						text.append(sensorType + ",");
+						text.append("N/A" + ",");
+						text.append("N/A" + ",");
+						text.append("N/A");
+						for(int i = 0; i < data.getScenarioSet().getScenarios().size(); i++)
+							text.append(",N/A");
+						text.append("\n");
+					}
+				}
+				
+				text.append("\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100));
+								
+				try {
+					File outFolder = new File(outputFolder.getText());
+					if(!outFolder.exists())
+						outFolder.mkdirs();
+					File csvOutput = new File(new File(outputFolder.getText()), "best_ttd_table.csv");
+					if(!csvOutput.exists())
+						csvOutput.createNewFile();
+					FileUtils.writeStringToFile(csvOutput, text.toString());
+					Desktop.getDesktop().open(csvOutput);
+				} catch (IOException e) {		
+					JOptionPane.showMessageDialog(null, "Could not write to best_ttd_table.csv, make sure the file is not currently open");
+					e.printStackTrace();
+				}
+			}	       
+		});	
+		
+		//Volume of aquifer degraded
+		vadButton = new Button(container, SWT.BALLOON);
+		vadButton.setSelection(true);
+		vadButton.setText("Volume of Aquifer Degraded");
+		vadButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				
+				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
+				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
+				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
+				
+				StringBuilder text = new StringBuilder();
+				
+				// Heading
+				text.append("Timestep,Average VAD over all scenarios,Minimum VAD,Maximum VAD");
+				
+				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
+				Collections.sort(years);
+				
+				for(Float time: years){
+					text.append("\n");
+					text.append(time);
+					text.append(",");
+					text.append(averages.get(time));
+					text.append(",");
+					text.append(minimums.get(time));
+					text.append(",");
+					text.append(maximums.get(time));
+				}
+								
+				try {
+					File outFolder = new File(outputFolder.getText());
+					if(!outFolder.exists())
+						outFolder.mkdirs();
+					File csvOutput = new File(new File(outputFolder.getText()), "VAD.csv");
+					if(!csvOutput.exists())
+						csvOutput.createNewFile();
+					FileUtils.writeStringToFile(csvOutput, text.toString());
+					Desktop.getDesktop().open(csvOutput);
+				} catch (IOException e) {		
+					JOptionPane.showMessageDialog(null, "Could not write to VAD.csv, make sure the file is not currently open");
+					e.printStackTrace();
+				}
+			}	       
+		});
+		
+		Label DevToolsHeader = new Label(container, SWT.NONE);
+		DevToolsHeader.setText("———————— Development Tools (Only Dev Release) ————————");
+		DevToolsHeader.setLayoutData(spanData);
+		DevToolsHeader.setFont(boldFontSmall);
+		
 		fullEnumerationButton = new Button(container, SWT.BALLOON);
 		fullEnumerationButton.setSelection(true);
 		fullEnumerationButton.setText(" Run Full Enumeration  ");

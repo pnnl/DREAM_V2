@@ -95,6 +95,7 @@ public class ScenarioSet {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
+		builder.append("———— Input Summary ————\r\n\r\n");
 		
 		// Details about the scenarios set read from the file being used
 		builder.append("Scenario set:\r\n");
@@ -121,8 +122,10 @@ public class ScenarioSet {
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
 			if(sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.ABSOLUTE_DELTA || sensorSettings.get(parameter).getTrigger() == Trigger.RELATIVE_DELTA)
-				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getLowerThreshold() + " to " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.ABSOLUTE_DELTA)
+				builder.append("\t\tLeakage threshold: Change in " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.RELATIVE_DELTA)
+				builder.append("\t\tLeakage threshold: Change in " + sensorSettings.get(parameter).getLowerThreshold() + "%\r\n");
 			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
 			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
 			if(sensorSettings.get(parameter).areNodesReady()) {
