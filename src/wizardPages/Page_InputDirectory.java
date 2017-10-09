@@ -45,7 +45,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private Composite container;
 	private Composite rootContainer;
 	private Combo scenarioSet;
-	private String simulation = "CCS9.1";
+	private String simulation = "SimulatedAnnealing";
 	private String modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
 	private STORMData data;
 	private Text hdf5Text;

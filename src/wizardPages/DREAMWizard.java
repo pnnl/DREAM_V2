@@ -344,7 +344,7 @@ public class DREAMWizard extends Wizard {
 					monitor.worked(1);
 
 					monitor.subTask("initializing algorithm");
-					if(function.endsWith("CCS9.1"))
+					if(function.endsWith("SimulatedAnnealing"))
 						runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)	
 					monitor.worked(1);
 

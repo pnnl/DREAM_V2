@@ -37,7 +37,7 @@ public class SimulatedAnnealing extends Function {
 
 	@Override
 	public String toString() {
-		return "CCS9.1";
+		return "SimulatedAnnealing";
 	}
 
 	@Override
@@ -82,11 +82,6 @@ public class SimulatedAnnealing extends Function {
 
 	}
 
-	/*	@Override
-	public boolean mutate(Configuration configuration, ScenarioSet set) {
-		return configruation.mutate(set);
-	}
-	 */
 	@Override
 	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set, boolean runThreaded) {
 
