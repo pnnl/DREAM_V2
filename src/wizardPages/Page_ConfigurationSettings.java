@@ -43,6 +43,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text maxWells;
 	private Text exclusionRadius;
 	private Text wellCost;
+	private Text wellDepthCost;
 	private Text remediationCost;
 	private Button allowMultipleSensorsInWell;
 	
@@ -204,10 +205,10 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 				errorFound(numError, "  Distance is not a real number.");
 			}
 		});
-
-		//Cost per well depth
+		
+		//Cost per well
 		Label wellCostLabel = new Label(container, SWT.NULL);
-		wellCostLabel.setText("Cost of Well Per Unit Depth");
+		wellCostLabel.setText("Cost Per Well");
 		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
 		wellCost.setForeground(black);
@@ -227,6 +228,29 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		});
 		wellCost.setVisible(Constants.buildDev);
 		wellCostLabel.setVisible(Constants.buildDev);
+		
+		//Cost per well depth
+		Label wellDepthCostLabel = new Label(container, SWT.NULL);
+		wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
+		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
+		wellDepthCost.setForeground(black);
+		wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		wellDepthCost.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(red);
+				else {
+					((Text)e.getSource()).setForeground(black);
+					data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
+				errorFound(numError, "  Cost is not a real number.");
+			}
+		});
+		wellDepthCost.setVisible(Constants.buildDev);
+		wellDepthCostLabel.setVisible(Constants.buildDev);
 		
 		//Remediation cost
 		Label remediationCostLabel = new Label(container, SWT.NULL);
@@ -300,10 +324,18 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			return 0;
 		}
 	}
-
+	
 	public float getWellCost() {
 		try {
 			return Float.parseFloat(wellCost.getText());
+		} catch(Exception e) {
+			return 0;
+		}
+	}
+	
+	public float getWellDepthCost() {
+		try {
+			return Float.parseFloat(wellDepthCost.getText());
 		} catch(Exception e) {
 			return 0;
 		}
@@ -320,7 +352,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getRemediationCost(), allowMultipleSensorsInWell.getSelection());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getWellDepthCost(), getRemediationCost(), allowMultipleSensorsInWell.getSelection());
 	}
 
 	@Override

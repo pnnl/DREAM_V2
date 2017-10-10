@@ -45,6 +45,7 @@ public class ScenarioSet {
 	private float exclusionRadius;
 	private float inclusionRadius;
 	private float wellCost;
+	private float wellDepthCost;
 	private float remediationCost;
 	private boolean allowMultipleSensorsInWell;
 	
@@ -81,8 +82,9 @@ public class ScenarioSet {
 		costConstraint = 300;
 		exclusionRadius = 0;
 		inclusionRadius = Float.MAX_VALUE;
-		wellCost = 65;
-		remediationCost = 85;
+		wellCost = 0;
+		wellDepthCost = 0;
+		remediationCost = 0;
 		allowMultipleSensorsInWell = true;
 		
 		wells = new ArrayList<Well>();
@@ -148,7 +150,8 @@ public class ScenarioSet {
 		builder.append("\tMax wells: " + maxWells + "\r\n");
 		builder.append("\tMax distance between wells: " + exclusionRadius + "\r\n");
 		if(Constants.buildDev){
-			builder.append("\tCost per unit depth of well: " + wellCost + "\r\n");
+			builder.append("\tCost per well: " + wellCost + "\r\n");
+			builder.append("\tCost per unit depth of well: " + wellDepthCost + "\r\n");
 			builder.append("\tRemediation cost per water unit: " + remediationCost + "\r\n");
 		}
 		builder.append("\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
@@ -156,7 +159,7 @@ public class ScenarioSet {
 		return builder.toString();
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, float remediationCost, boolean allowMultipleSensorsInWell) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, float wellDepthCost, float remediationCost, boolean allowMultipleSensorsInWell) {
 		
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
@@ -165,6 +168,7 @@ public class ScenarioSet {
 		this.costConstraint = costConstraint;
 		this.exclusionRadius = exclusionRadius;
 		this.wellCost = wellCost;
+		this.wellDepthCost = wellDepthCost;
 		this.remediationCost = remediationCost;
 		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 		isReady = true;
@@ -291,6 +295,14 @@ public class ScenarioSet {
 		this.wellCost = wellCost;
 	}
 	
+	public float getWellDepthCost() {
+		return wellDepthCost;
+	}
+
+	public void setWellDepthCost(float wellDepthCost) {
+		this.wellDepthCost = wellDepthCost;
+	}
+	
 	public float getRemediationCost() {
 		return remediationCost;
 	}
@@ -365,7 +377,7 @@ public class ScenarioSet {
 		}
 		for(Point3i location: locations){
 			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
-			cost += (maxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellCost;
+			cost += (maxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellDepthCost;
 		}
 		return cost;
 	}
