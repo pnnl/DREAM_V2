@@ -378,8 +378,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.add(Trigger.RELATIVE_DELTA.toString());
 			thresholdCombo.add(Trigger.ABSOLUTE_DELTA.toString());
 			thresholdCombo.setText(trigger.toString());
-			thresholdCombo.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			//thresholdCombo.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
+			if(trigger == Trigger.MAXIMUM_THRESHOLD)
+				thresholdCombo.setToolTipText("Leak when concentration is greater than value");
+			else if(trigger == Trigger.MINIMUM_THRESHOLD)
+				thresholdCombo.setToolTipText("Leak when concentration is less than value");
+			else if(trigger == Trigger.RELATIVE_DELTA)
+				thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
+			else if(trigger == Trigger.ABSOLUTE_DELTA)
+				thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
 			thresholdCombo.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -402,6 +408,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
+					if(trigger == Trigger.MAXIMUM_THRESHOLD)
+						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
+					else if(trigger == Trigger.MINIMUM_THRESHOLD)
+						thresholdCombo.setToolTipText("Leak when concentration is less than value");
+					else if(trigger == Trigger.RELATIVE_DELTA)
+						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
+					else if(trigger == Trigger.ABSOLUTE_DELTA)
+						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
 				}
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
