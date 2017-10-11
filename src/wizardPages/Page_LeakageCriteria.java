@@ -398,10 +398,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						lowerThreshold = Math.max(detection, leakage);
 						upperThreshold = Math.max(detection, leakage);
 					}
+					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-				}				
+				}
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
 			thresholdComboData.widthHint = 105;
