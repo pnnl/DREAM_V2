@@ -379,9 +379,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.add(Trigger.ABSOLUTE_DELTA.toString());
 			thresholdCombo.setText(trigger.toString());
 			if(trigger == Trigger.MAXIMUM_THRESHOLD)
-				thresholdCombo.setToolTipText("Leak when concentration is greater than value");
-			else if(trigger == Trigger.MINIMUM_THRESHOLD)
 				thresholdCombo.setToolTipText("Leak when concentration is less than value");
+			else if(trigger == Trigger.MINIMUM_THRESHOLD)
+				thresholdCombo.setToolTipText("Leak when concentration is greater than value");
 			else if(trigger == Trigger.RELATIVE_DELTA)
 				thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
 			else if(trigger == Trigger.ABSOLUTE_DELTA)
@@ -409,9 +409,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
 					if(trigger == Trigger.MAXIMUM_THRESHOLD)
-						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
-					else if(trigger == Trigger.MINIMUM_THRESHOLD)
 						thresholdCombo.setToolTipText("Leak when concentration is less than value");
+					else if(trigger == Trigger.MINIMUM_THRESHOLD)
+						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
 					else if(trigger == Trigger.RELATIVE_DELTA)
 						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
 					else if(trigger == Trigger.ABSOLUTE_DELTA)
