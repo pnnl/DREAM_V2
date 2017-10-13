@@ -345,6 +345,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			ertButton = new Button(container, SWT.CHECK);
 			ertButton.setText("Include ERT Technology");
 			ertButton.setSelection(true);
+			data.getSet().setIncludeERT(ertButton.getSelection());
 			new Label(container, SWT.NULL);
 		}
 		
@@ -971,6 +972,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		
+		DREAMWizard.nextButton.setEnabled(false);
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}

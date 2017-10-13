@@ -48,6 +48,7 @@ public class ScenarioSet {
 	private float wellDepthCost;
 	private float remediationCost;
 	private boolean allowMultipleSensorsInWell;
+	private boolean includeERT;
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
@@ -86,6 +87,7 @@ public class ScenarioSet {
 		wellDepthCost = 0;
 		remediationCost = 0;
 		allowMultipleSensorsInWell = true;
+		includeERT = false;
 		
 		wells = new ArrayList<Well>();
 		
@@ -326,6 +328,14 @@ public class ScenarioSet {
 	public void setIterations(int iterations) {
 		this.iterations = iterations;
 	}
+	
+	public boolean getIncludeERT() {
+		return includeERT;
+	}
+	
+	public void setIncludeERT(boolean includeERT) {
+		this.includeERT = includeERT;
+	}
 
 	public InferenceTest getInferenceTest() {
 		return inferenceTest;
@@ -472,10 +482,6 @@ public class ScenarioSet {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
 		for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
 			cloudNodes.add(node);
-		
-		//old addpoint logic
-//		if(withAddPoint)
-//			cloudNodes.add(getNodeStructure().getNodeNumber(addPoint));
 		
 		// Remove all but edges
 		if(edgeMovesOnly) {

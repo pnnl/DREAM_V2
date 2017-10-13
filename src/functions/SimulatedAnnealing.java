@@ -100,9 +100,10 @@ public class SimulatedAnnealing extends Function {
 					@Override
 					public void run() {
 						try {
-							long startTime = System.currentTimeMillis();	
-							if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
-							else InnerLoopParallelE4D(configuration, set, scenario);
+							long startTime = System.currentTimeMillis();
+							innerLoopParallel(configuration, set, scenario);
+							//if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
+							//else InnerLoopParallelE4D(configuration, set, scenario);
 							Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -115,8 +116,9 @@ public class SimulatedAnnealing extends Function {
 			} else {
 				startTime = System.currentTimeMillis();	
 				try {
-					if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
-					else InnerLoopParallelE4D(configuration, set, scenario);
+					innerLoopParallel(configuration, set, scenario);
+					//if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
+					//else InnerLoopParallelE4D(configuration, set, scenario);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
