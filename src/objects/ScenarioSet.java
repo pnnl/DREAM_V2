@@ -51,6 +51,7 @@ public class ScenarioSet {
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
+	private Map<Integer, Map<Integer, Float>> ertDetectionTimes;
 	
 	private InferenceTest inferenceTest;
 	
@@ -75,6 +76,7 @@ public class ScenarioSet {
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 		sensorList = new ArrayList<String>();
+		ertDetectionTimes = new HashMap<Integer, Map<Integer, Float>>();
 
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
@@ -630,6 +632,14 @@ public class ScenarioSet {
 
 	public List<String> getSensorList() {
 		return sensorList;
+	}
+	
+	public void setERTDetectionTimes(Map<Integer, Map<Integer, Float>> ertDetectionTimes) {
+		this.ertDetectionTimes = ertDetectionTimes;
+	}
+	
+	public Map<Integer, Map<Integer, Float>> getERTDetectionTimes() {
+		return ertDetectionTimes;
 	}
 	
 	public static void main(String[] args) {

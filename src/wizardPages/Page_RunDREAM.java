@@ -365,36 +365,47 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						data.getSet().getSensorList().add("ERT");
 						data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
 						data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
+						data.getSet().getSensorSettings().get("ERT").setTrigger(Trigger.MINIMUM_THRESHOLD);
 						Sensor.sensorAliases.put("ERT", "ERT");
 
 						// Here, we want to read sensor pairings and times from the matrix
 						String line = "";
+						List<Integer> validNodes = new ArrayList<Integer>();
+						Map<Integer, Map<Integer, Float>> detectionTimes = new HashMap<Integer, Map<Integer, Float>>();
 						try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
 							while ((line = br.readLine()) != null) {
 								String[] lineList = line.split(",");
-								// The first line lists the sensors
+								
+								// The first line lists the ERT sensor locations
 								if (lineList[0].isEmpty()) {
-									List<Integer> validNodes = new ArrayList<Integer>();
-									for (int node = 1; node < lineList.length; node++) {
-										if (lineList[node].isEmpty()) continue;
-										String[] ijList = lineList[node].split(":");
-										int i = Integer.parseInt(ijList[0]);
-										int j = Integer.parseInt(ijList[1]);
-										for (int k = 1; k <= data.getSet().getNodeStructure().getIJKDimensions().getK(); k++)
-											validNodes.add(data.getSet().getNodeStructure().getNodeNumber(i, j, k));
+									for (int i=1; i<lineList.length; i++) {
+										String[] ijList = lineList[i].split(":");
+										validNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 									}
-									data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
-									data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
-									data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
-									data.getSet().getSensorSettings().get("ERT").setIsReady(true);
 								}
-								// The following lines are detection times
-
+								
+								// The following lines are ERT detection times
+								else {
+									Map<Integer, Float> pairings = new HashMap<Integer, Float>();
+									Integer key = null;
+									String[] ijList = lineList[0].split(":");
+									key = data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
+									for (int i=1; i<lineList.length; i++) {
+										pairings.put(validNodes.get(i-1), Float.parseFloat(lineList[i]));
+									}
+									detectionTimes.put(key, pairings);
+									System.out.println("test");
+								}
 							}
 						} catch (IOException ex) {
+							System.out.println("Something went wrong trying to read the ERT matrix");
 							ex.printStackTrace();
 						}
-						data.getSet().getSensorSettings().get("ERT").setTrigger(Trigger.MINIMUM_THRESHOLD);
+						data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
+						data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
+						data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
+						data.getSet().getSensorSettings().get("ERT").setIsReady(true);
+						data.getSet().setERTDetectionTimes(detectionTimes);
 					}
 					if(ertButton.getSelection()==false) {
 						data.getSet().getSensorList().remove("ERT");
