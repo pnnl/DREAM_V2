@@ -410,6 +410,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					if(ertButton.getSelection()==false) {
 						data.getSet().getSensorList().remove("ERT");
 						data.getSet().getSensorSettings().remove("ERT");
+						data.getSet().setERTDetectionTimes(null);
 					}
 				}
 			});
