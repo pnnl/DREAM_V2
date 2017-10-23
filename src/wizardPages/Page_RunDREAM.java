@@ -1,7 +1,10 @@
 package wizardPages;
 
+import java.awt.Color;
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +24,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -49,6 +54,8 @@ import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
+import objects.SensorSetting.DeltaType;
+import objects.SensorSetting.Trigger;
 import objects.TecplotNode;
 import results.ResultPrinter;
 import utilities.ComparisonDialog;
@@ -99,6 +106,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private int runs = 1;
 	private int samples = 20;
 	private boolean isCurrentPage = false;
+	private File ertFile;
 	
 	protected Page_RunDREAM(STORMData data) {
 		super("Run DREAM");
@@ -269,8 +277,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event arg0) {
 				printSolutionSpace();
-				String numRuns = runsText.getText();
-				int runs = numRuns.isEmpty() ? 1 : Integer.parseInt(numRuns);	
+				int runs = Integer.parseInt(runsText.getText());
 				int ittr = Integer.parseInt(iterationsText.getText());
 				data.setWorkingDirectory(outputFolder.getText());
 				data.getSet().setIterations(ittr);
@@ -338,15 +345,59 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		
 		//Only show the ERT Button if a results matrix is detected in the correct location
-		String ertInput = Constants.parentDir + "\\e4d\\ert-resultMatrix.csv";
-		File ertDir = new File(ertInput);
-		boolean exists = ertDir.exists();
-		if (exists) {
+		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + Constants.homeDirectory.substring(Constants.homeDirectory.lastIndexOf("\\")+1) + ".csv"; //TODO: Test that Mac file structures are the same
+		ertFile = new File(ertInput);
+		if (ertFile.exists()) {
 			ertButton = new Button(container, SWT.CHECK);
 			ertButton.setText("Include ERT Technology");
-			ertButton.setSelection(true);
-			data.getSet().setIncludeERT(ertButton.getSelection());
+			ertButton.setSelection(false);
 			new Label(container, SWT.NULL);
+			ertButton.addSelectionListener(new SelectionListener() {
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) { 
+					//required to have this... not sure when it is triggered.
+				}
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// We are adding the ERT sensor late because we don't want it included in prior functions
+					// ERT is an add-on not included in the original H5 file
+					if(ertButton.getSelection()==true) {
+						data.getSet().getSensorList().add("ERT");
+						data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
+						data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
+						Sensor.sensorAliases.put("ERT", "ERT");
+
+						// Here, we want to read sensor pairings and times from the matrix
+						String line = "";
+						try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
+							while ((line = br.readLine()) != null) {
+								String[] lineList = line.split(",");
+								// The first line lists the sensors
+								if (lineList[0].isEmpty()) {
+									List<Integer> validNodes = new ArrayList<Integer>();
+									for (int node = 1; node < lineList.length; node++) {
+										if (lineList[node].isEmpty()) continue;
+										String[] ijList = lineList[node].split(":");
+										int i = Integer.parseInt(ijList[0]);
+										int j = Integer.parseInt(ijList[1]);
+										for (int k = 1; k <= data.getSet().getNodeStructure().getIJKDimensions().getK(); k++)
+											validNodes.add(data.getSet().getNodeStructure().getNodeNumber(i, j, k));
+									}
+									data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
+									data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
+									data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
+									data.getSet().getSensorSettings().get("ERT").setIsReady(true);
+								}
+								// The following lines are detection times
+
+							}
+						} catch (IOException ex) {
+							ex.printStackTrace();
+						}
+						data.getSet().getSensorSettings().get("ERT").setTrigger(Trigger.MINIMUM_THRESHOLD);
+					}
+				}
+			});
 		}
 		
 		Label diagnosticToolsHeader = new Label(container, SWT.NONE);

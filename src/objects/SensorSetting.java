@@ -613,6 +613,10 @@ public class SensorSetting {
 	public void setNodesReady(boolean nodesReady) {
 		this.nodesReady = nodesReady;
 	}
+	
+	public void setIsReady(boolean isReady) {
+		this.isReady = isReady;
+	}
 
 	public float getMinValue() {
 		return minValue;

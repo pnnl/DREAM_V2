@@ -190,10 +190,15 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
-		if(directory.contains("whit162") && directory==Constants.homeDirectory)
-			directory = directory + "\\Desktop\\BCO-Porosity";
-		if(directory.contains("rupr404") && directory==Constants.homeDirectory)
+		if(directory.contains("whit162") && directory==Constants.homeDirectory) {
+			directory = directory + "\\Desktop\\Ex-Edwards";
+			//directory = directory + "\\Desktop\\BCO-Porosity";
+			Constants.homeDirectory = directory;
+		}
+		if(directory.contains("rupr404") && directory==Constants.homeDirectory) {
 			directory = directory + "\\Documents\\Projects\\NRAP\\Dream_runs";
+			Constants.homeDirectory = directory;
+		}
 		hdf5Text.setText(directory);
 		hdf5Text.setForeground(black);
 		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -221,6 +226,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				} else {
 					((Text)e.getSource()).setForeground(black);
 					directory = ((Text)e.getSource()).getText();
+					Constants.homeDirectory = directory;
 					File[] fList = resultsFolder.listFiles();
 					for (File file : fList) {
 						if(file.getName().contains(".h5")) {
