@@ -204,8 +204,8 @@ public class Vortex extends Function {
 	}
 
 	@Override
-	public boolean mutate(ExtendedConfiguration configruation, ScenarioSet set) {
-		return configruation.mutateSensorToEdgeOnly(set);
+	public boolean mutate(ExtendedConfiguration configuration, ScenarioSet set) {
+		return configuration.mutateSensorToEdgeOnly(set);
 	}
 
 

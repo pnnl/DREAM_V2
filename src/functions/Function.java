@@ -514,11 +514,11 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	}
 
 	@Override
-	public boolean mutate(ExtendedConfiguration configruation, ScenarioSet set) {
+	public boolean mutate(ExtendedConfiguration configuration, ScenarioSet set) {
 		if(mutate.equals(MUTATE.SENSOR)) {
-			return configruation.mutateSensor(set, modelOption);
+			return configuration.mutateSensor(set, modelOption);
 		} else if(mutate.equals(MUTATE.WELL)) {
-			return configruation.mutateWell(set);
+			return configuration.mutateWell(set);
 		}		
 		return false;
 	}

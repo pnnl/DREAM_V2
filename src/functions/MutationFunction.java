@@ -15,5 +15,5 @@ public interface MutationFunction {
 		WELL
 	}
 	
-	public boolean mutate(ExtendedConfiguration configruation, ScenarioSet set);
+	public boolean mutate(ExtendedConfiguration configuration, ScenarioSet set);
 }
