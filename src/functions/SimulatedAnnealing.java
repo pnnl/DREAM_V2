@@ -163,7 +163,7 @@ public class SimulatedAnnealing extends Function {
 			{
 				ts = timeStep;
 				long startTime = System.currentTimeMillis();	
-				inferenceResult = runOneTime(con, set, timeStep, scenario, true);
+				inferenceResult = runOneTime(con, set, timeStep, scenario);
 				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
 				if (inferenceResult.isInferred())
 					break;
@@ -193,7 +193,7 @@ public class SimulatedAnnealing extends Function {
 			{
 				ts = timeStep;
 				long startTime = System.currentTimeMillis();	
-				inferenceResult = runOneTime(con, set, timeStep, scenario, true);
+				inferenceResult = runOneTime(con, set, timeStep, scenario);
 				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
 				if (inferenceResult.isInferred()) //break here if non-E4D has detected
 					break;
@@ -219,7 +219,7 @@ public class SimulatedAnnealing extends Function {
 		}
 	}
 	
-	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
+	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario) throws Exception
 	{
 
 		//float realTime = timeStep.getRealTime();
@@ -236,8 +236,10 @@ public class SimulatedAnnealing extends Function {
 				if(triggered == null) {
 					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
 					// for the case in which we detect with a given radius from the individual sensor
-					
-					triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
+					if (sensor.getSensorType() == "ERT")
+						triggered = ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
+					else
+						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}		
 
 
@@ -248,6 +250,26 @@ public class SimulatedAnnealing extends Function {
 		}
 		return inference(con, set, scenario);
 	}
+	
+	////////////////////// ERT Code //////////////////////
+	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
+		Boolean triggered = false;
+		
+		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
+		Integer bestWell = null;
+		Float bestTTD = Float.MAX_VALUE;
+		for (Map.Entry<Integer, Float> entry : detection.entrySet()) {
+			if (entry.getValue() < bestTTD) {
+				bestWell = entry.getKey();
+				bestTTD = entry.getValue();
+			}
+		}
+		if (timestep.getTimeStep() >= bestTTD)
+			triggered = true;
+		
+		return triggered;
+	}
+	////////////////////// ERT Code End //////////////////////
 	
 	public static Boolean sensorTriggered(ScenarioSet set, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
 		Boolean triggered = null;

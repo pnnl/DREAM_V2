@@ -375,21 +375,18 @@ public class HDF5Interface {
 
 						if(monitor != null && monitor.isCanceled()) return nodes;
 
-						
-						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) { // Or >=
-							// Also add to the cloud?
-
-							
+						// Checks if node is within threshold, then add to validNodes and cloud
+						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) {
 							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
 							if(!nodes.contains(nodeNumber)) {
 								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
 								nodes.add(nodeNumber);
 							}
+						// Outside of threshold, ignore
 						} else {
 							//System.out.println("Skipping");
 						}
 					}
-
 				}
 			}
 		}

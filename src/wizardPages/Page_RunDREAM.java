@@ -344,6 +344,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 		
+		////////////////////// ERT Code //////////////////////
 		//Only show the ERT Button if a results matrix is detected in the correct location
 		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + Constants.homeDirectory.substring(Constants.homeDirectory.lastIndexOf("\\")+1) + ".csv"; //TODO: Test that Mac file structures are the same
 		ertFile = new File(ertInput);
@@ -365,47 +366,79 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						data.getSet().getSensorList().add("ERT");
 						data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
 						data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
-						data.getSet().getSensorSettings().get("ERT").setTrigger(Trigger.MINIMUM_THRESHOLD);
 						Sensor.sensorAliases.put("ERT", "ERT");
 
 						// Here, we want to read sensor pairings and times from the matrix
 						String line = "";
-						List<Integer> validNodes = new ArrayList<Integer>();
-						Map<Integer, Map<Integer, Float>> detectionTimes = new HashMap<Integer, Map<Integer, Float>>();
+						List<Scenario> scenarios = data.getSet().getScenarios();
+						List<Integer> orderedValidNodes = new ArrayList<Integer>(); //need an ordered list for TTD pairings
+						HashSet<Integer> validNodes = new HashSet<Integer>(); //need a hashset for valid nodes TODO: Check if the list of wells varies by scenario
+						Map<Scenario, HashSet<Integer>> validNodesPerScenario = new HashMap<Scenario, HashSet<Integer>>();
+						Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
+						Map<Scenario, Map<Integer, Map<Integer, Float>>> detectionTimesPerScenario = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 						try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
+							// Iterate through all the scenarios
+							int scenarioIteration = 0;
+							// Read each line, comma delimited
 							while ((line = br.readLine()) != null) {
 								String[] lineList = line.split(",");
-								
-								// The first line lists the ERT sensor locations
-								if (lineList[0].isEmpty()) {
+
+								// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
+								if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario())) {
+									orderedValidNodes.clear();
+									validNodes.clear();
 									for (int i=1; i<lineList.length; i++) {
 										String[] ijList = lineList[i].split(":");
+										orderedValidNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 										validNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 									}
+									validNodesPerScenario.put(scenarios.get(scenarioIteration), validNodes);
 								}
 								
-								// The following lines are ERT detection times
-								else {
-									Map<Integer, Float> pairings = new HashMap<Integer, Float>();
+								// The following lines list ERT detection times for valid nodes per scenario
+								else if (lineList.length!=0){
+									Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
 									Integer key = null;
 									String[] ijList = lineList[0].split(":");
 									key = data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
 									for (int i=1; i<lineList.length; i++) {
-										pairings.put(validNodes.get(i-1), Float.parseFloat(lineList[i]));
+										timePerPairedWell.put(orderedValidNodes.get(i-1), Float.parseFloat(lineList[i]));
 									}
-									detectionTimes.put(key, pairings);
-									System.out.println("test");
+									detectionTimesPerWell.put(key, timePerPairedWell);
+								}
+								
+								// The following blank line triggers the saving of detection times for the scenario
+								else {
+									detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+									detectionTimesPerWell.clear();
+									scenarioIteration++;
 								}
 							}
+							if (!detectionTimesPerWell.isEmpty()) // just in case there is no blank line at the end of the file
+								detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
 						} catch (IOException ex) {
 							System.out.println("Something went wrong trying to read the ERT matrix");
 							ex.printStackTrace();
 						}
+						// Based on sensor union or intersection, combine scenarios into a final list of validNodes
+						boolean first = true;
+						for (Scenario scenario: scenarios) {
+							if (first) {
+								validNodes = validNodesPerScenario.get(scenario);
+								first = false;
+							} else {
+								if(Constants.scenarioUnion)
+									validNodes.addAll(validNodesPerScenario.get(scenario)); 
+								else // Intersection
+									validNodes.retainAll(validNodesPerScenario.get(scenario));
+							}
+							//System.out.println(scenario + " ERT nodes: " + validNodes);
+						}
 						data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
-						data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
-						data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
 						data.getSet().getSensorSettings().get("ERT").setIsReady(true);
-						data.getSet().setERTDetectionTimes(detectionTimes);
+						data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
+						data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
+						data.getSet().setERTDetectionTimes(detectionTimesPerScenario);
 					}
 					if(ertButton.getSelection()==false) {
 						data.getSet().getSensorList().remove("ERT");
@@ -415,6 +448,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				}
 			});
 		}
+		////////////////////// ERT Code End //////////////////////
 		
 		Label diagnosticToolsHeader = new Label(container, SWT.NONE);
 		diagnosticToolsHeader.setText("———————— Diagnostic Tools ————————");
