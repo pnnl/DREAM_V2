@@ -145,7 +145,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			public void handleEvent(Event event) {			
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
-				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager), Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support.");		
+				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager), Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support."); //Catherine TODO: Add acknowledgement for past developers		
 				messageBox.setText("Acknowledgements");
 				messageBox.open();
 			}
@@ -165,7 +165,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			}
 		});
 		
-		new Label(container, SWT.BEGINNING).setText("\tDevelopers: Porter, E.; Rodriguez, L.");
+		new Label(container, SWT.BEGINNING).setText("\tDeveloper: Whiting, J.");
 		Link references = new Link(container, SWT.BEGINNING);
 		references.setText("                   <A>References</A>");
 		references.addListener(SWT.Selection, new Listener() {
@@ -176,7 +176,6 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 				messageBox.open();
 			}
 		});
-		new Label(container, SWT.BEGINNING).setText("\t\t     Whiting, J.");
 		
 		// Lab logo at the bottom
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
