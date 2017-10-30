@@ -556,17 +556,16 @@ public class SensorSetting {
 	 * Getters & Setters *
 	 * 					 *
 	\*					 */
-
+	
 	public String getType() {
 		return type;
 	}
-
 
 	public void setType(String type) {
 		this.type = type;
 		isReady = false;
 	}
-
+	
 	public float getCost() {
 		return cost;
 	}
@@ -600,16 +599,15 @@ public class SensorSetting {
 	public Color getColor() {
 		return color;
 	}
-
-
+	
 	public void setColor(Color color) {
 		this.color = color;
 	}
-
+	
 	public boolean areNodesReady() {
 		return nodesReady;
 	}
-
+	
 	public void setNodesReady(boolean nodesReady) {
 		this.nodesReady = nodesReady;
 	}

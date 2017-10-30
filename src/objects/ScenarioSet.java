@@ -48,6 +48,7 @@ public class ScenarioSet {
 	private float wellDepthCost;
 	private float remediationCost;
 	private boolean allowMultipleSensorsInWell;
+	private String scenarioEnsemble;
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
@@ -78,6 +79,7 @@ public class ScenarioSet {
 		sensorList = new ArrayList<String>();
 		ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 
+		scenarioEnsemble = "";
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
 		iterations = 1000;
@@ -242,6 +244,14 @@ public class ScenarioSet {
 
 	public void setScenarios(List<Scenario> scenarios) {
 		this.scenarios = scenarios;
+	}
+	
+	public String getScenarioEnsemble() {
+		return scenarioEnsemble;
+	}
+	
+	public void setScenarioEnsemble(String scenarioEnsemble) {
+		this.scenarioEnsemble = scenarioEnsemble;
 	}
 
 	public List<Scenario> getAllScenarios() {
