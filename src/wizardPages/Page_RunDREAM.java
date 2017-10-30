@@ -346,7 +346,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		
 		////////////////////// ERT Code //////////////////////
 		//Only show the ERT Button if a results matrix is detected in the correct location
-		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble().substring(data.getSet().getScenarioEnsemble().lastIndexOf("\\")+1) + ".csv"; //TODO: Test that Mac file structures are the same
+		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
 		ertFile = new File(ertInput);
 		if (ertFile.exists()) {
 			ertButton = new Button(container, SWT.CHECK);
