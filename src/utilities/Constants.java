@@ -66,8 +66,6 @@ public class Constants {
 	private static boolean loggerOn;
 	
 	public static String homeDirectory = System.getProperty("user.home");
-
-	public static boolean scenarioUnion = true;
 	
 	public static Timer timer = new Constants().new Timer();
 	

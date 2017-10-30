@@ -344,16 +344,13 @@ public class SensorSetting {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
 					} else {
-						if(Constants.scenarioUnion)
-							allNodes.addAll(nodes); 
-						else // Intersection
-							allNodes.retainAll(nodes); 
+						allNodes.addAll(nodes); 
 					}
 				}
 				for(Integer node: allNodes) {
 					validNodes.add(node);
 				}
-				//System.out.println((Constants.scenarioUnion ? "Union: " : "Intersection: ") + validNodes.size() + ": " + validNodes);
+				//System.out.println("Union: " + validNodes.size() + ": " + validNodes);
 			}			
 		} else {
 		
@@ -371,10 +368,7 @@ public class SensorSetting {
 						allNodes = new HashSet<Integer>(nodes);
 						first = false;
 					} else {
-						if(Constants.scenarioUnion)
-							allNodes.addAll(nodes); 
-						else // Intersection
-							allNodes.retainAll(nodes); 
+						allNodes.addAll(nodes); 
 					}	
 			//		System.out.println(scenario + " " + type + " nodes: " + nodes);			
 					
@@ -385,7 +379,7 @@ public class SensorSetting {
 			for(Integer nodeNumber: allNodes) {
 				validNodes.add(nodeNumber);
 			}
-		//	System.out.println((Constants.scenarioUnion ? "Union: " : "Intersection: ") + validNodes.size() + ": " + validNodes);
+		//	System.out.println("Union: " + validNodes.size() + ": " + validNodes);
 		}
 		
 	//	System.out.println(validNodes);
@@ -629,11 +623,6 @@ public class SensorSetting {
 
 	public void removeNode(Integer node) {
 		validNodes.remove(node);
-	}
-
-	public void setValidNodes(List<Integer> intersection) {
-		validNodes.clear();
-		validNodes.addAll(intersection);		
 	}
 
 	public Trigger getTrigger() {

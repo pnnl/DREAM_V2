@@ -66,11 +66,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	private STORMData data;
 	private boolean isCurrentPage = false;
-	private Button scenarioUnionButton;
-	private Button sensorUnionButton;
 	private Button e4dButton;
 	private Button buttonSelectDir;
-	private boolean toggling = false;
 	private Text e4dFolder;
 	
 	private Map<String, SensorData> sensorData;
@@ -826,7 +823,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			public void handleEvent(Event arg0) {
 				fixMacBug();
 				HDF5Interface.hdf5CloudData.clear();
-				Constants.scenarioUnion = scenarioUnionButton.getSelection();
 				boolean reset = true;
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 
@@ -860,107 +856,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							temp.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
 						else
 							temp.nodeLabel.setText(label + ": Not set");
-					}			
-					
-					// Then we really only want the intersection
-					if(!sensorUnionButton.getSelection()) {
-						List<Integer> intersection = new ArrayList<Integer>();
-						for(String dataType: data.getSet().getDataTypes()) {
-							if(!data.getSet().getSensorSettings(dataType).isSet())
-								continue;
-							for(Integer nodeNumber: data.getSet().getSensorSettings(dataType).getValidNodes(null)) {
-								boolean shared = true;
-								for(String otherDataType: data.getSet().getDataTypes()) {
-									if(dataType.equals(otherDataType))
-										continue; // Don't need to check this one
-									if(!data.getSet().getSensorSettings(otherDataType).isSet())
-										continue;
-									if(!data.getSet().getSensorSettings(otherDataType).getValidNodes(null).contains(nodeNumber)) {
-										shared = false;
-									}
-									if(!shared)
-										break;
-								}		
-								if(shared)
-									intersection.add(nodeNumber);
-							}
-						}
-						System.out.println("Intersection: (" + intersection.size() + ") " + intersection);
-						for(String label: sensorData.keySet()){
-							SensorData temp = sensorData.get(label);
-							if(data.getSet().getSensorSettings(label) != null && data.getSet().getSensorSettings(label).isSet()) {
-								data.getSet().getSensorSettings(label).setValidNodes(intersection);
-								temp.nodeLabel.setText(temp.alias + ": " + data.getSet().getSensorSettings(temp.alias).getValidNodes(null).size());
-							} else
-								temp.nodeLabel.setText(temp.alias + ": Not set");
-						}
 					}
-
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 			}	       
-		});	
-				
-
-		Label col = new Label(composite_scale, SWT.NULL);
-		col.setText("Set up the solution space using ...");
-		col.setFont(boldFont1);
-		new Label(composite_scale, SWT.NULL);
-		
-	    scenarioUnionButton = new Button(composite_scale, SWT.CHECK);
-	    final Button scenarioIntersectionButton = new Button(composite_scale, SWT.CHECK);
-	    scenarioIntersectionButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				if(!toggling) {
-					toggling = true;
-					scenarioUnionButton.setSelection(!scenarioIntersectionButton.getSelection());
-					toggling = false;
-				}
-			}
-	    });
-	    scenarioUnionButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				if(!toggling) {
-					toggling = true;
-					scenarioIntersectionButton.setSelection(!scenarioUnionButton.getSelection());
-					toggling = false;
-				}
-			}
-	    });
-	    scenarioUnionButton.setSelection(true);
-	    scenarioUnionButton.setText("union of scenarios");
-	    scenarioIntersectionButton.setText("intersection of scenarios");
-	    
-	    sensorUnionButton = new Button(composite_scale, SWT.CHECK);
-	    final Button sensorIntersectionButton = new Button(composite_scale, SWT.CHECK);
-	    sensorIntersectionButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				if(!toggling) {
-					toggling = true;
-					sensorUnionButton.setSelection(!sensorIntersectionButton.getSelection());
-					toggling = false;
-				}
-			}
-	    });
-	    sensorUnionButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				if(!toggling) {
-					toggling = true;
-					sensorIntersectionButton.setSelection(!sensorUnionButton.getSelection());
-					toggling = false;
-				}
-			}
-	    });
-	    
-	    sensorUnionButton.setSelection(true);
-	    sensorUnionButton.setText("union of sensors");
-	    sensorIntersectionButton.setText("intersection of sensors");
-
+		});
 	    
 		////The following code writes outputs for the e4d model
 		//Layout the buttons

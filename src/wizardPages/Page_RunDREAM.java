@@ -420,17 +420,14 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							System.out.println("Something went wrong trying to read the ERT matrix");
 							ex.printStackTrace();
 						}
-						// Based on sensor union or intersection, combine scenarios into a final list of validNodes
+						// Combine scenarios into a final list of validNodes
 						boolean first = true;
 						for (Scenario scenario: scenarios) {
 							if (first) {
 								validNodes = validNodesPerScenario.get(scenario);
 								first = false;
 							} else {
-								if(Constants.scenarioUnion)
-									validNodes.addAll(validNodesPerScenario.get(scenario)); 
-								else // Intersection
-									validNodes.retainAll(validNodesPerScenario.get(scenario));
+								validNodes.addAll(validNodesPerScenario.get(scenario)); 
 							}
 							//System.out.println(scenario + " ERT nodes: " + validNodes);
 						}
