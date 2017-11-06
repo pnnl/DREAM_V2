@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -110,7 +111,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	
 	protected Page_RunDREAM(STORMData data) {
 		super("Run DREAM");
-		//	setDescription("Review");
 		this.data = data;			
 	}
 	
@@ -149,8 +149,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
+		layout.numColumns = 2;
 		container.setLayout(layout);
-		layout.numColumns = 3;
 
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -196,23 +196,28 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		infoLink.setLayoutData(infoLinkData);
 		
-		Text summary = new Text(container, SWT.MULTI | SWT.WRAP| SWT.BORDER | SWT.V_SCROLL );
-		summary.setEditable(false);
+		// Starts the left side of the page
 		GridData summaryGD = new GridData(GridData.FILL_BOTH);
 		summaryGD.verticalSpan = 20;
 		summaryGD.widthHint = 260;
 		summaryGD.heightHint = SWT.FILL;
 		summaryGD.grabExcessVerticalSpace = true;
+		
+		Text summary = new Text(container, SWT.MULTI | SWT.WRAP| SWT.BORDER | SWT.V_SCROLL );
+		summary.setEditable(false);
 		summary.setText(data.getSet().toString());
 		summary.setLayoutData(summaryGD);
 		
-		Label runDreamHeader = new Label(container, SWT.NONE);
-		runDreamHeader.setText("———————— Run DREAM ————————");
-		runDreamHeader.setLayoutData(spanData);
-		runDreamHeader.setFont(boldFontSmall);
 		
+		// Starts the right side of the page
+		Group runGroup = new Group(container, SWT.SHADOW_NONE);
+		runGroup.setText("Run DREAM");
+		runGroup.setFont(boldFontSmall);
+		runGroup.setLayout(new GridLayout(2,false));
+		runGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+				
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
-		Button buttonSelectDir = new Button(container, SWT.PUSH);
+		Button buttonSelectDir = new Button(runGroup, SWT.PUSH);
 		buttonSelectDir.setText("Select an output directory");
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -225,7 +230,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});		
 	
-		outputFolder= new Text(container, SWT.BORDER | SWT.SINGLE);
+		outputFolder = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		outputFolder.setText(outputs);
 		outputFolder.setForeground(black);
 		outputFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -270,7 +275,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		
 		//Begin the process for determining array optimization
-		iterativeProceedureButton = new Button(container, SWT.BALLOON);
+		iterativeProceedureButton = new Button(runGroup, SWT.BALLOON);
 		iterativeProceedureButton.setSelection(true);
 		iterativeProceedureButton.setText("Run Iterative Procedure");
 		iterativeProceedureButton.addListener(SWT.Selection, new Listener() {
@@ -294,7 +299,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 
-		runsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		runsText = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		runsText.setText(String.valueOf(runs));
 		runsText.setForeground(black);
 		runsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -318,9 +323,9 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 
-		Label iterationLabel = new Label(container, SWT.NULL);
+		Label iterationLabel = new Label(runGroup, SWT.NULL);
 		iterationLabel.setText("Configurations to test");
-		iterationsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		iterationsText = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		iterationsText.setText(String.valueOf(data.getSet().getIterations()));
 		iterationsText.setForeground(black);
 		iterationsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -447,18 +452,19 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		}
 		////////////////////// ERT Code End //////////////////////
 		
-		Label diagnosticToolsHeader = new Label(container, SWT.NONE);
-		diagnosticToolsHeader.setText("———————— Diagnostic Tools ————————");
-		diagnosticToolsHeader.setLayoutData(spanData);
-		diagnosticToolsHeader.setFont(boldFontSmall);
+		Group diagnosticGroup = new Group(container, SWT.SHADOW_NONE | SWT.HORIZONTAL);
+		diagnosticGroup.setText("Diagnostic Tools");
+		diagnosticGroup.setFont(boldFontSmall);
+		diagnosticGroup.setLayout(new GridLayout(2,false));
+		diagnosticGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
-		showPlots = new Button(container, SWT.CHECK);
+		showPlots = new Button(diagnosticGroup, SWT.CHECK);
 		showPlots.setText("Show Plots");
 		showPlots.setSelection(true);
-		new Label(container, SWT.NULL);
+		new Label(diagnosticGroup, SWT.NULL);
 		
 		//If a sensor were placed at every node, provide the best possible time to detection
-		bestTTDTableButton = new Button(container, SWT.BALLOON);
+		bestTTDTableButton = new Button(diagnosticGroup, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
 		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
@@ -568,7 +574,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});	
 		
 		//Volume of aquifer degraded
-		vadButton = new Button(container, SWT.BALLOON);
+		vadButton = new Button(diagnosticGroup, SWT.BALLOON);
 		vadButton.setSelection(true);
 		vadButton.setText("Volume of Aquifer Degraded");
 		vadButton.addListener(SWT.Selection, new Listener() {
@@ -614,13 +620,14 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}	       
 		});
 		
-		Label DevToolsHeader = new Label(container, SWT.NONE);
-		DevToolsHeader.setText("———————— Development Tools (Only Dev Release) ————————");
-		DevToolsHeader.setLayoutData(spanData);
-		DevToolsHeader.setFont(boldFontSmall);
-		DevToolsHeader.setVisible(Constants.buildDev);
+		Group devGroup = new Group(container, SWT.SHADOW_NONE);
+		devGroup.setText("Development Tools (Only Dev Release)");
+		devGroup.setFont(boldFontSmall);
+		devGroup.setLayout(new GridLayout(2,false));
+		devGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		devGroup.setVisible(Constants.buildDev);
 		
-		fullEnumerationButton = new Button(container, SWT.BALLOON);
+		fullEnumerationButton = new Button(devGroup, SWT.BALLOON);
 		fullEnumerationButton.setSelection(true);
 		fullEnumerationButton.setText(" Run Full Enumeration  ");
 		fullEnumerationButton.addListener(SWT.Selection, new Listener() {
@@ -637,7 +644,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		fullEnumerationButton.setVisible(Constants.buildDev);
 		
-		ijkToxyzButton = new Button(container, SWT.BALLOON);
+		ijkToxyzButton = new Button(devGroup, SWT.BALLOON);
 		ijkToxyzButton.setSelection(true);
 		ijkToxyzButton.setText("IJK to XYZ");
 		ijkToxyzButton.addListener(SWT.Selection, new Listener() {
@@ -657,7 +664,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		ijkToxyzButton.setVisible(Constants.buildDev);
 
-		randomSampleButton = new Button(container, SWT.BALLOON);
+		randomSampleButton = new Button(devGroup, SWT.BALLOON);
 		randomSampleButton.setSelection(true);
 		randomSampleButton.setText("  Run Random Sample   ");
 		randomSampleButton.addListener(SWT.Selection, new Listener() {
@@ -674,7 +681,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});		
 		randomSampleButton.setVisible(Constants.buildDev);
 		
-		samplesText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		samplesText = new Text(devGroup, SWT.BORDER | SWT.SINGLE);
 		samplesText.setText(String.valueOf(samples));
 		samplesText.setForeground(black);
 		samplesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -699,7 +706,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		samplesText.setVisible(Constants.buildDev);
 
-		solutionSpaceButton = new Button(container, SWT.BALLOON);
+		solutionSpaceButton = new Button(devGroup, SWT.BALLOON);
 		solutionSpaceButton.setSelection(true);
 		solutionSpaceButton.setText("Solution Space");
 		solutionSpaceButton.addListener(SWT.Selection, new Listener() {
@@ -822,7 +829,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		
 		//This probably needs a new name. Used to create a scatterplot, hence the button, but this is the multi-run ensemble code.
 		//We can probably get rid of the scatterplot functionality.
-		multiRunEnsembleButton = new Button(container, SWT.BALLOON);
+		multiRunEnsembleButton = new Button(devGroup, SWT.BALLOON);
 		multiRunEnsembleButton.setSelection(true);
 		multiRunEnsembleButton.setText("Multi-Run Ensemble");
 		multiRunEnsembleButton.addListener(SWT.Selection, new Listener() {
@@ -951,7 +958,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			});
 		multiRunEnsembleButton.setVisible(Constants.buildDev);
 		
-		comparisonButton = new Button(container, SWT.BALLOON);
+		comparisonButton = new Button(devGroup, SWT.BALLOON);
 		comparisonButton.setSelection(true);
 		comparisonButton.setText("Compare two sensors");
 		//TODO: This is an area for future improvement to functionality. I believe Catherine has specific vision?
