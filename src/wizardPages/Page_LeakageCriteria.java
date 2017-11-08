@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -706,7 +707,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// New UI
 			sensorData = new TreeMap<String, SensorData>();
 			
-			//Only adds ERT if a results matrix is detected in the correct location
+			//Only adds ERT sensor if a results matrix is detected in the correct location
 			E4DSensors.addERTSensor(data);
 
 			for(String dataType: data.getSet().getAllPossibleDataTypes())	
@@ -716,7 +717,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
 		
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
+		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		Font boldFontSmall = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Leakage Criteria");
@@ -784,17 +786,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(SensorData data: sensorData.values()) {
 			data.buildUI(data.sensorName);
 		}
-
-		Composite composite_scale = new Composite(container, SWT.BORDER);
-		GridLayout gridLayout_scale = new GridLayout();
-		gridLayout_scale.numColumns = 8;
-		composite_scale.setLayout(gridLayout_scale);
 		
-		GridData gridData = new GridData();
-		gridData.horizontalSpan=8;
-		composite_scale.setLayoutData(gridData);
+		Group parametersGroup = new Group(container, SWT.SHADOW_NONE);
+		parametersGroup.setText("Nodes Found for Each Parameter");
+		parametersGroup.setFont(boldFontSmall);
+		parametersGroup.setLayout(new GridLayout(4,true));
+		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		tempData.horizontalSpan = 10;
+		parametersGroup.setLayoutData(tempData);
 
-		Button queryButton = new Button(composite_scale, SWT.BALLOON);
+		Button queryButton = new Button(parametersGroup, SWT.BALLOON);
 		queryButton.setText("Find triggering nodes");
 		queryButton.addListener(SWT.Selection, new Listener() {
 			@Override
@@ -841,180 +842,155 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}	       
 		});
 		
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		
-		int count = 0;
+		for (int i=0; i<3; i++)
+			new Label(parametersGroup, SWT.NULL);
 		
 		for(String label: sensorData.keySet()){
 			SensorData temp = sensorData.get(label);
-
-			// Let these fill two spots
-			GridData tempData = new GridData(GridData.FILL_HORIZONTAL);
-			tempData.horizontalSpan = 2;
-			temp.nodeLabel = new Label(composite_scale, SWT.WRAP);
-			temp.nodeLabel.setLayoutData(tempData);
+			temp.nodeLabel = new Label(parametersGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label) == null)
 				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
 			if( data.getSet().getSensorSettings(label).isSet())
 				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
 			else
 				temp.nodeLabel.setText(label+ ": Not set");
-			count+=2;
 		}
 		
-		if(count % 8 != 0) {
-			for(int i = 0; i < 8-(count % 8); i++)
-				new Label(composite_scale, SWT.NULL);
+		// If the user has the E4D module installed, allow the E4D buttons to show up
+		String e4dModuleDirectory = Constants.parentDir + "\\e4d";
+		File e4dDirectory = new File(e4dModuleDirectory);
+		if (e4dDirectory.exists()) {
+			Group e4dGroup = new Group(container, SWT.SHADOW_NONE);
+			e4dGroup.setText("E4D");
+			e4dGroup.setFont(boldFontSmall);
+			e4dGroup.setLayout(new GridLayout(4,false));
+			e4dGroup.setLayoutData(tempData);
+			
+			//Add an info icon to explain the E4D Buttons
+			Label infoLinkE4D = new Label(e4dGroup, SWT.NULL);
+		  	infoLinkE4D.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+	  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
+	  			@Override
+	  			public void handleEvent(Event event) {
+	  				// TODO: Catherine edit text here!
+	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
+	  			}			
+	  		});
+			
+	  		// Save the E4D files
+	  		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
+		    e4dButton = new Button(e4dGroup, SWT.PUSH);
+		    e4dButton.setText("  Write E4D Files  ");
+			e4dButton.addListener(SWT.Selection, new Listener() {
+				@Override
+				public void handleEvent(Event arg0) {
+					fixMacBug();
+					
+					//Write out the x-y and i-j well locations
+					HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
+					HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
+					HashSet<Integer> validNodes = new HashSet<Integer>();
+					for(String label: data.getSet().getSensorSettings().keySet()){
+						validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
+					}
+					for(Integer node: validNodes){
+						Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
+						Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
+						if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
+						if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
+						else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
+						if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
+						if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
+						else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
+					}
+					StringBuilder ijStringBuilder = new StringBuilder();
+					//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+					HashSet<Point2i> wellLocations = new HashSet<Point2i>();
+					// <-
+					for(Integer i: ijs.keySet()){
+						for(Integer j: ijs.get(i).keySet()){
+							//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+							wellLocations.add(new Point2i(i,j));
+							// <-
+							ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
+						}
+					}
+					//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
+					data.getSet().e4dInterface = new E4DSensors(data.getSet(), wellLocations);
+					File tempout = new File(e4dFolder.getText(), "mapValues.txt");
+					try {
+						if(!tempout.exists()) tempout.createNewFile();
+						FileUtils.writeStringToFile(tempout, data.getSet().e4dInterface.printDetectionTimes());
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					// <-
+					StringBuilder xyStringBuilder1 = new StringBuilder();
+					for(Float x: xys.keySet()){
+						for(Float y: xys.get(x).keySet()){
+							xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
+						}
+					}
+					StringBuilder xyStringBuilder2 = new StringBuilder();
+					for(Float x: xys.keySet()){
+						for(Float y: xys.get(x).keySet()){
+							xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
+						}
+					}
+					
+					try{
+						File xyLocationFile1 = new File(e4dFolder.getText(), "wellLocationsXY_v1.txt");
+						if(!xyLocationFile1.exists())
+							xyLocationFile1.createNewFile();
+						FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
+						File xyLocationFile2 = new File(e4dFolder.getText(), "wellLocationsXY_v2.txt");
+						if(!xyLocationFile2.exists())
+							xyLocationFile2.createNewFile();
+						FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
+						File ijLocationFile = new File(e4dFolder.getText(), "wellLocationsIJ.txt");
+						if(!ijLocationFile.exists())
+							ijLocationFile.createNewFile();
+						FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
+						System.out.println("Writing E4D Files to " + e4dFolder.getText());
+					}
+					catch(Exception e){
+						System.err.println("Couldn't write to well files");
+					}
+				}
+			});
+		    
+		    // Set the directory for the E4D file to be written
+		    GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
+		    e4dFolder = new Text(e4dGroup, SWT.BORDER | SWT.SINGLE);
+			e4dFolder.setText(Constants.parentDir);
+			e4dFolder.setLayoutData(e4dTextData);
+			e4dFolder.addModifyListener(new ModifyListener() { //Change text red when directory is invalid
+				@Override
+				public void modifyText(ModifyEvent e) {
+					File resultsFolder = new File(e4dFolder.getText());
+					boolean dir = resultsFolder.isDirectory();
+					if (dir == true)
+						((Text)e.getSource()).setForeground(black);
+					else
+						((Text)e.getSource()).setForeground(red);
+					e4dButton.setEnabled(dir);
+				}				
+			});
+			
+			//Select the save directory
+			buttonSelectDir = new Button(e4dGroup, SWT.PUSH);
+			buttonSelectDir.setText("...");
+			buttonSelectDir.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					directoryDialog.setFilterPath(e4dFolder.getText());
+					directoryDialog.setMessage("Please select a directory and click OK");
+					String dir = directoryDialog.open();
+					if (dir != null) {
+						e4dFolder.setText(dir);
+					}
+				}
+			});
 		}
-		
-		////The following code writes outputs for the e4d model
-		//Layout the buttons
-	    Composite composite_E4D = new Composite(container, SWT.NULL);
-		GridLayout gridLayout_E4D = new GridLayout();
-		gridLayout_E4D.numColumns = 8;
-		composite_E4D.setLayout(gridLayout_E4D);
-		GridData gridData_E4D = new GridData(GridData.FILL_HORIZONTAL);
-		gridData_E4D.horizontalSpan=8;
-		composite_E4D.setLayoutData(gridData_E4D);
-	    
-	  	Label infoLinkE4D = new Label(composite_E4D, SWT.NULL);
-	  	infoLinkE4D.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
-	    
-	    final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
-	    e4dButton = new Button(composite_E4D, SWT.PUSH);
-	    e4dButton.setText("  Write E4D Files  ");
-	    
-		e4dFolder = new Text(composite_E4D, SWT.BORDER | SWT.SINGLE);
-		e4dFolder.setText(Constants.parentDir);
-		GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
-		e4dTextData.horizontalSpan = 3;
-		e4dFolder.setLayoutData(e4dTextData);
-		
-		buttonSelectDir = new Button(composite_E4D, SWT.PUSH);
-		buttonSelectDir.setText("...");
-		
-		Label e4dFiller = new Label(composite_E4D, SWT.NULL);
-		e4dFiller.setText("                                                                 ");
-		
-		//Change text red when directory is invalid
-		e4dFolder.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				File resultsFolder = new File(e4dFolder.getText());
-				boolean dir = resultsFolder.isDirectory();
-				if (dir == true)
-					((Text)e.getSource()).setForeground(black);
-				else
-					((Text)e.getSource()).setForeground(red);
-				e4dButton.setEnabled(dir);
-			}				
-		});
-		
-	    //Select the save directory
-		buttonSelectDir.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				directoryDialog.setFilterPath(e4dFolder.getText());
-				directoryDialog.setMessage("Please select a directory and click OK");
-				String dir = directoryDialog.open();
-				if (dir != null) {
-					e4dFolder.setText(dir);
-				}
-			}
-		});	
-		
-		//Add an info icon to explain the E4D Buttons
-  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
-  			@Override
-  			public void handleEvent(Event event) {
-  				// TODO: Catherine edit text here!
-  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
-  			}			
-  		});
-
-		//Save the E4D files
-		e4dButton.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event arg0) {
-				fixMacBug();
-				
-				//Write out the x-y and i-j well locations
-				HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
-				HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
-				HashSet<Integer> validNodes = new HashSet<Integer>();
-				for(String label: data.getSet().getSensorSettings().keySet()){
-					validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
-				}
-				for(Integer node: validNodes){
-					Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
-					Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
-					if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
-					if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
-					else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
-					if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
-					if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
-					else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
-				}
-				StringBuilder ijStringBuilder = new StringBuilder();
-				//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-				HashSet<Point2i> wellLocations = new HashSet<Point2i>();
-				// <-
-				for(Integer i: ijs.keySet()){
-					for(Integer j: ijs.get(i).keySet()){
-						//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-						wellLocations.add(new Point2i(i,j));
-						// <-
-						ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
-					}
-				}
-				//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-				data.getSet().e4dInterface = new E4DSensors(data.getSet(), wellLocations);
-				File tempout = new File(e4dFolder.getText(), "mapValues.txt");
-				try {
-					if(!tempout.exists()) tempout.createNewFile();
-					FileUtils.writeStringToFile(tempout, data.getSet().e4dInterface.printDetectionTimes());
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				// <-
-				StringBuilder xyStringBuilder1 = new StringBuilder();
-				for(Float x: xys.keySet()){
-					for(Float y: xys.get(x).keySet()){
-						xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
-					}
-				}
-				StringBuilder xyStringBuilder2 = new StringBuilder();
-				for(Float x: xys.keySet()){
-					for(Float y: xys.get(x).keySet()){
-						xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
-					}
-				}
-				
-				try{
-					File xyLocationFile1 = new File(e4dFolder.getText(), "wellLocationsXY_v1.txt");
-					if(!xyLocationFile1.exists())
-						xyLocationFile1.createNewFile();
-					FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
-					File xyLocationFile2 = new File(e4dFolder.getText(), "wellLocationsXY_v2.txt");
-					if(!xyLocationFile2.exists())
-						xyLocationFile2.createNewFile();
-					FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
-					File ijLocationFile = new File(e4dFolder.getText(), "wellLocationsIJ.txt");
-					if(!ijLocationFile.exists())
-						ijLocationFile.createNewFile();
-					FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
-					System.out.println("Writing E4D Files to " + e4dFolder.getText());
-				}
-				catch(Exception e){
-					System.err.println("Couldn't write to well files");
-				}
-			}
-		});
 		
 		container.layout();	
 		

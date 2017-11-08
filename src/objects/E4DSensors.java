@@ -94,6 +94,9 @@ public class E4DSensors {
 		return validNodes;
 	}
 	
+	
+	
+	
 	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
 		Boolean triggered = false;
 		
@@ -110,16 +113,6 @@ public class E4DSensors {
 			triggered = true;
 		
 		return triggered;
-	}
-	
-	
-	
-	public static void writeWellLocations(){ //TODO: What objects do we need to accomplish this?
-		//TODO: Move well writing logic here, that way we have all of the methods in the same place.
-	}
-	
-	public E4DSensors(ScenarioSet set, String filePath){
-		//TODO: Read in file path and use this to populate the detectionTimes.
 	}
 	
 	public E4DSensors(ScenarioSet set, HashSet<Point2i> locations){
