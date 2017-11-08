@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
 import objects.NodeStructure;
@@ -237,7 +238,7 @@ public class SimulatedAnnealing extends Function {
 					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
 					// for the case in which we detect with a given radius from the individual sensor
 					if (sensor.getSensorType() == "ERT")
-						triggered = ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
+						triggered = E4DSensors.ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
 					else
 						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}		
@@ -250,26 +251,6 @@ public class SimulatedAnnealing extends Function {
 		}
 		return inference(con, set, scenario);
 	}
-	
-	////////////////////// ERT Code //////////////////////
-	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
-		Boolean triggered = false;
-		
-		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
-		Integer bestWell = null;
-		Float bestTTD = Float.MAX_VALUE;
-		for (Map.Entry<Integer, Float> entry : detection.entrySet()) {
-			if (entry.getValue() < bestTTD) {
-				bestWell = entry.getKey();
-				bestTTD = entry.getValue();
-			}
-		}
-		if (timestep.getTimeStep() >= bestTTD)
-			triggered = true;
-		
-		return triggered;
-	}
-	////////////////////// ERT Code End //////////////////////
 	
 	public static Boolean sensorTriggered(ScenarioSet set, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
 		Boolean triggered = null;

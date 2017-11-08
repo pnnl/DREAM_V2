@@ -25,7 +25,7 @@ public class E4DSensors {
 	public static void addERTSensor(STORMData data) {
 		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
 		File ertFile = new File(ertInput);
-		if (ertFile.exists()) {
+		if (ertFile.exists() && data.getSet().getERTDetectionTimes().isEmpty()) {
 			data.getSet().getSensorList().add("ERT");
 			data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
 			data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
@@ -83,21 +83,6 @@ public class E4DSensors {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
 			}
-			// Combine scenarios into a final list of validNodes
-			//boolean first = true;
-			//for (Scenario scenario: scenarios) {
-				//if (first) {
-					//validNodes = validNodesPerScenario.get(scenario);
-					//first = false;
-				//} else {
-					//validNodes.addAll(validNodesPerScenario.get(scenario)); 
-				//}
-				//System.out.println(scenario + " ERT nodes: " + validNodes);
-			//}
-			//data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
-			//data.getSet().getSensorSettings().get("ERT").setIsReady(true);
-			//data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
-			//data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
 			data.getSet().setERTDetectionTimes(detectionTimesPerScenario);
 		}
 	}
@@ -108,6 +93,26 @@ public class E4DSensors {
 			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
 		return validNodes;
 	}
+	
+	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
+		Boolean triggered = false;
+		
+		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
+		Integer bestWell = null;
+		Float bestTTD = Float.MAX_VALUE;
+		for (Map.Entry<Integer, Float> entry : detection.entrySet()) {
+			if (entry.getValue() < bestTTD) {
+				bestWell = entry.getKey();
+				bestTTD = entry.getValue();
+			}
+		}
+		if (timestep.getTimeStep() >= bestTTD)
+			triggered = true;
+		
+		return triggered;
+	}
+	
+	
 	
 	public static void writeWellLocations(){ //TODO: What objects do we need to accomplish this?
 		//TODO: Move well writing logic here, that way we have all of the methods in the same place.
