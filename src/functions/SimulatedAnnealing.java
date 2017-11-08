@@ -237,7 +237,7 @@ public class SimulatedAnnealing extends Function {
 				if(triggered == null) {
 					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
 					// for the case in which we detect with a given radius from the individual sensor
-					if (sensor.getSensorType() == "ERT")
+					if (sensor.getSensorType().contains("ERT"))
 						triggered = E4DSensors.ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
 					else
 						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());

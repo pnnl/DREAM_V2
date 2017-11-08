@@ -101,6 +101,8 @@ public class E4DSensors {
 		Boolean triggered = false;
 		
 		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
+		if(detection==null)
+			return triggered;
 		Integer bestWell = null;
 		Float bestTTD = Float.MAX_VALUE;
 		for (Map.Entry<Integer, Float> entry : detection.entrySet()) {

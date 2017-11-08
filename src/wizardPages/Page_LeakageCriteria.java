@@ -1010,7 +1010,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		volumeOfAquiferDegraded();
 		DREAMWizard.visLauncher.setEnabled(true);
 	}
-
 	
 	
 	private void addSensor(String dataType, String newName){
@@ -1019,17 +1018,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 	}
 	
-	//Essentially cloned code from Page_DegradationCriteria.
+	
 	private void volumeOfAquiferDegraded(){	
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
 		boolean foundNodes = false;
-		
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			System.out.println(sensorType);
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)); //TODO: might be a bad fix here (Jon, check that this isn't leaking memory... adding nulls)
-			System.out.println("Number of nodes = " + nodes.size());
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){			
+			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null));
+			System.out.println(sensorType + ": Number of nodes = " + nodes.size());
 			if(nodes.size()!=0) //At least one node was found for a type
 				foundNodes = true;
 		}
@@ -1046,8 +1043,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
-							//TODO: for some reason, no values are coming out of here...
-							if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+							if (sensorType.contains("ERT")) {
+								if(E4DSensors.ertSensorTriggered(data.getSet(), timeStep, scenario, nodeNumber))
+									timeToDegredation = timeStep.getRealTime();
+							} else {
+								if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber))
+									timeToDegredation = timeStep.getRealTime();
+							}
 						} catch (Exception e) {
 							System.out.println("Unable to get time to degradation");
 							e.printStackTrace();
