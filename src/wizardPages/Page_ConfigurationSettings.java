@@ -37,7 +37,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	// private Text iterations;
 	private Text costConstraint;
 	private Text addPoint;
 	private Text maxWells;
@@ -206,75 +205,70 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 		});
 		
-		//Cost per well
-		Label wellCostLabel = new Label(container, SWT.NULL);
-		wellCostLabel.setText("Cost Per Well");
-		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-		wellCost.setForeground(black);
-		wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		wellCost.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
-				else {
-					((Text)e.getSource()).setForeground(black);
-					data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
+		if (Constants.buildDev) {
+			//Cost per well
+			Label wellCostLabel = new Label(container, SWT.NULL);
+			wellCostLabel.setText("Cost Per Well");
+			wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+			wellCost.setText(String.valueOf(data.getSet().getWellCost()));
+			wellCost.setForeground(black);
+			wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			wellCost.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					if (numError==true)
+						((Text)e.getSource()).setForeground(red);
+					else {
+						((Text)e.getSource()).setForeground(black);
+						data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
+					}
+					errorFound(numError, "  Cost is not a real number.");
 				}
-				errorFound(numError, "  Cost is not a real number.");
-			}
-		});
-		wellCost.setVisible(Constants.buildDev);
-		wellCostLabel.setVisible(Constants.buildDev);
-		
-		//Cost per well depth
-		Label wellDepthCostLabel = new Label(container, SWT.NULL);
-		wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
-		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
-		wellDepthCost.setForeground(black);
-		wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		wellDepthCost.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
-				else {
-					((Text)e.getSource()).setForeground(black);
-					data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
+			});
+			
+			//Cost per well depth
+			Label wellDepthCostLabel = new Label(container, SWT.NULL);
+			wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
+			wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+			wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
+			wellDepthCost.setForeground(black);
+			wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			wellDepthCost.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					if (numError==true)
+						((Text)e.getSource()).setForeground(red);
+					else {
+						((Text)e.getSource()).setForeground(black);
+						data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
+					}
+					errorFound(numError, "  Cost is not a real number.");
 				}
-				errorFound(numError, "  Cost is not a real number.");
-			}
-		});
-		wellDepthCost.setVisible(Constants.buildDev);
-		wellDepthCostLabel.setVisible(Constants.buildDev);
-		
-		//Remediation cost
-		Label remediationCostLabel = new Label(container, SWT.NULL);
-		remediationCostLabel.setText("Remediation Cost Per Water Unit");
-		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
-		remediationCost.setForeground(black);
-		remediationCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		remediationCost.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
-				else {
-					((Text)e.getSource()).setForeground(black);
-					data.getSet().setRemediationCost(Float.parseFloat(((Text)e.getSource()).getText()));
+			});
+			
+			//Remediation cost
+			Label remediationCostLabel = new Label(container, SWT.NULL);
+			remediationCostLabel.setText("Remediation Cost Per Water Unit");
+			remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+			remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
+			remediationCost.setForeground(black);
+			remediationCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			remediationCost.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					if (numError==true)
+						((Text)e.getSource()).setForeground(red);
+					else {
+						((Text)e.getSource()).setForeground(black);
+						data.getSet().setRemediationCost(Float.parseFloat(((Text)e.getSource()).getText()));
+					}
+					errorFound(numError, "  Remediation cost is not a real number.");
 				}
-				errorFound(numError, "  Remediation cost is not a real number.");
-			}
-		});
-		remediationCost.setVisible(Constants.buildDev);
-		remediationCostLabel.setVisible(Constants.buildDev);
-
+			});
+		}
 
 		//Allow multiple sensors per well check box
 		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
