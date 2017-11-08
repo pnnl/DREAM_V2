@@ -176,6 +176,10 @@ public class HDF5Interface {
 		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){ //Up to 99 variables
 			dataType = dataType.substring(0,dataType.indexOf("_"));
 		}
+		//Handles ERT
+		if (dataType.contains("ERT"))
+			return 0;
+		
 		return statistics.get(dataType)[index];
 	}
 	

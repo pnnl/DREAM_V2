@@ -1,14 +1,113 @@
 package objects;
 
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import objects.SensorSetting.DeltaType;
+import objects.SensorSetting.Trigger;
+import utilities.Constants;
 import utilities.Point2i;
 import utilities.Point3i;
+import wizardPages.DREAMWizard.STORMData;
 
 public class E4DSensors {
 	private HashMap<String, HashMap<Point2i, HashMap<Point2i, Float>>> detectionTimes; //Should be stored/access with the first location index being less than the second
+	
+	public static void addERTSensor(STORMData data) {
+		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
+		File ertFile = new File(ertInput);
+		if (ertFile.exists()) {
+			data.getSet().getSensorList().add("ERT");
+			data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
+			data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
+			data.getSet().getNodeStructure().getDataTypes().add("ERT");
+			
+			// Here, we want to read sensor pairings and times from the matrix
+			String line = "";
+			List<Scenario> scenarios = data.getSet().getScenarios();
+			List<Integer> orderedValidNodes = new ArrayList<Integer>(); //need an ordered list for TTD pairings
+			HashSet<Integer> validNodes = new HashSet<Integer>(); //need a hashset for valid nodes
+			Map<Scenario, HashSet<Integer>> validNodesPerScenario = new HashMap<Scenario, HashSet<Integer>>();
+			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
+			Map<Scenario, Map<Integer, Map<Integer, Float>>> detectionTimesPerScenario = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
+			try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
+				// Iterate through all the scenarios
+				int scenarioIteration = 0;
+				// Read each line, comma delimited
+				while ((line = br.readLine()) != null) {
+					String[] lineList = line.split(",");
+
+					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
+					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario())) {
+						orderedValidNodes.clear();
+						validNodes.clear();
+						for (int i=1; i<lineList.length; i++) {
+							String[] ijList = lineList[i].split(":");
+							orderedValidNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
+							validNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
+						}
+						validNodesPerScenario.put(scenarios.get(scenarioIteration), validNodes);
+					}
+
+					// The following lines list ERT detection times for valid nodes per scenario
+					else if (lineList.length!=0){
+						Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
+						Integer key = null;
+						String[] ijList = lineList[0].split(":");
+						key = data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
+						for (int i=1; i<lineList.length; i++) {
+							timePerPairedWell.put(orderedValidNodes.get(i-1), Float.parseFloat(lineList[i]));
+						}
+						detectionTimesPerWell.put(key, timePerPairedWell);
+					}
+
+					// The following blank line triggers the saving of detection times for the scenario
+					else {
+						detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+						detectionTimesPerWell.clear();
+						scenarioIteration++;
+					}
+				}
+				if (!detectionTimesPerWell.isEmpty()) // just in case there is no blank line at the end of the file
+					detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+			} catch (IOException ex) {
+				System.out.println("Something went wrong trying to read the ERT matrix");
+				ex.printStackTrace();
+			}
+			// Combine scenarios into a final list of validNodes
+			//boolean first = true;
+			//for (Scenario scenario: scenarios) {
+				//if (first) {
+					//validNodes = validNodesPerScenario.get(scenario);
+					//first = false;
+				//} else {
+					//validNodes.addAll(validNodesPerScenario.get(scenario)); 
+				//}
+				//System.out.println(scenario + " ERT nodes: " + validNodes);
+			//}
+			//data.getSet().getSensorSettings().get("ERT").setValidNodes(validNodes);
+			//data.getSet().getSensorSettings().get("ERT").setIsReady(true);
+			//data.getSet().getSensorSettings().get("ERT").setNodesReady(true);
+			//data.getSet().getSensorSettings().get("ERT").setFullCloudNodes(new HashSet<Integer>(validNodes));
+			data.getSet().setERTDetectionTimes(detectionTimesPerScenario);
+		}
+	}
+	
+	public static HashSet<Integer> setValidNodesERT(ScenarioSet set) {
+		HashSet<Integer> validNodes = new HashSet<Integer>(); //TODO: Check if the list of wells varies by scenario
+		for(Scenario scenario: set.ertDetectionTimes.keySet())
+			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
+		return validNodes;
+	}
 	
 	public static void writeWellLocations(){ //TODO: What objects do we need to accomplish this?
 		//TODO: Move well writing logic here, that way we have all of the methods in the same place.

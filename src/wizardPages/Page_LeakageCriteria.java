@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -417,8 +416,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
 			thresholdComboData.widthHint = 105;
-			thresholdCombo.setLayoutData(thresholdComboData);
-			
+			thresholdCombo.setLayoutData(thresholdComboData);			
 			
 			//Detection Value
 			//Below is a mapping of which value should be taken in different circumstances
@@ -580,6 +578,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZTextData.widthHint = 60;
 			maxZText.setLayoutData(maxZTextData);
 			
+			// Hide unused fields for ERT sensors
+			if (type.contains("ERT")) {
+				thresholdCombo.setVisible(false);
+				detectionText.setVisible(false);
+				leakageText.setVisible(false);
+				minZText.setVisible(false);
+				maxZText.setVisible(false);
+			}
+			
 			toggleEnabled();
 		}
 		
@@ -698,6 +705,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			data.needToResetMonitoringParameters = false;
 			// New UI
 			sensorData = new TreeMap<String, SensorData>();
+			
+			//Only adds ERT if a results matrix is detected in the correct location
+			E4DSensors.addERTSensor(data);
+
 			for(String dataType: data.getSet().getAllPossibleDataTypes())	
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
 		}
@@ -785,39 +796,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 
 		Button queryButton = new Button(composite_scale, SWT.BALLOON);
 		queryButton.setText("Find triggering nodes");
-
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		new Label(composite_scale, SWT.NULL);
-		
-		int count = 0;
-		
-		for(String label: sensorData.keySet()){
-			SensorData temp = sensorData.get(label);
-
-			// Let these fill two spots
-			GridData tempData = new GridData(GridData.FILL_HORIZONTAL);
-			tempData.horizontalSpan = 2;
-			temp.nodeLabel = new Label(composite_scale, SWT.WRAP);
-			temp.nodeLabel.setLayoutData(tempData);
-			if(data.getSet().getSensorSettings(label) == null)
-				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
-			if( data.getSet().getSensorSettings(label).isSet())
-				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
-			else
-				temp.nodeLabel.setText(label+ ": Not set");
-			count+=2;
-		}
-		
-		if(count % 8 != 0) {
-			for(int i = 0; i < 8-(count % 8); i++)
-				new Label(composite_scale, SWT.NULL);
-		}
-		
 		queryButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -862,7 +840,39 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			}	       
 		});
-	    
+		
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		new Label(composite_scale, SWT.NULL);
+		
+		int count = 0;
+		
+		for(String label: sensorData.keySet()){
+			SensorData temp = sensorData.get(label);
+
+			// Let these fill two spots
+			GridData tempData = new GridData(GridData.FILL_HORIZONTAL);
+			tempData.horizontalSpan = 2;
+			temp.nodeLabel = new Label(composite_scale, SWT.WRAP);
+			temp.nodeLabel.setLayoutData(tempData);
+			if(data.getSet().getSensorSettings(label) == null)
+				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
+			if( data.getSet().getSensorSettings(label).isSet())
+				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
+			else
+				temp.nodeLabel.setText(label+ ": Not set");
+			count+=2;
+		}
+		
+		if(count % 8 != 0) {
+			for(int i = 0; i < 8-(count % 8); i++)
+				new Label(composite_scale, SWT.NULL);
+		}
+		
 		////The following code writes outputs for the e4d model
 		//Layout the buttons
 	    Composite composite_E4D = new Composite(container, SWT.NULL);

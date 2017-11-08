@@ -317,12 +317,16 @@ public class SensorSetting {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting valid nodes", null);
 
-		if(getTrigger() == Trigger.MAXIMUM_THRESHOLD || getTrigger() == Trigger.MINIMUM_THRESHOLD) {
+		if(type.contains("ERT")) {
+			validNodes = E4DSensors.setValidNodesERT(scenarioSet);
+		}
+		
+		else if(getTrigger() == Trigger.MAXIMUM_THRESHOLD || getTrigger() == Trigger.MINIMUM_THRESHOLD) {
 
 			Map<String, HashSet<Integer>> validNodesPerScenario = new HashMap<String, HashSet<Integer>>();
 			for(Scenario scenario: scenarios) {
 				// Query for valid nodes per scenario
-				HashSet<Integer> nodes = null;;
+				HashSet<Integer> nodes = null;
 				try {
 					if(HDF5Interface.hdf5Data.isEmpty()) {
 						nodes = HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);

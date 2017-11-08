@@ -52,7 +52,7 @@ public class ScenarioSet {
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
-	private Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes;
+	public Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes;
 	
 	private InferenceTest inferenceTest;
 	
