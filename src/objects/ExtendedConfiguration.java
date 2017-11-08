@@ -435,7 +435,7 @@ public class ExtendedConfiguration extends Configuration {
 		if(!(modelOption == ModelOption.ALL_SENSORS)){
 			Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
 			if(movedSensorInBounds != null) {
-				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);;
+				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);
 				return true;
 			}
 		}

@@ -87,7 +87,7 @@ public class DataGrid {
 			is2D = true;
 			normal = AXIS.Z;
 		} else {
-			is2D = false;;
+			is2D = false;
 		}
 	}
 
