@@ -618,85 +618,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				maxZText.setEnabled(isIncluded);
 		}		
 	}
-
-	@Override
-	public void createControl(Composite parent) {
-		rootContainer = new Composite(parent, SWT.NULL);
-		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
-
-		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
-		sc.addListener(SWT.Activate, new Listener() {
-	        public void handleEvent(Event e) {
-	            sc.setFocus();
-	        }
-	    });
-		sc.addListener(SWT.MouseWheel, new Listener() {
-	        public void handleEvent(Event event) {
-	            int wheelCount = event.count;
-	            wheelCount = (int) Math.ceil(wheelCount / 3.0f);
-	            while (wheelCount < 0) {
-	                sc.getVerticalBar().setIncrement(4);
-	                wheelCount++;
-	            }
-
-	            while (wheelCount > 0) {
-	                sc.getVerticalBar().setIncrement(-4);
-	                wheelCount--;
-	            }
-	            sc.redraw();
-	        }
-	    });
-		GridData compositeData = new GridData(GridData.FILL, GridData.FILL, true, true);
-		compositeData.heightHint = 400;
-		compositeData.minimumHeight = 400;
-		sc.setLayoutData(compositeData);
-        sc.setExpandHorizontal(true);
-        sc.getVerticalBar().setIncrement(20);
-        sc.setExpandVertical(true);
-                
-        container = new Composite(sc, SWT.NONE);
-		GridLayout layout = new GridLayout();
-		layout.horizontalSpacing = 12;
-		layout.verticalSpacing = 12;
-		container.setLayout(layout);
-		layout.numColumns = 9;
-		
-		sc.setContent(container);
-		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		setControl(rootContainer);
-		setPageComplete(true);
-	}
 	
-	@Override
-	public void completePage() throws Exception {
-		isCurrentPage = false;
-		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
-		Map<String, String> sensorAliases = new HashMap<String, String>();
-		ArrayList<String> sensorList = new ArrayList<String>();
-		if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
-		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
-		int count = 0;
-		for(String label: sensorData.keySet()) {
-			SensorData senData = sensorData.get(label);
-			if (senData.isIncluded==true) {
-				count += data.getSet().getInferenceTest().getMinimumForType(label);
-				sensorList.add(label);
-			}
-			sensorSettings.put(label, senData);
-			sensorAliases.put(label, senData.alias);
-			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
-		}
-		Sensor.sensorAliases = sensorAliases;
-		data.getSet().setSensorList(sensorList);
-		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
-			data.getSet().getInferenceTest().setOverallMinimum(count);
-		data.setupSensors(false, sensorSettings);
-		data.needToResetWells = true;
-		volumeOfAquiferDegraded();
-		DREAMWizard.visLauncher.setEnabled(true);
-	}
-
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
@@ -1009,6 +931,86 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		buttonSelectDir.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	} //ends load page
+
+	@Override
+	public void createControl(Composite parent) {
+		rootContainer = new Composite(parent, SWT.NULL);
+		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
+
+		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
+		sc.addListener(SWT.Activate, new Listener() {
+	        public void handleEvent(Event e) {
+	            sc.setFocus();
+	        }
+	    });
+		sc.addListener(SWT.MouseWheel, new Listener() {
+	        public void handleEvent(Event event) {
+	            int wheelCount = event.count;
+	            wheelCount = (int) Math.ceil(wheelCount / 3.0f);
+	            while (wheelCount < 0) {
+	                sc.getVerticalBar().setIncrement(4);
+	                wheelCount++;
+	            }
+
+	            while (wheelCount > 0) {
+	                sc.getVerticalBar().setIncrement(-4);
+	                wheelCount--;
+	            }
+	            sc.redraw();
+	        }
+	    });
+		GridData compositeData = new GridData(GridData.FILL, GridData.FILL, true, true);
+		compositeData.heightHint = 400;
+		compositeData.minimumHeight = 400;
+		sc.setLayoutData(compositeData);
+        sc.setExpandHorizontal(true);
+        sc.getVerticalBar().setIncrement(20);
+        sc.setExpandVertical(true);
+                
+        container = new Composite(sc, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.horizontalSpacing = 12;
+		layout.verticalSpacing = 12;
+		container.setLayout(layout);
+		layout.numColumns = 9;
+		
+		sc.setContent(container);
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		
+		setControl(rootContainer);
+		setPageComplete(true);
+	}
+	
+	@Override
+	public void completePage() throws Exception {
+		isCurrentPage = false;
+		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
+		Map<String, String> sensorAliases = new HashMap<String, String>();
+		ArrayList<String> sensorList = new ArrayList<String>();
+		if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
+		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
+		int count = 0;
+		for(String label: sensorData.keySet()) {
+			SensorData senData = sensorData.get(label);
+			if (senData.isIncluded==true) {
+				count += data.getSet().getInferenceTest().getMinimumForType(label);
+				sensorList.add(label);
+			}
+			sensorSettings.put(label, senData);
+			sensorAliases.put(label, senData.alias);
+			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
+		}
+		Sensor.sensorAliases = sensorAliases;
+		data.getSet().setSensorList(sensorList);
+		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
+			data.getSet().getInferenceTest().setOverallMinimum(count);
+		data.setupSensors(false, sensorSettings);
+		data.needToResetWells = true;
+		volumeOfAquiferDegraded();
+		DREAMWizard.visLauncher.setEnabled(true);
+	}
+
+	
 	
 	private void addSensor(String dataType, String newName){
 		data.getSet().addSensorSetting(newName, dataType);
@@ -1105,7 +1107,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 		}
 	}
-	
 	
 	@Override
 	public boolean isPageCurrent() {
