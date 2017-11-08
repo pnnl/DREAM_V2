@@ -631,7 +631,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Only adds ERT sensor if a results matrix is detected in the correct location
 			E4DSensors.addERTSensor(data);
-
+			
 			for(String dataType: data.getSet().getAllPossibleDataTypes())	
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
 		}
@@ -641,7 +641,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		Font boldFontSmall = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
-
+		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Leakage Criteria");
 		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
@@ -649,7 +649,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoGridData1.verticalSpan = 2;
 		infoLabel1.setLayoutData(infoGridData1);
 		infoLabel1.setFont(boldFont);
-
+		
 		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 2;
@@ -672,7 +672,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoGridData.verticalSpan = 2;
 		infoGridData.widthHint = 200;
 		infoLabel.setLayoutData(infoGridData);
-				
+		
 		// Headers
 		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
 		
@@ -695,7 +695,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		leakageLabel.setText("Leakage Criteria");
 		minZLabel.setText("Zone Bottom");
 		maxZLabel.setText("Zone Top");
-			
+		
 		monitorParams.setFont(boldFont1);
 		aliasLabel.setFont(boldFont1);
 		costPerSensor.setFont(boldFont1);
@@ -704,7 +704,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		leakageLabel.setFont(boldFont1);
 		minZLabel.setFont(boldFont1);
 		maxZLabel.setFont(boldFont1);
-				
+		
 		for(SensorData data: sensorData.values()) {
 			data.buildUI(data.sensorName);
 		}
@@ -716,7 +716,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		tempData.horizontalSpan = 10;
 		parametersGroup.setLayoutData(tempData);
-
+		
 		Button queryButton = new Button(parametersGroup, SWT.BALLOON);
 		queryButton.setText("Find triggering nodes");
 		queryButton.addListener(SWT.Selection, new Listener() {
@@ -726,8 +726,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				HDF5Interface.hdf5CloudData.clear();
 				boolean reset = true;
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
-
-
+				
 				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 				Map<String, String> sensorAliases = new HashMap<String, String>();
 				if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
@@ -796,7 +795,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  			public void handleEvent(Event event) {
 	  				// TODO: Catherine edit text here!
 	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
-	  			}			
+	  			}
 	  		});
 			
 	  		// Save the E4D files
@@ -913,9 +912,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			});
 		}
-		
+
 		container.layout();	
-		
+
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		boolean enableVis  = false;
@@ -924,12 +923,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
 				enableVis = true;
 		}
-		
+
 		DREAMWizard.visLauncher.setEnabled(enableVis);
-		e4dButton.setEnabled(enableVis);
-		e4dFolder.setEnabled(enableVis);
-		buttonSelectDir.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
+		if (e4dDirectory.exists()) {
+			e4dButton.setEnabled(enableVis);
+			e4dFolder.setEnabled(enableVis);
+			buttonSelectDir.setEnabled(enableVis);
+		}
 	} //ends load page
 
 	@Override
