@@ -1,10 +1,7 @@
 package wizardPages;
 
-import java.awt.Color;
 import java.awt.Desktop;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +21,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -55,8 +50,6 @@ import objects.ExtendedSensor;
 import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
-import objects.SensorSetting.DeltaType;
-import objects.SensorSetting.Trigger;
 import objects.TecplotNode;
 import results.ResultPrinter;
 import utilities.ComparisonDialog;
@@ -85,7 +78,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private Button vadButton;
 	private Button iterativeProceedureButton;
 	private Button showPlots;
-	private Button ertButton;
 	private Button fullEnumerationButton;
 	private Button ijkToxyzButton;
 	private Button randomSampleButton;
@@ -107,7 +99,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private int runs = 1;
 	private int samples = 20;
 	private boolean isCurrentPage = false;
-	private File ertFile;
 	
 	protected Page_RunDREAM(STORMData data) {
 		super("Run DREAM");
@@ -349,7 +340,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 		
-		Group diagnosticGroup = new Group(container, SWT.SHADOW_NONE | SWT.HORIZONTAL);
+		Group diagnosticGroup = new Group(container, SWT.SHADOW_NONE);
 		diagnosticGroup.setText("Diagnostic Tools");
 		diagnosticGroup.setFont(boldFontSmall);
 		diagnosticGroup.setLayout(new GridLayout(2,false));
@@ -721,9 +712,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		});
 		solutionSpaceButton.setVisible(Constants.buildDev);
 			
-		
-		//TODO: These!!
-		
+				
 		//This probably needs a new name. Used to create a scatterplot, hence the button, but this is the multi-run ensemble code.
 		//We can probably get rid of the scatterplot functionality.
 		multiRunEnsembleButton = new Button(devGroup, SWT.BALLOON);
