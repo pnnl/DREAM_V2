@@ -987,7 +987,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		isCurrentPage = false;
 		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 		Map<String, String> sensorAliases = new HashMap<String, String>();
-		ArrayList<String> sensorList = new ArrayList<String>();
+		ArrayList<String> sensors = new ArrayList<String>();
 		if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
 		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
 		int count = 0;
@@ -995,14 +995,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			SensorData senData = sensorData.get(label);
 			if (senData.isIncluded==true) {
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
-				sensorList.add(label);
+				sensors.add(label);
 			}
 			sensorSettings.put(label, senData);
 			sensorAliases.put(label, senData.alias);
 			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
 		}
 		Sensor.sensorAliases = sensorAliases;
-		data.getSet().setSensorList(sensorList);
+		data.getSet().setSensors(sensors);
 		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
 			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.setupSensors(false, sensorSettings);

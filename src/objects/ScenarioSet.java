@@ -33,7 +33,7 @@ public class ScenarioSet {
 	private NodeStructure nodeStructure;
 	private List<Scenario> allScenarios;
 	private List<Scenario> scenarios;
-	private List<String> sensorList;
+	private List<String> sensors;
 	
 	/**
 	 * User settings - 
@@ -76,7 +76,7 @@ public class ScenarioSet {
 		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
-		sensorList = new ArrayList<String>();
+		sensors = new ArrayList<String>();
 		ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 
 		scenarioEnsemble = "";
@@ -194,7 +194,7 @@ public class ScenarioSet {
 		
 		nodeStructure = new NodeStructure(run);
 		sensorSettings.clear();
-		sensorList.clear();
+		sensors.clear();
 		allScenarios.clear();
 		scenarios.clear();
 		
@@ -636,12 +636,12 @@ public class ScenarioSet {
 		return new ArrayList<String>(sensorSettings.keySet());
 	}	
 	
-	public void setSensorList(List<String> sensorList) {
-		this.sensorList = sensorList;
+	public void setSensors(List<String> sensors) {
+		this.sensors = sensors;
 	}
 
-	public List<String> getSensorList() {
-		return sensorList;
+	public List<String> getSensors() {
+		return sensors;
 	}
 	
 	public void setERTDetectionTimes(Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes) {
@@ -672,7 +672,7 @@ public class ScenarioSet {
 		allScenarios.clear();
 		scenarioWeights.clear();
 		sensorSettings.clear();
-		sensorList.clear();
+		sensors.clear();
 
 		addPoint = new Point3i(0,0,0);
 		maxWells = 10;

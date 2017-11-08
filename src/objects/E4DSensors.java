@@ -26,7 +26,7 @@ public class E4DSensors {
 		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && data.getSet().getERTDetectionTimes().isEmpty()) {
-			data.getSet().getSensorList().add("ERT");
+			data.getSet().getSensors().add("ERT");
 			data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
 			data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
 			data.getSet().getNodeStructure().getDataTypes().add("ERT");
