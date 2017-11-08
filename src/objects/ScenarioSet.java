@@ -101,36 +101,30 @@ public class ScenarioSet {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("———— Input Summary ————\r\n\r\n");
+		builder.append("———— Input Summary ————\r\n");
 		
-		// Details about the scenarios set read from the file being used
-		builder.append("Scenario set:\r\n");
-		if(isRunLoaded()) {
-			builder.append("\tScenarios: " + scenarios.toString() + "\r\n");
-			if(defaultWeights)
-				builder.append("\tDefault weights: [");
-			else
-				builder.append("\tWeights: [");
-			for(Scenario scenario: scenarios)
-				builder.append(scenario + "=" + scenarioWeights.get(scenario) + ", ");
-			builder.replace(builder.length()-2, builder.length(), "]\r\n");
-		} else
-			builder.append("\tNot ready - no data loaded.\r\n");
+		// Details about the scenario set read from the file being used
+		builder.append("Scenario ensemble: " + scenarioEnsemble + "\r\n");
+		builder.append("Scenario weights:\r\n");
+		for(Scenario scenario: scenarios)
+			builder.append("\t" + scenario + " = " + scenarioWeights.get(scenario) + "\r\n");
 		
 		// Leakage criteria
 		builder.append("Sensor settings:\r\n");
 		for(String parameter: sensorSettings.keySet()) {
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
-			builder.append("\t\tCost: " + sensorSettings.get(parameter).getCost() + "\r\n");
+			builder.append("\t\tCost: " + sensorSettings.get(parameter).getCost() + " per sensor\r\n");
 			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
+			if (parameter.contains("ERT"))
+				builder.append("\t\tLeakage threshold: ERT matrix\r\n");
+			else if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
+			else if(sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.ABSOLUTE_DELTA)
+			else if(sensorSettings.get(parameter).getTrigger() == Trigger.ABSOLUTE_DELTA)
 				builder.append("\t\tLeakage threshold: Change in " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.RELATIVE_DELTA)
+			else if(sensorSettings.get(parameter).getTrigger() == Trigger.RELATIVE_DELTA)
 				builder.append("\t\tLeakage threshold: Change in " + sensorSettings.get(parameter).getLowerThreshold() + "%\r\n");
 			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
 			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
