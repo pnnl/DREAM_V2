@@ -5,6 +5,7 @@ import gridviz.GridError;
 import gridviz.GridParser;
 import gridviz.GridParser.DataStructure;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -76,14 +77,15 @@ public class FileBrowser extends javax.swing.JFrame {
 	public static final String SCENARIO_PER_FILE = "scenario per file";
 	public static final String SCENARIO_PER_FOLDER = "scenario per folder";
 	
-	private JComboBox jComboBox_fileType;
-	private JComboBox jComboBox_folderStructure;
+	private JComboBox<String[]> jComboBox_fileType;
+	private JComboBox<String[]> jComboBox_folderStructure;
 		
 	private JTextField jTextField_inputDir;
 	private JTextField jTextField_outputDir;
 
 	private File file_inputDir;
 	private File file_outputDir;
+	private File saveCurrentDirectory;
 
 	private CheckList checkList_timesteps;
 	private CheckList checkList_scenarios;
@@ -102,6 +104,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		initComponents();
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initComponents() {
 
 		setTitle("DREAM HDF5 Converter");
@@ -125,21 +128,21 @@ public class FileBrowser extends javax.swing.JFrame {
 		menu.add(openItem);
 		menuBar.add(menu);
 		setJMenuBar(menuBar);
-	
+		
 		JPanel jPanel_fileType = new JPanel();
-		jComboBox_fileType = new JComboBox(new String[]{TECPLOT, STOMP, NTAB});
+		jComboBox_fileType = new JComboBox(new String[]{NTAB, STOMP, TECPLOT});
 		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FILE, SCENARIO_PER_FOLDER});
 		jComboBox_fileType.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {				
+			public void actionPerformed(ActionEvent e) {
 				if(jComboBox_fileType.getSelectedItem().equals(TECPLOT)) {
-					jComboBox_folderStructure.setEnabled(true);	
+					jComboBox_folderStructure.setEnabled(true);
 				} else if(jComboBox_fileType.getSelectedItem().equals(STOMP)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FOLDER);
-					jComboBox_folderStructure.setEnabled(false);	
+					jComboBox_folderStructure.setEnabled(false);
 				} else if(jComboBox_fileType.getSelectedItem().equals(NTAB)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FILE);
-					jComboBox_folderStructure.setEnabled(false);	
+					jComboBox_folderStructure.setEnabled(false);
 				}
 			}
 		});
@@ -148,7 +151,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		jPanel_fileType.add(new JLabel("File type:"));
 		jPanel_fileType.add(Box.createRigidArea(new Dimension(5,0)));
 		jPanel_fileType.add(jComboBox_fileType);
-		jPanel_fileType.add(Box.createRigidArea(new Dimension(30,0)));		
+		jPanel_fileType.add(Box.createRigidArea(new Dimension(30,0)));
 		jPanel_fileType.add(new JLabel("Folder structure:"));
 		jPanel_fileType.add(Box.createRigidArea(new Dimension(5,0)));
 		jPanel_fileType.add(jComboBox_folderStructure);
@@ -160,7 +163,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		checkList_dataFields.setEnabled(false);
 		checkList_timesteps.setEnabled(false);
 		checkList_scenarios.setEnabled(false);
-
+		
 		JPanel jPanel_data = new JPanel();
 		JLabel jLabel_scenarios = new JLabel();
 		JPanel jPanel_timesteps = new JPanel();
@@ -175,12 +178,12 @@ public class FileBrowser extends javax.swing.JFrame {
 		file_outputDir = new File("C:\\");
 		JButton jButton_outputDir = new JButton("Select");
 		JButton jButton_inputDir = new JButton("Select");
-
+		
 		// Blue border
 		jPanel_data.setBackground(new java.awt.Color(33,57,156));
 		jPanel_timesteps.setBackground(new java.awt.Color(33,57,156));
 		jPanel_scenarios.setBackground(new java.awt.Color(33,57,156));
-
+		
 		// Scenarios:
 		jLabel_scenarios.setText("Scenarios");
 		javax.swing.GroupLayout jPanel_scenariosLayout = new javax.swing.GroupLayout(jPanel_scenarios);
@@ -193,7 +196,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				jPanel_scenariosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addComponent(checkList_scenarios, 0, 184, Short.MAX_VALUE)
 				);
-
+		
 		// Time steps:
 		jLabel_timesteps.setText("Time steps");
 		javax.swing.GroupLayout jPanel_timestepsLayout = new javax.swing.GroupLayout(jPanel_timesteps);
@@ -206,7 +209,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				jPanel_timestepsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addComponent(checkList_timesteps, 0, 184, Short.MAX_VALUE)
 				);
-
+		
 		// Data:
 		jLabel_data.setText("Data");
 		javax.swing.GroupLayout jPanel_dataLayout = new javax.swing.GroupLayout(jPanel_data);
@@ -219,7 +222,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				jPanel_dataLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addComponent(checkList_dataFields, 0, 394, Short.MAX_VALUE)
 				);
-
+		
 		// Buttons
 		jButton_done.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
@@ -230,7 +233,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 			}
 		});
-
+		
 		jButton_inputDir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				try {
@@ -245,11 +248,11 @@ public class FileBrowser extends javax.swing.JFrame {
 				jButton_outputDirActionPerformed(evt);
 			}
 		});
-
+		
 		// Top panel
 		jTextField_inputDir.setEnabled(false);
 		jTextField_outputDir.setEnabled(false);
-
+		
 		statusLabel = new JLabel("");
 		statusLabel.setFont(statusLabel.getFont().deriveFont(Font.ITALIC));
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -369,7 +372,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		Thread runningAllStuffThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				while(!threadsToRun.isEmpty()) {
 					if(runningThreads.size() < cores - 1) { // probably not
 						Thread thread = threadsToRun.remove(0);
@@ -538,7 +540,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					try {
 						hdf5File.close();
 					} catch (HDF5Exception e) {
-						// TODO Auto-generated catch block
+						System.out.println("Error closing the HDF5 File.");
 						e.printStackTrace();
 					}
 				}
@@ -553,12 +555,15 @@ public class FileBrowser extends javax.swing.JFrame {
 		statisticsByDataField = new TreeMap<String, List<Float>>();
 
 		JFileChooser chooser = new JFileChooser();
-		chooser.setCurrentDirectory(new File("C:\\"));
+		//chooser.setCurrentDirectory(new File("C:\\"));
+		chooser.setCurrentDirectory(saveCurrentDirectory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		int returnValue = chooser.showOpenDialog(null);
 
 		if(returnValue == JFileChooser.APPROVE_OPTION) {
-
+			
+			saveCurrentDirectory = chooser.getSelectedFile();
+			
 			file_inputDir = chooser.getSelectedFile();
 
 			file_outputDir = new File(file_inputDir.getAbsolutePath() + "_hdf5");
@@ -566,6 +571,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			if(file_inputDir != null && file_inputDir.isDirectory()) {
 
 				statusLabel.setText("Loading directory: " + file_inputDir);
+				statusLabel.setForeground(Color.BLACK);
 				FileBrowser.this.validate();
 				FileBrowser.this.repaint();
 
@@ -575,99 +581,103 @@ public class FileBrowser extends javax.swing.JFrame {
 				Thread readThread = new Thread(new Runnable() {
 
 					@Override
-					public void run() {					
-
+					public void run() {						
 						// Figure out what we're reading
 						String folderStructure = FileBrowser.this.jComboBox_folderStructure.getSelectedItem().toString();
 						
 						if(folderStructure.equals(SCENARIO_PER_FOLDER)) {
 							parseFolderStucture(file_inputDir);
 						} else if(folderStructure.equals(SCENARIO_PER_FILE)) {
-							parseSingleFolder(file_inputDir);	
+							parseSingleFolder(file_inputDir);
 						}
-						
-						// Sanity check on the number of time steps matching in each scenario...
-						
-						// Bin by time steps found, ntab files seem to have scenarios that stop short of the max number of time steps...
-						final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>(); 						
-						for(String scenario: gridsByTimeAndScenario.keySet()) {
-							if(!temp.containsKey(gridsByTimeAndScenario.get(scenario).keySet().size()))
-								temp.put(gridsByTimeAndScenario.get(scenario).keySet().size(), new ArrayList<String>());
-							temp.get(gridsByTimeAndScenario.get(scenario).keySet().size()).add(scenario);
-						}
-						
-						
-						final Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
-						
-						//Exclude everything that doesn't have the max number of timesteps
-						Object scenarioToUse;
-						if(temp.keySet().size() > 1) {
-							TimestepSelectionSlider slider = new TimestepSelectionSlider(variableSteps, temp);
-							JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
-							int indexToUse = slider.getValue();
-							String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " time steps. " +
-									"The following scenarios contained a smaller number and will be removed:\n";
-							scenarioToUse = temp.get(variableSteps[indexToUse]).get(0);
-							for(int i=0; i < indexToUse; i++){
-								tossedScenarios+= "[" + variableSteps[i] + "] " +  temp.get(variableSteps[i]) + "\n";
-								for(String scenario: temp.get(variableSteps[i])){
-									gridsByTimeAndScenario.remove(scenario);
+						// If no scenarios were detected, throw an error and bypass the rest of the method
+						if (gridsByTimeAndScenario.isEmpty()) {
+							if(jComboBox_fileType.getSelectedItem().toString().equals(STOMP))
+								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>STOMP requires that you select a folder containing a folder for each scenario.</html>");
+							else if(jComboBox_fileType.getSelectedItem().toString().equals(NTAB))
+								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>NTAB requires that you select a folder containing a file for each scenario.</html>");
+							else
+								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>Make sure you select the correct folder structure.</html>");
+							statusLabel.setForeground(Color.RED);
+						} else {
+							// Sanity check on the number of time steps matching in each scenario...
+							// Bin by time steps found, ntab files seem to have scenarios that stop short of the max number of time steps...
+							final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>();
+							for(String scenario: gridsByTimeAndScenario.keySet()) {
+								if(!temp.containsKey(gridsByTimeAndScenario.get(scenario).keySet().size()))
+									temp.put(gridsByTimeAndScenario.get(scenario).keySet().size(), new ArrayList<String>());
+								temp.get(gridsByTimeAndScenario.get(scenario).keySet().size()).add(scenario);
+							}
+							
+							final Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
+							
+							//Exclude everything that doesn't have the max number of timesteps
+							Object scenarioToUse;
+							if(temp.keySet().size() > 1) {
+								TimestepSelectionSlider slider = new TimestepSelectionSlider(variableSteps, temp);
+								JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
+								int indexToUse = slider.getValue();
+								String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " time steps. " +
+										"The following scenarios contained a smaller number and will be removed:\n";
+								scenarioToUse = temp.get(variableSteps[indexToUse]).get(0);
+								for(int i=0; i < indexToUse; i++){
+									tossedScenarios+= "[" + variableSteps[i] + "] " +  temp.get(variableSteps[i]) + "\n";
+									for(String scenario: temp.get(variableSteps[i])){
+										gridsByTimeAndScenario.remove(scenario);
+									}
+								}
+								if(indexToUse != 0){
+									final String finalMessage = tossedScenarios;
+									SwingUtilities.invokeLater(new Runnable() {
+										@Override
+										public void run() {
+											JOptionPane.showMessageDialog(FileBrowser.this, finalMessage);
+										}
+									});
 								}
 							}
-							if(indexToUse != 0){
-								final String finalMessage = tossedScenarios;
-								SwingUtilities.invokeLater(new Runnable() {
-									@Override
-									public void run() {
-										JOptionPane.showMessageDialog(FileBrowser.this, finalMessage);									
-									}								
-								});	
+							else{
+								scenarioToUse = gridsByTimeAndScenario.keySet().toArray()[0];
 							}
+							Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
+							
+							// Assumes 1 scenario and 1 time step actually exists
+							Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
+							Object[] data;
+							try {
+								data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
+							} catch (GridError e) {
+								e.printStackTrace(); // Can't continue
+								return;
+							}
+							
+							System.out.println("Scenarios: " + Arrays.toString(scenarios));
+							System.out.println("Times: " + Arrays.toString(timeSteps));
+							System.out.println("Data: " + Arrays.toString(data));
+							
+							checkList_timesteps.setListData(timeSteps, true);
+							checkList_scenarios.setListData(scenarios, true);
+							checkList_dataFields.setListData(data, false);
+							
+							checkList_dataFields.setEnabled(true);
+							checkList_timesteps.setEnabled(true);
+							checkList_scenarios.setEnabled(true);
+							
+							statusLabel.setText("");
+							jTextField_outputDir.setText(file_outputDir.getAbsolutePath());
 						}
-						else{
-							scenarioToUse = gridsByTimeAndScenario.keySet().toArray()[0];
-						}
-						Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
-
-						
-						// Assumes 1 scenario and 1 time step actually exists
-						Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
-						Object[] data;
-						try {							
-							data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
-						} catch (GridError e) {
-							e.printStackTrace(); // Can't continue
-							return;
-						}
-
-						System.out.println("Scenarios: " + Arrays.toString(scenarios));
-						System.out.println("Times: " + Arrays.toString(timeSteps));
-						System.out.println("Data: " + Arrays.toString(data));
-
-						checkList_timesteps.setListData(timeSteps, true);
-						checkList_scenarios.setListData(scenarios, true);
-						checkList_dataFields.setListData(data, false);
-
-						checkList_dataFields.setEnabled(true);
-						checkList_timesteps.setEnabled(true);
-						checkList_scenarios.setEnabled(true);
-
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
-
 								jTextField_inputDir.setText(file_inputDir.getAbsolutePath());
-								jTextField_outputDir.setText(file_outputDir.getAbsolutePath());				
-
+								
 								setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 								getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
-								statusLabel.setText("");
-								FileBrowser.this.repaint();		
-							}							
+								
+								FileBrowser.this.repaint();
+							}
 						});
 					}
-
 				});
 				readThread.start();
 			}	
@@ -679,7 +689,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		
 	private void parseFolderStucture(File parentDirectory) {
 		for(File subFile: file_inputDir.listFiles()) {
-			if(subFile.isDirectory()) {		
+			if(subFile.isDirectory()) {
 				if(!gridsByTimeAndScenario.containsKey(subFile.getName()))
 					gridsByTimeAndScenario.put(subFile.getName(), new TreeMap<Integer, GridParser>());
 				// We are parsing a new set
@@ -734,7 +744,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				} catch (NumberFormatException e) {
 					e.printStackTrace();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
+					System.out.println("Error parsing the files.");
 					e.printStackTrace();
 				}
 			}
