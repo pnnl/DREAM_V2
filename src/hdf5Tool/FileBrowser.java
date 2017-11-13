@@ -531,6 +531,8 @@ public class FileBrowser extends javax.swing.JFrame {
 				System.out.println("Writing the file to disk:");
 				FileUtils.copyFile(hdf5File, hdf5FileLocation);
 				System.out.println("Done");
+				statusLabel.setText("The " + jComboBox_fileType.getSelectedItem().toString() + " files were successfully converted to H5 files.");
+				statusLabel.setForeground(new java.awt.Color(5, 70, 5));
 			} catch (Exception e) {
 				e.printStackTrace();
 				JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
@@ -753,8 +755,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	
 
 	private void parseNtabFile(File subFile) {
-		try {
-			BufferedReader fileReader = new BufferedReader(new FileReader(subFile));
+		try (BufferedReader fileReader = new BufferedReader(new FileReader(subFile))) {
 			String firstLine = "";			
 			while(!(firstLine = fileReader.readLine()).startsWith("index") && firstLine != null);
 			fileReader.close();
@@ -802,7 +803,7 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	private void jButton_outputDirActionPerformed(ActionEvent evt) {
 		JFileChooser chooser = new JFileChooser();
-		chooser.setCurrentDirectory(new File("C:\\"));
+		chooser.setCurrentDirectory(new File(file_outputDir.getAbsolutePath()));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		int returnValue = chooser.showOpenDialog(null);
 		if(returnValue == JFileChooser.APPROVE_OPTION) {
@@ -868,7 +869,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			Group dataGroup = hdf5File.createGroup("data", root);
 			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{ntabData.x.length}, null, null, 0, ntabData.x);
 			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{ntabData.y.length}, null, null, 0, ntabData.y);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z);	
+			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z); //TODO: Add "x-vertex"
 
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
 			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);			

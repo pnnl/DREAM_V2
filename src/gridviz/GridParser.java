@@ -47,9 +47,9 @@ public class GridParser {
 		Tecplot(String key) {
 			this.key = key;
 		}
-		public String getKey() {
-			return key;
-		}		
+		//public String getKey() { // Not used
+			//return key;
+		//}		
 	}
 
 	private static enum Ntab {
@@ -61,9 +61,9 @@ public class GridParser {
 		Ntab(String key) {
 			this.key = key;
 		}
-		public String getKey() {
-			return key;
-		}
+		//public String getKey() { // Not used
+			//return key;
+		//}
 	}
 
 	private List<File> filesToMerge = new ArrayList<File>();
@@ -150,33 +150,30 @@ public class GridParser {
 	}
 
 	public DataGrid extractStompData() throws GridError {
-		// will contain all the extracted data from the file
-		DataGrid grid = null;
-
-		// This will hold the size of the grid to extract
-		Point3i size = new Point3i(0, 0, 0);
+		
+		DataGrid grid = null; // will contain all the extracted data from the file
+		Point3i size = new Point3i(0, 0, 0); // This will hold the size of the grid to extract
 		Vector3f center = new Vector3f();
 		boolean hasCenter = false;
-
-		// Attempt to open the data file
-		Scanner dataScanner = null;
-
 		Map<Stomp, Object> info = new HashMap<Stomp, Object>();
-
 		float timestep = 0; // Time in years
-
-		try {
-
-			dataScanner = new Scanner(new FileReader(dataFile));
-
-			// Fetch the grid configuration information from the plot file
-			while (dataScanner.hasNextLine() && !dataScanner.hasNext("[XYZ]\\-Direction")) {
-
+		boolean nextLine = false;
+		boolean nodal = false;
+		int linearIndex = -1; // The linear index will keep track of where to insert the data into the array that holds the node data for each field
+		String fieldKey = ""; // This will hold the name of the field that is being extracted
+		FieldValues values = null; // The field values will be first extracted then assigned
+		
+		try (Scanner dataScanner = new Scanner(new FileReader(dataFile));) {
+			System.out.println("File: " + dataFile);
+			while (dataScanner.hasNextLine()) {
 				String line = dataScanner.nextLine().trim();
 				
-				if(!line.contains("=")) continue; //skip lines without an equal sign in header
+				if (line.isEmpty()) {
+					nextLine = true;
+				}
 				
-				if(line.startsWith("Time") && line.contains(",yr")) {
+				// Reads in the Time Steps from the plot file
+				else if(line.startsWith("Time") && line.contains(",yr")) {
 					int startIndex = line.indexOf(",wk") + 3;
 					int endIndex = line.indexOf(",yr");
 					String sub = line.substring(startIndex,endIndex).trim();
@@ -186,91 +183,58 @@ public class GridParser {
 						System.out.println("Years Error: " + sub);
 					}
 				}
-				/*//replaced by Jonathan... makes me wonder if there are several versions from STOMP outputs...
-				if(line.startsWith("Time") && line.contains("=")) {
-					String[] tokens = line.split("[, ]");
-					if(tokens.length >= 2) {
-						try {
-							timestep = Float.parseFloat(tokens[tokens.length-2]);
-						} catch (Exception e) {	
-							System.out.println("years: " + tokens[tokens.length-2]);
+				
+				// Reads in the grid configuration information from the plot file
+				else if(line.contains("=")) {
+					for(Stomp key: Stomp.values()) {
+						if(line.startsWith(key.getKey())) {
+							int splitIndex = line.indexOf('=') + 1;
+							String substring = line.substring(splitIndex).trim();
+							if(key.isInteger())
+								info.put(key, Integer.parseInt(substring));
+							else
+								info.put(key, Float.parseFloat(substring));
+							System.out.println("Reading [" + key.getKey() + "] - " + line);	
+							break; // Already handled it, skip the rest of the keys
 						}
 					}
-				}
-				*/
-				for(Stomp key: Stomp.values()) {
-					if(line.startsWith(key.getKey())) {
-						int splitIndex = line.indexOf('=') + 1;
-						String substring = line.substring(splitIndex).trim();
-						if(key.isInteger())
-							info.put(key, Integer.parseInt(substring));
+					if(info.size() > 2) {
+						size.x = (Integer)info.get(Stomp.X_NODES);
+						size.y = (Integer)info.get(Stomp.Y_NODES);
+						size.z = (Integer)info.get(Stomp.Z_NODES);
+
+						// If we have origin information we need to increment the size value TODO: Has XYZ values, but not with these names
+						for(Stomp originKey: new Stomp[] {Stomp.X_ORGIN_HEXAHEDRA, Stomp.X_ORGIN_SURFACE, Stomp.X_ORGIN}) {
+							if(info.containsKey(originKey)) {
+								center.x = Float.parseFloat(info.get(originKey).toString());
+								hasCenter= true;
+							}
+						}
+						for(Stomp originKey: new Stomp[] {Stomp.Y_ORGIN_HEXAHEDRA, Stomp.Y_ORGIN_SURFACE, Stomp.Y_ORGIN}) {
+							if(info.containsKey(originKey)) {
+								center.y = Float.parseFloat(info.get(originKey).toString());
+								hasCenter= true;
+							}
+						}
+						for(Stomp originKey: new Stomp[] {Stomp.Z_ORGIN_HEXAHEDRA, Stomp.Z_ORGIN_SURFACE, Stomp.Z_ORGIN}) {
+							if(info.containsKey(originKey)) {
+								center.z = Float.parseFloat(info.get(originKey).toString());
+								hasCenter= true;
+							}
+						}
+
+						// Create the data grid to store the field data
+						if(hasCenter)
+							grid = new DataGrid(size, center);
 						else
-							info.put(key, Float.parseFloat(substring));
-						//System.out.println("Reading [" + key.getKey() + "] - " + line);	
-						break; // Already handled it, skip the rest of the keys
+							grid = new DataGrid(size);
+
+						grid.setTimestep(timestep);
 					}
 				}
-			}
-			
-			size.x = (Integer)info.get(Stomp.X_NODES);
-			size.y = (Integer)info.get(Stomp.Y_NODES);
-			size.z = (Integer)info.get(Stomp.Z_NODES);
-
-			// If we have origin information we need to increment the size value TODO: Has XYZ values, but not with these names
-			for(Stomp originKey: new Stomp[] {Stomp.X_ORGIN_HEXAHEDRA, Stomp.X_ORGIN_SURFACE, Stomp.X_ORGIN}) {
-				if(info.containsKey(originKey)) {
-					center.x = Float.parseFloat(info.get(originKey).toString());
-					hasCenter= true;
-				}
-			}
-			for(Stomp originKey: new Stomp[] {Stomp.Y_ORGIN_HEXAHEDRA, Stomp.Y_ORGIN_SURFACE, Stomp.Y_ORGIN}) {
-				if(info.containsKey(originKey)) {
-					center.y = Float.parseFloat(info.get(originKey).toString());
-					hasCenter= true;
-				}
-			}
-			for(Stomp originKey: new Stomp[] {Stomp.Z_ORGIN_HEXAHEDRA, Stomp.Z_ORGIN_SURFACE, Stomp.Z_ORGIN}) {
-				if(info.containsKey(originKey)) {
-					center.z = Float.parseFloat(info.get(originKey).toString());
-					hasCenter= true;
-				}
-			}
-
-			// Create the data grid to store the field data
-			if(hasCenter)
-				grid = new DataGrid(size, center);
-			else
-				grid = new DataGrid(size);
-
-			grid.setTimestep(timestep);
-
-			/* The linear index will keep track of where to insert the
-			 * data into the array that holds the node data for each field
-			 */
-			int linearIndex = -1;
-
-			// This will hold the name of the field that is being extracted
-			String fieldKey = "";
-
-			// The field values will be first extracted then assigned
-			FieldValues values = null;
-			boolean nodal = false;
-
-			// Now fill the grid with data
-			boolean nextLine = false;
-			while (dataScanner.hasNextLine()) {
-
-				String line = dataScanner.nextLine();
-
-				// Ignore empty lines
-				if(line.contains("pH"))
-					System.out.println("This one");
-
-				if (line.isEmpty() || line.trim().isEmpty()) {
-					nextLine = true;
-					continue;
-
-				} else if (line.matches("\\w.*") || line.contains(",") || nextLine) {	
+				
+				// Reads in the grid data from the plot file
+				else if ((line.contains(",") || nextLine) && grid!=null) {
 					nextLine = false;
 					nodal = false; // Reset
 					// Need to be specific here on what makes up the grid
@@ -291,53 +255,36 @@ public class GridParser {
 							line.startsWith("Z-Direction Nodal Vertices")) {
 						fieldKey = "z";
 					} else
-						fieldKey = line;	// Otherwise the key will stay as it is
-
+						fieldKey = line; // Otherwise the key will stay as it is
 					if(line.contains("Nodal"))
 						nodal = true;
-
-					// Fetch the value set for the given field
-					values = grid.getFieldValues(fieldKey.trim());
-
-					// Start the linear index at 0
-					linearIndex = 0;
+					values = grid.getFieldValues(fieldKey.trim()); // Fetch the value set for the given field
+					linearIndex = 0; // Start the linear index at 0
 					continue;
-
-				} else {
+				} else if (grid!=null){
 					nextLine = false;
-
-					// Split the line by any number of spaces between values
-					String[] items = line.trim().split("\\s+");
-
+					String[] items = line.trim().split("\\s+"); // Split the line by any number of spaces between values
 					// Store each value from the line into the value list
-
 					if(nodal) {
 						values.setNodalValue(linearIndex, items, grid);
 						linearIndex++;
 					} else {
 						for(String item: items) {
-
 							try{
 								float value = Float.parseFloat(item);
-
 								values.setValue(linearIndex, value);
-
 							} catch (NumberFormatException err) {
-								// Ignore values that aren't parseable
+								// Ignore values that can't be parsed
 							} catch (GridError err) {
 								System.out.println("Error reading " + fieldKey);
 								throw err;
 							}
-
 							linearIndex++;
 						}
 					}
 				}
-			}	
-			dataScanner.close();
+			}
 		} catch (Exception err) {
-			if(dataScanner != null)
-				dataScanner.close();
 			System.out.println(this.dataFile);
 			throw new GridError("Extraction failed: " + err.getMessage());
 		}
@@ -345,14 +292,12 @@ public class GridParser {
 		// A bit of extra work for 2d meshes.
 		if(grid.is2D()) {
 			// Fetch the value set for the given field
-			FieldValues values = grid.getFieldValues(grid.getNormalDirection());
+			values = grid.getFieldValues(grid.getNormalDirection());
 			// Fill the missing edge with a bunch of 0's
 			for(int i = 0; i < grid.getGridder().getL(); i++) {
 				values.setValue(i, 0.0f);
 			}
 		}
-		dataScanner.close();
-
 		return grid;
 	}
 	
@@ -859,7 +804,7 @@ public class GridParser {
 			try {
 				return getTecplotVariables(dataFile).toArray();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				System.out.println(e);
 				e.printStackTrace();
 			}
 		}
