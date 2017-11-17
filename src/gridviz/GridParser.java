@@ -276,13 +276,13 @@ public class GridParser {
 								values.addVertex(linearIndex, items, 1);
 							}
 						} else if (fieldKey=="y") {
-							if (linearIndex % grid.getSize().x == 0 && linearIndex<grid.getSize().x * grid.getSize().y) { //every 103 lines
+							if (linearIndex % grid.getSize().x == 0 && linearIndex<grid.getSize().x * grid.getSize().y) {
 								int altIndex = linearIndex/grid.getSize().x;
 								values.addNodalValue(altIndex, items);
 								values.addVertex(altIndex, items, 2);
 							}
 						} else if (fieldKey=="z") {
-							if (linearIndex % (grid.getSize().x * grid.getSize().y) == 0) { //every 103 lines
+							if (linearIndex % (grid.getSize().x * grid.getSize().y) == 0) {
 								int altIndex = linearIndex/(grid.getSize().x*grid.getSize().y);
 								values.addNodalValue(altIndex, items);
 								values.addVertex(altIndex, items, 4);

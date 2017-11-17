@@ -1021,6 +1021,14 @@ public class FileBrowser extends javax.swing.JFrame {
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
 			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
 			
+			// Adds porosity from plot file if it exists
+			for (String field: grid.getFieldNames()) {
+				if(field.toLowerCase().contains("porosity")) {
+					hdf5File.createScalarDS("porosities", dataGroup, dtype, dims3D, null, null, 0, grid.getFieldValues(field).getValues());
+					break;
+				}
+			}
+			
 			// Make a float array to add the porosity info, should be flat //TODO: This reads porosity from the file you can output... haven't tested (Jon)
 			File inputFile = new File(file_inputDir, firstScenario +"\\input");
 			if(inputFile.exists()){
@@ -1070,7 +1078,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		// Create a group for each time in the set
 		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
 		
-		
 		for(JCheckBox dataField: dataFields) {
 			startTime = System.currentTimeMillis();
 			String field = dataField.getText();
@@ -1078,8 +1085,11 @@ public class FileBrowser extends javax.swing.JFrame {
 			if(field.equals("x") || field.equals("y") || field.equals("z")) continue;
 			// Replacing strange characters in the field name
 			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-			System.out.print("\tAdding " + fieldClean + "... ");
 			
+			if(fieldClean.toLowerCase().contains("porosity")) // Skip this field, as it is handled above
+				continue;
+			
+			System.out.print("\tAdding " + fieldClean + "... ");
 			try {
 				// Convert to float[] and reorder for hdf5
 				//long getDataStartTime = System.currentTimeMillis();
