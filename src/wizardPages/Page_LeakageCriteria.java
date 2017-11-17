@@ -128,6 +128,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorType = sensorSettings.getType();
 			this.sensorName = sensorName;
 			alias = sensorName;
+			if(sensorName.contains("Electrical Conductivity"))
+				alias = "ERT";
 			isIncluded = false; //By default
 			cost = sensorSettings.getCost();
 			minValue = sensorSettings.getMinValue();
@@ -580,7 +582,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText.setLayoutData(maxZTextData);
 			
 			// Hide unused fields for ERT sensors
-			if (type.contains("ERT")) {
+			if (type.contains("Electrical Conductivity")) {
+				addButton.setVisible(false);
 				thresholdCombo.setVisible(false);
 				detectionText.setVisible(false);
 				leakageText.setVisible(false);
@@ -594,7 +597,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private void toggleEnabled() {
 			if(sensorTypeLabel != null && !sensorTypeLabel.isDisposed())
 				sensorTypeLabel.setEnabled(isIncluded);
-			if(aliasText != null && !aliasText.isDisposed())
+			if(aliasText != null && !aliasText.isDisposed() && !alias.contains("ERT"))
 				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
@@ -1043,7 +1046,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
-							if (sensorType.contains("ERT")) {
+							if (sensorType.contains("Electrical Conductivity")) {
 								if(E4DSensors.ertSensorTriggered(data.getSet(), timeStep, scenario, nodeNumber))
 									timeToDegredation = timeStep.getRealTime();
 							} else {

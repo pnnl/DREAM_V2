@@ -317,7 +317,7 @@ public class SensorSetting {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting valid nodes", null);
 
-		if(type.contains("ERT")) {
+		if(type.contains("Electrical Conductivity")) {
 			validNodes = E4DSensors.setValidNodesERT(scenarioSet);
 		}
 		

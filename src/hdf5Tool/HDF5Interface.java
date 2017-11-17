@@ -177,7 +177,7 @@ public class HDF5Interface {
 			dataType = dataType.substring(0,dataType.indexOf("_"));
 		}
 		//Handles ERT
-		if (dataType.contains("ERT"))
+		if (dataType.contains("Electrical Conductivity"))
 			return 0;
 		
 		return statistics.get(dataType)[index];

@@ -1029,7 +1029,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 			}
 			
-			// Make a float array to add the porosity info, should be flat //TODO: This reads porosity from the file you can output... haven't tested (Jon)
+			// Make a float array to add the porosity info, should be flat //TODO: I haven't personally tested this one yet...
 			File inputFile = new File(file_inputDir, firstScenario +"\\input");
 			if(inputFile.exists()){
 				BufferedReader fileReader = new BufferedReader(new FileReader(inputFile));

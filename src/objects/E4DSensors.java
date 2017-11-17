@@ -26,10 +26,10 @@ public class E4DSensors {
 		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && data.getSet().getERTDetectionTimes().isEmpty()) {
-			data.getSet().getSensors().add("ERT");
-			data.getSet().getSensorSettings().put("ERT", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "ERT", data.getSet().getScenarios(), 0, 0));
-			data.getSet().getSensorSettings().get("ERT").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
-			data.getSet().getNodeStructure().getDataTypes().add("ERT");
+			data.getSet().getSensors().add("Electrical Conductivity");
+			data.getSet().getSensorSettings().put("Electrical Conductivity", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "Electrical Conductivity", data.getSet().getScenarios(), 0, 0));
+			data.getSet().getSensorSettings().get("Electrical Conductivity").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
+			data.getSet().getNodeStructure().getDataTypes().add("Electrical Conductivity");
 			
 			// Here, we want to read sensor pairings and times from the matrix
 			String line = "";
@@ -103,7 +103,7 @@ public class E4DSensors {
 		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
 		if(detection==null)
 			return triggered;
-		Integer bestWell = null;
+		Integer bestWell = null; //TODO: this best well pairing needs to show up on the animation
 		Float bestTTD = Float.MAX_VALUE;
 		for (Map.Entry<Integer, Float> entry : detection.entrySet()) {
 			if (entry.getValue() < bestTTD) {

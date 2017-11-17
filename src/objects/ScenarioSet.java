@@ -115,8 +115,11 @@ public class ScenarioSet {
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
 			builder.append("\t\tCost: " + sensorSettings.get(parameter).getCost() + " per sensor\r\n");
-			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
-			if (parameter.contains("ERT"))
+			if (parameter.contains("Electrical Conductivity"))
+				builder.append("\t\tTriggering on: ERT matrix\r\n");
+			else
+				builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
+			if (parameter.contains("Electrical Conductivity"))
 				builder.append("\t\tLeakage threshold: ERT matrix\r\n");
 			else if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
