@@ -148,7 +148,11 @@ public class GridParser {
 	public void mergeFile(File file) {
 		filesToMerge.add(file);
 	}
-
+	
+	public int getTimeStep() {
+		return timeStep;
+	}
+	
 	public DataGrid extractStompData() throws GridError {
 		
 		DataGrid grid = null; // will contain all the extracted data from the file
@@ -157,20 +161,19 @@ public class GridParser {
 		boolean hasCenter = false;
 		Map<Stomp, Object> info = new HashMap<Stomp, Object>();
 		float timestep = 0; // Time in years
-		boolean nextLine = false;
+		boolean emptyLine = false;
 		boolean nodal = false;
 		int linearIndex = -1; // The linear index will keep track of where to insert the data into the array that holds the node data for each field
 		String fieldKey = ""; // This will hold the name of the field that is being extracted
 		FieldValues values = null; // The field values will be first extracted then assigned
 		
-		try (Scanner dataScanner = new Scanner(new FileReader(dataFile));) {
+		try (Scanner dataScanner = new Scanner(new FileReader(dataFile))) {
 			System.out.println("File: " + dataFile);
 			while (dataScanner.hasNextLine()) {
 				String line = dataScanner.nextLine().trim();
 				
-				if (line.isEmpty()) {
-					nextLine = true;
-				}
+				if (line.isEmpty())
+					emptyLine = true;
 				
 				// Reads in the Time Steps from the plot file
 				else if(line.startsWith("Time") && line.contains(",yr")) {
@@ -194,7 +197,7 @@ public class GridParser {
 								info.put(key, Integer.parseInt(substring));
 							else
 								info.put(key, Float.parseFloat(substring));
-							System.out.println("Reading [" + key.getKey() + "] - " + line);	
+							//System.out.println("Reading [" + key.getKey() + "] - " + line);	
 							break; // Already handled it, skip the rest of the keys
 						}
 					}
@@ -203,7 +206,7 @@ public class GridParser {
 						size.y = (Integer)info.get(Stomp.Y_NODES);
 						size.z = (Integer)info.get(Stomp.Z_NODES);
 
-						// If we have origin information we need to increment the size value TODO: Has XYZ values, but not with these names
+						// If we have origin information we need to increment the size value
 						for(Stomp originKey: new Stomp[] {Stomp.X_ORGIN_HEXAHEDRA, Stomp.X_ORGIN_SURFACE, Stomp.X_ORGIN}) {
 							if(info.containsKey(originKey)) {
 								center.x = Float.parseFloat(info.get(originKey).toString());
@@ -234,8 +237,8 @@ public class GridParser {
 				}
 				
 				// Reads in the grid data from the plot file
-				else if ((line.contains(",") || nextLine) && grid!=null) {
-					nextLine = false;
+				else if ((line.contains(",") || emptyLine) && grid!=null) {
+					emptyLine = false;
 					nodal = false; // Reset
 					// Need to be specific here on what makes up the grid
 					if(line.startsWith("X or R-Direction Node Positions") ||
@@ -262,11 +265,31 @@ public class GridParser {
 					linearIndex = 0; // Start the linear index at 0
 					continue;
 				} else if (grid!=null){
-					nextLine = false;
+					emptyLine = false;
 					String[] items = line.trim().split("\\s+"); // Split the line by any number of spaces between values
+					
 					// Store each value from the line into the value list
 					if(nodal) {
-						values.setNodalValue(linearIndex, items, grid);
+						if (fieldKey=="x") {
+							if (linearIndex<grid.getSize().x) {
+								values.addNodalValue(linearIndex, items);
+								values.addVertex(linearIndex, items, 1);
+							}
+						} else if (fieldKey=="y") {
+							if (linearIndex % grid.getSize().x == 0 && linearIndex<grid.getSize().x * grid.getSize().y) { //every 103 lines
+								int altIndex = linearIndex/grid.getSize().x;
+								values.addNodalValue(altIndex, items);
+								values.addVertex(altIndex, items, 2);
+							}
+						} else if (fieldKey=="z") {
+							if (linearIndex % (grid.getSize().x * grid.getSize().y) == 0) { //every 103 lines
+								int altIndex = linearIndex/(grid.getSize().x*grid.getSize().y);
+								values.addNodalValue(altIndex, items);
+								values.addVertex(altIndex, items, 4);
+							}
+						} else {
+							values.addNodalValue(linearIndex, items);
+						}
 						linearIndex++;
 					} else {
 						for(String item: items) {
@@ -666,7 +689,7 @@ public class GridParser {
 
 	private void appendNTABData(File file, DataStructure structure, boolean appendMetaData, int metaDataLength, int timeSteps, int lineCount, Map<Ntab, Integer> indexOf) throws FileNotFoundException {
 
-		System.out.println(file); //TODO: Delete
+		System.out.println(file);
 		Scanner sc = new Scanner(file); // Skip index line
 		while(!sc.nextLine().startsWith("index") && sc.hasNextLine());
 

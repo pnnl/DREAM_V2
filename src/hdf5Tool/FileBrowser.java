@@ -482,7 +482,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");	
 				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
-				System.out.println("File: " + hdf5File);
+				System.out.println("Writing to File: " + hdf5File);
 				hdf5File.open();
 				
 				// We will use the first file to read all the time steps...
@@ -869,7 +869,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			Group dataGroup = hdf5File.createGroup("data", root);
 			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{ntabData.x.length}, null, null, 0, ntabData.x);
 			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{ntabData.y.length}, null, null, 0, ntabData.y);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z); //TODO: Add "x-vertex"
+			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z); //TODO: Add "x-vertex" for NTAB
 
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
 			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);			
@@ -936,7 +936,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	
 	//This function is called during a loop through time steps (each file)
 	private void addDataFromFolders(GridParser parser, H5File hdf5File, String plotFileName, boolean firstFile) throws Exception {
-
+		
 		DataGrid grid = parser.extractStompData();
 		
 		// Get the root
@@ -972,7 +972,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
 				}
 				try {
-					timeStepsInYears.add(new Double(gridsByTimeAndScenario.get(firstScenario).get((ts)).extractStompData().getTimestep()).floatValue());
+					timeStepsInYears.add(new Double(gridsByTimeAndScenario.get(firstScenario).get((ts)).getTimeStep()).floatValue());
 				} catch (Exception e) {
 					// hmm...
 				}
@@ -994,25 +994,34 @@ public class FileBrowser extends javax.swing.JFrame {
 			float[] xCoordinates = new float[grid.getSize().getX()];
 			float[] yCoordinates = new float[grid.getSize().getY()];
 			float[] zCoordinates = new float[grid.getSize().getZ()];
+			float[] xCoordinatesAtVertex = new float[grid.getSize().getX() + 1];
+			float[] yCoordinatesAtVertex = new float[grid.getSize().getY() + 1];
+			float[] zCoordinatesAtVertex = new float[grid.getSize().getZ() + 1];
 
-			for(int i = 0; i < xCoordinates.length; i++) {
+			for(int i = 0; i < xCoordinates.length; i++)
 				xCoordinates[i] = new Double(grid.getFieldValues("x").getValue(i)).floatValue();
-			}
-			for(int i = 0; i < yCoordinates.length; i++) {
-				yCoordinates[i] = new Double(grid.getFieldValues("y").getValue(i*xCoordinates.length)).floatValue();
-			}
-			for(int i = 0; i < zCoordinates.length; i++) {
-				zCoordinates[i] = new Double(grid.getFieldValues("z").getValue(i*(xCoordinates.length*yCoordinates.length))).floatValue();
-			}
+			for(int i = 0; i < yCoordinates.length; i++)
+				yCoordinates[i] = new Double(grid.getFieldValues("y").getValue(i)).floatValue();
+			for(int i = 0; i < zCoordinates.length; i++)
+				zCoordinates[i] = new Double(grid.getFieldValues("z").getValue(i)).floatValue();
+			for(int i = 0; i < xCoordinatesAtVertex.length; i++)
+				xCoordinatesAtVertex[i] = new Double(grid.getFieldValues("x").getVertex(i)).floatValue();
+			for(int i = 0; i < yCoordinatesAtVertex.length; i++)
+				yCoordinatesAtVertex[i] = new Double(grid.getFieldValues("y").getVertex(i)).floatValue();
+			for(int i = 0; i < zCoordinatesAtVertex.length; i++)
+				zCoordinatesAtVertex[i] = new Double(grid.getFieldValues("z").getVertex(i)).floatValue();
 			
 			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{xCoordinates.length}, null, null, 0, xCoordinates);
 			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{yCoordinates.length}, null, null, 0, yCoordinates);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{zCoordinates.length}, null, null, 0, zCoordinates);	
+			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{zCoordinates.length}, null, null, 0, zCoordinates);
+			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{xCoordinatesAtVertex.length}, null, null, 0, xCoordinatesAtVertex);
+			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{yCoordinatesAtVertex.length}, null, null, 0, yCoordinatesAtVertex);
+			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{zCoordinatesAtVertex.length}, null, null, 0, zCoordinatesAtVertex);
 			
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
 			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
 			
-			// Make a float array to add the porosity info, should be flat
+			// Make a float array to add the porosity info, should be flat //TODO: This reads porosity from the file you can output... haven't tested (Jon)
 			File inputFile = new File(file_inputDir, firstScenario +"\\input");
 			if(inputFile.exists()){
 				BufferedReader fileReader = new BufferedReader(new FileReader(inputFile));

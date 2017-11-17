@@ -13,13 +13,15 @@ public class FieldValues {
     /// The extrema for this field
     private Extrema extrema;
 
-
+    // The vertex for this field (only x, y, and z)
+    private float[] vertex;
 
     /// Constructs this field container
     public FieldValues(int size) {
 
         values = new float[size];
         extrema = new Extrema();
+        vertex = new float[size+1];
     }
 
 
@@ -38,17 +40,20 @@ public class FieldValues {
         extrema.min = Math.min(extrema.min, value);
         extrema.max = Math.max(extrema.max, value);
     }
-
-
-
+    
+    
     /// Gets the value for a given index
     public float getValue(int index) {
         return values[index];
     }
-
-
-
-
+    
+    
+  /// Gets the value for a given index
+    public float getVertex(int index) {
+        return vertex[index];
+    }
+    
+    
     /// Gets the extrema for the field
     public Extrema getExtrema() {
         return extrema;
@@ -68,7 +73,7 @@ public class FieldValues {
         return values;
     }
 
-	public void setNodalValue(int nodeIndex, String[] vertices, DataGrid grid) {
+	public void addNodalValue(int nodeIndex, String[] vertices) {
 		// Average them all!
 		float average = 0;
 		int total = 0;
@@ -82,11 +87,16 @@ public class FieldValues {
         extrema.min = Math.min(extrema.min, value); // Keep this up to date
         extrema.max = Math.max(extrema.max, value);
 	}
-
-
-
-	public void setValues(float[] values) {
-		this.values = values;		
+	
+	
+	public void addVertex(int nodeIndex, String[] vertices, int column){
+		vertex[nodeIndex] = Float.parseFloat(vertices[0]);
+		vertex[nodeIndex + 1] = Float.parseFloat(vertices[column]);
+	}
+	
+	
+	public void addValues(float[] values) {
+		this.values = values;
 	}
 
 }
