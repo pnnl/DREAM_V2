@@ -24,8 +24,9 @@ public class Constants {
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
 	
-	static File userDir = new File(System.getProperty("user.dir"));
-	public static String parentDir = userDir.getParent();
+	static File userDirectory = new File(System.getProperty("user.dir"));
+	public static String userDir = userDirectory.getPath();
+	public static String parentDir = userDirectory.getParent();
 	
 	public enum ModelOption {
 		

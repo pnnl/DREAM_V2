@@ -23,7 +23,7 @@ public class E4DSensors {
 	private HashMap<String, HashMap<Point2i, HashMap<Point2i, Float>>> detectionTimes; //Should be stored/access with the first location index being less than the second
 	
 	public static void addERTSensor(STORMData data) {
-		String ertInput = Constants.parentDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + ".csv";
+		String ertInput = Constants.userDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getAllScenarios().size() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && data.getSet().getERTDetectionTimes().isEmpty()) {
 			data.getSet().getSensors().add("Electrical Conductivity");

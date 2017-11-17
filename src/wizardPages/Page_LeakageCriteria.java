@@ -584,6 +584,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// Hide unused fields for ERT sensors
 			if (type.contains("Electrical Conductivity")) {
 				addButton.setVisible(false);
+				aliasText.setEnabled(false);
 				thresholdCombo.setVisible(false);
 				detectionText.setVisible(false);
 				leakageText.setVisible(false);
@@ -781,7 +782,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		}
 		
 		// If the user has the E4D module installed, allow the E4D buttons to show up
-		String e4dModuleDirectory = Constants.parentDir + "\\e4d";
+		String e4dModuleDirectory = Constants.userDir + "//e4d";
 		File e4dDirectory = new File(e4dModuleDirectory);
 		if (e4dDirectory.exists()) {
 			Group e4dGroup = new Group(container, SWT.SHADOW_NONE);
@@ -801,7 +802,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  			}
 	  		});
 			
-	  		// Save the E4D files
+	  		/*// Save the E4D files
 	  		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		    e4dButton = new Button(e4dGroup, SWT.PUSH);
 		    e4dButton.setText("  Write E4D Files  ");
@@ -881,9 +882,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						System.err.println("Couldn't write to well files");
 					}
 				}
-			});
+			});*/
 		    
-		    // Set the directory for the E4D file to be written
+		    /*// Set the directory for the E4D file to be written
 		    GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
 		    e4dFolder = new Text(e4dGroup, SWT.BORDER | SWT.SINGLE);
 			e4dFolder.setText(Constants.parentDir);
@@ -913,7 +914,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						e4dFolder.setText(dir);
 					}
 				}
-			});
+			});*/
 		}
 
 		container.layout();	
