@@ -469,7 +469,8 @@ public class HDF5Interface {
 			boolean exceededInThis = false;	
 			int startTimeIndex = 0;
 			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
-				if(monitor.isCanceled()) return nodes;
+				if(monitor!=null && monitor.isCanceled())
+					return nodes;
 				
 				float startTime = (Float) orderedTimes[startTimeIndex];
 				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[index];

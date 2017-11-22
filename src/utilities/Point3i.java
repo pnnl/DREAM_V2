@@ -1,16 +1,19 @@
 package utilities;
 
+import java.util.Comparator;
+
 /**
  * 3-dimensional integer class
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 
 public class Point3i {
 
 	private final int i;
 	private final int j;
-	private final int k;
+	private int k;
 	private final int hash;
 		
 	public Point3i() {
@@ -82,4 +85,26 @@ public class Point3i {
 		return k;
 	}
 	
+	public void setK(int k) {
+		this.k = k;
+	}
+	
+	public static String toCleanString(Point3i ijk) {
+		String line = ijk.getI() + "," + ijk.getJ() + "," + ijk.getK();
+		return line;
+
+	}
+	
+	public static final Comparator<Point3i> IJ_COMPARATOR = new Comparator<Point3i>() {
+		@Override
+		public int compare(Point3i o1, Point3i o2) {
+			if (o1.i < o2.i)
+				return -1;
+			else if (o1.i == o2.i && o1.j < o2.j)
+				return -1;
+			else if (o1.i == o2.i && o1.j == o2.j)
+				return 0;
+			return 1;
+		}
+	};
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,7 +34,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -43,10 +43,9 @@ import org.eclipse.swt.widgets.Text;
 import functions.*;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
-import utilities.Point3f;
 import utilities.Point3i;
 import utilities.Constants.ModelOption;
-import utilities.Point2i;
+import utilities.E4DDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -67,8 +66,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	private STORMData data;
 	private boolean isCurrentPage = false;
 	private Button e4dButton;
-	private Button buttonSelectDir;
-	private Text e4dFolder;
 	
 	private Map<String, SensorData> sensorData;
 	
@@ -101,7 +98,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public boolean isIncluded;
 		private boolean isDuplicate;
 		
-		// A couple of these may need to be global
 		private Label nodeLabel;
 		private Label sensorTypeLabel;
 		private Label detectionLabel;
@@ -751,9 +747,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					data.setupSensors(reset, sensorSettings); //Passes along variables
 					DREAMWizard.visLauncher.setEnabled(true);
-					e4dButton.setEnabled(true);
-					e4dFolder.setEnabled(true);
-					buttonSelectDir.setEnabled(true);
 					for(String label: sensorData.keySet()){
 						SensorData temp = sensorData.get(label);
 						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
@@ -801,9 +794,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
 	  			}
 	  		});
-			
-	  		/*// Save the E4D files
-	  		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
+	  		
+	  		// Save the E4D files
 		    e4dButton = new Button(e4dGroup, SWT.PUSH);
 		    e4dButton.setText("  Write E4D Files  ");
 			e4dButton.addListener(SWT.Selection, new Listener() {
@@ -811,110 +803,53 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				public void handleEvent(Event arg0) {
 					fixMacBug();
 					
-					//Write out the x-y and i-j well locations
-					HashMap<Integer, HashMap<Integer,Integer>> ijs = new HashMap<Integer, HashMap<Integer, Integer>>();
-					HashMap<Float, HashMap<Float,Float>> xys = new HashMap<Float, HashMap<Float, Float>>();
-					HashSet<Integer> validNodes = new HashSet<Integer>();
-					for(String label: data.getSet().getSensorSettings().keySet()){
-						validNodes.addAll(data.getSet().getSensorSettings(label).getValidNodes(null));
+					// Begin by identifying the parameter to build the file from
+					List<String> list = new ArrayList<String>();
+					String selectedParameter = null;
+					for(String label: data.getSet().getSensorSettings().keySet()) {
+						if (label.contains("Pressure"))
+							list.add(label);
 					}
-					for(Integer node: validNodes){
-						Point3i ijk = data.getSet().getNodeStructure().getIJKFromNodeNumber(node);
-						Point3f xyz = data.getSet().getNodeStructure().getXYZCenterFromIJK(ijk);
-						if(!ijs.containsKey(ijk.getI())) ijs.put(ijk.getI(), new HashMap<Integer,Integer>());
-						if(!ijs.get(ijk.getI()).containsKey(ijk.getJ())) ijs.get(ijk.getI()).put(ijk.getJ(), ijk.getK());
-						else ijs.get(ijk.getI()).put(ijk.getJ(), Math.min(ijk.getK(), ijs.get(ijk.getI()).get(ijk.getJ())));
-						if(!xys.containsKey(xyz.getX())) xys.put(xyz.getX(), new HashMap<Float,Float>());
-						if(!xys.get(xyz.getX()).containsKey(xyz.getZ())) xys.get(xyz.getX()).put(xyz.getY(), xyz.getZ());
-						else xys.get(xyz.getX()).put(xyz.getY(), Math.min(xyz.getZ(), xys.get(xyz.getX()).get(xyz.getZ())));
+					if (list.size() == 1) { // If only one pressure parameter, use that
+						selectedParameter = list.get(0);
+					} else if (list.size() > 1) { // If more than one pressure parameter, open dialog for user to choose
+						E4DDialog dialog = new E4DDialog(container.getShell(), list);
+						dialog.open();
+						selectedParameter = dialog.getParameter();
+						if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
+							return;
+					} else if (list.isEmpty()) { // If no pressure parameters, throw error
+						DREAMWizard.errorMessage.setText("No pressure parameter exists to create an E4D file.");
+						return;
 					}
-					StringBuilder ijStringBuilder = new StringBuilder();
-					//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-					HashSet<Point2i> wellLocations = new HashSet<Point2i>();
-					// <-
-					for(Integer i: ijs.keySet()){
-						for(Integer j: ijs.get(i).keySet()){
-							//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-							wellLocations.add(new Point2i(i,j));
-							// <-
-							ijStringBuilder.append(i.toString() + "," + j.toString() + "," + ijs.get(i).get(j).toString() + "\n");
-						}
-					}
-					//LUKE EDIT - HACKED IN TO TRY TO PLAY WITH E4D CLASS ->
-					data.getSet().e4dInterface = new E4DSensors(data.getSet(), wellLocations);
-					File tempout = new File(e4dFolder.getText(), "mapValues.txt");
+					
+					// Returns the best well that fall within the threshold (currently 30)
+					ArrayList<Point3i> wells = null;
 					try {
-						if(!tempout.exists()) tempout.createNewFile();
-						FileUtils.writeStringToFile(tempout, data.getSet().e4dInterface.printDetectionTimes());
+						wells = E4DSensors.calculateE4DWells(data, selectedParameter);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					// For this to be empty, no change was seen at any node with the selected parameter (very rare)
+					if (wells.isEmpty()) {
+						DREAMWizard.errorMessage.setText("No change was detected with the selected pressure parameter.");
+						return;
+					}
+					
+					// Now that we have our wells, print it out
+					StringBuilder ijStringBuilder = new StringBuilder();
+					for(Point3i well: wells)
+						ijStringBuilder.append(Point3i.toCleanString(well) + "\n");
+					File e4dWellFile = new File(Constants.userDir + "//e4d", "ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getAllScenarios().size() + ".txt");
+					try{
+						e4dWellFile.createNewFile();
+						FileUtils.writeStringToFile(e4dWellFile, ijStringBuilder.toString());
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
-					// <-
-					StringBuilder xyStringBuilder1 = new StringBuilder();
-					for(Float x: xys.keySet()){
-						for(Float y: xys.get(x).keySet()){
-							xyStringBuilder1.append(x.toString() + "," + y.toString() + "," + String.valueOf((data.getSet().getNodeStructure().getZ().get(data.getSet().getNodeStructure().getZ().size()-1) - xys.get(x).get(y))) + "\n");
-						}
-					}
-					StringBuilder xyStringBuilder2 = new StringBuilder();
-					for(Float x: xys.keySet()){
-						for(Float y: xys.get(x).keySet()){
-							xyStringBuilder2.append(x.toString() + "," + y.toString() + "," + String.valueOf(xys.get(x).get(y)) + "\n");
-						}
-					}
-					
-					try{
-						File xyLocationFile1 = new File(e4dFolder.getText(), "wellLocationsXY_v1.txt");
-						if(!xyLocationFile1.exists())
-							xyLocationFile1.createNewFile();
-						FileUtils.writeStringToFile(xyLocationFile1, xyStringBuilder1.toString());
-						File xyLocationFile2 = new File(e4dFolder.getText(), "wellLocationsXY_v2.txt");
-						if(!xyLocationFile2.exists())
-							xyLocationFile2.createNewFile();
-						FileUtils.writeStringToFile(xyLocationFile2, xyStringBuilder2.toString());	
-						File ijLocationFile = new File(e4dFolder.getText(), "wellLocationsIJ.txt");
-						if(!ijLocationFile.exists())
-							ijLocationFile.createNewFile();
-						FileUtils.writeStringToFile(ijLocationFile, ijStringBuilder.toString());
-						System.out.println("Writing E4D Files to " + e4dFolder.getText());
-					}
-					catch(Exception e){
-						System.err.println("Couldn't write to well files");
-					}
 				}
-			});*/
-		    
-		    /*// Set the directory for the E4D file to be written
-		    GridData e4dTextData = new GridData(GridData.FILL_HORIZONTAL);
-		    e4dFolder = new Text(e4dGroup, SWT.BORDER | SWT.SINGLE);
-			e4dFolder.setText(Constants.parentDir);
-			e4dFolder.setLayoutData(e4dTextData);
-			e4dFolder.addModifyListener(new ModifyListener() { //Change text red when directory is invalid
-				@Override
-				public void modifyText(ModifyEvent e) {
-					File resultsFolder = new File(e4dFolder.getText());
-					boolean dir = resultsFolder.isDirectory();
-					if (dir == true)
-						((Text)e.getSource()).setForeground(black);
-					else
-						((Text)e.getSource()).setForeground(red);
-					e4dButton.setEnabled(dir);
-				}				
 			});
-			
-			//Select the save directory
-			buttonSelectDir = new Button(e4dGroup, SWT.PUSH);
-			buttonSelectDir.setText("...");
-			buttonSelectDir.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					directoryDialog.setFilterPath(e4dFolder.getText());
-					directoryDialog.setMessage("Please select a directory and click OK");
-					String dir = directoryDialog.open();
-					if (dir != null) {
-						e4dFolder.setText(dir);
-					}
-				}
-			});*/
 		}
 
 		container.layout();	
@@ -930,11 +865,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 
 		DREAMWizard.visLauncher.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
-		if (e4dDirectory.exists()) {
-			e4dButton.setEnabled(enableVis);
-			e4dFolder.setEnabled(enableVis);
-			buttonSelectDir.setEnabled(enableVis);
-		}
 	} //ends load page
 
 	@Override

@@ -6,12 +6,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 
+import hdf5Tool.HDF5Interface;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import utilities.Constants;
@@ -93,9 +96,6 @@ public class E4DSensors {
 			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
 		return validNodes;
 	}
-	
-	
-	
 	
 	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
 		Boolean triggered = false;
@@ -193,5 +193,80 @@ public class E4DSensors {
 			location2 = temp;
 		}
 		detectionTimes.get(scenario).get(location1).put(location2, time);
+	}
+	
+	// This method determines which wells should be passed along to E4D
+	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter) throws Exception {
+		float threshold = 0.01f; //Hard number determined by Catherine
+		int maximumWells = 30; //Hard number given by E4D coders
+		NodeStructure nodeStructure = data.getSet().getNodeStructure();
+		
+		HashSet<Integer> allNodes = new HashSet<Integer>(); //All nodes that meet the above threshold
+		ArrayList<Point3i> wellList = new ArrayList<Point3i>(); //The final list of wells to be passed along
+		
+		// First, loop through scenarios and add all nodes that trigger
+		for(Scenario scenario: data.getSet().getScenarios()) {
+			try {
+				HashSet<Integer> nodes = null;
+				nodes = HDF5Interface.queryNodesFromFiles(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, null);
+				allNodes.addAll(nodes);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(allNodes.size() == 0)
+			return null;
+		
+		// Count how many unique wells locations were found in the above nodes
+		for(Integer node: allNodes) {
+			Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
+			Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
+			if(!wellList.contains(well))
+				wellList.add(well);
+		}
+		
+		// If a reasonable number of wells is found, sort and return
+		if(wellList.size() <= maximumWells) {
+			Collections.sort(wellList, Point3i.IJ_COMPARATOR);
+		// If too many wells are found, goal seek to the desired number
+		} else {
+			wellList = new ArrayList<Point3i>(); //reset
+			TreeMap<Float, Integer> changePerNode = new TreeMap<Float, Integer>();
+			
+			// Find the relative difference for all the nodes found above
+			TimeStep firstStep = nodeStructure.getTimeSteps().get(0);
+			TimeStep lastStep = nodeStructure.getTimeSteps().get(nodeStructure.getTimeSteps().size()-1);
+			for(Integer node: allNodes) {
+				float maxDifference = 0;
+				for(Scenario scenario: data.getSet().getScenarios()) {
+					float start = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), firstStep, parameter, node);
+					float end = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), lastStep, parameter, node);
+					float difference = Math.abs((end - start) / start);
+					if(difference > maxDifference)
+						maxDifference = difference;
+				}
+				changePerNode.put(maxDifference, node);
+			}
+			
+			// Sort the nodes by greatest relative change
+			ArrayList<Float> keys = new ArrayList<Float>(changePerNode.keySet());
+			ArrayList<Integer> values = new ArrayList<Integer>(keys.size());
+			Collections.sort(keys, Collections.reverseOrder());
+			for(Float key: keys)
+				values.add(changePerNode.get(key));
+			
+			// Convert to Point3i and sort
+			for(Integer node: values) {
+				Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
+				Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
+				if(!wellList.contains(well))
+					wellList.add(well);
+				if(wellList.size() == maximumWells)
+					break;
+			}
+			Collections.sort(wellList, Point3i.IJ_COMPARATOR);
+		}
+		return wellList;
 	}
 }
