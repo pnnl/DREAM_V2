@@ -674,7 +674,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoLabel.setLayoutData(infoGridData);
 		
 		// Headers
-		Font boldFont1 = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
+		Font boldFont1 = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
 		
 		Label blankFiller = new Label(container, SWT.LEFT);	
 		Label monitorParams = new Label(container, SWT.LEFT);
@@ -778,14 +778,17 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		String e4dModuleDirectory = Constants.userDir + "//e4d";
 		File e4dDirectory = new File(e4dModuleDirectory);
 		if (e4dDirectory.exists()) {
-			Group e4dGroup = new Group(container, SWT.SHADOW_NONE);
-			e4dGroup.setText("E4D");
-			e4dGroup.setFont(boldFontSmall);
-			e4dGroup.setLayout(new GridLayout(4,false));
-			e4dGroup.setLayoutData(tempData);
+
+			Composite composite_E4D = new Composite(container, SWT.NULL);
+			GridLayout gridLayout_E4D = new GridLayout();
+			gridLayout_E4D.numColumns = 2;
+			composite_E4D.setLayout(gridLayout_E4D);
+			GridData gridData_E4D = new GridData(GridData.FILL_HORIZONTAL);
+			gridData_E4D.horizontalSpan=8;
+			composite_E4D.setLayoutData(gridData_E4D);			
 			
 			//Add an info icon to explain the E4D Buttons
-			Label infoLinkE4D = new Label(e4dGroup, SWT.NULL);
+			Label infoLinkE4D = new Label(composite_E4D, SWT.NULL);
 		  	infoLinkE4D.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 	  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
 	  			@Override
@@ -796,7 +799,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  		});
 	  		
 	  		// Save the E4D files
-		    e4dButton = new Button(e4dGroup, SWT.PUSH);
+		    e4dButton = new Button(composite_E4D, SWT.PUSH);
 		    e4dButton.setText("  Write E4D Files  ");
 			e4dButton.addListener(SWT.Selection, new Listener() {
 				@Override
@@ -806,7 +809,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					// Begin by identifying the parameter to build the file from
 					List<String> list = new ArrayList<String>();
 					String selectedParameter = null;
-					for(String label: data.getSet().getSensorSettings().keySet()) {
+					for(String label: sensorData.keySet()) {
 						if (label.contains("Pressure"))
 							list.add(label);
 					}
@@ -906,8 +909,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
-		container.setLayout(layout);
 		layout.numColumns = 9;
+		container.setLayout(layout);
 		
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
