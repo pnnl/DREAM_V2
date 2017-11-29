@@ -90,12 +90,14 @@ public class E4DSensors {
 		}
 	}
 	
+	
 	public static HashSet<Integer> setValidNodesERT(ScenarioSet set) {
 		HashSet<Integer> validNodes = new HashSet<Integer>(); //TODO: Check if the list of wells varies by scenario
 		for(Scenario scenario: set.ertDetectionTimes.keySet())
 			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
 		return validNodes;
 	}
+	
 	
 	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
 		Boolean triggered = false;
@@ -116,6 +118,7 @@ public class E4DSensors {
 		
 		return triggered;
 	}
+	
 	
 	public E4DSensors(ScenarioSet set, HashSet<Point2i> locations){
 		Random rand = new Random(); //Temporarily using this to create grid
@@ -139,6 +142,7 @@ public class E4DSensors {
 		}
 	}
 	
+	
 	public String printDetectionTimes(){
 		StringBuilder s = new StringBuilder();
 		s.append("~~~~~ E4D DETECTION TIME MAP ~~~~~~~~\n\n");
@@ -152,6 +156,7 @@ public class E4DSensors {
 		}
 		return s.toString();
 	}
+	
 	
 	public Float getDetectionTime(String scenario, ExtendedConfiguration config){
 		HashSet<Point2i> wellLocations = new HashSet<Point2i>();
@@ -173,7 +178,7 @@ public class E4DSensors {
 		}
 		return result; //Should never be null.
 	}
-
+	
 	
 	private Float getDetectionTime(String scenario, Point2i location1, Point2i location2){
 		if(location1.compareTo(location2) == 1){
@@ -185,15 +190,6 @@ public class E4DSensors {
 		return detectionTimes.get(scenario).get(location1).get(location2);
 	}
 	
-	
-	private void addDetectionTime(String scenario, Point2i location1, Point2i location2, Float time){
-		if(location1.compareTo(location2) == 1){
-			Point2i temp = location1;
-			location1 = location2;
-			location2 = temp;
-		}
-		detectionTimes.get(scenario).get(location1).put(location2, time);
-	}
 	
 	// This method determines which wells should be passed along to E4D
 	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter) throws Exception {

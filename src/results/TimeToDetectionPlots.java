@@ -11,7 +11,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import objects.ExtendedConfiguration;
-import objects.Scenario;
 import objects.ScenarioSet;
 
 import org.jfree.chart.ChartFactory;
@@ -26,8 +25,6 @@ import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.category.SlidingCategoryDataset;
 import org.jfree.ui.RectangleInsets;
-
-import utilities.Constants;
 
 /**
  * Plots displayed for the user if they enable "show plots" on the last page. Show how configurations are performing over time.

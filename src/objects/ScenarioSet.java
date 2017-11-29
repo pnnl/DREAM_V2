@@ -34,7 +34,6 @@ public class ScenarioSet {
 	private List<Scenario> allScenarios;
 	private List<Scenario> scenarios;
 	private List<String> sensors;
-	private List<String> allSensors;
 	
 	/**
 	 * User settings - 
@@ -78,7 +77,6 @@ public class ScenarioSet {
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 		sensors = new ArrayList<String>();
-		allSensors = new ArrayList<String>();
 		ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 
 		scenarioEnsemble = "";

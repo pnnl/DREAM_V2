@@ -30,7 +30,6 @@ public class ComparisonDialog extends TitleAreaDialog {
 	private ScrolledComposite sc;
 	private Composite container;
 	private STORMData data;
-	private Shell parentShell;
 	
 	public boolean readyToRun = false; //This is to tell if we pressed ok or not (if not, don't run the iterative procedure!)
 	private boolean isReady = true; //this indicates that all values are valid (aka no red showing)
@@ -47,7 +46,6 @@ public class ComparisonDialog extends TitleAreaDialog {
 		super(parentShell);
 		aliasToType = new HashMap<String, String>();
 		for(String dataType: data.getSet().getDataTypes()) aliasToType.put(Sensor.sensorAliases.get(dataType) + " (" + dataType + ")", dataType);
-		this.parentShell = parentShell;
 		this.data = data;
 	}
 	
