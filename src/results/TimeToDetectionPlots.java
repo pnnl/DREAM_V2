@@ -47,16 +47,9 @@ public class TimeToDetectionPlots extends JFrame {
 	
 	
 	SlidingCategoryDataset newMoreThan90;	
-	SlidingCategoryDataset bestMoreThan90;
-	
-	ChartPanel bestMoreThan90Plot;
-	
-	SlidingCategoryDataset perScenarioTTD;
 	SlidingCategoryDataset scenariosDetected;
 	
 	protected JScrollBar newMoreThan90ScrollBar;
-	protected JScrollBar bestMoreThan90ScrollBar;
-	protected JScrollBar perScenarioTTDScrollBar;
 	protected JScrollBar scenariosDetectedScrollBar;
 	
 	double triggeringScenarios = 0;
@@ -78,8 +71,6 @@ public class TimeToDetectionPlots extends JFrame {
 		this.maxYear = maxYear;
 		this.iterations = iterations;
 		newMoreThan90 = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
-		bestMoreThan90 = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
-		perScenarioTTD = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
 		scenariosDetected = new SlidingCategoryDataset(new DefaultCategoryDataset(), 0, 20);
 			
 		this.setTitle("Time to detection plots - Run " + run);
@@ -98,8 +89,6 @@ public class TimeToDetectionPlots extends JFrame {
 		JPanel topHalf = new JPanel();
 
 		JPanel twentyFivePercent = new JPanel();
-		JPanel fiftyPercent = new JPanel();
-		JPanel seventyFivePercent = new JPanel();
 		JPanel allPanel = new JPanel();
 		
 		// First plot
@@ -121,46 +110,6 @@ public class TimeToDetectionPlots extends JFrame {
         });
 		newMoreThan90ScrollBar.setPreferredSize(new Dimension(366, 20));
 		twentyFivePercent.add(newMoreThan90ScrollBar, BorderLayout.CENTER);
-		
-		// Second plot
-		double percenttriggeringScenarios = triggeringScenarios * 100;
-		bestMoreThan90Plot = new ChartPanel(createChart(bestMoreThan90, "Iteration", "Time to detection", "Best configuration TTD when detected in "+Constants.decimalFormat.format(percenttriggeringScenarios)+"% or more scenarios"));
-		bestMoreThan90Plot.setPreferredSize(new Dimension(400, 400));
-		fiftyPercent.add(bestMoreThan90Plot, BorderLayout.NORTH);
-
-		bestMoreThan90ScrollBar = new JScrollBar(0, 0, 20, 0, 20);
-		bestMoreThan90ScrollBar.getModel().addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				try {
-					bestMoreThan90.setFirstCategoryIndex(bestMoreThan90ScrollBar.getValue());
-				} catch (Exception ex) {
-					// Do nothing?
-				}
-			}
-        });
-		bestMoreThan90ScrollBar.setPreferredSize(new Dimension(366, 20));
-		fiftyPercent.add(bestMoreThan90ScrollBar, BorderLayout.CENTER);
-	
-		// Third plot
-		ChartPanel chartPanel75 = new ChartPanel(createChart(perScenarioTTD, "Scenario",  "Time to detection", "TTD for each scenario"));
-		chartPanel75.setPreferredSize(new Dimension(400, 400));
-		chartPanel75.getChart().getLegend().setVisible(false);
-		seventyFivePercent.add(chartPanel75, BorderLayout.NORTH);
-		
-		perScenarioTTDScrollBar =  new JScrollBar(0, 0, 20, 0, 20);
-		perScenarioTTDScrollBar.getModel().addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				try {
-					perScenarioTTD.setFirstCategoryIndex(perScenarioTTDScrollBar.getValue());
-				} catch (Exception ex) {
-					// Do nothing?
-				}
-			}
-        });
-		perScenarioTTDScrollBar.setPreferredSize(new Dimension(366, 20));
-		seventyFivePercent.add(perScenarioTTDScrollBar, BorderLayout.CENTER);
         
 		// Fourth plot
 		ChartPanel chartPanelall = new ChartPanel(createChart(scenariosDetected, "Iteration", "% Scenarios detected", "Percent of scenarios detected"));
@@ -184,13 +133,9 @@ public class TimeToDetectionPlots extends JFrame {
         
         // Layout plots
 		twentyFivePercent.setPreferredSize(new Dimension(400, 460));
-		fiftyPercent.setPreferredSize(new Dimension(400, 460));
-		seventyFivePercent.setPreferredSize(new Dimension(400, 440));
 		allPanel.setPreferredSize(new Dimension(400, 440));
 
 		twentyFivePercent.setBackground(CHART_BACKGROUND_COLOR);
-		fiftyPercent.setBackground(CHART_BACKGROUND_COLOR);
-		seventyFivePercent.setBackground(CHART_BACKGROUND_COLOR);
 		allPanel.setBackground(CHART_BACKGROUND_COLOR);
 
 		topHalf.setLayout(new BorderLayout());
@@ -209,24 +154,7 @@ public class TimeToDetectionPlots extends JFrame {
 	}
 	
 	public void addData(Results.Type type, int iteration, ExtendedConfiguration configuration, ScenarioSet set) {
-		
-		boolean addTick = false;
-		
-		// These will contain just the detecting scenarios: configuration.getTimesToDetection()	
-		for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
-			double unweightedTTD = configuration.getTimesToDetection().get(scenario);
-			if(type == Results.Type.New) {
-				((DefaultCategoryDataset)perScenarioTTD.getUnderlyingDataset()).addValue(unweightedTTD, scenario.getScenario(), String.valueOf(iteration));
-				addTick = true;
-			}
-		}
-		
-		if(addTick) {
-			perScenarioTTDScrollBar.setMaximum(perScenarioTTDScrollBar.getMaximum()+1);
-			if(perScenarioTTDScrollBar.getMaximum() > 40)
-				perScenarioTTDScrollBar.setValue(perScenarioTTDScrollBar.getValue() + 1);
-		}
-		
+				
 		float totalTTDTriggerOnly = configuration.getNormalizedAverageTimeToDetection(set.getScenarioWeights());
 		float detected = configuration.getNormalizedPercentScenariosDetected(set.getScenarioWeights(), set.getTotalScenarioWeight());
 		
@@ -235,19 +163,8 @@ public class TimeToDetectionPlots extends JFrame {
 			newMoreThan90ScrollBar.setMaximum(newMoreThan90ScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(newMoreThan90ScrollBar.getMaximum() > 40)
 				newMoreThan90ScrollBar.setValue(newMoreThan90ScrollBar.getValue() + 1);
-		} else if(type == Results.Type.Best && detected >= this.triggeringScenarios) {
-			if(detected != this.triggeringScenarios) {
-				this.triggeringScenarios = detected;
-				((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).clear();
-				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios*100)+"% or more scenarios");
-				bestMoreThan90ScrollBar.setMaximum(20);
-			}
-			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));
-			bestMoreThan90ScrollBar.setMaximum(bestMoreThan90ScrollBar.getMaximum()+1); // increment this every time we add a value?
-			if(bestMoreThan90ScrollBar.getMaximum() > 40)
-				bestMoreThan90ScrollBar.setValue(bestMoreThan90ScrollBar.getValue() + 1);
-		
 		}
+
 		if(type == Results.Type.New) {
 			((DefaultCategoryDataset)scenariosDetected.getUnderlyingDataset()).addValue(detected*100, type.toString(), String.valueOf(iteration));
 			scenariosDetectedScrollBar.setMaximum(scenariosDetectedScrollBar.getMaximum()+1); // increment this every time we add a value?
