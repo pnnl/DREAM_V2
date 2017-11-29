@@ -84,7 +84,7 @@ public class TimeToDetectionPlots extends JFrame {
 			
 		this.setTitle("Time to detection plots - Run " + run);
 
-		this.setSize(800, 900);
+		this.setSize(800, 480);
 		this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		initializeUI();
@@ -96,39 +96,35 @@ public class TimeToDetectionPlots extends JFrame {
 		this.getContentPane().removeAll();
 		
 		JPanel topHalf = new JPanel();
-		JPanel bottomHalf = new JPanel();
 
 		JPanel twentyFivePercent = new JPanel();
 		JPanel fiftyPercent = new JPanel();
 		JPanel seventyFivePercent = new JPanel();
 		JPanel allPanel = new JPanel();
-
-		// ChartPanel chartPanel25 = new ChartPanel(createChart(lessThan25, "Detected in 25% or less scenarios"));
+		
+		// First plot
 		ChartPanel chartPanel25 = new ChartPanel(createChart(newMoreThan90, "Iteration", "Time to detection", "New configuration TTD (detecting scenarios only)"));
-	//	ChartPanel chartPanel25 = new ChartPanel(createChart(new SlidingCategoryDataset(newMoreThan90, 0, 100), "New configuration TTD when detected in 90% or more scenarios"));
 		chartPanel25.setPreferredSize(new Dimension(400, 400));
 		twentyFivePercent.add(chartPanel25, BorderLayout.NORTH);
 		
-
 		newMoreThan90ScrollBar = new JScrollBar(0, 0, 20, 0, 20);
 		newMoreThan90ScrollBar.getModel().addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
-					newMoreThan90.setFirstCategoryIndex(newMoreThan90ScrollBar.getValue());		
+					newMoreThan90.setFirstCategoryIndex(newMoreThan90ScrollBar.getValue());
 					newMoreThan90.validateObject();
 				} catch (Exception ex) {
 					// Do nothing?
 				}
-			}        	
+			}
         });
 		newMoreThan90ScrollBar.setPreferredSize(new Dimension(366, 20));
 		twentyFivePercent.add(newMoreThan90ScrollBar, BorderLayout.CENTER);
-	
+		
+		// Second plot
 		double percenttriggeringScenarios = triggeringScenarios * 100;
 		bestMoreThan90Plot = new ChartPanel(createChart(bestMoreThan90, "Iteration", "Time to detection", "Best configuration TTD when detected in "+Constants.decimalFormat.format(percenttriggeringScenarios)+"% or more scenarios"));
-	//	ChartPanel chartPanel50 = new ChartPanel(createChart(new SlidingCategoryDataset(bestMoreThan90, 0, 100), "Best configuration TTD when detected in 90% or more scenarios"));
-	//	ChartPanel chartPanel50 = new ChartPanel(createChart(lessThan50, "Detected in 25-50% of scenarios"));
 		bestMoreThan90Plot.setPreferredSize(new Dimension(400, 400));
 		fiftyPercent.add(bestMoreThan90Plot, BorderLayout.NORTH);
 
@@ -137,19 +133,17 @@ public class TimeToDetectionPlots extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
-					bestMoreThan90.setFirstCategoryIndex(bestMoreThan90ScrollBar.getValue());		
+					bestMoreThan90.setFirstCategoryIndex(bestMoreThan90ScrollBar.getValue());
 				} catch (Exception ex) {
 					// Do nothing?
 				}
-			}        	
+			}
         });
 		bestMoreThan90ScrollBar.setPreferredSize(new Dimension(366, 20));
 		fiftyPercent.add(bestMoreThan90ScrollBar, BorderLayout.CENTER);
 	
-		
+		// Third plot
 		ChartPanel chartPanel75 = new ChartPanel(createChart(perScenarioTTD, "Scenario",  "Time to detection", "TTD for each scenario"));
-	//	ChartPanel chartPanel75 = new ChartPanel(createChart(new SlidingCategoryDataset(perScenarioTTD, 0, 100), "TTD for each scenario"));
-	//	ChartPanel chartPanel75 = new ChartPanel(createChart(lessThan75, "Detected in 50-75% of scenarios"));
 		chartPanel75.setPreferredSize(new Dimension(400, 400));
 		chartPanel75.getChart().getLegend().setVisible(false);
 		seventyFivePercent.add(chartPanel75, BorderLayout.NORTH);
@@ -159,19 +153,17 @@ public class TimeToDetectionPlots extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
-					perScenarioTTD.setFirstCategoryIndex(perScenarioTTDScrollBar.getValue());		
+					perScenarioTTD.setFirstCategoryIndex(perScenarioTTDScrollBar.getValue());
 				} catch (Exception ex) {
 					// Do nothing?
 				}
-			}        	
+			}
         });
 		perScenarioTTDScrollBar.setPreferredSize(new Dimension(366, 20));
 		seventyFivePercent.add(perScenarioTTDScrollBar, BorderLayout.CENTER);
-               
-		
+        
+		// Fourth plot
 		ChartPanel chartPanelall = new ChartPanel(createChart(scenariosDetected, "Iteration", "% Scenarios detected", "Percent of scenarios detected"));
-//		ChartPanel chartPanelall = new ChartPanel(createChart(new SlidingCategoryDataset(scenariosDetected, 0, 100), "Percent of scenarios detected"));
-	//	ChartPanel chartPanelall = new ChartPanel(createChart(moreThan75, "Detected in 75% or more scenarios"));
 		chartPanelall.setPreferredSize(new Dimension(400, 400));
 		allPanel.add(chartPanelall, BorderLayout.NORTH);
 
@@ -181,15 +173,16 @@ public class TimeToDetectionPlots extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				try {
-				scenariosDetected.setFirstCategoryIndex(scenariosDetectedScrollBar.getValue());		
+					scenariosDetected.setFirstCategoryIndex(scenariosDetectedScrollBar.getValue());
 				} catch (Exception ex) {
 					// Do nothing?
 				}
-			}        	
+			}
         });
 		scenariosDetectedScrollBar.setPreferredSize(new Dimension(366, 20));
         allPanel.add(scenariosDetectedScrollBar, BorderLayout.CENTER);
-               
+        
+        // Layout plots
 		twentyFivePercent.setPreferredSize(new Dimension(400, 460));
 		fiftyPercent.setPreferredSize(new Dimension(400, 460));
 		seventyFivePercent.setPreferredSize(new Dimension(400, 440));
@@ -201,29 +194,22 @@ public class TimeToDetectionPlots extends JFrame {
 		allPanel.setBackground(CHART_BACKGROUND_COLOR);
 
 		topHalf.setLayout(new BorderLayout());
-		bottomHalf.setLayout(new BorderLayout());
 		this.setLayout(new BorderLayout());
 
 		topHalf.add(twentyFivePercent, BorderLayout.WEST);
-		topHalf.add(fiftyPercent, BorderLayout.EAST);
+		topHalf.add(allPanel, BorderLayout.EAST);
 
-		bottomHalf.add(seventyFivePercent, BorderLayout.WEST);
-		bottomHalf.add(allPanel, BorderLayout.EAST);
-
-		this.add(topHalf, BorderLayout.NORTH);
-		this.add(bottomHalf, BorderLayout.SOUTH);
+		this.add(topHalf, BorderLayout.CENTER);
 		
 		topHalf.setBackground(CHART_BACKGROUND_COLOR);
-		bottomHalf.setBackground(CHART_BACKGROUND_COLOR);
 		this.setBackground(CHART_BACKGROUND_COLOR);
 		this.getContentPane().setBackground(CHART_BACKGROUND_COLOR);
 		this.getContentPane().repaint();
 		this.getContentPane().validate();
 	}
-
+	
 	public void addData(Results.Type type, int iteration, ExtendedConfiguration configuration, ScenarioSet set) {
 		
-
 		boolean addTick = false;
 		
 		// These will contain just the detecting scenarios: configuration.getTimesToDetection()	
@@ -234,7 +220,7 @@ public class TimeToDetectionPlots extends JFrame {
 				addTick = true;
 			}
 		}
-
+		
 		if(addTick) {
 			perScenarioTTDScrollBar.setMaximum(perScenarioTTDScrollBar.getMaximum()+1);
 			if(perScenarioTTDScrollBar.getMaximum() > 40)
@@ -253,10 +239,10 @@ public class TimeToDetectionPlots extends JFrame {
 			if(detected != this.triggeringScenarios) {
 				this.triggeringScenarios = detected;
 				((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).clear();
-				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios*100)+"% or more scenarios");						
+				bestMoreThan90Plot.getChart().setTitle("Best configuration TTD when detected in "+Constants.decimalFormat.format(triggeringScenarios*100)+"% or more scenarios");
 				bestMoreThan90ScrollBar.setMaximum(20);
 			}
-			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));			
+			((DefaultCategoryDataset)bestMoreThan90.getUnderlyingDataset()).addValue(totalTTDTriggerOnly, type.toString(), String.valueOf(iteration));
 			bestMoreThan90ScrollBar.setMaximum(bestMoreThan90ScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(bestMoreThan90ScrollBar.getMaximum() > 40)
 				bestMoreThan90ScrollBar.setValue(bestMoreThan90ScrollBar.getValue() + 1);
@@ -267,12 +253,12 @@ public class TimeToDetectionPlots extends JFrame {
 			scenariosDetectedScrollBar.setMaximum(scenariosDetectedScrollBar.getMaximum()+1); // increment this every time we add a value?
 			if(scenariosDetectedScrollBar.getMaximum() > 40)
 				scenariosDetectedScrollBar.setValue(scenariosDetectedScrollBar.getValue() + 1);
-		}		
+		}
 	}
 	
 	
 	private JFreeChart createChart(CategoryDataset dataset, String domainAxisLabel, String rangeAxisLabel, String title) {
-
+		
 		// create the chart...
 		final JFreeChart chart = ChartFactory.createLineChart(
 				title,         // chart title
@@ -284,7 +270,7 @@ public class TimeToDetectionPlots extends JFrame {
 				true,                     // tooltips?
 				false                     // URLs?
 				);
-
+		
 		
 		// set the background color for the chart...
 		chart.setBackgroundPaint(CHART_BACKGROUND_COLOR);
@@ -299,7 +285,7 @@ public class TimeToDetectionPlots extends JFrame {
 		plot.setDomainGridlinesVisible(true);
 		plot.setRangeGridlinesVisible(true);
 		plot.setInsets(new RectangleInsets(2, 12, 2, 12));
-
+		
 		plot.getRangeAxis().setLabelFont(LABEL_FONT);
 		plot.getRangeAxis().setLabelPaint(Color.BLACK);
 		plot.getRangeAxis().setTickLabelFont(TICK_FONT);
@@ -311,39 +297,10 @@ public class TimeToDetectionPlots extends JFrame {
 		plot.getDomainAxis().setLabelPaint(Color.BLACK);
 		plot.getDomainAxis().setTickLabelFont(TICK_FONT);
 		plot.getDomainAxis().setTickLabelPaint(TICk_COLOR);
-
-		// set the range axis to display integers only...
-		//final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-		//rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 		
-		// disable bar outlines...
-		/*
-		final BarRenderer renderer = (BarRenderer) plot.getRenderer();
-
-		// set up gradient paints for series...
-		final GradientPaint gp0 = new GradientPaint(
-				0.0f, 0.0f, Color.blue, 
-				0.0f, 0.0f, Color.gray
-				);
-		final GradientPaint gp1 = new GradientPaint(
-				0.0f, 0.0f, Color.green, 
-				0.0f, 0.0f, Color.gray
-				);
-		final GradientPaint gp2 = new GradientPaint(
-				0.0f, 0.0f, Color.red, 
-				0.0f, 0.0f, Color.gray
-				);
-		renderer.setSeriesPaint(0, gp0);
-		renderer.setSeriesPaint(1, gp1);
-		renderer.setSeriesPaint(2, gp2);
-*/
 		final CategoryAxis domainAxis = plot.getDomainAxis();
-		domainAxis.setCategoryLabelPositions(
-				CategoryLabelPositions.createUpRotationLabelPositions(Math.PI / 3.0));
-	
+		domainAxis.setCategoryLabelPositions(CategoryLabelPositions.createUpRotationLabelPositions(Math.PI / 3.0));
+		
 		return chart;
-
 	}
-
-
 }
