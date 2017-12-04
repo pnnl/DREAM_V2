@@ -195,9 +195,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			directory = directory + "\\Desktop\\Ex-Edwards";
 			//directory = directory + "\\Desktop\\BCO-Porosity";
 		}
-		if(directory.contains("rupr404") && directory==Constants.homeDirectory) {
-			directory = directory + "\\Documents\\Projects\\NRAP\\Dream_runs";
-		}
+		//if(directory.contains("rupr404") && directory==Constants.homeDirectory) {
+			//directory = directory + "\\Documents\\Projects\\NRAP\\Dream_runs";
+		//}
 		hdf5Text.setText(directory);
 		hdf5Text.setForeground(black);
 		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
