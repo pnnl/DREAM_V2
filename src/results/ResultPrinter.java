@@ -259,13 +259,13 @@ public class ResultPrinter {
 		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
 		if(runScripts){
 			//Try running script
-			try{
-			File script = new File("./scripts/plot_dream_3panel.py");
-			Runtime runtime = Runtime.getRuntime();
-			String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.tab\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
-			runtime.exec(command);
-			}
-			catch(Exception e){
+			try {
+				File script = new File(Constants.userDir, "scripts/plot_dream_3panel.py");
+				//File script = new File("./scripts/plot_dream_3panel.py");
+				Runtime runtime = Runtime.getRuntime();
+				String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.txt\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
+				runtime.exec(command);
+			} catch(Exception e) {
 				System.out.println("Install python and required libraries to create a PDF visualization");
 			}
 		}
@@ -285,13 +285,13 @@ public class ResultPrinter {
 		FileUtils.writeLines(ttdFile, ttdLines);
 		if(runScripts){
 			//Try running script
-			try{
-			File script = new File("./scripts/plot_best_config_ttds.py");
-			Runtime runtime = Runtime.getRuntime();
-			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
-			runtime.exec(command);
-			}
-			catch(Exception e){
+			try {
+				File script = new File(Constants.userDir, "scripts/plot_best_config_ttds.py");
+				//File script = new File("./scripts/plot_best_config_ttds.py");
+				Runtime runtime = Runtime.getRuntime();
+				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
+				runtime.exec(command);
+			} catch(Exception e) {
 				System.out.println("Install python and required libraries to create a PDF visualization");
 			}
 		}
@@ -300,13 +300,13 @@ public class ResultPrinter {
 		if(runScripts){
 			//Try running script
 			
-			try{
-			File script = new File("./scripts/plot_best_config_vads.py");
-			Runtime runtime = Runtime.getRuntime();
-			String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + vadFile.getAbsolutePath() + "\"";
-			runtime.exec(command);
-			}
-			catch(Exception e){
+			try {
+				File script = new File(Constants.userDir, "scripts/plot_best_config_vads.py");
+				//File script = new File("./scripts/plot_best_config_vads.py");
+				Runtime runtime = Runtime.getRuntime();
+				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + vadFile.getAbsolutePath() + "\"";
+				runtime.exec(command);
+			} catch(Exception e) {
 				System.out.println("Install python and required libraries to create a PDF visualization");
 			}
 			
@@ -344,13 +344,13 @@ public class ResultPrinter {
 			
 			//Try running Kayuum's script
 			if(runScripts){
-				try{
-				File script = new File("./scripts/plot_dreamout01.py");
-				Runtime runtime = Runtime.getRuntime();
-				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
-				runtime.exec(command);
-				}
-				catch(Exception e){
+				try {
+					File script = new File(Constants.userDir, "scripts/plot_dreamout01.py");
+					//File script = new File("./scripts/plot_dreamout01.py");
+					Runtime runtime = Runtime.getRuntime();
+					String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
+					runtime.exec(command);
+				} catch(Exception e) {
 					System.out.println("Install python and required libraries to create a PDF visualization");
 				}
 			}

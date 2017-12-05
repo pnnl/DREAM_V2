@@ -19,7 +19,7 @@ import java.util.logging.SimpleFormatter;
 public class Constants {
 	
 	// These probably be eventually wrapped into the code directly, but for now give us functionality for debugging/developing extensions without breaking the working release
-	public static boolean buildDev = true;
+	public static boolean buildDev = false;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
