@@ -92,7 +92,7 @@ public class E4DSensors {
 	
 	// This method returns valid nodes for E4D
 	public static HashSet<Integer> setValidNodesERT(ScenarioSet set) {
-		HashSet<Integer> validNodes = new HashSet<Integer>(); //TODO: Check if the list of wells varies by scenario
+		HashSet<Integer> validNodes = new HashSet<Integer>();
 		for(Scenario scenario: set.ertDetectionTimes.keySet())
 			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
 		return validNodes;
@@ -130,20 +130,21 @@ public class E4DSensors {
 		HashSet<Integer> allNodes = new HashSet<Integer>(); //All nodes that meet the above threshold
 		ArrayList<Point3i> wellList = new ArrayList<Point3i>(); //The final list of wells to be passed along
 		
-		// First, loop through scenarios and add all nodes that trigger
-		for(Scenario scenario: data.getSet().getScenarios()) {
-			try {
-				HashSet<Integer> nodes = null;
-				nodes = HDF5Interface.queryNodesFromFiles(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, null);
-				allNodes.addAll(nodes);
-			} catch (Exception e) {
-				System.out.println("Unable to query nodes from files.");
-				e.printStackTrace();
+		// Successively remove a level of magnitude to the search threshold until nodes are found
+		while (allNodes.size()==0) {
+			// Loop through scenarios and add all nodes that trigger in all
+			for(Scenario scenario: data.getSet().getScenarios()) {
+				try {
+					HashSet<Integer> nodes = null;
+					nodes = HDF5Interface.queryNodesFromFiles(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, null);
+					allNodes.addAll(nodes);
+				} catch (Exception e) {
+					System.out.println("Unable to query nodes from files.");
+					e.printStackTrace();
+				}
 			}
+			threshold /= 10;
 		}
-		
-		if(allNodes.size() == 0)
-			return null;
 		
 		// Count how many unique wells locations were found in the above nodes
 		for(Integer node: allNodes) {
