@@ -835,7 +835,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					
 					// For this to be empty, no change was seen at any node with the selected parameter (very rare)
-					if (wells.isEmpty()) {
+					if (wells==null) {
 						DREAMWizard.errorMessage.setText("No change was detected with the selected pressure parameter.");
 						return;
 					}
