@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import hdf5Tool.HDF5Interface;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
@@ -122,21 +124,27 @@ public class E4DSensors {
 	
 	
 	// This method determines which wells should be passed along to E4D
-	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter) throws Exception {
+	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter, IProgressMonitor monitor) throws Exception {
+				
 		float threshold = 0.01f; //Hard number determined by Catherine
 		int maximumWells = 30; //Hard number given by E4D coders
 		NodeStructure nodeStructure = data.getSet().getNodeStructure();
 		
+		ArrayList<Point3i> wellList = new ArrayList<Point3i>();
 		HashSet<Integer> allNodes = new HashSet<Integer>(); //All nodes that meet the above threshold
-		ArrayList<Point3i> wellList = new ArrayList<Point3i>(); //The final list of wells to be passed along
+		
 		
 		// Successively remove a level of magnitude to the search threshold until nodes are found
+		int iteration = 1;
 		while (allNodes.size()==0) {
+			if(iteration>1) monitor.worked(-600/iteration);
 			// Loop through scenarios and add all nodes that trigger in all
+			monitor.subTask("Scanning for valid nodes with threshold = " + threshold);
 			for(Scenario scenario: data.getSet().getScenarios()) {
+				if(monitor.isCanceled()) return null;
 				try {
 					HashSet<Integer> nodes = null;
-					nodes = HDF5Interface.queryNodesFromFiles(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, null);
+					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, monitor);
 					allNodes.addAll(nodes);
 				} catch (Exception e) {
 					System.out.println("Unable to query nodes from files.");
@@ -144,6 +152,8 @@ public class E4DSensors {
 				}
 			}
 			threshold /= 10;
+			monitor.worked(600/iteration); //This loop will be 60% of the progress bar
+			iteration++;
 		}
 		
 		// Count how many unique wells locations were found in the above nodes
@@ -155,6 +165,7 @@ public class E4DSensors {
 		}
 		
 		// If a reasonable number of wells is found, sort and return
+		monitor.subTask("Valid wells = " + wellList.size() + "; starting goal seek.");
 		if(wellList.size() <= maximumWells) {
 			Collections.sort(wellList, Point3i.IJ_COMPARATOR);
 		// If too many wells are found, goal seek to the desired number
@@ -168,13 +179,15 @@ public class E4DSensors {
 			for(Integer node: allNodes) {
 				float maxDifference = 0;
 				for(Scenario scenario: data.getSet().getScenarios()) {
-					float start = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), firstStep, parameter, node);
-					float end = HDF5Interface.queryValueFromFile(nodeStructure, scenario.getScenario(), lastStep, parameter, node);
+					if(monitor.isCanceled()) return null;
+					float start = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), firstStep, parameter, node);
+					float end = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), lastStep, parameter, node);
 					float difference = Math.abs((end - start) / start);
 					if(difference > maxDifference)
 						maxDifference = difference;
 				}
 				changePerNode.put(maxDifference, node);
+				monitor.worked(400/allNodes.size());
 			}
 			
 			// Sort the nodes by greatest relative change

@@ -829,7 +829,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					// Returns the best well that fall within the threshold (currently 30)
 					ArrayList<Point3i> wells = null;
 					try {
-						wells = E4DSensors.calculateE4DWells(data, selectedParameter);
+						wells = data.runWellOptimizationE4D(selectedParameter);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

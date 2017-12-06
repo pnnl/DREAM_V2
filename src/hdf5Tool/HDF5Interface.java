@@ -183,6 +183,18 @@ public class HDF5Interface {
 		return statistics.get(dataType)[index];
 	}
 	
+	
+	public static HashSet<Integer> queryNodes(NodeStructure nodeStructure, String scenario, String dataType, 
+			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
+		// If data exists in memory, use me first
+	    if(!hdf5Data.isEmpty())
+	        return queryNodesFromMemory(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
+	    // Sad day, read from the file :(
+	    else
+	        return queryNodesFromFiles(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
+	}
+	
+	
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float threshold, IProgressMonitor monitor) {
 		return queryNodesFromMemory(nodeStructure, scenario, dataType, threshold, Float.MAX_VALUE, monitor);
 	}
@@ -573,7 +585,6 @@ public class HDF5Interface {
 		File hdf5Folder = new File(location);
 		hdf5Files = new HashMap<String, H5File>();
 		
-		boolean readToMemory = false; // TODO: Need a check to see if our size is small enough...
 		NodeStructure nodeStructure = null;
 		int totalNodes = 0;
 		int iMax = 0;
@@ -583,12 +594,14 @@ public class HDF5Interface {
 		long floatCount = 0;
 		if(hdf5Folder.exists() && hdf5Folder.isDirectory()) {
 			long size = 0;
-			for(File file: hdf5Folder.listFiles()) {
+			for(File file: hdf5Folder.listFiles())
 				size += file.length();
-			}
-			System.out.println("Directory size: " + size); // TODO: Pick a size
+			System.out.println("Directory size: " + size);
 			
-			// Loop through contents for hdf5 files TODO: Check for file size
+			long freeMemory = Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
+			System.out.println("Free Memory: " + freeMemory);
+			
+			// Loop through contents for hdf5 files
 			for(File file: hdf5Folder.listFiles()) {
 				String scenario = file.getName().replaceAll("\\.h5" , "");
 				// FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
@@ -596,7 +609,7 @@ public class HDF5Interface {
 					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);	
 					hdf5Files.put(scenario,hdf5File);
 
-					if(!readToMemory)
+					if(size > freeMemory)
 						continue;
 					
 					if(nodeStructure == null) {
@@ -641,7 +654,7 @@ public class HDF5Interface {
 								for(int j = 0; j < totalNodes; j++) {
 									nodeOrder[Constants.getNodeNumber(iMax, jMax, kMax, j)-1] = dataRead[j];
 								}								
-								hdf5Data.get(scenario).get(timeStep).put(dataName, nodeOrder);
+								hdf5Data.get(scenario).get(nodeStructure.getTimeAt(timeStep)).put(dataName, nodeOrder);
 								dataset.close(dataset_id);
 								floatCount+=totalNodes;
 					//			System.out.println(floatCount);

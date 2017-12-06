@@ -4,6 +4,7 @@ import hdf5Tool.FileBrowser;
 
 import java.awt.Color;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.Scenario;
 import objects.ScenarioSet;
@@ -39,6 +41,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
+import utilities.Point3i;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 import wizardPages.Page_LeakageCriteria.SensorData;
@@ -154,7 +157,6 @@ public class DREAMWizard extends Wizard {
 		addPage(new Page_InputDirectory(data));	
 		addPage(new Page_ScenarioWeighting(data));
 		addPage(new Page_LeakageCriteria(data));
-		//if(Constants.buildDev) addPage(new Page_DegradationCriteria(data)); //For now, we are only doing this if we're in our "dev" version
 		addPage(new Page_DetectionCriteria(data));
 		addPage(new Page_ConfigurationSettings(data));
 		addPage(new Page_ExcludeLocations(data));
@@ -292,7 +294,8 @@ public class DREAMWizard extends Wizard {
 		private MUTATE mutate;
 		private ExtendedConfiguration initialConfiguration;
 		private DREAMWizard wizard;
-
+		private ArrayList<Point3i> wells;
+		
 		public Constants.ModelOption modelOption;
 
 		public STORMData(DREAMWizard wizard) {
@@ -569,6 +572,23 @@ public class DREAMWizard extends Wizard {
 
 		public void setWorkingDirectory(String dir) {
 			runner.setResultsDirectory(dir);
+		}
+		
+		public ArrayList<Point3i> runWellOptimizationE4D(final String selectedParameter) throws Exception {
+			dialog.run(true, false, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					monitor.beginTask("Calculating E4D Wells for " + selectedParameter, 1000);
+					try {
+						wells = E4DSensors.calculateE4DWells(data, selectedParameter, monitor);
+					} catch (Exception e) {
+						wells = null;
+						e.printStackTrace();
+					}
+				}
+
+			});
+			return wells;
 		}
 	}
 } 
