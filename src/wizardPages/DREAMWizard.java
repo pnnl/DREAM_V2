@@ -494,9 +494,9 @@ public class DREAMWizard extends Wizard {
 					for(String sensorType: requiredSensors.keySet()) {
 						monitor.subTask("setting sensors required for " + sensorType.toLowerCase());
 						set.getInferenceTest().setMinimumForType(sensorType, requiredSensors.get(sensorType));
+						monitor.worked(1);
 					}
 					set.getInferenceTest().setOverallMinimum(totalMinimum);
-					monitor.worked(1);
 				}
 			});			
 		}
@@ -575,7 +575,7 @@ public class DREAMWizard extends Wizard {
 		}
 		
 		public ArrayList<Point3i> runWellOptimizationE4D(final String selectedParameter) throws Exception {
-			dialog.run(true, false, new IRunnableWithProgress() {
+			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Calculating E4D Wells for " + selectedParameter, 1000);
