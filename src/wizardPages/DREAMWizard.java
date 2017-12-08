@@ -437,7 +437,6 @@ public class DREAMWizard extends Wizard {
 
 							// If the user canceled, should we clear the data????
 							if(monitor.isCanceled()) {
-								// TODO: We're probably in an invalid state? clear everything???
 								for(String sensorType: sensorData.keySet()) {							
 									SensorData data = sensorData.get(sensorType);
 									if(data.isIncluded) {

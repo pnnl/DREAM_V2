@@ -24,7 +24,6 @@ import utilities.Point3i;
 public class ScenarioSet {
 
 	private boolean runLoaded;
-	private boolean defaultWeights;
 	private boolean isReady;
 		
 	/**
@@ -67,7 +66,6 @@ public class ScenarioSet {
 	public ScenarioSet() {
 		
 		runLoaded = false;
-		defaultWeights = true;
 		isReady = false;
 		
 		scenarios = new ArrayList<Scenario>();
@@ -266,7 +264,6 @@ public class ScenarioSet {
 
 	public void setScenarioWeights(Scenario scenario, float weight) {
 		this.scenarioWeights.replace(scenario, weight);
-		defaultWeights = false;
 	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
@@ -651,15 +648,14 @@ public class ScenarioSet {
 
 	public void clearRun() {
 		runLoaded = false;
-		defaultWeights = true;
 		isReady = false;
-
+		
 		scenarios.clear();
 		allScenarios.clear();
 		scenarioWeights.clear();
 		sensorSettings.clear();
 		sensors.clear();
-
+		
 		addPoint = new Point3i(0,0,0);
 		maxWells = 10;
 		iterations = 1000;

@@ -219,35 +219,7 @@ public class NodeStructure {
 				System.err.println("Implement this!!! NodeStructure: 151");
 				return null;
 			}
-			// Calculate half the distance between this node and the next
-			// Actual:  0______1______2______3______5
-			// We have:     1      2     3      4
-			
-			// TODO: This assumes the problem starts at 0, 0, 0 -> some stomp files
-			// start at other values and that would be indicated in the header of the plot files
-			/*
-			float nodalValueX = 0.0f;
-			for(int i = 0; i < node.getI()-1; i++) {
-				float currentX = x.get(i);
-				float diff = currentX-nodalValueX;
-				nodalValueX = currentX + diff;
-			}
-			float nodalValueY = 0.0f;
-			for(int j = 0; j < node.getJ()-1; j++) {
-				float currentY = y.get(j);
-				float diff = currentY-nodalValueY;
-				nodalValueY = currentY + diff;
-			}
-			float nodalValueZ = 0.0f;
-			for(int k = 0; k < node.getK()-1; k++) {
-				float currentZ = z.get(k);
-				float diff = currentZ-nodalValueZ;
-				nodalValueZ = currentZ + diff;
-			}
-			
-			return  new Point3f(nodalValueX, nodalValueY,nodalValueZ);
-			*/
-			//This version uses the extrapolated edges instead.
+			//This version uses the extrapolated edges
 			return new Point3f(edgex.get(node.getI()-1), edgey.get(node.getJ()-1), edgez.get(node.getK()-1));
 		} catch(Exception e) {
 			Constants.log(Level.SEVERE, "Node structure - node was out of bounds", node.toString()); // Maybe warning?

@@ -426,8 +426,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// if (threshold = min or delta), pick larger entry between D and L
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detection));
-			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			//detectionText.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
+			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
 			detectionText.setForeground(black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
@@ -469,8 +468,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Leakage Criteria
 			leakageText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			leakageText.setText(String.valueOf(sensorData.get(type).leakage));
-			leakageText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
-			//leakageText.setToolTipText("Minimum = " + sensorData.get(type).minValue + "; Maximum = " + sensorData.get(type).maxValue);
+			leakageText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
 			leakageText.setForeground(black);
 			leakageText.addModifyListener(new ModifyListener() {
 				@Override
@@ -854,7 +852,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						dialog.setMessage("An E4D file was created that provides the 30 best well locations across all scenarios based on the selected pressure parameter. "
 								+ "E4D will use these well locations to reduce computatational time.\n\nDirectory: " + e4dWellFile.getAbsolutePath());
 						dialog.open();
-						// TODO: Catherine, you can edit the text on both of these pop-up boxes
+						// TODO: Catherine edit text here!
 					} catch (IOException e1) {
 						MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
 						dialog.setText("Write E4D File: Failed");

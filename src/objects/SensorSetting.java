@@ -91,7 +91,7 @@ public class SensorSetting {
 	private boolean nodesReady;
 
 	private List<Scenario> scenarios; // If this changes these will need to be updated
-	public static NodeStructure nodeStructure;
+	public NodeStructure nodeStructure;
 	
 	ScenarioSet scenarioSet;
 	
@@ -103,8 +103,8 @@ public class SensorSetting {
 		this.type = type;
 		this.cost = 100;
 
-		this.minValue = HDF5Interface.queryStatistic(type, 0); //Global minimum value
-		this.maxValue = HDF5Interface.queryStatistic(type, 2); //Global maximum value
+		this.minValue = HDF5Interface.queryStatistic(nodeStructure, type, 0); //Global minimum value
+		this.maxValue = HDF5Interface.queryStatistic(nodeStructure, type, 2); //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
 		this.lowerThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
@@ -178,7 +178,7 @@ public class SensorSetting {
 		return vadMap;
 	}
 	
-	public static float getVolumeDegradedByTTDs(Map<Scenario, Float> ttdMap, int numScenarios){ //TODO: might want to make this take weighted averages.
+	public static float getVolumeDegradedByTTDs(Map<Scenario, Float> ttdMap, int numScenarios) {
 		float volume = 0;
 		//Note that this only loops over scenarios in which some volume of aquifer is degraded
 		for(Scenario scenario: volumeDegradedByYear.keySet()){
@@ -328,12 +328,7 @@ public class SensorSetting {
 				// Query for valid nodes per scenario
 				HashSet<Integer> nodes = null;
 				try {
-					if(HDF5Interface.hdf5Data.isEmpty()) {
-						nodes = HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
-					} else {
-						nodes = HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
-					}
-					//TODO Jon: nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
+					nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 					validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -341,16 +336,13 @@ public class SensorSetting {
 			}
 			if(!validNodesPerScenario.isEmpty()) {
 				HashSet<Integer> allNodes = null;
-				boolean first = true;
 				for(String scenario: validNodesPerScenario.keySet()) {
 					HashSet<Integer> nodes = validNodesPerScenario.get(scenario);
 				//	System.out.println(scenario + " " + type + " nodes: " + nodes);
-					if(first) {
+					if(allNodes==null)
 						allNodes = new HashSet<Integer>(nodes);
-						first = false;
-					} else {
-						allNodes.addAll(nodes); 
-					}
+					else
+						allNodes.addAll(nodes);
 				}
 				for(Integer node: allNodes) {
 					validNodes.add(node);
@@ -360,23 +352,15 @@ public class SensorSetting {
 		} else {
 		
 			HashSet<Integer> allNodes = null;
-			boolean first = true;
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = null;
-					if(!HDF5Interface.hdf5Data.isEmpty()) {
-						nodes = HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.getScenario(), getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
-					} else {
-						nodes = HDF5Interface.queryNodesFromFiles(scenarioSet.getNodeStructure(), scenario.getScenario(),  getType(), lowerThreshold, upperThreshold, getTrigger(), getDeltaType(), monitor);
-					}
-					if(first) {
+					nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
+					if(allNodes==null)
 						allNodes = new HashSet<Integer>(nodes);
-						first = false;
-					} else {
+					else
 						allNodes.addAll(nodes); 
-					}	
 			//		System.out.println(scenario + " " + type + " nodes: " + nodes);			
-					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

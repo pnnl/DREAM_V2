@@ -23,7 +23,7 @@ import utilities.Constants;
 
 /**
  * Will handle all the functions as defined in the RIMVA 9.1 Code
- * This is the function that we use by deafult/exclusively, at the moment
+ * This is the function that we use by default/exclusively, at the moment
  * @author port091
  */
 
@@ -94,8 +94,7 @@ public class SimulatedAnnealing extends Function {
 			sensor.clearScenariosUsed();
 		}
 		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
-		for (final Scenario scenario : set.getScenarios())
-		{
+		for (final Scenario scenario : set.getScenarios()) {
 			if(runThreaded) {
 				Thread thread = new Thread(new Runnable() {
 					@Override
@@ -103,34 +102,28 @@ public class SimulatedAnnealing extends Function {
 						try {
 							long startTime = System.currentTimeMillis();
 							innerLoopParallel(configuration, set, scenario);
-							//if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
-							//else InnerLoopParallelE4D(configuration, set, scenario);
 							Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
 				});
-
+				
 				thread.start();
 				threads.add(thread);
 			} else {
 				startTime = System.currentTimeMillis();	
 				try {
 					innerLoopParallel(configuration, set, scenario);
-					//if(set.e4dInterface == null) innerLoopParallel(configuration, set, scenario); // E4D TODO: is this really how we want to check whether or not to run the E4D bit?
-					//else InnerLoopParallelE4D(configuration, set, scenario);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
-
 			}
 		}
 
 		if(runThreaded) {
-			for (Thread thread: threads)
-			{
+			for (Thread thread: threads) {
 				try {
 					thread.join();
 				} catch (InterruptedException e) {
@@ -138,30 +131,23 @@ public class SimulatedAnnealing extends Function {
 				}
 			}
 		}
-
+		
 		Constants.timer.addPerConfiguration(System.currentTimeMillis() - startTime);
-
+		
 		return configuration.getObjectiveValue();
-
 	}
-
-	/**                                                                  **\
-	 * Added by Luke: TODO - do we actually need this, and does it work?  *
-	 \*
+	
 	
 	/**					**\
 	 * Helper Methods	 *
 	 * 					 *
 	\*					 */
 
-	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception
-	{
-		if (set.getScenarioWeights().get(scenario) > 0)
-		{
+	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception {
+		if (set.getScenarioWeights().get(scenario) > 0) {
 			TimeStep ts = null;
 			InferenceResult inferenceResult = null;
-			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps())
-			{
+			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
 				ts = timeStep;
 				long startTime = System.currentTimeMillis();	
 				inferenceResult = runOneTime(con, set, timeStep, scenario);
@@ -171,7 +157,7 @@ public class SimulatedAnnealing extends Function {
 			}
 			// maxTime is an index, we want the value there
 			float timeInYears = 1000000;			
-			if (ts != null && inferenceResult.isInferred()) { //E4D TODO: change this logic to accommodate second inferenceResult from E4D matrix
+			if (ts != null && inferenceResult.isInferred()) {
 				timeInYears = ts.getRealTime();
 				// Only keep track if we've hit inference
 				con.addTimeToDetection(scenario, timeInYears);
@@ -184,33 +170,18 @@ public class SimulatedAnnealing extends Function {
 	}
 	
 	
-	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario) throws Exception
-	{
-
-		//float realTime = timeStep.getRealTime();
-
-		for (ExtendedSensor sensor : con.getExtendedSensors())
-		{
-
+	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario) throws Exception {
+		for (ExtendedSensor sensor : con.getExtendedSensors()) {
 			// Make sure the sensor is in the cloud...
-			if (sensor.isInCloud(set))
-			{
-				// Only works for threshold?
-				Boolean triggered = null;//getHistory(scenario, sensor.getNodeNumber(), time, sensor.getSensorType());
-				// We haven't tested this before
+			if (sensor.isInCloud(set)) {
+				Boolean triggered = null;
 				if(triggered == null) {
-					//LUKE EDIT HERE - this is where we should loop over all nodenumbers that are within the radius we want
-					// for the case in which we detect with a given radius from the individual sensor
 					if (sensor.getSensorType().contains("Electrical Conductivity"))
 						triggered = E4DSensors.ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
 					else
 						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
-				}		
-
-
-				// Store the result, set the sensor to triggered or not
-				// storeHistory(scenario, sensor.getNodeNumber(), realTime, sensor.getSensorType(), triggered);
-				sensor.setTriggered(triggered, scenario, timeStep, 0.0); // TODO, we won't have the triggered value anymore, do we need it?
+				}
+				sensor.setTriggered(triggered, scenario, timeStep, 0.0);
 			}
 		}
 		return inference(con, set, scenario);

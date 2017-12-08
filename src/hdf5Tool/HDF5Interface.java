@@ -26,8 +26,6 @@ import ncsa.hdf.object.h5.H5File;
 import utilities.Constants;
 import utilities.Point3i;
 
-import objects.SensorSetting;
-
 /**
  * Utility functions for use in reading and parsing hdf5 files to DREAM formats
  * @author port091
@@ -92,7 +90,7 @@ public class HDF5Interface {
 						float[] dataRead = new float[nodeStructure.getTotalNodes()];
 						H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
 						((Dataset)child).close(dataset_id);
-						return dataRead[Constants.getIndex(nodeStructure.getIJKDimensions().getI(), nodeStructure.getIJKDimensions().getJ(), nodeStructure.getIJKDimensions().getK(), nodeNumber)];	// Return data at the right index											
+						return dataRead[Constants.getIndex(nodeStructure.getIJKDimensions().getI(), nodeStructure.getIJKDimensions().getJ(), nodeStructure.getIJKDimensions().getK(), nodeNumber)];										
 					}
 				}
 			}
@@ -101,7 +99,7 @@ public class HDF5Interface {
 		return 0f;
 	}
 	
-	public static float queryStatistic(String dataType, int index) {
+	public static float queryStatistic(NodeStructure nodeStructure, String dataType, int index) {
 		// 0 = minimum
 		// 1 = average
 		// 2 = maximum
@@ -137,7 +135,7 @@ public class HDF5Interface {
 								for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
 									Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
 									int dataset_id = dataset.open();
-									float[] dataRead = new float[SensorSetting.nodeStructure.getTotalNodes()];
+									float[] dataRead = new float[nodeStructure.getTotalNodes()];
 									H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);
 									for(float value: dataRead) {
 										if(value < min)
@@ -184,12 +182,10 @@ public class HDF5Interface {
 	}
 	
 	
-	public static HashSet<Integer> queryNodes(NodeStructure nodeStructure, String scenario, String dataType, 
-			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
-		// If data exists in memory, use me first
+	public static HashSet<Integer> queryNodes(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold,
+			Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 	    if(!hdf5Data.isEmpty())
 	        return queryNodesFromMemory(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
-	    // Sad day, read from the file :(
 	    else
 	        return queryNodesFromFiles(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 	}
@@ -198,7 +194,7 @@ public class HDF5Interface {
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float threshold, IProgressMonitor monitor) {
 		return queryNodesFromMemory(nodeStructure, scenario, dataType, threshold, Float.MAX_VALUE, monitor);
 	}
-
+	
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, 
 			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) {
 		HashSet<Integer> nodes = new HashSet<Integer>();		
@@ -209,20 +205,20 @@ public class HDF5Interface {
 		for(int index = 0; index < totalNodes; index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
 			for(float timeStep: hdf5Data.get(scenario).keySet()) {
-
-				if(monitor.isCanceled()) return nodes;
+				
+				if(monitor.isCanceled()) return null;
 				
 				float value = hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
 				if(value >= lowerThreshold && value < upperThreshold) {
-					//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
+					//TODO: This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 					nodes.add(nodeNumber);
 					break; // Next node index
-				}					
+				}
 			}
-		}		
+		}
 		return nodes;
 	}
-
+	
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, 
 			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 
@@ -265,7 +261,7 @@ public class HDF5Interface {
 							break; // Done after we find one time step
 						}
 			}
-			//This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
+			//TODO: This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 			if(exceededInThis) {
 				nodes.add(nodeNumber);
 			}			
@@ -287,7 +283,6 @@ public class HDF5Interface {
 				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
 					Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
 					int dataset_id = dataset.open();
-					//		if(dataset.getName().equals("steps")) {	steps =  (Float[])dataset.read(); }		 // TODO: Do we need steps?			
 					if(dataset.getName().equals("times")) {	times =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("x")) {	xValues =  (float[])dataset.read(); }					
 					if(dataset.getName().equals("y")) {	yValues =  (float[])dataset.read(); }					
@@ -398,7 +393,7 @@ public class HDF5Interface {
 								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
 								nodes.add(nodeNumber);
 							}
-						// Outside of threshold, ignore
+							// Outside of threshold, ignore
 						} else {
 							//System.out.println("Skipping");
 						}
