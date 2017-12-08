@@ -318,7 +318,7 @@ public class SensorSetting {
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting valid nodes", null);
 
 		if(type.contains("Electrical Conductivity")) {
-			validNodes = E4DSensors.setValidNodesERT(scenarioSet);
+			validNodes = E4DSensors.setValidNodesERT();
 		}
 		
 		else if(getTrigger() == Trigger.MAXIMUM_THRESHOLD || getTrigger() == Trigger.MINIMUM_THRESHOLD) {
@@ -333,6 +333,7 @@ public class SensorSetting {
 					} else {
 						nodes = HDF5Interface.queryNodesFromMemory(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
 					}
+					//TODO Jon: nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), getType(), lowerThreshold, upperThreshold, monitor);
 					validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -394,7 +395,8 @@ public class SensorSetting {
 		
 		fullCloudNodes = new HashSet<Integer>(validNodes);
 		
-		if(Constants.useParetoOptimal) paretoOptimal();
+		if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
+			paretoOptimal();
 		
 		Constants.log(Level.CONFIG, "Sensor settings: set valid nodes", this);
 	}
@@ -425,7 +427,8 @@ public class SensorSetting {
 				Float timeToDegredation = Float.MAX_VALUE;
 				for (TimeStep timeStep: nodeStructure.getTimeSteps()){
 					try {
-						if(SimulatedAnnealing.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
+						if(SimulatedAnnealing.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber))
+							timeToDegredation = timeStep.getRealTime();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

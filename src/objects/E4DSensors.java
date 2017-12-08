@@ -24,12 +24,13 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class E4DSensors {
 	
+	public static Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 	
 	// Called when a results matrix is found in the correct location, the matrix is read and stored
 	public static void addERTSensor(STORMData data) {
 		String ertInput = Constants.userDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getAllScenarios().size() + ".csv";
 		File ertFile = new File(ertInput);
-		if (ertFile.exists() && data.getSet().getERTDetectionTimes().isEmpty()) {
+		if (ertFile.exists() && ertDetectionTimes.isEmpty()) {
 			data.getSet().getSensors().add("Electrical Conductivity");
 			data.getSet().getSensorSettings().put("Electrical Conductivity", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "Electrical Conductivity", data.getSet().getScenarios(), 0, 0));
 			data.getSet().getSensorSettings().get("Electrical Conductivity").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
@@ -42,7 +43,6 @@ public class E4DSensors {
 			HashSet<Integer> validNodes = new HashSet<Integer>(); //need a hashset for valid nodes
 			Map<Scenario, HashSet<Integer>> validNodesPerScenario = new HashMap<Scenario, HashSet<Integer>>();
 			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
-			Map<Scenario, Map<Integer, Map<Integer, Float>>> detectionTimesPerScenario = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
 			try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
 				// Iterate through all the scenarios
 				int scenarioIteration = 0;
@@ -76,27 +76,26 @@ public class E4DSensors {
 
 					// The following blank line triggers the saving of detection times for the scenario
 					else {
-						detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+						ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
 						detectionTimesPerWell.clear();
 						scenarioIteration++;
 					}
 				}
 				if (!detectionTimesPerWell.isEmpty()) // just in case there is no blank line at the end of the file
-					detectionTimesPerScenario.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+					ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
 			} catch (IOException ex) {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
 			}
-			data.getSet().setERTDetectionTimes(detectionTimesPerScenario);
 		}
 	}
 	
 	
 	// This method returns valid nodes for E4D
-	public static HashSet<Integer> setValidNodesERT(ScenarioSet set) {
+	public static HashSet<Integer> setValidNodesERT() {
 		HashSet<Integer> validNodes = new HashSet<Integer>();
-		for(Scenario scenario: set.ertDetectionTimes.keySet())
-			validNodes.addAll(set.ertDetectionTimes.get(scenario).keySet());
+		for(Scenario scenario: ertDetectionTimes.keySet())
+			validNodes.addAll(ertDetectionTimes.get(scenario).keySet());
 		return validNodes;
 	}
 	
@@ -105,7 +104,7 @@ public class E4DSensors {
 	public static Boolean ertSensorTriggered(ScenarioSet set, TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
 		Boolean triggered = false;
 		
-		Map<Integer, Float> detection = set.getERTDetectionTimes().get(scenario).get(nodeNumber);
+		Map<Integer, Float> detection = ertDetectionTimes.get(scenario).get(nodeNumber);
 		if(detection==null)
 			return triggered;
 		Integer bestWell = null; //TODO: this best well pairing needs to show up on the animation

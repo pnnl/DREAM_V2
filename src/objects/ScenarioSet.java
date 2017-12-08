@@ -52,33 +52,30 @@ public class ScenarioSet {
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
-	public Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes;
 	
 	private InferenceTest inferenceTest;
 	
 	private boolean edgeMovesOnly = false;
 	
+	private List<Well> wells;
+	
 	/**
 	 * Once the algorithm is running
 	 */
-	private List<Well> wells;
 	
-	public E4DSensors e4dInterface = null; //TODO: Figure out exactly how we want to handle these things.
-
 	
 	public ScenarioSet() {
 		
 		runLoaded = false;
 		defaultWeights = true;
 		isReady = false;
-
+		
 		scenarios = new ArrayList<Scenario>();
 		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 		sensors = new ArrayList<String>();
-		ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
-
+		
 		scenarioEnsemble = "";
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
@@ -95,8 +92,8 @@ public class ScenarioSet {
 		
 		Constants.log(Level.INFO, "Scenario set: initialized", null);
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
-		
 	}
+	
 	
 	@Override
 	public String toString() {
@@ -639,14 +636,6 @@ public class ScenarioSet {
 
 	public List<String> getSensors() {
 		return sensors;
-	}
-	
-	public void setERTDetectionTimes(Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes) {
-		this.ertDetectionTimes = ertDetectionTimes;
-	}
-	
-	public Map<Scenario, Map<Integer, Map<Integer, Float>>> getERTDetectionTimes() {
-		return ertDetectionTimes;
 	}
 	
 	public static void main(String[] args) {
