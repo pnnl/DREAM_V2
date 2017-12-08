@@ -600,48 +600,44 @@ public class HDF5Interface {
 			
 			long freeMemory = Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
 			System.out.println("Free Memory: " + freeMemory);
+			if(size > freeMemory)
+				return;
 			
 			// Loop through contents for hdf5 files
 			for(File file: hdf5Folder.listFiles()) {
 				String scenario = file.getName().replaceAll("\\.h5" , "");
-				// FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 				try {
-					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);	
+					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
 					hdf5Files.put(scenario,hdf5File);
-
-					if(size > freeMemory)
-						continue;
+					hdf5File.open();
 					
 					if(nodeStructure == null) {
 						nodeStructure = new NodeStructure("");
 						System.out.println("Domain size: " + nodeStructure.getIJKDimensions());
-						totalNodes = nodeStructure.getIJKDimensions().getI()*nodeStructure.getIJKDimensions().getJ()*nodeStructure.getIJKDimensions().getK();
 						iMax = nodeStructure.getIJKDimensions().getI();
 						jMax = nodeStructure.getIJKDimensions().getJ();
 						kMax = nodeStructure.getIJKDimensions().getK();
-					}					
+						totalNodes = iMax * jMax * kMax;
+					}
 					
-					// Try and store it into memory?
+					// Try and store it into memory
 					if(hdf5Data == null)
 						hdf5Data = new HashMap<String, Map<Float, Map<String, float[]>>>(hdf5Folder.listFiles().length, 0.9f);
 					if(!hdf5Data.containsKey(scenario))
 						hdf5Data.put(scenario, new HashMap<Float, Map<String, float[]>>(nodeStructure.getTimeSteps().size(), 0.9f));
 					
-					// Get the root node:
+					// Get the root node
 					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 					// Get the data group
 					for(int ts = 0; ts < root.getMemberList().size(); ts++) {
 						String name = root.getMemberList().get(ts).getName();
 						if(!name.startsWith("plot"))
 							continue;
-						Integer timeStep = Integer.parseInt(name.replaceAll("plot", ""));
-						boolean plotsAreTimeIndices = HDF5Interface.plotFileHack(nodeStructure, root);
-						timeStep = plotsAreTimeIndices ? nodeStructure.getTimeAt(timeStep).intValue() : timeStep;
+						int timeStep = Integer.parseInt(name.replaceAll("plot", ""));
 						Object group =  root.getMemberList().get(ts); // timesteps	
 						
 						if(!hdf5Data.get(scenario).containsKey(timeStep))
 							hdf5Data.get(scenario).put(nodeStructure.getTimeAt(timeStep), new HashMap<String, float[]>(((Group)group).getMemberList().size(), 0.9f));
-						//Object group =  root.getMemberList().get(timestep+1); // timesteps
 						for(int i = 0; i < ((Group)group).getMemberList().size(); i++) {
 							Object child = ((Group)group).getMemberList().get(i);// z is index 0
 							if(child instanceof Dataset) {
@@ -657,13 +653,11 @@ public class HDF5Interface {
 								hdf5Data.get(scenario).get(nodeStructure.getTimeAt(timeStep)).put(dataName, nodeOrder);
 								dataset.close(dataset_id);
 								floatCount+=totalNodes;
-					//			System.out.println(floatCount);
 							}
 						}
-						
-					}	
-														
+					}
 				} catch (Exception e) {
+					System.out.println("Error loading scenario: " + scenario);
 					e.printStackTrace();
 				}
 			}
