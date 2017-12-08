@@ -56,14 +56,8 @@ public class HDF5Interface {
 	}
 	
 	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
-		float years = timestep.getTimeStep();
-		if(hdf5CloudData.containsKey(scenario) && 
-		   hdf5CloudData.get(scenario).containsKey(years) &&
-		   hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
-		   hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
-			return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
-		}
-		return null;
+		float years = timestep.getRealTime();
+		return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
 	}
 	
 	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
@@ -99,88 +93,6 @@ public class HDF5Interface {
 		return 0f;
 	}
 	
-	public static float queryStatistic(NodeStructure nodeStructure, String dataType, int index) {
-		// 0 = minimum
-		// 1 = average
-		// 2 = maximum
-		if (statistics.isEmpty()) {
-			try {
-				for(H5File hdf5File: hdf5Files.values()) { // For every scenario
-					hdf5File.open();
-					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-					for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // Search for the statistics node (should be last)
-						if(root.getMemberList().get(rootIndex).getName().equals("statistics")) {
-							for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-								Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-								int dataset_id = dataset.open();
-								float[] temp = (float[])dataset.read();
-								if (statistics.containsKey(dataset.getName())) {
-									temp[0] = Math.min(temp[0], statistics.get(dataset.getName())[0]);
-									temp[1] = temp[1] + statistics.get(dataset.getName())[1]; //Sum averages now, divide by time step later
-									temp[2] = Math.max(temp[2], statistics.get(dataset.getName())[2]);
-								}
-								statistics.put(dataset.getName(), temp);
-								dataset.close(dataset_id);
-							}
-						}
-					}
-					// TODO: ---When we want to discontinue support of old h5 files without statistics, remove this code---
-					if (statistics.isEmpty()) {
-						for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
-							if(!root.getMemberList().get(rootIndex).getName().equals("data")) {
-								float min = Float.MAX_VALUE;
-								float max = Float.MIN_VALUE;
-								float sum = 0;
-								int counter = 0;
-								for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-									Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-									int dataset_id = dataset.open();
-									float[] dataRead = new float[nodeStructure.getTotalNodes()];
-									H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);
-									for(float value: dataRead) {
-										if(value < min)
-											min = value;
-										if(value > max)
-											max = value;
-										sum = sum + value;
-										counter++;
-									}
-									float[] temp = new float[3];
-									temp[0] = min;
-									temp[1] = sum/counter;
-									temp[2] = max;
-									statistics.put(dataset.getName(), temp);
-									dataset.close(dataset_id);
-								}
-								break; // First time step only
-							}
-							System.gc();
-						}
-						hdf5File.close();
-						break; // First scenario only
-					}
-					// ---End of code to remove---
-					hdf5File.close();
-				}
-				for (String type: statistics.keySet()) {
-					statistics.get(type)[1] = statistics.get(type)[1] / hdf5Files.size();
-				}
-			} catch (Exception e) {
-				System.out.println("Something went wrong while adding statistics.");
-				e.printStackTrace();
-			}
-		}
-		//Handles duplicate variables with no statistics field of their own
-		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){ //Up to 99 variables
-			dataType = dataType.substring(0,dataType.indexOf("_"));
-		}
-		//Handles ERT
-		if (dataType.contains("Electrical Conductivity"))
-			return 0;
-		
-		return statistics.get(dataType)[index];
-	}
-	
 	
 	public static HashSet<Integer> queryNodes(NodeStructure nodeStructure, String scenario, String dataType, float lowerThreshold, float upperThreshold,
 			Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
@@ -190,51 +102,18 @@ public class HDF5Interface {
 	        return queryNodesFromFiles(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 	}
 	
-	
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, float threshold, IProgressMonitor monitor) {
-		return queryNodesFromMemory(nodeStructure, scenario, dataType, threshold, Float.MAX_VALUE, monitor);
-	}
-	
-	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, 
-			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) {
-		HashSet<Integer> nodes = new HashSet<Integer>();		
-		int i = nodeStructure.getIJKDimensions().getI();
-		int j = nodeStructure.getIJKDimensions().getJ();
-		int k = nodeStructure.getIJKDimensions().getK();		
-		int totalNodes = i*j*k;		
-		for(int index = 0; index < totalNodes; index++) {
-			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
-			for(float timeStep: hdf5Data.get(scenario).keySet()) {
-				
-				if(monitor.isCanceled()) return null;
-				
-				float value = hdf5Data.get(scenario).get(timeStep).get(dataType)[index];
-				if(value >= lowerThreshold && value < upperThreshold) {
-					//TODO: This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
-					nodes.add(nodeNumber);
-					break; // Next node index
-				}
-			}
-		}
-		return nodes;
-	}
-	
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, 
 			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
 
-		HashSet<Integer> nodes = new HashSet<Integer>();		
-		int i = nodeStructure.getIJKDimensions().getI();
-		int j = nodeStructure.getIJKDimensions().getJ();
-		int k = nodeStructure.getIJKDimensions().getK();		
-		int totalNodes = i*j*k;		
+		HashSet<Integer> nodes = new HashSet<Integer>();			
 		List<TimeStep> timeSteps = nodeStructure.getTimeSteps();
-
-		for(int index = 0; index < totalNodes; index++) {
+		
+		for(int index = 0; index < nodeStructure.getTotalNodes(); index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
 			boolean exceededInThis = false;							
 			for(int startTimeIndex = 0; startTimeIndex < timeSteps.size(); startTimeIndex++) {
 
-				if(monitor.isCanceled()) return nodes;
+				if(monitor.isCanceled()) return null;
 				
 				float valueAtStartTime = hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTime()).get(dataType)[index];	
 
@@ -268,6 +147,101 @@ public class HDF5Interface {
 		}		
 		return nodes;
 	}
+	
+	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, 
+			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
+
+		H5File h5file = hdf5Files.get(scenario);
+		h5file.open();
+		
+		// Get the root node:
+		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)h5file.getRootNode()).getUserObject();
+		Map<Float, float[]> valuesByScenarioAndTime = new TreeMap<Float, float[]>();
+		int totalNodes = nodeStructure.getTotalNodes();
+		boolean plotAreTimeIndices = plotFileHack(nodeStructure, root);
+	
+		// Get the data group
+		for(int timestep = 0; timestep < root.getMemberList().size(); timestep++) {
+			Group group =  (Group)root.getMemberList().get(timestep); // time steps
+			if(group.getName().startsWith("plot")) {		
+				for(int groupId = 0; groupId < group.getMemberList().size(); groupId++) {
+					Dataset dataset = (Dataset)group.getMemberList().get(groupId);		
+					if(!dataset.getName().equals(dataType))
+						continue;
+					int dataset_id = dataset.open();
+					float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
+					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);						
+					String name = ((Group)group).getName().replaceAll("plot", "");
+					int timeIndex = Integer.parseInt(name);
+					valuesByScenarioAndTime.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, dataRead);
+					break; //found the correct parameter, move on now...
+				}
+			}
+		}
+
+		Object[] orderedTimes = (Object[]) valuesByScenarioAndTime.keySet().toArray();
+		HashSet<Integer> nodes = new HashSet<Integer>();
+
+		for(int index = 0; index < totalNodes; index++) {	
+			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
+			boolean exceededInThis = false;	
+			int startTimeIndex = 0;
+			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
+				if(monitor!=null && monitor.isCanceled())
+					return nodes;
+				
+				float startTime = (Float) orderedTimes[startTimeIndex];
+				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[index];
+				//	int valueAtStartTimeInt = (int)(valueAtStartTime * epsilon);
+
+				// Always compare from 0 in this case, end is then actually beginning
+				if(startTimeIndex == 0)
+					continue; // Not this one...
+				float valueAtCurrentTime = valueAtStartTime;
+				// Grab the first time step
+				float timeStepAt0 = (Float) orderedTimes[0];
+				float valueAtTime0 = valuesByScenarioAndTime.get(timeStepAt0)[index]; // Get the value there
+				float change = 0;
+				
+				// This is the calculation for the percentage change
+				if (trigger == Trigger.RELATIVE_DELTA) change = (valueAtCurrentTime - valueAtTime0) / valueAtTime0;
+				// This is the calculation for absolute change
+				else change = valueAtCurrentTime - valueAtTime0;
+				
+				// Handling the delta type, which can limit change in one direction (both by default)
+				if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
+					exceededInThis = true;
+					if(!nodes.contains(nodeNumber)) {
+						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
+						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
+					}
+					break; // Done after we find one time step
+				}
+			}
+			if(exceededInThis) {
+				nodes.add(nodeNumber);
+			}				
+		}
+		h5file.close();
+
+		return nodes;
+
+	}
+	
 	
 	public static void fillNodeStructureFromFiles(NodeStructure nodeStructure) throws Exception {
 		// We assume all the files have the same node structure over all scenarios
@@ -354,57 +328,7 @@ public class HDF5Interface {
 		return scenarios;
 	}
 	
-	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, 
-			String dataType, float lowerThreshold, float upperThreshold, IProgressMonitor monitor) throws Exception {
-		HashSet<Integer> nodes = new HashSet<Integer>();		
-		H5File hdf5File = hdf5Files.get(scenario); // For the given scenario
-		hdf5File.open();
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-		TreeMap<Float, Group> sortedTimes = new TreeMap<Float, Group>();
-		boolean plotAreTimeIndices = plotFileHack(nodeStructure, root);
 	
-		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
-			Object group =  root.getMemberList().get(rootIndex);
-			String name = ((Group)group).getName().replaceAll("plot", "");
-			if(name.contains("data") || name.contains("statistics"))
-				continue;
-			int timeIndex = Integer.parseInt(name);
-			// These have to be in order...
-			sortedTimes.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, (Group)group);
-				
-		}
-		for(Float timeStep: sortedTimes.keySet()) {
-			Group group = sortedTimes.get(timeStep);			
-			for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
-				Object child = ((Group)group).getMemberList().get(groupIndex);
-				if(child instanceof Dataset && ((Dataset)child).getName().equals(dataType)) { // If this is the data type we're interested in
-					int dataset_id = ((Dataset)child).open();
-					float[] dataRead = new float[nodeStructure.getTotalNodes()];
-					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
-					((Dataset)child).close(dataset_id);
-					for(int i = 0; i < dataRead.length; i++) {
-
-						if(monitor != null && monitor.isCanceled()) return nodes;
-
-						// Checks if node is within threshold, then add to validNodes and cloud
-						if(dataRead[i] >= lowerThreshold && dataRead[i] < upperThreshold) {
-							int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), i);
-							if(!nodes.contains(nodeNumber)) {
-								addNodeToCloud(scenario, timeStep, dataType, nodeNumber, dataRead[i]);
-								nodes.add(nodeNumber);
-							}
-							// Outside of threshold, ignore
-						} else {
-							//System.out.println("Skipping");
-						}
-					}
-				}
-			}
-		}
-		hdf5File.close();
-		return nodes;
-	}
-
 	private static void addNodeToCloud(String scenario, float timeInYears, String dataType, int nodeNumber, float value) {
 		try {
 		if(hdf5CloudData == null)
@@ -433,103 +357,7 @@ public class HDF5Interface {
 			e.printStackTrace();
 		}
 	}
-
-	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, 
-			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
-
-		H5File h5file = hdf5Files.get(scenario);
-		h5file.open();
-		
-		// Get the root node:
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)h5file.getRootNode()).getUserObject();
 	
-		Map<Float, float[]> valuesByScenarioAndTime = new TreeMap<Float, float[]>();
-
-		int totalNodes = nodeStructure.getTotalNodes();
-
-		boolean plotAreTimeIndices = plotFileHack(nodeStructure, root);
-	
-		// Get the data group
-		for(int timestep = 0; timestep < root.getMemberList().size(); timestep++) {
-			Group group =  (Group)root.getMemberList().get(timestep); // time steps
-			if(group.getName().startsWith("plot")) {		
-				for(int groupId = 0; groupId < group.getMemberList().size(); groupId++) {
-					Dataset dataset = (Dataset)group.getMemberList().get(groupId);		
-					if(!dataset.getName().equals(dataType))
-						continue;
-					int dataset_id = dataset.open();
-					float[] dataRead = new float[totalNodes];	 // expecting an array with size of the grid
-					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);						
-					String name = ((Group)group).getName().replaceAll("plot", "");
-					int timeIndex = Integer.parseInt(name);
-					valuesByScenarioAndTime.put(plotAreTimeIndices ? nodeStructure.getTimeAt(timeIndex) : (float)timeIndex, dataRead);
-					break; //found the correct parameter, move on now...
-				}
-			}
-		}
-
-		Object[] orderedTimes = (Object[]) valuesByScenarioAndTime.keySet().toArray();
-		HashSet<Integer> nodes = new HashSet<Integer>();
-
-		for(int index = 0; index < totalNodes; index++) {	
-			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
-			boolean exceededInThis = false;	
-			int startTimeIndex = 0;
-			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
-				if(monitor!=null && monitor.isCanceled())
-					return nodes;
-				
-				float startTime = (Float) orderedTimes[startTimeIndex];
-				float valueAtStartTime = valuesByScenarioAndTime.get(startTime)[index];
-				//	int valueAtStartTimeInt = (int)(valueAtStartTime * epsilon);
-
-				// Always compare from 0 in this case, end is then actually beginning
-				if(startTimeIndex == 0)
-					continue; // Not this one...
-				float valueAtCurrentTime = valueAtStartTime;
-				// Grab the first time step
-				float timeStepAt0 = (Float) orderedTimes[0];
-				float valueAtTime0 = valuesByScenarioAndTime.get(timeStepAt0)[index]; // Get the value there
-				float change = 0;
-				
-				// This is the calculation for the percentage change
-				if (trigger == Trigger.RELATIVE_DELTA) change = (valueAtCurrentTime - valueAtTime0) / valueAtTime0;
-				// This is the calculation for absolute change
-				else change = valueAtCurrentTime - valueAtTime0;
-				
-				// Handling the delta type, which can limit change in one direction (both by default)
-				if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {
-					exceededInThis = true;
-					if(!nodes.contains(nodeNumber)) {
-						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-					}
-					break; // Done after we find one time step
-				} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
-					exceededInThis = true;
-					if(!nodes.contains(nodeNumber)) {
-						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-					}
-					break; // Done after we find one time step
-				} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
-					exceededInThis = true;
-					if(!nodes.contains(nodeNumber)) {
-						addNodeToCloud(scenario, timeStepAt0, dataType, nodeNumber, valueAtTime0);
-						addNodeToCloud(scenario, startTime, dataType, nodeNumber, valueAtCurrentTime);
-					}
-					break; // Done after we find one time step
-				}
-			}
-			if(exceededInThis) {
-				nodes.add(nodeNumber);
-			}				
-		}
-		h5file.close();
-
-		return nodes;
-
-	}
 	
 	public static boolean plotFileHack(NodeStructure nodeStructure, Group root) {
 		// plotxyz is inconsitent between h5 files, it will either be plot[timeIndex] or plot[realTime]
@@ -659,4 +487,87 @@ public class HDF5Interface {
 		}
 		System.out.println("#Floats stored in memory: " + floatCount);
 	}
+	
+	public static float queryStatistic(NodeStructure nodeStructure, String dataType, int index) {
+		// 0 = minimum
+		// 1 = average
+		// 2 = maximum
+		if (statistics.isEmpty()) {
+			try {
+				for(H5File hdf5File: hdf5Files.values()) { // For every scenario
+					hdf5File.open();
+					Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+					for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // Search for the statistics node (should be last)
+						if(root.getMemberList().get(rootIndex).getName().equals("statistics")) {
+							for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+								Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+								int dataset_id = dataset.open();
+								float[] temp = (float[])dataset.read();
+								if (statistics.containsKey(dataset.getName())) {
+									temp[0] = Math.min(temp[0], statistics.get(dataset.getName())[0]);
+									temp[1] = temp[1] + statistics.get(dataset.getName())[1]; //Sum averages now, divide by time step later
+									temp[2] = Math.max(temp[2], statistics.get(dataset.getName())[2]);
+								}
+								statistics.put(dataset.getName(), temp);
+								dataset.close(dataset_id);
+							}
+						}
+					}
+					// TODO: ---When we want to discontinue support of old h5 files without statistics, remove this code---
+					if (statistics.isEmpty()) {
+						for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+							if(!root.getMemberList().get(rootIndex).getName().equals("data")) {
+								float min = Float.MAX_VALUE;
+								float max = Float.MIN_VALUE;
+								float sum = 0;
+								int counter = 0;
+								for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+									Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+									int dataset_id = dataset.open();
+									float[] dataRead = new float[nodeStructure.getTotalNodes()];
+									H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);
+									for(float value: dataRead) {
+										if(value < min)
+											min = value;
+										if(value > max)
+											max = value;
+										sum = sum + value;
+										counter++;
+									}
+									float[] temp = new float[3];
+									temp[0] = min;
+									temp[1] = sum/counter;
+									temp[2] = max;
+									statistics.put(dataset.getName(), temp);
+									dataset.close(dataset_id);
+								}
+								break; // First time step only
+							}
+							System.gc();
+						}
+						hdf5File.close();
+						break; // First scenario only
+					}
+					// ---End of code to remove---
+					hdf5File.close();
+				}
+				for (String type: statistics.keySet()) {
+					statistics.get(type)[1] = statistics.get(type)[1] / hdf5Files.size();
+				}
+			} catch (Exception e) {
+				System.out.println("Something went wrong while adding statistics.");
+				e.printStackTrace();
+			}
+		}
+		//Handles duplicate variables with no statistics field of their own
+		else if (dataType.contains("_") && (dataType.indexOf("_")==dataType.length()-2 || dataType.indexOf("_")==dataType.length()-3)){ //Up to 99 variables
+			dataType = dataType.substring(0,dataType.indexOf("_"));
+		}
+		//Handles ERT
+		if (dataType.contains("Electrical Conductivity"))
+			return 0;
+		
+		return statistics.get(dataType)[index];
+	}
+	
 }
