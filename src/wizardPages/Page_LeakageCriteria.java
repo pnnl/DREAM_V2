@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
 import functions.*;
@@ -800,7 +801,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  		
 	  		// Save the E4D files
 		    e4dButton = new Button(composite_E4D, SWT.PUSH);
-		    e4dButton.setText("  Write E4D Files  ");
+		    e4dButton.setText("  Write E4D File  ");
 			e4dButton.addListener(SWT.Selection, new Listener() {
 				@Override
 				public void handleEvent(Event arg0) {
@@ -848,15 +849,25 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					try{
 						e4dWellFile.createNewFile();
 						FileUtils.writeStringToFile(e4dWellFile, ijStringBuilder.toString());
+						MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
+						dialog.setText("Write E4D File: Success");
+						dialog.setMessage("An E4D file was created that provides the 30 best well locations across all scenarios based on the selected pressure parameter. "
+								+ "E4D will use these well locations to reduce computatational time.\n\nDirectory: " + e4dWellFile.getAbsolutePath());
+						dialog.open();
+						// TODO: Catherine, you can edit the text on both of these pop-up boxes
 					} catch (IOException e1) {
+						MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
+						dialog.setText("Write E4D File: Failed");
+						dialog.setMessage("The program was unable to write out the optimized E4D well locations.\n\nDirectory: " + e4dWellFile.getAbsolutePath());
+						dialog.open();
 						e1.printStackTrace();
 					}
 				}
 			});
 		}
-
+		
 		container.layout();	
-
+		
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		boolean enableVis  = false;
@@ -865,16 +876,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
 				enableVis = true;
 		}
-
+		
 		DREAMWizard.visLauncher.setEnabled(enableVis);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	} //ends load page
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
-
+		
 		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
 		sc.addListener(SWT.Activate, new Listener() {
 	        public void handleEvent(Event e) {
@@ -889,7 +900,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	                sc.getVerticalBar().setIncrement(4);
 	                wheelCount++;
 	            }
-
+	            
 	            while (wheelCount > 0) {
 	                sc.getVerticalBar().setIncrement(-4);
 	                wheelCount--;
@@ -904,7 +915,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
         sc.setExpandHorizontal(true);
         sc.getVerticalBar().setIncrement(20);
         sc.setExpandVertical(true);
-                
+        
         container = new Composite(sc, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
@@ -956,12 +967,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	}
 	
 	
-	private void volumeOfAquiferDegraded(){	
+	private void volumeOfAquiferDegraded(){
 		long current = System.currentTimeMillis();
 		
 		HashSet<Integer> nodes = new HashSet<Integer>();
 		boolean foundNodes = false;
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){			
+		for(String sensorType: data.getSet().getSensorSettings().keySet()){
 			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null));
 			System.out.println(sensorType + ": Number of nodes = " + nodes.size());
 			if(nodes.size()!=0) //At least one node was found for a type
