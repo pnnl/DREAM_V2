@@ -102,51 +102,56 @@ public class HDF5Interface {
 	        return queryNodesFromFiles(nodeStructure, scenario, dataType, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 	}
 	
+	
 	public static HashSet<Integer> queryNodesFromMemory(NodeStructure nodeStructure, String scenario, String dataType, 
 			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
-
-		HashSet<Integer> nodes = new HashSet<Integer>();			
+		
+		HashSet<Integer> nodes = new HashSet<Integer>();
 		List<TimeStep> timeSteps = nodeStructure.getTimeSteps();
 		
 		for(int index = 0; index < nodeStructure.getTotalNodes(); index++) {
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
-			boolean exceededInThis = false;							
+			boolean exceededInThis = false;
 			for(int startTimeIndex = 0; startTimeIndex < timeSteps.size(); startTimeIndex++) {
-
+				
 				if(monitor.isCanceled()) return null;
 				
-				float valueAtStartTime = hdf5Data.get(scenario).get(timeSteps.get(startTimeIndex).getRealTime()).get(dataType)[index];	
-
+				float startTime = timeSteps.get(startTimeIndex).getRealTime();
+				float valueAtStartTime = hdf5Data.get(scenario).get(startTime).get(dataType)[index];
+				
 				// Always compare from 0 in this case, end is then actually beginning
 				if(startTimeIndex == 0)
 					continue; // Not this one...
-				float valueAtTime0 = hdf5Data.get(scenario).get(timeSteps.get(0).getRealTime()).get(dataType)[index];
 				float valueAtCurrentTime = valueAtStartTime;
-
-				float change = trigger == Trigger.RELATIVE_DELTA ? 
-						// This is the calculation for the percentage (checked)
-						valueAtTime0 == 0 ? 0 : ((valueAtCurrentTime - valueAtTime0) / valueAtTime0) :
-							// This is the calculation for non percentage (not checked)
-							valueAtCurrentTime - valueAtTime0;
-
-						if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {						
-							exceededInThis = true;
-							break; // Done after we find one time step
-						} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {						
-							exceededInThis = true;
-							break; // Done after we find one time step
-						} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
-							exceededInThis = true;
-							break; // Done after we find one time step
-						}
+				// Grab the first time step
+				float timeStepAt0 = timeSteps.get(0).getRealTime();
+				float valueAtTime0 = hdf5Data.get(scenario).get(timeStepAt0).get(dataType)[index];
+				float change = 0;
+				
+				// This is the calculation for the percentage change
+				if (trigger == Trigger.RELATIVE_DELTA) change = (valueAtCurrentTime - valueAtTime0) / valueAtTime0;
+				// This is the calculation for absolute change
+				else change = valueAtCurrentTime - valueAtTime0;
+				
+				// Handling the delta type, which can limit change in one direction (both by default)
+				if(deltaType == DeltaType.INCREASE && lowerThreshold <= change) {
+					exceededInThis = true;
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.DECREASE && lowerThreshold >= change) {
+					exceededInThis = true;
+					break; // Done after we find one time step
+				} else if(deltaType == DeltaType.BOTH && lowerThreshold <= Math.abs(change)){
+					exceededInThis = true;
+					break; // Done after we find one time step
+				}
 			}
-			//TODO: This is most likely wrong. See queryNodesFromFiles to see the updated index logic that was not copied to this.
 			if(exceededInThis) {
 				nodes.add(nodeNumber);
-			}			
-		}		
+			}
+		}
 		return nodes;
 	}
+	
 	
 	public static HashSet<Integer> queryNodesFromFiles(NodeStructure nodeStructure, String scenario, String dataType, 
 			float lowerThreshold, float upperThreshold, Trigger trigger, DeltaType deltaType, IProgressMonitor monitor) throws Exception {
@@ -185,8 +190,7 @@ public class HDF5Interface {
 		for(int index = 0; index < totalNodes; index++) {	
 			int nodeNumber = Constants.getNodeNumber(nodeStructure.getIJKDimensions(), index);
 			boolean exceededInThis = false;	
-			int startTimeIndex = 0;
-			for(startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
+			for(int startTimeIndex = 0; startTimeIndex < orderedTimes.length; startTimeIndex++) {
 				if(monitor!=null && monitor.isCanceled())
 					return nodes;
 				
