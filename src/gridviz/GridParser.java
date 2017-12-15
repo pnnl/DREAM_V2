@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +33,9 @@ public class GridParser {
 	private File dataFile;
 
 	private int timeStep = 0;
-
+	
+	private static List<Float> timesAsFloats = new ArrayList<Float>();
+	
 	private static enum Tecplot {
 		TITLE("TITLE"),
 		VARIABLES("VARIABLES"),
@@ -153,6 +156,31 @@ public class GridParser {
 		return timeStep;
 	}
 	
+	public void extractStompTimes(Collection<GridParser> files) throws GridError, FileNotFoundException {
+		System.out.println("Pulling time information from files...");
+		for(GridParser file: files) {
+			try (Scanner dataScanner = new Scanner(new FileReader(file.dataFile))) {
+				while (dataScanner.hasNextLine()) {
+					String line = dataScanner.nextLine().trim();
+					
+					if(line.startsWith("Time") && line.contains(",yr")) {
+						int startIndex = line.indexOf(",wk") + 3;
+						int endIndex = line.indexOf(",yr");
+						String sub = line.substring(startIndex,endIndex).trim();
+						try {
+							float timestep = Float.parseFloat(sub);
+							if (!timesAsFloats.contains(timestep))
+								timesAsFloats.add(timestep);
+						} catch (Exception e) {
+							System.out.println("Years Error: " + sub);
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	
 	public DataGrid extractStompData() throws GridError {
 		
 		DataGrid grid = null; // will contain all the extracted data from the file
@@ -160,7 +188,6 @@ public class GridParser {
 		Vector3f center = new Vector3f();
 		boolean hasCenter = false;
 		Map<Stomp, Object> info = new HashMap<Stomp, Object>();
-		float timestep = 0; // Time in years
 		boolean emptyLine = false;
 		boolean nodal = false;
 		int linearIndex = -1; // The linear index will keep track of where to insert the data into the array that holds the node data for each field
@@ -177,14 +204,7 @@ public class GridParser {
 				
 				// Reads in the Time Steps from the plot file
 				else if(line.startsWith("Time") && line.contains(",yr")) {
-					int startIndex = line.indexOf(",wk") + 3;
-					int endIndex = line.indexOf(",yr");
-					String sub = line.substring(startIndex,endIndex).trim();
-					try {
-						timestep = Float.parseFloat(sub);
-					} catch (Exception e) {
-						System.out.println("Years Error: " + sub);
-					}
+					continue; // Time is handled elsewhere
 				}
 				
 				// Reads in the grid configuration information from the plot file
@@ -232,7 +252,7 @@ public class GridParser {
 						else
 							grid = new DataGrid(size);
 
-						grid.setTimestep(timestep);
+						grid.setTimestep(timesAsFloats.get(timeStep));
 					}
 				}
 				
@@ -805,8 +825,9 @@ public class GridParser {
 		}			
 	}
 
-	public Object[] getDataTypes(String fileType) throws GridError {
+	public Object[] getDataTypes(String fileType, Collection<GridParser> files) throws GridError, FileNotFoundException {
 		if(fileType.equals(FileBrowser.STOMP)) {
+			extractStompTimes(files);
 			return extractStompData().getFieldNames().toArray();
 		} else if(fileType.equals(FileBrowser.NTAB)) {
 			List<String> fieldNames = new ArrayList<String>();			
@@ -832,5 +853,9 @@ public class GridParser {
 			}
 		}
 		return new Object[]{};
+	}
+	
+	public static float getTime(int time) {
+		return timesAsFloats.get(time);
 	}
 }

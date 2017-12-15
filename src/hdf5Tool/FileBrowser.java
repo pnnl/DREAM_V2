@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -647,8 +648,8 @@ public class FileBrowser extends javax.swing.JFrame {
 							Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
 							Object[] data;
 							try {
-								data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString());
-							} catch (GridError e) {
+								data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString(), gridsByTimeAndScenario.get(scenarioToUse).values());
+							} catch (GridError | FileNotFoundException e) {
 								e.printStackTrace(); // Can't continue
 								return;
 							}
@@ -737,10 +738,8 @@ public class FileBrowser extends javax.swing.JFrame {
 						if(gridsByTimeAndScenario.get(name).containsKey(year)) {
 							// In this case we really want to merge the two files...
 							gridsByTimeAndScenario.get(name).get(year).mergeFile(subFile);
-							//	System.out.println("Merging time step = " + yrs + " to map at " + name);
 						} else {
 							gridsByTimeAndScenario.get(name).put(year, thisTimeStep);
-							//	System.out.println("Adding time step = " + yrs + " to map at " + name);
 						}
 					}
 				} catch (NumberFormatException e) {
@@ -845,8 +844,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			
 			// Time steps are already in years ...
 			for(JCheckBox cb: timeSteps) {	    		
-				if(!cb.isSelected())
-					continue;	   
+				if(!cb.isSelected()) continue;	   
 				try {
 					Integer ts = Integer.parseInt(cb.getText());
 					float tsf = ts.floatValue();
@@ -971,11 +969,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				} catch (Exception e) {
 					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
 				}
-				try {
-					timeStepsInYears.add(new Double(gridsByTimeAndScenario.get(firstScenario).get((ts)).getTimeStep()).floatValue());
-				} catch (Exception e) {
-					// hmm...
-				}
+				timeStepsInYears.add(GridParser.getTime(timeStep));
 				timeStep++;
 			}
 
