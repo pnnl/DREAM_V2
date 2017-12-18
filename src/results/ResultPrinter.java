@@ -227,7 +227,11 @@ public class ResultPrinter {
 				
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3f xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
+					// Special exception for ERT where no z is needed
+					if(sensor.getSensorType()=="Electrical Conductivity")
+						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ")");
+					else
+						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 				}
 				
 				linesToSort.put(costOfConfig, line.toString());
