@@ -657,6 +657,11 @@ public class DomainViewer {
 			Point3i color = domainVisualization.getColorOfValid(sensor);
 			float transparency = domainVisualization.getValidTransparency(sensor);
 			List<Point3i> nodes = domainVisualization.getValidNodes(sensor);
+			
+			// Special handling for ERT
+			if (sensor.contains("Electrical Conductivity"))
+				nodes = addWellColumnE4D(nodes);
+			
 			if(!facesByDistance.containsKey(sensor))
 				facesByDistance.put(sensor, new TreeMap<Float, List<Face>>());
 			for(Point3i point: nodes) {
@@ -764,6 +769,11 @@ public class DomainViewer {
 			Point3i color = domainVisualization.getColorOfCloud(sensor);
 			float transparency = domainVisualization.getCloudTransparency(sensor);
 			List<Point3i> nodes = domainVisualization.getCloudNodes(sensor);
+			
+			// Special handling for ERT
+			if (sensor.contains("Electrical Conductivity"))
+				nodes = addWellColumnE4D(nodes);
+			
 			if(!facesByDistance.containsKey(sensor))
 				facesByDistance.put(sensor, new TreeMap<Float, List<Face>>());
 			for(Point3i point: nodes) {
@@ -858,7 +868,22 @@ public class DomainViewer {
 			cloudFaces.putAll(facesByDistance);
 		}
 	}
-
+	
+	////E4D Hack: allows ERT valid nodes to show as columns rather than points at the bottom //// TODO
+	private List<Point3i> addWellColumnE4D(List<Point3i> nodes) {
+		List<Point3i> newNodes = domainVisualization.getValidNodes("Electrical Conductivity");
+		for(Point3i point: nodes) {
+			int i = point.getI();
+			int j = point.getJ();
+			for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
+				Point3i newPoint = new Point3i(i, j, k);
+				newNodes.add(newPoint);
+			}
+		}
+		return newNodes;
+	}
+	////End E4D Hack ////
+	
 	private void buildSensors() {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
@@ -884,7 +909,7 @@ public class DomainViewer {
 				}
 			}
 			nodes = newNodes;
-			//// End E4D Hack ////*/
+			//// End E4D Hack ////
 			
 			for(Sensor sensor: nodes) {
 				if(!domainVisualization.renderSensor(sensor.getSensorType())) continue;
