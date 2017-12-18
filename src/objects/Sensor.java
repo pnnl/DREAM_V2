@@ -66,6 +66,14 @@ public class Sensor {
 		return nodeNumber;
 	}
 	
+	public void setIJKandNodeNumber(int i, int j, int k, NodeStructure domain) {
+		node.setI(i);
+		node.setJ(j);
+		node.setK(k);
+		node =  new Point3i(i,j,k);
+    	nodeNumber = domain.getNodeNumber(node);
+	}
+	
 	public String getSensorType() {
 		return type;
 	}

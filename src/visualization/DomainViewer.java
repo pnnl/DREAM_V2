@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Listener;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import objects.ScenarioSet;
 import objects.Sensor;
 import utilities.Constants;
 import utilities.Point3f;
@@ -56,7 +57,7 @@ public class DomainViewer {
 	private GLContext glcontext;
 
 	private int [] aiVertexBufferIndices = new int [] {-1 };
-
+	private ScenarioSet set;
 	private Display display;
 
 	// Current mouse position
@@ -85,10 +86,10 @@ public class DomainViewer {
 	/**
 	 * Constructor.
 	 */
-	public DomainViewer(Display display, Composite compositeParent, 
-			DomainVisualization domainVisualization) {
+	public DomainViewer(Display display, Composite compositeParent, DomainVisualization domainVisualization, ScenarioSet set) {
 		this.display = display;
 		this.domainVisualization = domainVisualization;
+		this.set = set;
 
 		Point3f temp = domainVisualization.getRenderDistance();
 		float maxDistance = Math.max(temp.getX(), Math.max(temp.getY(), temp.getZ()));
@@ -648,7 +649,7 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
+		Point3f camera = cameraPosition; // TODO: Doesn't seem to change anything
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		
 		//Get all the ones for the valid nodes
@@ -678,37 +679,37 @@ public class DomainViewer {
 				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
 						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
 
-				float f1Distance = f1.getDistance(cameara);
+				float f1Distance = f1.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f1Distance)) {
 					facesByDistance.get(sensor).put(f1Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f1Distance).add(f1);
 
-				float f2Distance = f2.getDistance(cameara);
+				float f2Distance = f2.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f2Distance)) {
 					facesByDistance.get(sensor).put(f2Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f2Distance).add(f2);
 
-				float f3Distance = f3.getDistance(cameara);
+				float f3Distance = f3.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f3Distance)) {
 					facesByDistance.get(sensor).put(f3Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f3Distance).add(f3);
 
-				float f4Distance = f4.getDistance(cameara);
+				float f4Distance = f4.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f4Distance)) {
 					facesByDistance.get(sensor).put(f4Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f4Distance).add(f4);
 
-				float f5Distance = f5.getDistance(cameara);
+				float f5Distance = f5.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f5Distance)) {
 					facesByDistance.get(sensor).put(f5Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f5Distance).add(f5);
 
-				float f6Distance = f6.getDistance(cameara);
+				float f6Distance = f6.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f6Distance)) {
 					facesByDistance.get(sensor).put(f6Distance, new ArrayList<Face>());
 				}				
@@ -755,7 +756,7 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f cameara = cameraPosition; // TODO: Doesn't seem to change anything
+		Point3f camera = cameraPosition; // TODO: Doesn't seem to change anything
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		
 		//Get all the ones for the cloud nodes
@@ -785,37 +786,37 @@ public class DomainViewer {
 				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
 						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
 
-				float f1Distance = f1.getDistance(cameara);
+				float f1Distance = f1.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f1Distance)) {
 					facesByDistance.get(sensor).put(f1Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f1Distance).add(f1);
 
-				float f2Distance = f2.getDistance(cameara);
+				float f2Distance = f2.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f2Distance)) {
 					facesByDistance.get(sensor).put(f2Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f2Distance).add(f2);
 
-				float f3Distance = f3.getDistance(cameara);
+				float f3Distance = f3.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f3Distance)) {
 					facesByDistance.get(sensor).put(f3Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f3Distance).add(f3);
 
-				float f4Distance = f4.getDistance(cameara);
+				float f4Distance = f4.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f4Distance)) {
 					facesByDistance.get(sensor).put(f4Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f4Distance).add(f4);
 
-				float f5Distance = f5.getDistance(cameara);
+				float f5Distance = f5.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f5Distance)) {
 					facesByDistance.get(sensor).put(f5Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(sensor).get(f5Distance).add(f5);
 
-				float f6Distance = f6.getDistance(cameara);
+				float f6Distance = f6.getDistance(camera);
 				if(!facesByDistance.get(sensor).containsKey(f6Distance)) {
 					facesByDistance.get(sensor).put(f6Distance, new ArrayList<Face>());
 				}				
@@ -862,12 +863,29 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f cameara = new Point3f(0, -20000, 0); 
+		Point3f camera = new Point3f(0, -20000, 0); 
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		for(String configUUID: domainVisualization.getAllConfigurationsToRender()) {
 			List<Sensor> nodes = new ArrayList<Sensor>(domainVisualization.getSensorsInConfiguration(configUUID));
+			List<Sensor> newNodes = new ArrayList<Sensor>(domainVisualization.getSensorsInConfiguration(configUUID)); //Added for the hack
 			if(!facesByDistance.containsKey(configUUID))
 				facesByDistance.put(configUUID, new TreeMap<Float, List<Face>>());
+			
+			//// E4D Hack: allows ERT sensors to show as columns rather than points at the bottom ////
+			for(Sensor sensor: nodes) {
+				if(sensor.getSensorType().contains("Electrical Conductivity") && sensor.getIJK().getK()==1) {
+					int i = sensor.getIJK().getI();
+					int j = sensor.getIJK().getJ();
+					for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
+						Sensor newSensor = new Sensor(sensor);
+						newSensor.setIJKandNodeNumber(i, j, k, set.getNodeStructure());
+						newNodes.add(newSensor);
+					}
+				}
+			}
+			nodes = newNodes;
+			//// End E4D Hack ////*/
+			
 			for(Sensor sensor: nodes) {
 				if(!domainVisualization.renderSensor(sensor.getSensorType())) continue;
 				float transparency = domainVisualization.getSensorTransparency(sensor.getSensorType());
@@ -892,37 +910,37 @@ public class DomainViewer {
 				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
 						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
 
-				float f1Distance = f1.getDistance(cameara);
+				float f1Distance = f1.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f1Distance)) {
 					facesByDistance.get(configUUID).put(f1Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f1Distance).add(f1);
 
-				float f2Distance = f2.getDistance(cameara);
+				float f2Distance = f2.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f2Distance)) {
 					facesByDistance.get(configUUID).put(f2Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f2Distance).add(f2);
 
-				float f3Distance = f3.getDistance(cameara);
+				float f3Distance = f3.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f3Distance)) {
 					facesByDistance.get(configUUID).put(f3Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f3Distance).add(f3);
 
-				float f4Distance = f4.getDistance(cameara);
+				float f4Distance = f4.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f4Distance)) {
 					facesByDistance.get(configUUID).put(f4Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f4Distance).add(f4);
 
-				float f5Distance = f5.getDistance(cameara);
+				float f5Distance = f5.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f5Distance)) {
 					facesByDistance.get(configUUID).put(f5Distance, new ArrayList<Face>());
 				}				
 				facesByDistance.get(configUUID).get(f5Distance).add(f5);
 
-				float f6Distance = f6.getDistance(cameara);
+				float f6Distance = f6.getDistance(camera);
 				if(!facesByDistance.get(configUUID).containsKey(f6Distance)) {
 					facesByDistance.get(configUUID).put(f6Distance, new ArrayList<Face>());
 				}				

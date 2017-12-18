@@ -11,8 +11,8 @@ import java.util.Comparator;
 
 public class Point3i {
 
-	private final int i;
-	private final int j;
+	private int i;
+	private int j;
 	private int k;
 	private final int hash;
 		
@@ -83,6 +83,14 @@ public class Point3i {
 
 	public int getK() {
 		return k;
+	}
+	
+	public void setI(int i) {
+		this.i = i;
+	}
+	
+	public void setJ(int j) {
+		this.j = j;
 	}
 	
 	public void setK(int k) {

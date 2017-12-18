@@ -112,7 +112,7 @@ public class DomainVisualization {
 		composite.setLayout(gridLayout);
 
 		// GL canvas		
-		domainViewer = new DomainViewer(display, composite, this);
+		domainViewer = new DomainViewer(display, composite, this, set);
 		GridData visGridData = new GridData();
 		visGridData.horizontalSpan = 2;
 		visGridData.verticalSpan = 24;
