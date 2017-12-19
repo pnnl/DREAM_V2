@@ -427,8 +427,6 @@ public class HDF5Interface {
 			
 			long freeMemory = Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory());
 			System.out.println("Free Memory: " + freeMemory);
-			if(size > freeMemory)
-				return;
 			
 			// Loop through contents for hdf5 files
 			for(File file: hdf5Folder.listFiles()) {
@@ -436,6 +434,8 @@ public class HDF5Interface {
 				try {
 					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
 					hdf5Files.put(scenario,hdf5File);
+					if(size > freeMemory)
+						continue;
 					hdf5File.open();
 					
 					if(nodeStructure == null) {
