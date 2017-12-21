@@ -107,8 +107,8 @@ public class SensorSetting {
 		this.maxValue = HDF5Interface.queryStatistic(nodeStructure, type, 2); //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
-		this.upperThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
+		this.upperThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
 		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
 		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
 		
@@ -135,8 +135,8 @@ public class SensorSetting {
 		this.maxValue = maxValue; //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
-		this.upperThreshold = 0; //Based on the trigger, detection value, and leakage value, this represents the range for valid nodes
+		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
+		this.upperThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
 		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
 		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
 		

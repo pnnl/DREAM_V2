@@ -88,7 +88,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public float lowerThreshold;
 		public float upperThreshold;
 		private float detection;
-		private float leakage;
 		public float minZ;
 		public float maxZ;
 		public float minValue;
@@ -102,14 +101,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private Label nodeLabel;
 		private Label sensorTypeLabel;
 		private Label detectionLabel;
-		private Label leakageLabel;
 		private Label minZLabel;
 		private Label maxZLabel;
 		
 		private Text aliasText;
 		private Text costText;
 		private Text detectionText;
-		private Text leakageText;
 		private Text minZText;
 		private Text maxZText;
 		
@@ -152,7 +149,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			} else if(trigger == Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
 				lowerThreshold = sensorSettings.getLowerThreshold();
 				upperThreshold = Float.MAX_VALUE;
-			} else { //Deltas: Leakage is based on change, which varies by node... just store this for now.
+			} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
 				lowerThreshold = sensorSettings.getLowerThreshold();
 				upperThreshold = sensorSettings.getUpperThreshold();
 			}
@@ -226,7 +223,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean emptyError = false;
 					boolean costError = false;
 					boolean detectionError = false;
-					boolean leakageError = false;
 					boolean botError = false;
 					boolean botBoundError = false;
 					boolean topError = false;
@@ -255,9 +251,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						//Detection
 						if(!isValidFloat(temp.detectionText.getText()))
 							detectionError = true;
-						//Leakage
-						if(!isValidFloat(temp.leakageText.getText()))
-							leakageError = true;
 						//Zone bottom
 						if(!isValidFloat(temp.minZText.getText()))
 							botError = true;
@@ -281,7 +274,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(emptyError, "  Need to enter an alias.");
 					errorFound(costError, "  Cost is not a real number.");
 					errorFound(detectionError, "  Detection is not a real number.");
-					errorFound(leakageError, "  Leakage is not a real number.");
 					errorFound(botError, "  Bottom is not a real number.");
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
 					errorFound(topError, "  Top is not a real number.");
@@ -374,7 +366,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.add(Trigger.RELATIVE_DELTA.toString());
 			thresholdCombo.add(Trigger.ABSOLUTE_DELTA.toString());
 			thresholdCombo.setText(trigger.toString());
-			if(trigger == Trigger.MAXIMUM_THRESHOLD)
+			if(trigger == Trigger.MAXIMUM_THRESHOLD) //TODO: Catherine, please review this text to verify that the tooltips are using the correct terminology
 				thresholdCombo.setToolTipText("Leak when concentration is less than value");
 			else if(trigger == Trigger.MINIMUM_THRESHOLD)
 				thresholdCombo.setToolTipText("Leak when concentration is greater than value");
@@ -392,13 +384,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							Trigger.MINIMUM_THRESHOLD : isRelativeDetla ? Trigger.RELATIVE_DELTA : Trigger.ABSOLUTE_DELTA);	
 					if(trigger == Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
 						lowerThreshold = Float.MIN_VALUE;
-						upperThreshold = Math.min(detection, leakage);
+						upperThreshold = detection;
 					} else if(trigger == Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-						lowerThreshold = Math.max(detection, leakage);
+						lowerThreshold = detection;
 						upperThreshold = Float.MAX_VALUE;
-					} else { //Deltas: Leakage is based on change, which varies by node... just store this for now.
-						lowerThreshold = Math.max(detection, leakage);
-						upperThreshold = Math.max(detection, leakage);
+					} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
+						lowerThreshold = upperThreshold = detection;
 					}
 					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
@@ -419,11 +410,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.setLayoutData(thresholdComboData);			
 			
 			//Detection Value
-			//Below is a mapping of which value should be taken in different circumstances
-			//The threshold represents the threshold of what constitutes a leak
-			//Having better detection ability than a leak doesn't matter, we only care if the detection ability limits
-			// if (threshold = max), pick smaller entry between D and L
-			// if (threshold = min or delta), pick larger entry between D and L
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detection));
 			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
@@ -440,13 +426,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							temp.detection = Float.valueOf(temp.detectionText.getText());
 							if(temp.trigger==Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
 								temp.lowerThreshold = Float.MIN_VALUE;
-								temp.upperThreshold = Math.min(temp.detection, temp.leakage);
+								temp.upperThreshold = temp.detection;
 							} else if(temp.trigger==Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-								temp.lowerThreshold = Math.max(temp.detection, temp.leakage);
+								temp.lowerThreshold = temp.detection;
 								temp.upperThreshold = Float.MAX_VALUE;
-							} else { //Deltas: Leakage is based on change, which varies by node... just store this for now.
-								temp.lowerThreshold = Math.max(temp.detection, temp.leakage);
-								temp.upperThreshold = Math.max(temp.detection, temp.leakage);
+							} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
+								temp.lowerThreshold = temp.upperThreshold = temp.detection;
 							}
 						} else { //Not a valid number
 							temp.detectionText.setForeground(red);
@@ -463,48 +448,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
 			detectionInputData.widthHint = 60;
 			detectionText.setLayoutData(detectionInputData);
-			
-			
-			//Leakage Criteria
-			leakageText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			leakageText.setText(String.valueOf(sensorData.get(type).leakage));
-			leakageText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
-			leakageText.setForeground(black);
-			leakageText.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					leakageText = ((Text)e.getSource());
-					boolean leakageError = false;
-					for(SensorData temp: sensorData.values()) {
-						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(isValidFloat(temp.leakageText.getText())) { //Valid number
-							temp.leakageText.setForeground(black);
-							temp.leakage = Float.valueOf(temp.leakageText.getText());
-							if(temp.trigger==Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
-								temp.lowerThreshold = Float.MIN_VALUE;
-								temp.upperThreshold = Math.min(temp.detection, temp.leakage);
-							} else if(temp.trigger==Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-								temp.lowerThreshold = Math.max(temp.detection, temp.leakage);
-								temp.upperThreshold = Float.MAX_VALUE;
-							} else { //Deltas: Leakage is based on change, which varies by node... just store this for now.
-								temp.lowerThreshold = Math.max(temp.detection, temp.leakage);
-								temp.upperThreshold = Math.max(temp.detection, temp.leakage);
-							}
-						} else { //Not a valid number
-							temp.leakageText.setForeground(red);
-							leakageError = true;
-						}
-					}
-					errorFound(leakageError, "  Leakage is not a real number.");
-					errorFound(false, "  No nodes were found for the provided parameters.");
-					if(leakageText.getText().contains("+")) deltaType = DeltaType.INCREASE;
-					else if(leakageText.getText().contains("-")) deltaType = DeltaType.DECREASE;
-					else deltaType = DeltaType.BOTH;
-				}
-			});
-			GridData leakageInputData = new GridData(SWT.FILL, SWT.END, false, false);
-			leakageInputData.widthHint = 60;
-			leakageText.setLayoutData(leakageInputData);
 			
 			
 			// Set minimum z
@@ -582,7 +525,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				aliasText.setEnabled(false);
 				thresholdCombo.setVisible(false);
 				detectionText.setVisible(false);
-				leakageText.setVisible(false);
 				minZText.setVisible(false);
 				maxZText.setVisible(false);
 			}
@@ -603,10 +545,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				detectionText.setEnabled(isIncluded);
 			if(detectionLabel != null && !detectionLabel.isDisposed())
 				detectionLabel.setEnabled(isIncluded);
-			if(leakageText != null && !leakageText.isDisposed())
-				leakageText.setEnabled(isIncluded);
-			if(leakageLabel != null && !leakageLabel.isDisposed())
-				leakageLabel.setEnabled(isIncluded);
 			if(minZLabel != null && !minZLabel.isDisposed())
 				minZLabel.setEnabled(isIncluded);
 			if(minZText != null && !minZText.isDisposed())
@@ -681,7 +619,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Label costPerSensor = new Label(container, SWT.LEFT);
 		Label detectionCriteria = new Label(container, SWT.LEFT);
 		Label detectionLabel = new Label(container, SWT.LEFT);
-		Label leakageLabel = new Label(container, SWT.LEFT);
 		Label minZLabel = new Label(container, SWT.LEFT);
 		Label maxZLabel = new Label(container, SWT.LEFT);
 		
@@ -691,7 +628,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		detectionLabel.setText("Detection Value");
-		leakageLabel.setText("Leakage Criteria");
 		minZLabel.setText("Zone Bottom");
 		maxZLabel.setText("Zone Top");
 		
@@ -700,7 +636,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		costPerSensor.setFont(boldFont1);
 		detectionCriteria.setFont(boldFont1);
 		detectionLabel.setFont(boldFont1);
-		leakageLabel.setFont(boldFont1);
 		minZLabel.setFont(boldFont1);
 		maxZLabel.setFont(boldFont1);
 		
@@ -918,7 +853,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
 		layout.verticalSpacing = 12;
-		layout.numColumns = 9;
+		layout.numColumns = 8;
 		container.setLayout(layout);
 		
 		sc.setContent(container);
