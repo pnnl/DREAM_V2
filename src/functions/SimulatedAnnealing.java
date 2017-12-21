@@ -177,7 +177,7 @@ public class SimulatedAnnealing extends Function {
 				Boolean triggered = null;
 				if(triggered == null) {
 					if (sensor.getSensorType().contains("Electrical Conductivity"))
-						triggered = E4DSensors.ertSensorTriggered(set, timeStep, scenario, sensor.getNodeNumber());
+						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber());
 					else
 						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
 				}

@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Listener;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.gl2.GLUT;
 
+import objects.E4DSensors;
 import objects.ScenarioSet;
 import objects.Sensor;
 import utilities.Constants;
@@ -869,7 +870,7 @@ public class DomainViewer {
 		}
 	}
 	
-	////E4D Hack: allows ERT valid nodes to show as columns rather than points at the bottom //// TODO
+	////E4D Hack: allows ERT valid nodes to show as columns rather than points at the bottom
 	private List<Point3i> addWellColumnE4D(List<Point3i> nodes) {
 		List<Point3i> newNodes = domainVisualization.getValidNodes("Electrical Conductivity");
 		for(Point3i point: nodes) {
@@ -897,14 +898,27 @@ public class DomainViewer {
 				facesByDistance.put(configUUID, new TreeMap<Float, List<Face>>());
 			
 			//// E4D Hack: allows ERT sensors to show as columns rather than points at the bottom ////
+			////           also causes the well pairing to light up                               ////
 			for(Sensor sensor: nodes) {
-				if(sensor.getSensorType().contains("Electrical Conductivity") && sensor.getIJK().getK()==1) {
+				if(sensor.getSensorType().contains("Electrical Conductivity")) {
 					int i = sensor.getIJK().getI();
 					int j = sensor.getIJK().getJ();
+					// Add all the nodes for the full column
 					for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
 						Sensor newSensor = new Sensor(sensor);
 						newSensor.setIJKandNodeNumber(i, j, k, set.getNodeStructure());
 						newNodes.add(newSensor);
+					}
+					Integer wellPair = E4DSensors.getWellPairing(set.getNodeStructure().getNodeNumber(i, j, 1));
+					int iPair = set.getNodeStructure().getIJKFromNodeNumber(wellPair).getI();
+					int jPair = set.getNodeStructure().getIJKFromNodeNumber(wellPair).getJ();
+					// Add all the nodes for the paired column (if different well)
+					if(i!=iPair || j!=jPair) {
+						for(int k=1; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
+							Sensor newSensor = new Sensor(sensor);
+							newSensor.setIJKandNodeNumber(iPair, jPair, k, set.getNodeStructure());
+							newNodes.add(newSensor);
+						}
 					}
 				}
 			}

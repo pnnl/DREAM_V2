@@ -982,6 +982,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
 		
+		if (!E4DSensors.ertDetectionTimes.isEmpty())
+			E4DSensors.ertNewPairings();
 		for(Scenario scenario: data.getSet().getScenarios()){
 			timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
 			for(Integer nodeNumber: nodes){	
@@ -990,7 +992,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
 							if (sensorType.contains("Electrical Conductivity")) {
-								if(E4DSensors.ertSensorTriggered(data.getSet(), timeStep, scenario, nodeNumber))
+								if(E4DSensors.ertSensorTriggered(timeStep, scenario, nodeNumber))
 									timeToDegredation = timeStep.getRealTime();
 							} else {
 								if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber))

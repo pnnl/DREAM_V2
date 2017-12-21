@@ -10,10 +10,12 @@ import java.util.logging.Level;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import hdf5Tool.HDF5Interface;
+import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
 import objects.Scenario;
 import objects.ScenarioSet;
+import objects.Sensor;
 import objects.ExtendedSensor;
 import results.ResultPrinter;
 import utilities.Constants;
@@ -216,6 +218,16 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			float calculatedValue;
 			float randomValue;
 			
+			//TODO: Temporary for testing, remove when done
+			int count = currentConfiguration.getSensors().size();
+			List<Integer> ertMain = new ArrayList<Integer>();
+			List<Integer> ertPair = new ArrayList<Integer>();
+			for(Sensor sensor: currentConfiguration.getSensors()) {
+				if(sensor.getSensorType().contains("Electrical")) {
+					ertMain.add(sensor.getNodeNumber());
+					ertPair.add(E4DSensors.ertWellPairings.get(sensor.getNodeNumber()));
+				}
+			}
 			
 			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + ", Best " + bestValue);
 
@@ -297,6 +309,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			temp = System.currentTimeMillis();
 			mutate(newConfiguration, set);
 			timeToMutate += System.currentTimeMillis() - temp;
+			
+			E4DSensors.ertPairings(newConfiguration, currentConfiguration);
 			
 			float ttm = System.currentTimeMillis()-ttmStart;
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");
