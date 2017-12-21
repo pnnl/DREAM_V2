@@ -218,17 +218,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			float calculatedValue;
 			float randomValue;
 			
-			//TODO: Temporary for testing, remove when done
-			int count = currentConfiguration.getSensors().size();
-			List<Integer> ertMain = new ArrayList<Integer>();
-			List<Integer> ertPair = new ArrayList<Integer>();
-			for(Sensor sensor: currentConfiguration.getSensors()) {
-				if(sensor.getSensorType().contains("Electrical")) {
-					ertMain.add(sensor.getNodeNumber());
-					ertPair.add(E4DSensors.ertWellPairings.get(sensor.getNodeNumber()));
-				}
-			}
-			
 			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + ", Best " + bestValue);
 
 			
