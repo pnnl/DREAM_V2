@@ -15,7 +15,6 @@ import objects.ExtendedConfiguration;
 import objects.InferenceResult;
 import objects.Scenario;
 import objects.ScenarioSet;
-import objects.Sensor;
 import objects.ExtendedSensor;
 import results.ResultPrinter;
 import utilities.Constants;

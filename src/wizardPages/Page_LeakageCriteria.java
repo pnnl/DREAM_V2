@@ -727,7 +727,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
 	  			@Override
 	  			public void handleEvent(Event event) {
-	  				// TODO: Catherine edit text here!
+	  				// TODO: Catherine edit text here! This info pop-up also needs to note the specific units that E4D needs
 	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
 	  			}
 	  		});

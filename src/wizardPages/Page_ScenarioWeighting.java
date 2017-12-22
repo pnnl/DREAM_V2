@@ -266,7 +266,8 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-
+		
+		data.needToResetMonitoringParameters = true;
 		Map<Scenario, Float> scenarioWeights = new HashMap<Scenario, Float>();
 		List<Scenario> scenariosToRemove = new ArrayList<Scenario>();
 		
