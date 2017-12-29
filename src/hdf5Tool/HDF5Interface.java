@@ -56,8 +56,14 @@ public class HDF5Interface {
 	}
 	
 	public static Float queryValueFromCloud(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
-		float years = timestep.getRealTime();
-		return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
+		float years = timestep.getTimeStep();
+		if(hdf5CloudData.containsKey(scenario) && 
+		   hdf5CloudData.get(scenario).containsKey(years) &&
+		   hdf5CloudData.get(scenario).get(years).containsKey(dataType) && 
+		   hdf5CloudData.get(scenario).get(years).get(dataType).containsKey(index)) {
+			return hdf5CloudData.get(scenario).get(years).get(dataType).get(index);
+		}
+		return null;
 	}
 	
 	public static float queryValueFromMemory(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) {
