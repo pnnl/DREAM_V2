@@ -124,7 +124,7 @@ public class E4DSensors {
 	// The top 5 well pairings are also mapped to each well
 	public static void addERTSensor(STORMData data) {
 		ertDetectionTimes.clear();
-		String ertInput = Constants.userDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getAllScenarios().size() + ".csv";
+		String ertInput = Constants.userDir + "\\e4d\\ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && ertDetectionTimes.isEmpty()) {
 			data.getSet().getSensors().add("Electrical Conductivity");
