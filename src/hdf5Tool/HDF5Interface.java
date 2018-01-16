@@ -45,10 +45,10 @@ public class HDF5Interface {
 	
 	public static Float queryValue(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
 		// If cloud data exists, use me first
-		if(!hdf5CloudData.isEmpty())
-	        return queryValueFromCloud(nodeStructure, scenario, timestep, dataType, index);
+		//if(!hdf5CloudData.isEmpty()) //This was commented out because of a null pointer... and accessing from memory should be similar speed
+	        //return queryValueFromCloud(nodeStructure, scenario, timestep, dataType, index);
 	    // Otherwise, try memory, but the full set
-	    else if(!hdf5Data.isEmpty())
+	    if(!hdf5Data.isEmpty())
 	        return queryValueFromMemory(nodeStructure, scenario, timestep, dataType, index);                     
 	    // Sad day, read from the file :(
 	    else
@@ -341,15 +341,15 @@ public class HDF5Interface {
 	
 	private static void addNodeToCloud(String scenario, float timeInYears, String dataType, int nodeNumber, float value) {
 		try {
-		if(hdf5CloudData == null)
-			hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
-		if(!hdf5CloudData.containsKey(scenario))
-			hdf5CloudData.put(scenario, new HashMap<Float, Map<String, Map<Integer, Float>>>());
-		if(!hdf5CloudData.get(scenario).containsKey(timeInYears))
-			hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
-		if(!hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
-			hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
-		hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);	
+			if(hdf5CloudData == null)
+				hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
+			if(!hdf5CloudData.containsKey(scenario))
+				hdf5CloudData.put(scenario, new HashMap<Float, Map<String, Map<Integer, Float>>>());
+			if(!hdf5CloudData.get(scenario).containsKey(timeInYears))
+				hdf5CloudData.get(scenario).put(timeInYears, new HashMap<String, Map<Integer, Float>>());
+			if(!hdf5CloudData.get(scenario).get(timeInYears).containsKey(dataType))
+				hdf5CloudData.get(scenario).get(timeInYears).put(dataType, new HashMap<Integer, Float>());
+			hdf5CloudData.get(scenario).get(timeInYears).get(dataType).put(nodeNumber, value);
 		} catch (Exception e) {
 			float totalNodes = 0;
 			for(String sc : hdf5CloudData.keySet()) {
