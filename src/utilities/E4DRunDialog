@@ -1,0 +1,121 @@
+package utilities;
+
+
+import java.util.List;
+import java.util.ArrayList;
+
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
+
+
+/**
+ * Dialog that allows the user to set parameters to run E4D
+ * User will select a storage file location and ensure that needed variables are mapped correctly
+ * @author whit162
+ */
+
+public class E4DRunDialog extends TitleAreaDialog {
+	
+	private String ensemble;
+	private String directory = Constants.homeDirectory;
+	private Text storageText;
+	
+	private ScrolledComposite sc;
+	private Composite container;
+	
+	public E4DRunDialog(Shell parentShell, String ensemble) {
+		super(parentShell);
+		ensemble = this.ensemble;
+	}
+	
+	@Override
+	public void create() {
+		super.create();
+		setTitle("Setup for E4D Run");
+		String message = "You are about to run the E4D Module. Some parameters are needed.";
+		setMessage(message, IMessageProvider.INFORMATION);
+	}
+	
+	@Override
+	protected Control createDialogArea(Composite parent) {
+		Composite area = (Composite) super.createDialogArea(parent);
+		
+		sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.FILL);
+		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 100).create());
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
+		
+		container = new Composite(sc, SWT.NONE);
+		buildThings();
+		return area;
+	}
+	
+	protected void buildThings() {
+		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		GridLayout layout = new GridLayout(9, false);
+		container.setLayout(layout);
+		
+		Label storageLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
+		storageLabel.setText("Provide the path to the storage data file (.H5) that pairs with the " + ensemble + " ensemble.");
+		
+		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
+		Button buttonSelectDir = new Button(container, SWT.PUSH);
+		buttonSelectDir.setText("Select a directory");
+		buttonSelectDir.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				directoryDialog.setFilterPath(storageText.getText());
+				directoryDialog.setMessage("Please select a directory and click OK");
+				String dir = directoryDialog.open();
+				if (dir != null) {
+					Constants.homeDirectory = dir;
+					hdf5Text.setText(dir);
+					data.reset();
+				}
+			}
+		});
+		storageText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		storageText.setText(directory);
+		storageText.setForeground(black);
+		storageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		boolean h5Error = true;
+		File storageFile = new File(storageText.getText());
+		if(storageFile.contains(".h5") {
+			h5Error = false;
+		}
+		errorFound(h5Error, "  Directory must contain an h5 file.");
+		
+		container.layout();
+		sc.setContent(container);
+		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		sc.setLayout(new GridLayout(1,false));
+	}
+	
+	protected Button createButton(Composite parent, int id, String label, boolean defaultButton) {
+		if(id == IDialogConstants.CANCEL_ID) return null;
+		return super.createButton(parent, id, label, defaultButton);
+	}
+	
+	@Override
+	protected void buttonPressed(int id) {
+		if(id == OK)
+			super.okPressed();
+	}
+	
+	public String getParameter() {
+		return selectedParameter;
+	}
+}
