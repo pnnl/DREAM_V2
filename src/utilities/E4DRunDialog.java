@@ -2,12 +2,10 @@ package utilities;
 
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
@@ -22,7 +20,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
@@ -43,13 +40,14 @@ import wizardPages.Page_LeakageCriteria.SensorData;
 public class E4DRunDialog extends TitleAreaDialog {
 	
 	private String ensemble;
-	private String directory = Constants.homeDirectory;
 	private Map<String, SensorData> sensorData;
-	private Text storageText;
+	
+	private String storage = Constants.userDir;
 	private String brineSaturation;
 	private String gasSaturation;
 	private String saltConcentration;
 	
+	private Text storageText;
 	private Combo brineCombo;
 	private Combo gasCombo;
 	private Combo saltCombo;
@@ -118,16 +116,17 @@ public class E4DRunDialog extends TitleAreaDialog {
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				FileDialog dialog = new FileDialog(container.getShell());
-				String storageFile = dialog.open();
-				File fileTest = new File(storageFile);
+				dialog.setFilterPath(storage);
+				storage = dialog.open();
+				File fileTest = new File(storage);
 				if(fileTest != null) {
-					storageText.setText(storageFile);
+					storageText.setText(storage);
 					checkRequirements();
 				}
 			}
 		});
 		storageText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		storageText.setText(directory);
+		storageText.setText(storage);
 		storageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		// Add some white space to separate the dialog box
@@ -138,7 +137,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 	
 	// Creates the variable mapping section
 	private void createMappings() {
-		Font boldFont1 = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		Font boldFont1 = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
 		
 		Group variableMapping = new Group(container, SWT.SHADOW_NONE);
 		variableMapping.setText("Variable Mapping");
@@ -221,7 +220,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 	
 	
 	public String getStorageText() {
-		return storageText.getText();
+		return storage;
 	}
 	
 	public String getBrineSaturation() {

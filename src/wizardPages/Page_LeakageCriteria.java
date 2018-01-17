@@ -816,7 +816,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								list[0] = label;
 							if(label.toLowerCase().contains("gas saturation"))
 								list[1] = label;
-							if(label.toLowerCase().contains("salt"))
+							if(label.toLowerCase().contains("salt") || label.toLowerCase().contains("salinity"))
 								list[2] = label;
 						}
 						E4DRunDialog dialog = new E4DRunDialog(container.getShell(), data.getSet().getScenarioEnsemble(), list[0], list[1], list[2], sensorData);

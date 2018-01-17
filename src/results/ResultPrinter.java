@@ -270,7 +270,7 @@ public class ResultPrinter {
 				String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.txt\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
 				runtime.exec(command);
 			} catch(Exception e) {
-				System.out.println("Install python and required libraries to create a PDF visualization");
+				System.out.println("Install python3 and required libraries to create a PDF visualization");
 			}
 		}
 		
@@ -296,7 +296,7 @@ public class ResultPrinter {
 				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
 				runtime.exec(command);
 			} catch(Exception e) {
-				System.out.println("Install python and required libraries to create a PDF visualization");
+				System.out.println("Install python3 and required libraries to create a PDF visualization");
 			}
 		}
 		File vadFile = new File(resultsDirectory, vadFileName + ".csv");
@@ -311,7 +311,7 @@ public class ResultPrinter {
 				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + vadFile.getAbsolutePath() + "\"";
 				runtime.exec(command);
 			} catch(Exception e) {
-				System.out.println("Install python and required libraries to create a PDF visualization");
+				System.out.println("Install python3 and required libraries to create a PDF visualization");
 			}
 			
 		}
@@ -355,7 +355,7 @@ public class ResultPrinter {
 					String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
 					runtime.exec(command);
 				} catch(Exception e) {
-					System.out.println("Install python and required libraries to create a PDF visualization");
+					System.out.println("Install python3 and required libraries to create a PDF visualization");
 				}
 			}
 			/* ---- This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
