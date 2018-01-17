@@ -47,6 +47,7 @@ import utilities.Constants;
 import utilities.Point3i;
 import utilities.Constants.ModelOption;
 import utilities.E4DDialog;
+import utilities.E4DRunDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -66,7 +67,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	private STORMData data;
 	private boolean isCurrentPage = false;
-	private Button e4dButton;
 	
 	private Map<String, SensorData> sensorData;
 	
@@ -715,7 +715,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 
 			Composite composite_E4D = new Composite(container, SWT.NULL);
 			GridLayout gridLayout_E4D = new GridLayout();
-			gridLayout_E4D.numColumns = 2;
+			gridLayout_E4D.numColumns = 3;
 			composite_E4D.setLayout(gridLayout_E4D);
 			GridData gridData_E4D = new GridData(GridData.FILL_HORIZONTAL);
 			gridData_E4D.horizontalSpan=8;
@@ -733,9 +733,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  		});
 	  		
 	  		// Save the E4D files
-		    e4dButton = new Button(composite_E4D, SWT.PUSH);
-		    e4dButton.setText("  Write E4D File  ");
-			e4dButton.addListener(SWT.Selection, new Listener() {
+	  		Button writeE4DButton = new Button(composite_E4D, SWT.PUSH);
+	  		writeE4DButton.setText("  Write E4D File  ");
+	  		writeE4DButton.addListener(SWT.Selection, new Listener() {
 				@Override
 				public void handleEvent(Event arg0) {
 					fixMacBug();
@@ -797,6 +797,53 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 				}
 			});
+	  		
+	  		// If the user has a well list that matches the scenario ensemble and size, allow the run E4D button to show up
+			final File e4dWellList = new File(Constants.userDir + "//e4d//ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
+			if (e4dWellList.exists()) {
+	  		
+		  		Button runE4DButton = new Button(composite_E4D, SWT.PUSH);
+		  		runE4DButton.setText("  Run E4D  ");
+		  		runE4DButton.addListener(SWT.Selection, new Listener() {
+					@Override
+					public void handleEvent(Event arg0) {
+						fixMacBug();
+						
+						String[] list = new String[3];
+						list[0] = list[1] = list[2] = "";
+						for(String label: sensorData.keySet()) {
+							if(label.toLowerCase().contains("brine saturation") || label.toLowerCase().contains("aqueous saturation"))
+								list[0] = label;
+							if(label.toLowerCase().contains("gas saturation"))
+								list[1] = label;
+							if(label.toLowerCase().contains("salt"))
+								list[2] = label;
+						}
+						E4DRunDialog dialog = new E4DRunDialog(container.getShell(), data.getSet().getScenarioEnsemble(), list[0], list[1], list[2], sensorData);
+						dialog.open();
+						if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
+							return;
+						if(System.getProperty("os.name").contains("Windows")) { // TODO: Is there a different script to run the Mac version?
+							// Loop through all the scenarios - E4D needs to run once for each scenario
+							for(Scenario scenario: data.getSet().getScenarios()) {
+								try {
+									File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
+									String[] command = new String[6];
+									command[0] = dialog.getStorageText(); //Storage File Location
+									command[1] = Constants.homeDirectory + scenario.toString(); //Leakage File Location
+									command[2] = e4dWellList.getPath(); //Well List Location
+									command[3] = dialog.getBrineSaturation(); //Brine Saturation Mapping
+									command[4] = dialog.getGasSaturation(); //Gas Saturation Mapping
+									command[5] = dialog.getSaltConcentration(); //Salt Concentration Mapping
+									Runtime.getRuntime().exec(e4dScript.getPath() + command);
+								} catch(Exception e) {
+									System.out.println("Install python3 and required libraries to run E4D");
+								}
+							}
+						}
+					}
+		  		});
+			}
 		}
 		
 		container.layout();	

@@ -66,15 +66,13 @@ public class E4DDialog extends TitleAreaDialog {
 	
 	protected void buildThings() {
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		GridLayout layout = new GridLayout(9, false);
-		container.setLayout(layout);
+		container.setLayout(new GridLayout(1, false));
 		
 		createRadioButtons();
 		
 		container.layout();
 		sc.setContent(container);
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.setLayout(new GridLayout(1,false));
 	}
 	
 	protected Button createButton(Composite parent, int id, String label, boolean defaultButton) {
