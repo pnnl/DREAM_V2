@@ -126,7 +126,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			modelOption = ModelOption.ALL_SENSORS;
 		
 		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
-		data.getScenarioSet().setScenarioEnsemble(hdf5Text.getText().substring(hdf5Text.getText().lastIndexOf("\\")+1)); //TODO: Test that Mac file structures are the same
+		data.getScenarioSet().setScenarioEnsemble(hdf5Text.getText().substring(hdf5Text.getText().lastIndexOf("/")+1)); //TODO: Test that Mac file structures are the same
 		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();

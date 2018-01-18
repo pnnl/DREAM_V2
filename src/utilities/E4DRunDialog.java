@@ -147,12 +147,15 @@ public class E4DRunDialog extends TitleAreaDialog {
 		span2Columns.horizontalSpan = 2;
 		variableMapping.setLayoutData(span2Columns);
 		
+		//Brine Saturation
 		Label brineLabel = new Label(variableMapping, SWT.NULL);
 		brineLabel.setText("Brine Saturation");
 		brineCombo = new Combo(variableMapping, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		brineCombo.add("");
-		for(String label: sensorData.keySet())
-			brineCombo.add(label);
+		for(String label: sensorData.keySet()) {
+			if(!label.contains("Electrical Conductivity"))
+				brineCombo.add(label);
+		}
 		brineCombo.setText(brineSaturation);
 		brineCombo.addModifyListener(new ModifyListener() {
 			@Override
@@ -162,12 +165,15 @@ public class E4DRunDialog extends TitleAreaDialog {
 			}
 		});
 		
+		//Gas Saturation
 		Label gasLabel = new Label(variableMapping, SWT.NULL);
 		gasLabel.setText("Gas Saturation");
 		gasCombo = new Combo(variableMapping, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		gasCombo.add("");
-		for(String label: sensorData.keySet())
-			gasCombo.add(label);
+		for(String label: sensorData.keySet()) {
+			if(!label.contains("Electrical Conductivity"))
+				gasCombo.add(label);
+		}
 		gasCombo.setText(gasSaturation);
 		gasCombo.addModifyListener(new ModifyListener() {
 			@Override
@@ -177,12 +183,15 @@ public class E4DRunDialog extends TitleAreaDialog {
 			}
 		});
 		
+		//Salt Concentration
 		Label saltLabel = new Label(variableMapping, SWT.NULL);
 		saltLabel.setText("Salt Concentration");
 		saltCombo = new Combo(variableMapping, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		saltCombo.add("");
-		for(String label: sensorData.keySet())
-			saltCombo.add(label);
+		for(String label: sensorData.keySet()) {
+			if(!label.contains("Electrical Conductivity"))
+				saltCombo.add(label);
+		}
 		saltCombo.setText(saltConcentration);
 		saltCombo.addModifyListener(new ModifyListener() {
 			@Override
