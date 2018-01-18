@@ -865,7 +865,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 											lineList[0] = scenario.toString();
 											line = String.join(",", lineList);
 										}
-										text.append(line);
+										text.append(line + "\n");
+										lineNum++;
 									}
 									text.append("\n");
 								} catch(Exception e) {
