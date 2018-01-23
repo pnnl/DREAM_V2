@@ -836,7 +836,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								try {
 									File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
 									String input1 = dialog.getStorageText(); //Storage File Location
-									String input2 = Constants.homeDirectory + scenario.toString(); //Leakage File Location
+									String input2 = Constants.homeDirectory + "\\" + scenario.toString() + ".h5"; //Leakage File Location
 									String input3 = e4dWellList.getPath(); //Well List Location
 									String input4 = dialog.getBrineSaturation(); //Brine Saturation Mapping
 									String input5 = dialog.getGasSaturation(); //Gas Saturation Mapping
