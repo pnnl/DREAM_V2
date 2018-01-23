@@ -244,20 +244,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			}
 		}
 		data.setupInferenceTest(requiredSensors, overallMin);
-		
-		//Need to calculate the minimum cost constraint
-		float countMinCost = 0;
-		int count = 0;
-		float min = Integer.MAX_VALUE;
-		for(String cost: data.getSet().getDataTypes()) {
-			countMinCost += data.getSet().getInferenceTest().getMinimumForType(cost) * data.getSet().getSensorSettings(cost).getCost();
-			count += data.getSet().getInferenceTest().getMinimumForType(cost);
-			if(data.getSet().getSensorSettings(cost).getCost() < min)
-				min = data.getSet().getSensorSettings(cost).getCost();
-		}
-		if(overallMin > count)
-			countMinCost += min * (overallMin - count);
-		data.getSet().setCostConstraint(countMinCost);
+		data.getSet().setCostConstraint(data.getSet().getMinWellCost());
 	}
 	
 	@Override
