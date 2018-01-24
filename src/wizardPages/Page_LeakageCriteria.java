@@ -1,18 +1,13 @@
 package wizardPages;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import javax.swing.JOptionPane;
 
 import objects.E4DSensors;
 import objects.Scenario;
@@ -829,56 +824,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
 							return;
 						if(System.getProperty("os.name").contains("Windows")) { // TODO: Is there a different script to run the Mac version?
-							StringBuilder text = new StringBuilder();
-							// Loop through all the scenarios - E4D needs to run once for each scenario
-							for(Scenario scenario: data.getSet().getScenarios()) {
-								// Run the Python script with the following input arguments
-								try {
-									File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
-									String input1 = dialog.getStorageText(); //Storage File Location
-									String input2 = Constants.homeDirectory + "\\" + scenario.toString() + ".h5"; //Leakage File Location
-									String input3 = e4dWellList.getPath(); //Well List Location
-									String input4 = dialog.getBrineSaturation(); //Brine Saturation Mapping
-									String input5 = dialog.getGasSaturation(); //Gas Saturation Mapping
-									String input6 = dialog.getSaltConcentration(); //Salt Concentration Mapping*/
-									String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
-									
-									Process p = Runtime.getRuntime().exec(command);
-									InputStream inStream = p.getInputStream();
-									int ch;
-									// Read all the Python outputs to console
-									while((ch = inStream.read()) != -1)
-										System.out.print((char)ch);
-								} catch(Exception e) {
-									System.out.println(e);
-									System.out.println("Install python3 and required libraries to run E4D");
-								}
-								// Read the result matrix from each scenario into a master file
-								File detectionMatrix = new File(Constants.userDir, "e4d/detection_matrix.csv");
-								String line = "";
-								int lineNum = 0;
-								try (BufferedReader br = new BufferedReader(new FileReader(detectionMatrix))) {
-									// Read each line, comma delimited
-									while ((line = br.readLine()) != null) {
-										if(lineNum==0) {
-											String[] lineList = line.split(",");
-											lineList[0] = scenario.toString();
-											line = String.join(",", lineList);
-										}
-										text.append(line + "\n");
-										lineNum++;
-									}
-									text.append("\n");
-								} catch(Exception e) {
-									e.printStackTrace();
-								}
-							}
-							File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv");
 							try {
-								fullDetectionMatrix.createNewFile();
-								FileUtils.writeStringToFile(fullDetectionMatrix, text.toString());
-							} catch (IOException e) {
-								JOptionPane.showMessageDialog(null, "Could not write to " + fullDetectionMatrix.getName() + ", make sure the file is not currently open");
+								data.runE4DWindows(dialog, e4dWellList);
+							} catch (Exception e) {
 								e.printStackTrace();
 							}
 						}

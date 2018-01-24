@@ -3,6 +3,11 @@ package wizardPages;
 import hdf5Tool.FileBrowser;
 
 import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,6 +23,7 @@ import objects.Scenario;
 import objects.ScenarioSet;
 import objects.SensorSetting;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -41,6 +47,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
+import utilities.E4DRunDialog;
 import utilities.Point3i;
 import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
@@ -589,5 +596,73 @@ public class DREAMWizard extends Wizard {
 			});
 			return wells;
 		}
+		
+		public void runE4DWindows(final E4DRunDialog e4dDialog, final File e4dWellList) throws Exception {
+			dialog.run(true, true, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					monitor.beginTask("Running E4D.", 1000);
+					StringBuilder text = new StringBuilder();
+					
+					// Loop through all the scenarios - E4D needs to run once for each scenario
+					for(Scenario scenario: data.getSet().getScenarios()) {
+						if(monitor.isCanceled()) return;
+						monitor.subTask("Looping through the selected scenarios: " + scenario.getScenario());
+						
+						// Run the Python script with the following input arguments
+						try {
+							File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
+							String input1 = e4dDialog.getStorageText(); //Storage File Location
+							String input2 = Constants.homeDirectory + "\\" + scenario.toString() + ".h5"; //Leakage File Location
+							String input3 = e4dWellList.getPath(); //Well List Location
+							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
+							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
+							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping*/
+							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
+							
+							Process p = Runtime.getRuntime().exec(command);
+							InputStream inStream = p.getInputStream();
+							int ch;
+							while((ch = inStream.read()) != -1)
+								System.out.print((char)ch); //Read all the Python outputs to console
+						} catch(Exception e) {
+							System.out.println(e);
+							System.out.println("Install python3 and required libraries to run E4D");
+						}
+						monitor.worked(1000 / data.getSet().getScenarios().size() - 10);
+						monitor.subTask("Writing the scenario results: " + scenario.getScenario());
+						// Read the result matrix from each scenario into a master file
+						File detectionMatrix = new File(Constants.userDir, "e4d/detection_matrix.csv");
+						String line = "";
+						int lineNum = 0;
+						try (BufferedReader br = new BufferedReader(new FileReader(detectionMatrix))) {
+							// Read each line, comma delimited
+							while ((line = br.readLine()) != null) {
+								if(lineNum==0) {
+									String[] lineList = line.split(",");
+									lineList[0] = scenario.toString();
+									line = String.join(",", lineList);
+								}
+								text.append(line + "\n");
+								lineNum++;
+							}
+							text.append("\n");
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
+						monitor.worked(10);
+					}
+					File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv");
+					try {
+						fullDetectionMatrix.createNewFile();
+						FileUtils.writeStringToFile(fullDetectionMatrix, text.toString());
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(null, "Could not write to " + fullDetectionMatrix.getName() + ", make sure the file is not currently open");
+						e.printStackTrace();
+					}
+				}
+			});
+		}
+		
 	}
 } 
