@@ -618,7 +618,7 @@ public class DREAMWizard extends Wizard {
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
 							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping*/
-							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
+							String command = "python " +e4dScript.getAbsolutePath()+ " " +input1+ " " +input2+ " \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
 							
 							Process p = Runtime.getRuntime().exec(command);
 							InputStream inStream = p.getInputStream();

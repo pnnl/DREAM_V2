@@ -159,7 +159,7 @@ public class E4DSensors {
 					}
 
 					// The following lines list ERT detection times for valid nodes per scenario
-					else if (lineList.length!=0){
+					else if (lineList.length!=1){
 						Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
 						Integer key = null;
 						String[] ijList = lineList[0].split(":");
@@ -179,12 +179,9 @@ public class E4DSensors {
 					// The following blank line triggers the saving of detection times for the scenario
 					else {
 						ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
-						detectionTimesPerWell.clear();
 						scenarioIteration++;
 					}
 				}
-				if (!detectionTimesPerWell.isEmpty()) // just in case there is no blank line at the end of the file
-					ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
 			} catch (IOException ex) {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
