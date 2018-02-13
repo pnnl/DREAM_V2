@@ -69,6 +69,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	private boolean isCurrentPage = false;
 	
 	private Map<String, SensorData> sensorData;
+	private Button runE4DButton;
 	
 		
 	protected Page_LeakageCriteria(STORMData data) {
@@ -569,8 +570,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Only adds ERT sensor if a results matrix is detected in the correct location
 			E4DSensors.addERTSensor(data);
 			
-			for(String dataType: data.getSet().getAllPossibleDataTypes())	
+			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
+				if(dataType.contains("Bulk Conductivity"))
+					continue;
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+			}
 		}
 		
 		for(Control control: container.getChildren())
@@ -703,16 +707,17 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(data.getSet().getSensorSettings(label) == null)
 				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
 			if( data.getSet().getSensorSettings(label).isSet())
-				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
+				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size() + "   ");
 			else
-				temp.nodeLabel.setText(label+ ": Not set");
+				temp.nodeLabel.setText(label+ ": Not set   ");
 		}
 		
 		// If the user has the E4D module installed, allow the E4D buttons to show up
 		String e4dModuleDirectory = Constants.userDir + "//e4d";
 		File e4dDirectory = new File(e4dModuleDirectory);
 		if (e4dDirectory.exists()) {
-
+			final File e4dWellList = new File(Constants.userDir, "e4d/ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
+			
 			Composite composite_E4D = new Composite(container, SWT.NULL);
 			GridLayout gridLayout_E4D = new GridLayout();
 			gridLayout_E4D.numColumns = 3;
@@ -795,44 +800,45 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						dialog.open();
 						e1.printStackTrace();
 					}
+					runE4DButton.setEnabled(e4dWellList.exists());
 				}
 			});
 	  		
 	  		// If the user has a well list that matches the scenario ensemble and size, allow the run E4D button to show up
-			final File e4dWellList = new File(Constants.userDir, "e4d/ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
-			if (e4dWellList.exists()) {
+			
 	  		
-		  		Button runE4DButton = new Button(composite_E4D, SWT.PUSH);
-		  		runE4DButton.setText("  Run E4D  ");
-		  		runE4DButton.addListener(SWT.Selection, new Listener() {
-					@Override
-					public void handleEvent(Event arg0) {
-						fixMacBug();
-						
-						String[] list = new String[3];
-						list[0] = list[1] = list[2] = "";
-						for(String label: sensorData.keySet()) {
-							if(label.toLowerCase().contains("brine saturation") || label.toLowerCase().contains("aqueous saturation"))
-								list[0] = label;
-							if(label.toLowerCase().contains("gas saturation"))
-								list[1] = label;
-							if(label.toLowerCase().contains("salt") || label.toLowerCase().contains("salinity"))
-								list[2] = label;
-						}
-						E4DRunDialog dialog = new E4DRunDialog(container.getShell(), data.getSet().getScenarioEnsemble(), list[0], list[1], list[2], sensorData);
-						dialog.open();
-						if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
-							return;
-						if(System.getProperty("os.name").contains("Windows")) { // TODO: Is there a different script to run the Mac version?
-							try {
-								data.runE4DWindows(dialog, e4dWellList);
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+	  		runE4DButton = new Button(composite_E4D, SWT.PUSH);
+	  		runE4DButton.setText("  Run E4D  ");
+	  		runE4DButton.addListener(SWT.Selection, new Listener() {
+				@Override
+				public void handleEvent(Event arg0) {
+					fixMacBug();
+					
+					String[] list = new String[3];
+					list[0] = list[1] = list[2] = "";
+					for(String label: sensorData.keySet()) {
+						if(label.toLowerCase().contains("brine saturation") || label.toLowerCase().contains("aqueous saturation"))
+							list[0] = label;
+						if(label.toLowerCase().contains("gas saturation"))
+							list[1] = label;
+						if(label.toLowerCase().contains("salt") || label.toLowerCase().contains("salinity"))
+							list[2] = label;
+					}
+					E4DRunDialog dialog = new E4DRunDialog(container.getShell(), data.getSet().getScenarioEnsemble(), list[0], list[1], list[2], sensorData);
+					dialog.open();
+					if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
+						return;
+					if(System.getProperty("os.name").contains("Windows")) { // TODO: Is there a different script to run the Mac version?
+						try {
+							data.runE4DWindows(dialog, e4dWellList);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
-		  		});
-			}
+					loadPage();
+				}
+	  		});
+	  		runE4DButton.setEnabled(e4dWellList.exists());
 		}
 		
 		container.layout();	
