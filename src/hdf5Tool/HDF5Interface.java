@@ -306,7 +306,7 @@ public class HDF5Interface {
 				}
 				
 				for(int i = 0; i < times.length; i++) {
-					nodeStructure.getTimeSteps().add(new TimeStep(i, times[i]));
+					nodeStructure.getTimeSteps().add(new TimeStep(i, times[i], (int)times[i]));
 				}
 			} else if(root.getMemberList().get(rootIndex).getName().startsWith("plot")) { // Need to get the data types from this one
 				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {

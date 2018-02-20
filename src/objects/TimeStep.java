@@ -14,9 +14,10 @@ public class TimeStep implements Comparable<TimeStep> {
 	private volatile Float realTime;
 	private volatile int realTimeInt;
 
-	public TimeStep(int timeStep, float realTime) {
+	public TimeStep(int timeStep, float realTime, int realTimeInt) {
 		this.timeStep = timeStep;
 		this.realTime = realTime;
+		this.realTimeInt = realTimeInt;
 	}
 
 	public synchronized int getTimeStep() {
