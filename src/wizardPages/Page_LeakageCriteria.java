@@ -67,6 +67,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	private STORMData data;
 	private boolean isCurrentPage = false;
+	private boolean changeSinceFindingNodes = true;
 	
 	private Map<String, SensorData> sensorData;
 	private Button runE4DButton;
@@ -279,6 +280,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
 					errorFound(topError, "  Top is not a real number.");
 					errorFound(topBoundError, "  Top outside domain bounds.");
+					changeSinceFindingNodes = true;
 					
 					//Special handling of red text for duplicates
 					if (duplicateError==false)
@@ -326,6 +328,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(duplicateError, "  Duplicate alias.");
 					errorFound(commaError, "  Cannot use commas in alias.");
 					errorFound(emptyError, "  Need to enter an alias.");
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -353,6 +356,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 					}
 					errorFound(costError, "  Cost is not a real number.");
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -404,6 +408,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
 					else if(trigger == Trigger.ABSOLUTE_DELTA)
 						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -444,6 +449,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -479,6 +485,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					errorFound(botError, "  Bottom is not a real number.");
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -514,6 +521,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					errorFound(topError, "  Top is not a real number.");
 					errorFound(topBoundError, "  Top outside domain bounds.");
+					changeSinceFindingNodes = true;
 				}
 			});
 			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -683,7 +691,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							data.getSet().getSensorSettings(dataType).setNodesReady(false);
 						}
 					}
-					data.setupSensors(reset, sensorSettings); //Passes along variables
+					if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
+						data.setupSensors(reset, sensorSettings);
+						changeSinceFindingNodes = false;
+					}
 					DREAMWizard.visLauncher.setEnabled(true);
 					for(String label: sensorData.keySet()){
 						SensorData temp = sensorData.get(label);
@@ -928,7 +939,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		data.getSet().setSensors(sensors);
 		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
 			data.getSet().getInferenceTest().setOverallMinimum(count);
-		data.setupSensors(false, sensorSettings);
+		if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
+			data.setupSensors(false, sensorSettings);
+			changeSinceFindingNodes = false;
+		}
 		data.needToResetWells = true;
 		volumeOfAquiferDegraded();
 		DREAMWizard.visLauncher.setEnabled(true);
