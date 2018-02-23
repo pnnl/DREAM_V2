@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -618,13 +618,21 @@ public class DREAMWizard extends Wizard {
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
 							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping*/
-							String command = "python " +e4dScript.getAbsolutePath()+ " " +input1+ " " +input2+ " \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
+							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
+							File wDirectory = new File(Constants.userDir,"e4d");
 							
-							Process p = Runtime.getRuntime().exec(command);
-							InputStream inStream = p.getInputStream();
-							int ch;
-							while((ch = inStream.read()) != -1)
-								System.out.print((char)ch); //Read all the Python outputs to console
+							Process p = Runtime.getRuntime().exec(command, null, wDirectory);
+							
+							//Read all the Python outputs to console
+							BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+							BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+							String s = null;
+							System.out.println("This is the standard output from the E4D code for " + scenario.toString() + ":");
+							while((s = stdInput.readLine()) != null)
+								System.out.println(s);
+							System.out.println("This is the standard output from the E4D code for " + scenario.toString() + ":");
+							while((s = stdError.readLine()) != null)
+								System.out.println(s);
 						} catch(Exception e) {
 							System.out.println(e);
 							System.out.println("Install python3 and required libraries to run E4D");
