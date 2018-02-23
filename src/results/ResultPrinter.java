@@ -270,14 +270,15 @@ public class ResultPrinter {
 		for(float key: keySet){
 			lines.add(linesToSort.get(key));
 		}
-		FileUtils.writeLines(new File(resultsDirectory, fileName + ".csv"), lines);
+		File bestConfigFile = new File(resultsDirectory, fileName + ".csv");
+		FileUtils.writeLines(bestConfigFile, lines);
 		if(runScripts){
 			//Try running script
 			try {
 				File script = new File(Constants.userDir, "scripts/plot_dream_3panel.py");
-				//File script = new File("./scripts/plot_dream_3panel.py");
+				File solutionSpace = new File(resultsDirectory, "solution_space.txt");
 				Runtime runtime = Runtime.getRuntime();
-				String command = "python " + "\"" + script.getAbsolutePath() + "\" \"" + resultsDirectory + "/solution_space.txt\" \"" + resultsDirectory + "/" + fileName + ".csv\"";
+				String command = "python \"" + script.getAbsolutePath() + "\" \"" + solutionSpace.getAbsolutePath() + "\" \"" + bestConfigFile.getAbsolutePath() + "\"";
 				runtime.exec(command);
 			} catch(Exception e) {
 				System.out.println("Install python3 and required libraries to create a PDF visualization");
@@ -301,9 +302,8 @@ public class ResultPrinter {
 			//Try running script
 			try {
 				File script = new File(Constants.userDir, "scripts/plot_best_config_ttds.py");
-				//File script = new File("./scripts/plot_best_config_ttds.py");
 				Runtime runtime = Runtime.getRuntime();
-				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + ttdFile.getAbsolutePath() + "\"";
+				String command = "python \"" + script.getAbsolutePath() + "\" \"" + ttdFile.getAbsolutePath() + "\"";
 				runtime.exec(command);
 			} catch(Exception e) {
 				System.out.println("Install python3 and required libraries to create a PDF visualization");
@@ -311,19 +311,17 @@ public class ResultPrinter {
 		}
 		File vadFile = new File(resultsDirectory, vadFileName + ".csv");
 		FileUtils.writeLines(vadFile, vadLines);
+		
 		if(runScripts){
 			//Try running script
-			
 			try {
 				File script = new File(Constants.userDir, "scripts/plot_best_config_vads.py");
-				//File script = new File("./scripts/plot_best_config_vads.py");
 				Runtime runtime = Runtime.getRuntime();
-				String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + vadFile.getAbsolutePath() + "\"";
+				String command = "python \"" + script.getAbsolutePath() + "\" \"" + vadFile.getAbsolutePath() + "\"";
 				runtime.exec(command);
 			} catch(Exception e) {
 				System.out.println("Install python3 and required libraries to create a PDF visualization");
 			}
-			
 		}
 	}
 
@@ -356,26 +354,17 @@ public class ResultPrinter {
 			File fileToWrite = new File(resultsDirectory, fileName + ".csv");
 			FileUtils.writeLines(fileToWrite, lines);
 			
-			//Try running Kayuum's script
 			if(runScripts){
+				//Try running script
 				try {
 					File script = new File(Constants.userDir, "scripts/plot_dreamout01.py");
-					//File script = new File("./scripts/plot_dreamout01.py");
 					Runtime runtime = Runtime.getRuntime();
-					String command = "python " + "\"" + script.getAbsolutePath() + "\"" + " " + "\"" + fileToWrite.getAbsolutePath() + "\"";
+					String command = "python \"" + script.getAbsolutePath() + "\" \"" + fileToWrite.getAbsolutePath() + "\"";
 					runtime.exec(command);
 				} catch(Exception e) {
 					System.out.println("Install python3 and required libraries to create a PDF visualization");
 				}
 			}
-			/* ---- This is for the command-line output, not necessary now (will have to import BufferedReader and InputStreamReader to make this work
-			Process p = runtime.exec(command);
-			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line = null;
-			while((line = in.readLine()) != null){
-				System.out.println(line);
-			}
-			*/
 		}
 	}
 
