@@ -27,7 +27,10 @@ public class ExtendedSensor extends Sensor {
     
     // Which scenarios it was used to determine inference
     private Map<Scenario, TreeMap<TimeStep, Double>> scenariosUsed;
-  
+    
+    // Well pairing for E4D
+    private int nodePairNumber;
+    
     public ExtendedSensor(float x, float y, float z, String type, NodeStructure domain) {
     	super(x, y, z, type, domain);
     	
@@ -65,7 +68,8 @@ public class ExtendedSensor extends Sensor {
     	scenariosUsed = toCopy.getScenariosUsed();
     	
     	triggering = toCopy.isInferred();
-    	well = null;    	
+    	well = null;    
+    	nodePairNumber = toCopy.getNodePairNumber();
     }
     
 	public ExtendedSensor makeCopy() {
@@ -92,6 +96,16 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor clone() {
     	return this.clone(); // Note: References will not be duplicated
     }
+    
+    // Saves the node pair for ERT technology (k = 1)
+    public void setNodePair(int nodeNumber) {
+    	nodePairNumber = nodeNumber;
+    }
+    
+    // Calls the well pairing for ERT technology (k = 1)
+    public int getNodePairNumber() {
+		return nodePairNumber;
+	}
     
 	public void setWell(Well well) {
 		this.well = well;

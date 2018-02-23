@@ -163,9 +163,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		currentIteration = -3;
 		
 		// Create three more configurations from the initial configuration
-		final ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy(set);
-		final ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy(set);
-		final ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy(set);
+		ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy(set);
+		ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy(set);
+		ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy(set);
 		float currentValue = objective(currentConfiguration, set, true);
 		float newValue = currentValue;
 		float bestValue = currentValue;
@@ -298,7 +298,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			mutate(newConfiguration, set);
 			timeToMutate += System.currentTimeMillis() - temp;
 			
-			E4DSensors.ertPairings(newConfiguration, currentConfiguration);
+			// Hack to add a well pairing for ERT technology
+			currentConfiguration = E4DSensors.ertPairings(currentConfiguration);
+			newConfiguration = E4DSensors.ertPairings(newConfiguration);
+			bestConfiguration = E4DSensors.ertPairings(bestConfiguration);
 			
 			float ttm = System.currentTimeMillis()-ttmStart;
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");
@@ -366,10 +369,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public List<ExtendedSensor> getAllPossibleSensors(ScenarioSet set) {
 		List<ExtendedSensor> sensors = new ArrayList<ExtendedSensor>();
 		for (String type : set.getDataTypes()) {
-			for (Integer nodePosition : set.getSensorSettings(type)
-					.getValidNodes(null)) {
-				sensors.add(new ExtendedSensor(nodePosition, type, set
-						.getNodeStructure()));
+			for (Integer nodePosition : set.getSensorSettings(type).getValidNodes(null)) {
+				sensors.add(new ExtendedSensor(nodePosition, type, set.getNodeStructure()));
 			}
 		}
 		return sensors;
@@ -392,7 +393,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			ExtendedConfiguration configuration = new ExtendedConfiguration();
 			for (ExtendedSensor sensor : sensors)
 				configuration.addSensor(set, sensor);
-
+			
+			// Hack to add a well pairing for ERT technology
+			E4DSensors.ertPairings(configuration);
+			
 			objective(configuration, set, Constants.runThreaded);
 			//storeResult(configuration);
 			bruteForceEnumCount++;

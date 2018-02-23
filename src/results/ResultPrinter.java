@@ -23,6 +23,7 @@ import results.Results.ObjectiveResult;
 import results.Results.Type;
 import utilities.Constants;
 import utilities.Point3f;
+import utilities.Point3i;
 
 /**
  * Utility methods for printing results
@@ -100,6 +101,9 @@ public class ResultPrinter {
 			for(Integer run: results.allConfigsMap.get(type).keySet()) {
 				String fileName = "run_" + run +"_" + type.toString();
 				List<String> lines = new ArrayList<String>();
+				StringBuilder header = new StringBuilder();
+				header.append("Iteration, Weighted Average TTD, Scenarios Detected, Sensors");
+				lines.add(header.toString());
 				for(Integer iteration: results.allConfigsMap.get(type).get(run).keySet()) {
 					Configuration configuration = results.allConfigsMap.get(type).get(run).get(iteration);
 				
@@ -120,7 +124,10 @@ public class ResultPrinter {
 					StringBuilder line = new StringBuilder();
 					line.append(iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected);
 					for(Sensor sensor: configuration.getSensors()) {
-						line.append(", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
+						if(sensor.getSensorType().contains("Electrical Conductivity"))
+							line.append(", " + sensor.getNodeNumber() + "+" + ((ExtendedSensor)sensor).getNodePairNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
+						else
+							line.append(", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
 					}
 					lines.add(line.toString());
 				}
@@ -226,12 +233,15 @@ public class ResultPrinter {
 				line.append(", " + volumeDegraded);
 				
 				for(Sensor sensor: configuration.getSensors()) {		
-					Point3f xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+					Point3f xyz = results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
 					// Special exception for ERT where no z is needed
-					if(sensor.getSensorType()=="Electrical Conductivity")
-						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ")");
-					else
+					if(sensor.getSensorType()=="Electrical Conductivity") {
+						Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
+						Point3f xyzPair = results.set.getNodeStructure().getXYZEdgeFromIJK(ijkPair);
+						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");
+					} else {
 						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
+					}
 				}
 				
 				linesToSort.put(costOfConfig, line.toString());

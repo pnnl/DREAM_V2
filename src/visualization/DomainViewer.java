@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Listener;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.gl2.GLUT;
 
-import objects.E4DSensors;
+import objects.ExtendedSensor;
 import objects.ScenarioSet;
 import objects.Sensor;
 import utilities.Constants;
@@ -889,7 +889,7 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f camera = new Point3f(0, -20000, 0); 
+		Point3f camera = new Point3f(0, -20000, 0);
 		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
 		for(String configUUID: domainVisualization.getAllConfigurationsToRender()) {
 			List<Sensor> nodes = new ArrayList<Sensor>(domainVisualization.getSensorsInConfiguration(configUUID));
@@ -901,18 +901,20 @@ public class DomainViewer {
 			////           also causes the well pairing to light up                               ////
 			for(Sensor sensor: nodes) {
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
+					
 					int i = sensor.getIJK().getI();
 					int j = sensor.getIJK().getJ();
-					// Add all the nodes for the full column
+					// Add all the nodes for the full column in the primary well
 					for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
 						Sensor newSensor = new Sensor(sensor);
 						newSensor.setIJKandNodeNumber(i, j, k, set.getNodeStructure());
 						newNodes.add(newSensor);
 					}
-					Integer wellPair = E4DSensors.getWellPairing(set.getNodeStructure().getNodeNumber(i, j, 1));
+					
+					int wellPair = ((ExtendedSensor)sensor).getNodePairNumber();
 					int iPair = set.getNodeStructure().getIJKFromNodeNumber(wellPair).getI();
 					int jPair = set.getNodeStructure().getIJKFromNodeNumber(wellPair).getJ();
-					// Add all the nodes for the paired column (if different well)
+					// Add all the nodes for the full column in the secondary well (if different well)
 					if(i!=iPair || j!=jPair) {
 						for(int k=1; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
 							Sensor newSensor = new Sensor(sensor);

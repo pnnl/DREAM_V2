@@ -252,23 +252,22 @@ public class E4DSensors {
 	}
 	
 	
-	// This method compares two configurations, pick a new random pairing if an ERT sensor appears at a new location
-	public static void ertPairings(ExtendedConfiguration newConfiguration, ExtendedConfiguration currentConfiguration) {
-		for(Sensor sensor: newConfiguration.getSensors()) {
-			if(sensor.getSensorType().contains("Electrical Conductivity")) {
-				boolean sensorFound = false;
-				Integer nodeNumber = sensor.getNodeNumber();
-				for(Sensor currentSensor: currentConfiguration.getSensors()) {
-					if(currentSensor.getNodeNumber().equals(nodeNumber))
-						sensorFound = true;
-				}
-				if(!sensorFound) {
-					Random rand = new Random();
-					int n = rand.nextInt(ertPotentialWellPairings.get(nodeNumber).size());
-					ertWellPairings.put(nodeNumber, ertPotentialWellPairings.get(nodeNumber).get(n));
-				}
+	// This method looks for an ERT sensor at a new location and picks a new random pairing
+	public static ExtendedConfiguration ertPairings(ExtendedConfiguration newConfiguration) {
+		int i = 0;
+		for(ExtendedSensor sensor: newConfiguration.getExtendedSensors()) {
+			int nodePairNumber = sensor.getNodePairNumber();
+			if(sensor.getSensorType().contains("Electrical Conductivity") && nodePairNumber==0) {
+				int nodeNumber = sensor.getNodeNumber();
+				int n = new Random().nextInt(ertPotentialWellPairings.get(nodeNumber).size());
+				nodePairNumber = ertPotentialWellPairings.get(nodeNumber).get(n);
+				ertWellPairings.put(nodeNumber, ertPotentialWellPairings.get(nodeNumber).get(n));
+				sensor.setNodePair(nodePairNumber);
+				newConfiguration.getExtendedSensors().set(i, sensor);
 			}
+			i++;
 		}
+		return newConfiguration;
 	}
 	
 	public static Integer getWellPairing(Integer primaryWell) {
