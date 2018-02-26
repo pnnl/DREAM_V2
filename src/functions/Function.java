@@ -203,13 +203,13 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			if(monitor.isCanceled())
 				return true;
 			
-			long timeToStoreResults = 0;
-			long timeToMatchConfig = 0;
-			long timeToMutate = 0;
-			long timeForObjective = 0;
-			long temp = 0;
+			//long timeToStoreResults = 0;
+			//long timeToMatchConfig = 0;
+			//long timeToMutate = 0;
+			//long timeForObjective = 0;
+			//long temp = 0;
 			
-			long startTime = System.currentTimeMillis();
+			//long startTime = System.currentTimeMillis();
 			currentIteration = iteration;
 			if(monitor != null)
 				monitor.subTask("iteration " + iteration);
@@ -224,23 +224,23 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			if(newValue >= 0 && newValue < currentValue) {
 				//storeResult(newConfiguration);
 				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+ newValue + ", currentValue=" + currentValue + ", Temp=" + temperature);
-				temp = System.currentTimeMillis();
+				//temp = System.currentTimeMillis();
 				currentConfiguration.matchConfiguration(set, newConfiguration);
-				timeToMatchConfig += System.currentTimeMillis() - temp;
+				//timeToMatchConfig += System.currentTimeMillis() - temp;
 				//currentConfiguration = newConfiguration.makeCopy(set);
 				currentValue = newValue;				
 				// If our current value is better then our best value
 				if(currentValue >= 0 && currentValue < bestValue) {
 					
-					temp = System.currentTimeMillis();
-					timeToStoreResults += System.currentTimeMillis() - temp;
+					//temp = System.currentTimeMillis();
+					//timeToStoreResults += System.currentTimeMillis() - temp;
 					
 					Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue=" + currentValue + ", bestValue=" + bestValue + ", Temp=" + temperature);
 					// Make a copy of the current configuration and save it into the best configuration
 					//		bestConfiguration = currentConfiguration.makeCopy(set);	
-					temp = System.currentTimeMillis();
+					//temp = System.currentTimeMillis();
 					bestConfiguration.matchConfiguration(set, currentConfiguration);
-					timeToMatchConfig += System.currentTimeMillis() - temp;
+					//timeToMatchConfig += System.currentTimeMillis() - temp;
 					bestValue = currentValue;
 				}
 			} 
@@ -254,9 +254,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				//randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
-					temp = System.currentTimeMillis();					
+					//temp = System.currentTimeMillis();					
 					currentConfiguration.matchConfiguration(set, newConfiguration);
-					timeToMatchConfig += System.currentTimeMillis() - temp;
+					//timeToMatchConfig += System.currentTimeMillis() - temp;
 										
 					currentValue = newValue;
 					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, but swapping them anyway.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
@@ -275,9 +275,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
-					temp = System.currentTimeMillis();
+					//temp = System.currentTimeMillis();
 					currentConfiguration.matchConfiguration(set, newConfiguration);
-					timeToMatchConfig += System.currentTimeMillis() - temp;
+					//timeToMatchConfig += System.currentTimeMillis() - temp;
 					
 					currentValue = newValue;
 					Constants.log(Level.FINER, "Function: running - new configuration was equal to current, but swapping them anyway.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
@@ -290,13 +290,13 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			long ttmStart = System.currentTimeMillis();
 			// Mutate the new configuration
 			// Make sure we mutate the current
-			temp = System.currentTimeMillis();
+			//temp = System.currentTimeMillis();
 			newConfiguration.matchConfiguration(set, currentConfiguration);
-			timeToMatchConfig += System.currentTimeMillis() - temp;
+			//timeToMatchConfig += System.currentTimeMillis() - temp;
 			
-			temp = System.currentTimeMillis();
+			//temp = System.currentTimeMillis();
 			mutate(newConfiguration, set);
-			timeToMutate += System.currentTimeMillis() - temp;
+			//timeToMutate += System.currentTimeMillis() - temp;
 			
 			// Hack to add a well pairing for ERT technology
 			currentConfiguration = E4DSensors.ertPairings(currentConfiguration);
@@ -311,9 +311,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			// Get the new value
 			ttmStart = System.currentTimeMillis();
 
-			temp = System.currentTimeMillis();
+			//temp = System.currentTimeMillis();
 			newValue = objective(newConfiguration, set, true);
-			timeForObjective = System.currentTimeMillis() - temp;
+			//timeForObjective = System.currentTimeMillis() - temp;
 
 			float tto = System.currentTimeMillis()-ttmStart;
 			Constants.log(Level.FINE, "Function: running - time taken to run objective", (tto) + " ms");		

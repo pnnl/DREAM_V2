@@ -487,7 +487,7 @@ public class DataSlice {
 	}
 
 	private BufferedImage finalizeImage(BufferedImage image, List<Float> divisions, List<Float> values) {
-		BufferedImage imageOut = finalizeImage(image);
+		//BufferedImage imageOut = finalizeImage(image);
 		
 		// Create the gradient
 		BufferedImage scale = createGradient(divisions,  values);
