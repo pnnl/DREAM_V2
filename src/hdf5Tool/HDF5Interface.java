@@ -437,6 +437,8 @@ public class HDF5Interface {
 			// Loop through contents for hdf5 files
 			for(File file: hdf5Folder.listFiles()) {
 				String scenario = file.getName().replaceAll("\\.h5" , "");
+				if(scenario.contains(".DS_Store"))//Macs accessing a Windows folder will create this file, skip it.
+					continue;
 				try {
 					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
 					hdf5Files.put(scenario,hdf5File);
