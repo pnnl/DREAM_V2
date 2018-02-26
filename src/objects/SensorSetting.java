@@ -611,10 +611,6 @@ public class SensorSetting {
 	public float getMaxValue() {
 		return maxValue;
 	}
-	
-	public boolean isSet() {
-		return areNodesReady();
-	}
 
 	public void removeNode(Integer node) {
 		validNodes.remove(node);
@@ -674,5 +670,11 @@ public class SensorSetting {
 	
 	public float getThisMaxZ(){
 		return maxZ;
+	}
+
+	public void clearNodes() {
+		validNodes.clear();
+		isReady = false;
+		nodesReady = false;
 	}
 }

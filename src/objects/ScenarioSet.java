@@ -51,6 +51,9 @@ public class ScenarioSet {
 	
 	private Map<Scenario, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
+	//Finding nodes removes some sensor settings, causing problems going back a page and then forward again
+	//When removing sensor settings, they are instead saved in this Hashmap
+	private Map<String, SensorSetting> sensorSettingsRemoved;
 	
 	private InferenceTest inferenceTest;
 	
@@ -72,6 +75,7 @@ public class ScenarioSet {
 		allScenarios = new ArrayList<Scenario>();
 		scenarioWeights = new HashMap<Scenario, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
+		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
 		sensors = new ArrayList<String>();
 		
 		scenarioEnsemble = "";
@@ -615,11 +619,20 @@ public class ScenarioSet {
 	}
 	
 	public void removeSensorSettings(String dataType) {
+		sensorSettingsRemoved.put(dataType, sensorSettings.get(dataType));
 		sensorSettings.remove(dataType);
 	}
 
 	public void setSensorSettings(Map<String, SensorSetting> sensorSettings) {
 		this.sensorSettings = sensorSettings;
+	}
+	
+	public SensorSetting getRemovedSensorSettings(String sensorType) {
+		return sensorSettingsRemoved.get(sensorType);
+	}
+	
+	public void resetRemovedSensorSettings() {
+		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
 	}
 	
 	public List<String> getDataTypes() {

@@ -286,6 +286,10 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		
 		data.setupScenarios(scenarioWeights, scenariosToRemove);
 		
+		//In case the user finds nodes on the next page, then goes back, we don't want nodes to remain
+		data.getSet().getSensors().clear();
+		for(String sensor: data.getSet().getSensorSettings().keySet())
+			data.getSet().getSensorSettings().get(sensor).clearNodes();
 	}
 	
 	@Override

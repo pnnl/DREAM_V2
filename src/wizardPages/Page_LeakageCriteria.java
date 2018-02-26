@@ -578,8 +578,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Only adds ERT sensor if a results matrix is detected in the correct location
 			E4DSensors.addERTSensor(data);
 			
-			for(String dataType: data.getSet().getAllPossibleDataTypes())
-				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType)); //TODO: find triggering nodes, then go back and forward, error
+			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
+				if(data.getSensorSettings(dataType) != null)
+					sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+				else
+					sensorData.put(dataType, new SensorData(data.getSet().getRemovedSensorSettings(dataType), dataType));
+			}
+			data.getSet().resetRemovedSensorSettings();
 		}
 		
 		for(Control control: container.getChildren())
@@ -698,7 +703,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					DREAMWizard.visLauncher.setEnabled(true);
 					for(String label: sensorData.keySet()){
 						SensorData temp = sensorData.get(label);
-						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
+						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).areNodesReady())
 							temp.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
 						else
 							temp.nodeLabel.setText(label + ": Not set");
@@ -717,7 +722,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			temp.nodeLabel = new Label(parametersGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label) == null)
 				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
-			if( data.getSet().getSensorSettings(label).isSet())
+			if(data.getSet().getSensorSettings(label).areNodesReady())
 				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size() + "   ");
 			else
 				temp.nodeLabel.setText(label+ ": Not set   ");
@@ -859,7 +864,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		boolean enableVis  = false;
 		for(String label: sensorData.keySet()){
 			SensorData temp = sensorData.get(label);
-			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).isSet())
+			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).areNodesReady())
 				enableVis = true;
 		}
 		
