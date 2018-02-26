@@ -579,9 +579,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			E4DSensors.addERTSensor(data);
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
-				if(dataType.contains("Bulk Conductivity"))
+				if(dataType.contains("Bulk Conductivity")) //TODO: Need to remove these now that E4D isn't writing these anymore
 					continue;
-				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType)); //TODO: find triggering nodes, then go back and forward, error
 			}
 		}
 		
@@ -671,6 +671,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				fixMacBug();
 				HDF5Interface.hdf5CloudData.clear();
 				boolean reset = true;
+				int count = 0;
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 				
 				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
@@ -682,6 +683,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					String alias = temp.alias;
 					sensorAliases.put(label, alias.equals("") ? label: alias);
 					SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
+					if(temp.isIncluded)
+						count++;
 				}
 				Sensor.sensorAliases = sensorAliases;
 				
@@ -692,7 +695,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 					}
 					if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
-						data.setupSensors(reset, sensorSettings);
+						data.setupSensors(reset, sensorSettings, count);
 						changeSinceFindingNodes = false;
 					}
 					DREAMWizard.visLauncher.setEnabled(true);
@@ -794,7 +797,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					StringBuilder ijStringBuilder = new StringBuilder();
 					for(Point3i well: wells)
 						ijStringBuilder.append(Point3i.toCleanString(well) + "\n");
-					File e4dWellFile = new File(Constants.userDir + "//e4d", "ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
+					File e4dWellFile = new File(Constants.userDir, "e4d//ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
 					try{
 						e4dWellFile.createNewFile();
 						FileUtils.writeStringToFile(e4dWellFile, ijStringBuilder.toString());
@@ -927,7 +930,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		int count = 0;
 		for(String label: sensorData.keySet()) {
 			SensorData senData = sensorData.get(label);
-			if (senData.isIncluded==true) {
+			if (senData.isIncluded) {
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
 				sensors.add(label);
 			}
@@ -940,7 +943,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
 			data.getSet().getInferenceTest().setOverallMinimum(count);
 		if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
-			data.setupSensors(false, sensorSettings);
+			data.setupSensors(false, sensorSettings, count);
 			changeSinceFindingNodes = false;
 		}
 		data.needToResetWells = true;

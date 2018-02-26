@@ -388,44 +388,36 @@ public class DREAMWizard extends Wizard {
 			});		
 		}
 
-		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData) throws Exception {
+		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData, final int count) throws Exception {
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							monitor.beginTask("Sensor settings", sensorData.size()*2);	
-							for(String sensorType: sensorData.keySet()) {							
-								if(monitor.isCanceled()) break;							
+							if(Constants.useParetoOptimal)
+								monitor.beginTask("Sensor settings", 1000*count);
+							else
+								monitor.beginTask("Sensor settings", 300*count);
+							for(String sensorType: sensorData.keySet()) {
+								if(monitor.isCanceled()) break;
 								SensorData data = sensorData.get(sensorType);
 								if(data.isIncluded) {
 									monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
 									if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
 										set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
 									}
-									set.getSensorSettings().get(sensorType).setUserSettings(
-											data.cost, 
-											Color.BLUE,
-											data.lowerThreshold,
-											data.upperThreshold,
-											data.trigger, 
-											reset,
-											data.deltaType,
-											data.maxZ,
-											data.minZ);
-									monitor.worked(1);
+									set.getSensorSettings().get(sensorType).setUserSettings(data.cost, Color.BLUE, data.lowerThreshold, data.upperThreshold,
+											data.trigger, reset, data.deltaType, data.maxZ, data.minZ);
 									if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
 										monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
 										set.getSensorSettings(sensorType).getValidNodes(monitor); // This should re-query for the valid nodes
 										// Clear the vis window
 										DREAMWizard.this.closeViewer();
 									}
-									monitor.worked(1);
 								} else {
 									monitor.subTask(sensorType.toLowerCase() + " - removing");
 									set.removeSensorSettings(sensorType);
 									set.getInferenceTest().setMinimumForType(sensorType, 0);
-									monitor.worked(2);
 								}
 							}
 							if(modelOption == ModelOption.ALL_SENSORS){
@@ -449,16 +441,8 @@ public class DREAMWizard extends Wizard {
 									if(data.isIncluded) {
 										if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
 											set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
-											set.getSensorSettings().get(sensorType).setUserSettings(
-													data.cost, 
-													Color.BLUE,
-													data.lowerThreshold,
-													data.upperThreshold,
-													data.trigger, 
-													reset,
-													data.deltaType,
-													data.maxZ,
-													data.minZ);
+											set.getSensorSettings().get(sensorType).setUserSettings(data.cost, Color.BLUE, data.lowerThreshold, data.upperThreshold,
+													data.trigger, reset, data.deltaType, data.maxZ, data.minZ);
 										}
 										set.getSensorSettings().get(sensorType).setNodesReady(false);
 									} else {

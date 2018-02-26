@@ -220,10 +220,12 @@ public class E4DSensors {
 	
 	
 	// This method returns valid nodes for E4D
-	public static HashSet<Integer> setValidNodesERT() {
+	public static HashSet<Integer> setValidNodesERT(IProgressMonitor monitor) {
 		HashSet<Integer> validNodes = new HashSet<Integer>();
-		for(Scenario scenario: ertDetectionTimes.keySet())
+		for(Scenario scenario: ertDetectionTimes.keySet()) {
 			validNodes.addAll(ertDetectionTimes.get(scenario).keySet());
+			monitor.worked(300/ertDetectionTimes.size());
+		}
 		return validNodes;
 	}
 	

@@ -318,7 +318,7 @@ public class SensorSetting {
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting valid nodes", null);
 
 		if(type.contains("Electrical Conductivity")) {
-			validNodes = E4DSensors.setValidNodesERT();
+			validNodes = E4DSensors.setValidNodesERT(monitor);
 		}
 		
 		else if(getTrigger() == Trigger.MAXIMUM_THRESHOLD || getTrigger() == Trigger.MINIMUM_THRESHOLD) {
@@ -333,6 +333,7 @@ public class SensorSetting {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				monitor.worked(300/scenarios.size());
 			}
 			if(!validNodesPerScenario.isEmpty()) {
 				HashSet<Integer> allNodes = null;
@@ -347,7 +348,6 @@ public class SensorSetting {
 				for(Integer node: allNodes) {
 					validNodes.add(node);
 				}
-				//System.out.println("Union: " + validNodes.size() + ": " + validNodes);
 			}			
 		} else {
 		
@@ -364,14 +364,14 @@ public class SensorSetting {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				monitor.worked(300/scenarios.size());
 			}
 			for(Integer nodeNumber: allNodes) {
 				validNodes.add(nodeNumber);
 			}
-		//	System.out.println("Union: " + validNodes.size() + ": " + validNodes);
 		}
 		
-	//	System.out.println(validNodes);
+	//	System.out.println(type + " total nodes: " + validNodes);
 
 		isReady = true;
 		nodesReady = true;
@@ -380,7 +380,7 @@ public class SensorSetting {
 		fullCloudNodes = new HashSet<Integer>(validNodes);
 		
 		if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
-			paretoOptimal();
+			paretoOptimal(monitor);
 		
 		Constants.log(Level.CONFIG, "Sensor settings: set valid nodes", this);
 	}
@@ -401,10 +401,14 @@ public class SensorSetting {
 		validNodes.addAll(temp);
 	}
 	
-	private void paretoOptimal(){
+	private void paretoOptimal(IProgressMonitor monitor){
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
+		int count = 0;
 		for(Integer nodeNumber: validNodes){
+			count++;
+			monitor.subTask("Calculating pareto optimal solution space for " + type + ": node " + count + " of " + validNodes.size());
+			monitor.worked(700/validNodes.size());
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(Scenario scenario: scenarios){
