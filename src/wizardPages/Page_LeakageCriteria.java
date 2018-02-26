@@ -578,11 +578,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Only adds ERT sensor if a results matrix is detected in the correct location
 			E4DSensors.addERTSensor(data);
 			
-			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
-				if(dataType.contains("Bulk Conductivity")) //TODO: Need to remove these now that E4D isn't writing these anymore
-					continue;
+			for(String dataType: data.getSet().getAllPossibleDataTypes())
 				sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType)); //TODO: find triggering nodes, then go back and forward, error
-			}
 		}
 		
 		for(Control control: container.getChildren())

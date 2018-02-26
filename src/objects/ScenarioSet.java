@@ -209,11 +209,8 @@ public class ScenarioSet {
 			}
 		} 
 		
-		for(final String type: nodeStructure.getDataTypes()) {
-			if(type.contains("Bulk Conductivity"))
-				continue;
+		for(final String type: nodeStructure.getDataTypes())
 			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
-		}
 		
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
