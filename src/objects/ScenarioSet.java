@@ -353,6 +353,24 @@ public class ScenarioSet {
 		return getSensorSettings(type).getCost();
 	}
 	
+	public int countWells(ExtendedConfiguration configuration){
+		List<ExtendedSensor> sensors = configuration.getExtendedSensors();
+		List<String> ijs = new ArrayList<String>();
+		// Count the number of wells in the configuration
+		for(ExtendedSensor sensor: sensors) {
+			String ij = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
+			if(!ijs.contains(ij))
+				ijs.add(ij);
+			if(sensor.getSensorType().contains("Electrical Conductivity")) {
+				Point3i pair = nodeStructure.getIJKFromNodeNumber(sensor.getNodePairNumber());
+				String ijPair = pair.getI() + "_" + pair.getJ();
+				if(!ijs.contains(ijPair))
+					ijs.add(ijPair);
+			}
+		}
+		return ijs.size();
+	}
+	
 	/*
 	 * This returns the cost for post-processing cost-analysis.
 	 * TODO: eliminate any redundancy that might be in place with above getCost functions.

@@ -191,9 +191,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		float totalObjectiveTime = 0;
 
 		Constants.log(Level.FINER, "Function: running - iteration", "-1\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
-		
-		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
-		
+				
 		// Did not detect in any scenario
 		if(bestValue < 0)
 			bestValue = Integer.MAX_VALUE;

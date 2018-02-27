@@ -29,6 +29,7 @@ import utilities.Point3i;
  * Utility methods for printing results
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 public class ResultPrinter {
 
@@ -154,25 +155,26 @@ public class ResultPrinter {
 		List<String> ttdLines = new ArrayList<String>();
 		List<String> vadLines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
-				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Cost of Well Configuration ($20/ft), Volume of Aquifer Degraded, Sensor Types (x y z)");
+				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Number of Wells, Cost of Well Configuration, Volume of Aquifer Degraded, Sensor Types (x y z)");
 
-		Map<Integer, List<Configuration>> resultsByNumSensors = new TreeMap<Integer, List<Configuration>>();
-		for(Configuration configuration: results.bestConfigSumList) {
-			Integer sensors = configuration.getSensors().size();
+		Map<Integer, List<ExtendedConfiguration>> resultsByNumSensors = new HashMap<Integer, List<ExtendedConfiguration>>();
+		for(ExtendedConfiguration configuration: results.bestConfigSumList) {
+			Integer sensors = configuration.getExtendedSensors().size();
 			if(!resultsByNumSensors.containsKey(sensors))
-				resultsByNumSensors.put(sensors, new ArrayList<Configuration>());
+				resultsByNumSensors.put(sensors, new ArrayList<ExtendedConfiguration>());
 			resultsByNumSensors.get(sensors).add(configuration);
 		}
 
 		List<Scenario> scenariosThatDidNotDetect = new ArrayList<Scenario>();
-		for(List<Configuration> configurations: resultsByNumSensors.values()) {
-			for(Configuration configuration: configurations) {
+		for(List<ExtendedConfiguration> configurations: resultsByNumSensors.values()) {
+			for(ExtendedConfiguration configuration: configurations) {
 				String scenariosNotDetected = "";
 				
 				float scenariosDetected = configuration.countScenariosDetected();
 				float totalScenarios = results.set.getScenarios().size();
 				float globallyWeightedPercentage = 0;
 				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
+				int numberOfWells = results.set.countWells(configuration);
 				float costOfConfig = results.set.costOfConfiguration(configuration);
 				float volumeDegraded = SensorSetting.getVolumeDegradedByTTDs(configuration.getTimesToDetection(), results.set.getScenarios().size());
 				float totalWeightsForDetectedScenarios = 0.0f;
@@ -227,6 +229,8 @@ public class ResultPrinter {
 						  Constants.percentageFormat.format(unweightedAverageTTD));	
 				
 				line.append(",[" + Constants.percentageFormat.format(minYear) + " " + Constants.percentageFormat.format(maxYear) + "]," + scenariosNotDetected);
+				
+				line.append(", " + numberOfWells);
 				
 				line.append(", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
 				
