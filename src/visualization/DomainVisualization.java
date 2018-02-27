@@ -227,17 +227,17 @@ public class DomainVisualization {
 		
 		//Make the first tab
 		TabItem tab1 = new TabItem(tab, SWT.NONE);
-		tab1.setText("Full Solution Space");
+		tab1.setText(" Full Solution Space ");
 		
 		table_sensorTable = buildCloudTable(tab);
 
 		TabItem tab2 = new TabItem(tab, SWT.NONE);
-		tab2.setText("Optimal Locations");
+		tab2.setText("  Pareto Space  ");
 		
 		table_sensorTable2 = buildValidTable(tab);
 		
 		TabItem tab3 = new TabItem(tab, SWT.NONE);
-		tab3.setText("Monitoring Technologies");
+		tab3.setText(" Monitoring Configuration ");
 		
 		table_sensorTable3 = buildSensorTable(tab);
 
@@ -1032,7 +1032,10 @@ public class DomainVisualization {
 		public TreeItem getTreeItem(TreeItem parent) {
 			if(treeItem == null) {
 				treeItem = new TreeItem(parent, SWT.NONE);
-				treeItem.setText("TTD:" + Constants.decimalFormat.format(ttd));
+				if(ttd==0)
+					treeItem.setText("No detections");
+				else
+					treeItem.setText("Detected within " + Constants.decimalFormat.format(ttd) + " timestep");
 			}
 			return treeItem;
 		}
@@ -1055,7 +1058,7 @@ public class DomainVisualization {
 		public TreeConfigItem(Configuration configuration) {
 			String name = configuration.toString();
 			if(configuration instanceof ExtendedConfiguration) {
-				name = ((ExtendedConfiguration)configuration).getSummary();
+				name = ((ExtendedConfiguration)configuration).getSummary(set.getNodeStructure());
 			}
 			this.configuration = ((ExtendedConfiguration)configuration).makeCopy(set);
 			this.name = name;

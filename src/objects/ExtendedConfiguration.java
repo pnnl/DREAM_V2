@@ -10,6 +10,8 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 import utilities.Constants.ModelOption;
+import utilities.Point3f;
+import utilities.Point3i;
 
 /**
  * Extension of the configuration class that provides much more functionality and information
@@ -312,23 +314,29 @@ public class ExtendedConfiguration extends Configuration {
 		return totalCost;
 	}
 
-	public String getSummary() {
-		List<String> ijs = new ArrayList<String>();
-
+	public String getSummary(NodeStructure nodeStructure) {
 		StringBuffer nodePositions = new StringBuffer();
+		List<String> ijs = new ArrayList<String>();
 		if(sensors.isEmpty())
-			return "Empty";		
+			return "Empty";
 		for(Sensor sensor: sensors) {
-			char type = sensor.getSensorType().charAt(0);
-			nodePositions.append(sensor.getNodeNumber() + "" + type + ", ");
 			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
 			if(!ijs.contains(IJ))
 				ijs.add(IJ);
+			Point3f xyz = nodeStructure.getXYZEdgeFromIJK(sensor.getIJK());
+			if(sensor.getSensorType().contains("Electrical Conductivity")) {
+				Point3f xyzPair = nodeStructure.getXYZEdgeFromIJK(nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber()));
+				nodePositions.append(sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + "), ");
+				Point3i nodePair = nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
+				String IJPair = nodePair.getI() + "_" + nodePair.getJ();
+				if(!ijs.contains(IJPair))
+					ijs.add(IJPair);
+			} else {
+				nodePositions.append(sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + "), ");
+			}
 		}
-		Collections.sort(ijs);
-		String nodes = "\t[" + nodePositions.toString().substring(0, nodePositions.toString().length()-2) + "]";
-		return "\t" + ijs.size() + " " + ijs.toString() + "\t" + nodes;
-
+		String nodes = ijs.size() + " wells, " + nodePositions.toString().substring(0, nodePositions.toString().length()-2);
+		return nodes;
 	}
 
 	public String getInferenceResults() {
