@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
 //maybe these should move elsewhere?
@@ -283,7 +284,14 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					Constants.random.setSeed(10);
 					ResultPrinter.runScripts = true;
 					data.run(runs, showPlots.getSelection());
-					System.out.println("Iterative procedure took: " + (System.currentTimeMillis() - startTime) + "ms");
+					long time = (System.currentTimeMillis() - startTime) / 1000;
+					System.out.println("Iterative procedure took: " + time + "s");
+					
+					//create the dialog box
+					MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
+					dialog.setText("Completed the Dream Run");//TODO: Catherine edit text here if you want.
+					dialog.setMessage("Dream just completed " + ittr + " iterations in " + time + " seconds. Results can be found at: " + outputFolder.getText());
+					dialog.open();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
