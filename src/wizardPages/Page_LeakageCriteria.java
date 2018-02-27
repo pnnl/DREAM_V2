@@ -568,6 +568,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
+		changeSinceFindingNodes = true;
 		if(!DREAMWizard.errorMessage.getText().contains("  No nodes were found for the provided parameters."))
 			DREAMWizard.errorMessage.setText("");
 		if(sensorData == null || data.needToResetMonitoringParameters) {
