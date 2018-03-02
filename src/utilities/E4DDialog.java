@@ -10,6 +10,8 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -18,8 +20,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 
 /**
@@ -32,9 +36,12 @@ public class E4DDialog extends TitleAreaDialog {
 	
 	private List<String> potentialParameters = new ArrayList<String>();
 	private String selectedParameter;
+	private Text wellText;
+	private int maximumWells = 30;
 	
 	private ScrolledComposite sc;
 	private Composite container;
+	private Button ok;
 	
 	public E4DDialog(Shell parentShell, List<String> sensors) {
 		super(parentShell);
@@ -44,9 +51,9 @@ public class E4DDialog extends TitleAreaDialog {
 	@Override
 	public void create() {
 		super.create();
-		setTitle("Select parameter for E4D");
-		String message = "There were multiple pressure parameters detected in the hdf5 files.";
-		message += "\nSelect the parameter you wish to use for the optimum well output.";
+		setTitle("Inputs to Calculate E4D Wells");
+		String message = "You are about to generate a list of cadidate wells for E4D to use."
+				+ "\nSelect a pressure parameter and the number of wells you want to assess.";
 		setMessage(message, IMessageProvider.INFORMATION);
 	}
 	
@@ -66,9 +73,10 @@ public class E4DDialog extends TitleAreaDialog {
 	
 	protected void buildThings() {
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		container.setLayout(new GridLayout(1, false));
+		container.setLayout(new GridLayout(2, false));
 		
 		createRadioButtons();
+		createUserInputs();
 		
 		container.layout();
 		sc.setContent(container);
@@ -86,6 +94,10 @@ public class E4DDialog extends TitleAreaDialog {
 		Group radioButton = new Group(container, SWT.SHADOW_NONE);
 		radioButton.setText("Pressure Parameters");
 		radioButton.setLayout(new RowLayout(SWT.VERTICAL));
+		GridData span2Columns = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		span2Columns.horizontalSpan = 2;
+		radioButton.setLayoutData(span2Columns);
+		
 		selectedParameter = potentialParameters.get(0);
 		for (String sensor: potentialParameters) {
 			final Button button = new Button(radioButton, SWT.RADIO);
@@ -100,6 +112,38 @@ public class E4DDialog extends TitleAreaDialog {
 		radioButton.setLayoutData(buttonGridData);
 	}
 	
+	// Creates the input section for number of wells
+	private void createUserInputs() {
+		// Add some white space to separate the dialog box
+		Label spacer = new Label(container, SWT.NULL);
+		GridData span2Columns = new GridData(GridData.FILL_HORIZONTAL);
+		span2Columns.horizontalSpan = 2;
+		spacer.setLayoutData(span2Columns);
+		
+		Label wellLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
+		wellLabel.setText("Number of Wells");
+		wellLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		wellText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellText.setText("30");
+		wellText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		wellText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				wellText = (Text)e.getSource();
+				ok = getButton(IDialogConstants.OK_ID);
+				try {
+					maximumWells = Integer.parseInt((wellText).getText());
+					ok.setEnabled(true);
+					wellText.setForeground(Constants.black);
+				} catch (Exception ex) {
+					// Not a real number
+					ok.setEnabled(false);
+					wellText.setForeground(Constants.red);
+				}
+			}
+		});
+	}
+	
 	@Override
 	protected void buttonPressed(int id) {
 		if(id == OK)
@@ -108,5 +152,9 @@ public class E4DDialog extends TitleAreaDialog {
 	
 	public String getParameter() {
 		return selectedParameter;
+	}
+	
+	public int getMaximumWells() {
+		return maximumWells;
 	}
 }

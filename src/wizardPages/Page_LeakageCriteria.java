@@ -767,16 +767,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					// Begin by identifying the parameter to build the file from
 					List<String> list = new ArrayList<String>();
 					String selectedParameter = null;
+					int maximumWells = 30; //default value
 					for(String label: sensorData.keySet()) {
 						if (label.contains("Pressure"))
 							list.add(label);
 					}
-					if (list.size() == 1) { // If only one pressure parameter, use that
-						selectedParameter = list.get(0);
-					} else if (list.size() > 1) { // If more than one pressure parameter, open dialog for user to choose
+					if (list.size() > 0) { // If pressure parameters are detected, open dialog
 						E4DDialog dialog = new E4DDialog(container.getShell(), list);
 						dialog.open();
 						selectedParameter = dialog.getParameter();
+						maximumWells = dialog.getMaximumWells();
 						if(dialog.getReturnCode() == 1) // If the dialog box is closed, do nothing
 							return;
 					} else if (list.isEmpty()) { // If no pressure parameters, throw error
@@ -787,7 +787,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					// Returns the best well that fall within the threshold (currently 30)
 					ArrayList<Point3i> wells = null;
 					try {
-						wells = data.runWellOptimizationE4D(selectedParameter);
+						wells = data.runWellOptimizationE4D(selectedParameter, maximumWells);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

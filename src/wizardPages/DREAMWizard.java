@@ -565,13 +565,13 @@ public class DREAMWizard extends Wizard {
 			runner.setResultsDirectory(dir);
 		}
 		
-		public ArrayList<Point3i> runWellOptimizationE4D(final String selectedParameter) throws Exception {
+		public ArrayList<Point3i> runWellOptimizationE4D(final String selectedParameter, final int maximumWells) throws Exception {
 			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Calculating E4D Wells for " + selectedParameter, 1000);
 					try {
-						wells = E4DSensors.calculateE4DWells(data, selectedParameter, monitor);
+						wells = E4DSensors.calculateE4DWells(data, selectedParameter, maximumWells, monitor);
 					} catch (Exception e) {
 						wells = null;
 						e.printStackTrace();

@@ -31,10 +31,9 @@ public class E4DSensors {
 	public static int wellPairs = 5;
 	
 	// This method determines which wells should be passed along to E4D
-	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter, IProgressMonitor monitor) throws Exception {
+	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter, int maximumWells, IProgressMonitor monitor) throws Exception {
 				
-		float threshold = 0.01f; //Hard number determined by Catherine
-		int maximumWells = 30; //Hard number given by E4D coders
+		float threshold = 0.01f; //Hard number determined by Catherine, first value to test
 		NodeStructure nodeStructure = data.getSet().getNodeStructure();
 		
 		ArrayList<Point3i> wellList = new ArrayList<Point3i>();
