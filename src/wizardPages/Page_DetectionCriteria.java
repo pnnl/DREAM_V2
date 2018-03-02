@@ -146,7 +146,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				
 				Text indText = new Text(container, SWT.BORDER | SWT.SINGLE);
 				indText.setText(String.valueOf(data.getSet().getInferenceTest().getMinimumForType(dataType)));
-				indText.setForeground(black);
+				indText.setForeground(Constants.black);
 				indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 				indText.addModifyListener(new ModifyListener() {
 					@Override
@@ -157,10 +157,10 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 						count = 0;
 						for(Text individualSensors: minimumSensors.values()) {
 							if(Constants.isValidInt(individualSensors.getText())) { //Valid number
-								individualSensors.setForeground(black);
+								individualSensors.setForeground(Constants.black);
 								count += Integer.parseInt(individualSensors.getText());
 							} else {
-								individualSensors.setForeground(red);
+								individualSensors.setForeground(Constants.red);
 								individualError = true;
 							}
 						}
@@ -168,7 +168,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 						if (count > Integer.parseInt(minText.getText()))
 							minText.setText(Integer.toString(count));
 						else {
-							minText.setForeground(black);
+							minText.setForeground(Constants.black);
 							errorFound(false, "  Overall cannot be less than the sum of individual sensors.");
 						}
 					}
@@ -195,7 +195,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		new Label(container, SWT.NULL);
 		minText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		minText.setText(String.valueOf(data.getSet().getInferenceTest().getOverallMinimum()));
-		minText.setForeground(black);
+		minText.setForeground(Constants.black);
 		minText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		minText.addModifyListener(new ModifyListener() {
 			@Override
@@ -203,13 +203,13 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
 				boolean smallError = false;
 				if(numError) { //Not a valid number
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 				} else { //Valid number
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().getInferenceTest().setOverallMinimum(Integer.parseInt(((Text)e.getSource()).getText()));
 					if(Integer.parseInt(((Text)e.getSource()).getText()) < count) {
 						smallError = true;
-						((Text)e.getSource()).setForeground(red);
+						((Text)e.getSource()).setForeground(Constants.red);
 					}
 				}
 				errorFound(numError, "  Overall min is not a real number.");

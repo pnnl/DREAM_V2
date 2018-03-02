@@ -1,8 +1,6 @@
 package wizardPages;
 
 import org.eclipse.jface.wizard.WizardPage;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
 
 /**
  * Parent class of DreamWizard, contains functions called in multiple pages
@@ -10,9 +8,6 @@ import org.eclipse.swt.widgets.Display;
  */
 
 public abstract class DreamWizardPage extends WizardPage {
-
-	public Color black = new Color(Display.getCurrent(), 0, 0, 0);
-	public Color red = new Color(Display.getCurrent(), 255, 0, 0);
 	
 	protected DreamWizardPage(String pageName) {
 		super(pageName);

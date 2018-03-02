@@ -240,7 +240,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								continue;
 							if(temp.alias.trim().equals(temp2.alias.trim()) && !temp.sensorName.equals(temp2.sensorName)) {
 								duplicateError = true;
-								temp.aliasText.setForeground(red);
+								temp.aliasText.setForeground(Constants.red);
 							}
 						}
 						if(temp.alias.contains(",")) //Contains a comma
@@ -286,7 +286,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if (duplicateError==false)
 						for(SensorData data: sensorData.values())
 							if (data.isIncluded && !data.alias.contains(",") && !data.alias.isEmpty())
-								data.aliasText.setForeground(black);
+								data.aliasText.setForeground(Constants.black);
 				}
 			});
 			
@@ -294,7 +294,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Alias Input
 			aliasText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			aliasText.setText(sensorData.get(type).alias);
-			aliasText.setForeground(black);
+			aliasText.setForeground(Constants.black);
 			aliasText.addModifyListener(new ModifyListener(){
 				@Override
 				public void modifyText(ModifyEvent e){
@@ -308,20 +308,20 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						for(SensorData temp2: sensorData.values()) {
 							if(!temp2.isIncluded) continue; //Skip unchecked parameters
 							if(temp.aliasText.getText().trim().equals(temp2.aliasText.getText().trim()) && !temp.sensorName.equals(temp2.sensorName)) {
-								temp.aliasText.setForeground(red);
+								temp.aliasText.setForeground(Constants.red);
 								duplicateError = true;
 							}
 						}
 						if(temp.aliasText.getText().contains(",")) { //Contains a comma
-							temp.aliasText.setForeground(red);
+							temp.aliasText.setForeground(Constants.red);
 							commaError = true;
 						}
 						if(temp.aliasText.getText().trim().isEmpty()) { //Empty alias
-							temp.aliasText.setForeground(red);
+							temp.aliasText.setForeground(Constants.red);
 							emptyError = true;
 						}
 						if (duplicateError==false && commaError==false && emptyError==false) { //No errors
-							temp.aliasText.setForeground(black);
+							temp.aliasText.setForeground(Constants.black);
 							temp.alias = temp.aliasText.getText();
 						}
 					}
@@ -339,7 +339,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Cost Input
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			costText.setText(String.valueOf(sensorData.get(type).cost));
-			costText.setForeground(black);
+			costText.setForeground(Constants.black);
 			costText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -348,10 +348,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
 						if(Constants.isValidFloat(temp.costText.getText())) { //Valid number
-							temp.costText.setForeground(black);
+							temp.costText.setForeground(Constants.black);
 							temp.cost = Float.valueOf(temp.costText.getText());
 						} else { //Not a valid number
-							temp.costText.setForeground(red);
+							temp.costText.setForeground(Constants.red);
 							costError = true;
 						}
 					}
@@ -419,7 +419,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detection));
 			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
-			detectionText.setForeground(black);
+			detectionText.setForeground(Constants.black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -428,7 +428,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
 						if(Constants.isValidFloat(temp.detectionText.getText())) { //Valid number
-							temp.detectionText.setForeground(black);
+							temp.detectionText.setForeground(Constants.black);
 							temp.detection = Float.valueOf(temp.detectionText.getText());
 							if(temp.trigger==Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
 								temp.lowerThreshold = Float.MIN_VALUE;
@@ -440,7 +440,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								temp.lowerThreshold = temp.upperThreshold = temp.detection;
 							}
 						} else { //Not a valid number
-							temp.detectionText.setForeground(red);
+							temp.detectionText.setForeground(Constants.red);
 							detectionError = true;
 						}
 					}
@@ -460,7 +460,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// Set minimum z
 			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			minZText.setText(String.valueOf(sensorData.get(type).minZ));
-			minZText.setForeground(black);
+			minZText.setForeground(Constants.black);
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -472,14 +472,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(Constants.isValidFloat(temp.minZText.getText())) { //Valid number
 							float minZValue = Float.valueOf(temp.minZText.getText());
 							if (minZValue < minZBound || minZValue > maxZBound) {
-								temp.minZText.setForeground(red);
+								temp.minZText.setForeground(Constants.red);
 								botBoundError = true;
 							} else {
-								temp.minZText.setForeground(black);
+								temp.minZText.setForeground(Constants.black);
 								temp.minZ = minZValue;
 							}
 						} else { //Not a valid number
-							temp.minZText.setForeground(red);
+							temp.minZText.setForeground(Constants.red);
 							botError = true;
 						}
 					}
@@ -496,7 +496,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// Set maximum z
 			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			maxZText.setText(String.valueOf(sensorData.get(type).maxZ));
-			maxZText.setForeground(black);
+			maxZText.setForeground(Constants.black);
 			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -508,14 +508,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(Constants.isValidFloat(temp.maxZText.getText())) { //Valid number
 							float maxZValue = Float.valueOf(temp.maxZText.getText());
 							if (maxZValue < minZBound || maxZValue > maxZBound) {
-								temp.maxZText.setForeground(red);
+								temp.maxZText.setForeground(Constants.red);
 								topBoundError = true;
 							} else {
-								temp.maxZText.setForeground(black);
+								temp.maxZText.setForeground(Constants.black);
 								temp.maxZ = maxZValue;
 							}
 						} else { //Not a valid number
-							temp.maxZText.setForeground(red);
+							temp.maxZText.setForeground(Constants.red);
 							topError = true;
 						}
 					}

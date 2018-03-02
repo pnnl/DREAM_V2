@@ -224,7 +224,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	
 		outputFolder = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		outputFolder.setText(outputs);
-		outputFolder.setForeground(black);
+		outputFolder.setForeground(Constants.black);
 		outputFolder.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		outputFolder.addModifyListener(new ModifyListener() {
 			@Override
@@ -233,9 +233,9 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	            try {
 	            	File resultsFolder = new File(((Text)e.getSource()).getText());
 	            	outputs = resultsFolder.getCanonicalPath();
-	            	((Text)e.getSource()).setForeground(black);
+	            	((Text)e.getSource()).setForeground(Constants.black);
 	            } catch (Exception ex) {
-	            	((Text)e.getSource()).setForeground(red);
+	            	((Text)e.getSource()).setForeground(Constants.red);
 	            	outputError = true;
 	            }
 	            errorFound(outputError, "  Results folder must use valid characters.");
@@ -300,17 +300,17 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 
 		runsText = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		runsText.setText(String.valueOf(runs));
-		runsText.setForeground(black);
+		runsText.setForeground(Constants.black);
 		runsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		runsText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				runsError = false;
 				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					runs = Integer.parseInt(((Text)e.getSource()).getText());
 				} else { //Not a valid number
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 					runsError = true;
 				}
 				errorFound(runsError, "  Runs is not a real number.");
@@ -326,17 +326,17 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		iterationLabel.setText("Configurations to test");
 		iterationsText = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		iterationsText.setText(String.valueOf(data.getSet().getIterations()));
-		iterationsText.setForeground(black);
+		iterationsText.setForeground(Constants.black);
 		iterationsText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		iterationsText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				iterationsError = false;
 				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().setIterations(Integer.parseInt(((Text)e.getSource()).getText()));
 				} else { //Not a valid number
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 					iterationsError = true;
 				}
 				errorFound(iterationsError, "  Iterations is not a real number.");
@@ -579,17 +579,17 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		
 		samplesText = new Text(devGroup, SWT.BORDER | SWT.SINGLE);
 		samplesText.setText(String.valueOf(samples));
-		samplesText.setForeground(black);
+		samplesText.setForeground(Constants.black);
 		samplesText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		samplesText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				samplesError = false;
 				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					samples = Integer.parseInt(((Text)e.getSource()).getText());
 				} else { //Not a valid number
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 					samplesError = true;
 				}
 				errorFound(samplesError, "  Samples is not a real number.");

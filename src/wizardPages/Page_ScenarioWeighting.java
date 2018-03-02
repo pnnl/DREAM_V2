@@ -228,7 +228,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 								error = true;
 							}
 						} else { //Handles a bug where a disabled non-float wan't allowing the page to advance
-							weightText.setForeground(black);
+							weightText.setForeground(Constants.black);
 							weightText.setText("1.0");
 						}
 					}
@@ -246,9 +246,9 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 						if(!selectedScenarios.get(scenario).getSelection()) //Skip unchecked scenarios
 							continue;
 						if(Constants.isValidFloat(weights.get(scenario).getText())) //Valid number
-							weights.get(scenario).setForeground(black);
+							weights.get(scenario).setForeground(Constants.black);
 						else { //Not a valid number
-							weights.get(scenario).setForeground(red);
+							weights.get(scenario).setForeground(Constants.red);
 							weightError = true;
 						}
 					}

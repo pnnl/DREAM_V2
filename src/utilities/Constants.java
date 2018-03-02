@@ -10,6 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+
 /**
  * Constants for use throughout code, the booleans at the top and random seed can be changed to alter functionality
  * @author port091
@@ -27,6 +30,9 @@ public class Constants {
 	static File userDirectory = new File(System.getProperty("user.dir"));
 	public static String userDir = userDirectory.getPath();
 	public static String parentDir = userDirectory.getParent();
+	
+	public static Color black = new Color(Display.getCurrent(), 0, 0, 0);
+	public static Color red = new Color(Display.getCurrent(), 255, 0, 0);
 	
 	public enum ModelOption {
 		

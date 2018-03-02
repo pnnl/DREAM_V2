@@ -201,7 +201,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			Constants.homeDirectory = directory;
 		}
 		hdf5Text.setText(directory);
-		hdf5Text.setForeground(black);
+		hdf5Text.setForeground(Constants.black);
 		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		boolean h5Error = true;
 		File resultsFolder = new File(hdf5Text.getText());
@@ -222,10 +222,10 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				boolean dirError = !resultsFolder.isDirectory();
 				boolean h5Error = true;
 				if (dirError == true) {
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 					h5Error = false;
 				} else {
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					directory = ((Text)e.getSource()).getText();
 					Constants.homeDirectory = directory;
 					File[] fList = resultsFolder.listFiles();

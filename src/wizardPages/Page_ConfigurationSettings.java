@@ -141,7 +141,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			cost = data.getSet().getCostConstraint();
 		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
 		costConstraint.setText(String.valueOf(cost));
-		costConstraint.setForeground(black);
+		costConstraint.setForeground(Constants.black);
 		costConstraint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		costConstraint.addModifyListener(new ModifyListener() {
 			@Override
@@ -149,12 +149,12 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 				boolean minError = false;
 				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 				else {
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getMinWellCost()) {
 						minError = true;
-						((Text)e.getSource()).setForeground(red);
+						((Text)e.getSource()).setForeground(Constants.red);
 					} else
 						cost = Float.parseFloat(((Text)e.getSource()).getText());
 				}
@@ -168,16 +168,16 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellLabel.setText("Maximum Number of Wells");
 		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
 		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
-		maxWells.setForeground(black);
+		maxWells.setForeground(Constants.black);
 		maxWells.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		maxWells.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 				else {
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().setMaxWells(Integer.parseInt(((Text)e.getSource()).getText()));
 				}
 				errorFound(numError, "  Wells is not a real number.");
@@ -189,16 +189,16 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells");
 		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
 		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
-		exclusionRadius.setForeground(black);
+		exclusionRadius.setForeground(Constants.black);
 		exclusionRadius.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		exclusionRadius.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 				if (numError==true)
-					((Text)e.getSource()).setForeground(red);
+					((Text)e.getSource()).setForeground(Constants.red);
 				else {
-					((Text)e.getSource()).setForeground(black);
+					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().setExclusionRadius(Float.parseFloat(((Text)e.getSource()).getText()));
 				}
 				errorFound(numError, "  Distance is not a real number.");
@@ -211,16 +211,16 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			wellCostLabel.setText("Cost Per Well");
 			wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 			wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-			wellCost.setForeground(black);
+			wellCost.setForeground(Constants.black);
 			wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			wellCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
-						((Text)e.getSource()).setForeground(red);
+						((Text)e.getSource()).setForeground(Constants.red);
 					else {
-						((Text)e.getSource()).setForeground(black);
+						((Text)e.getSource()).setForeground(Constants.black);
 						data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
 					}
 					errorFound(numError, "  Cost is not a real number.");
@@ -232,16 +232,16 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
 			wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 			wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
-			wellDepthCost.setForeground(black);
+			wellDepthCost.setForeground(Constants.black);
 			wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			wellDepthCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
-						((Text)e.getSource()).setForeground(red);
+						((Text)e.getSource()).setForeground(Constants.red);
 					else {
-						((Text)e.getSource()).setForeground(black);
+						((Text)e.getSource()).setForeground(Constants.black);
 						data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
 					}
 					errorFound(numError, "  Cost is not a real number.");
@@ -253,16 +253,16 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			remediationCostLabel.setText("Remediation Cost Per Water Unit");
 			remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 			remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
-			remediationCost.setForeground(black);
+			remediationCost.setForeground(Constants.black);
 			remediationCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			remediationCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
-						((Text)e.getSource()).setForeground(red);
+						((Text)e.getSource()).setForeground(Constants.red);
 					else {
-						((Text)e.getSource()).setForeground(black);
+						((Text)e.getSource()).setForeground(Constants.black);
 						data.getSet().setRemediationCost(Float.parseFloat(((Text)e.getSource()).getText()));
 					}
 					errorFound(numError, "  Remediation cost is not a real number.");

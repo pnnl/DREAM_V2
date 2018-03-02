@@ -17,7 +17,6 @@ import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -225,17 +224,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x > zones.get(i-1).iMax){
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1), false);
 					}
 					else{
 						zones.get(i-1).iMin = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1), true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1), false);
 				}
 			}
@@ -249,7 +248,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).iMin = 1;
 			}
 		});
@@ -263,17 +262,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getI() || x < zones.get(i-1).iMin){
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 1, false);
 					}
 					else{
 						zones.get(i-1).iMax = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 1, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 1, false);
 				}
 			}
@@ -287,7 +286,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).iMax = data.getSet().getNodeStructure().getIJKDimensions().getI();
 			}
 		});
@@ -301,17 +300,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x > zones.get(i-1).jMax){
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 2, false);
 					}
 					else{
 						zones.get(i-1).jMin = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 2, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 2, false);
 				}
 			}
@@ -325,7 +324,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).jMin = 1;
 			}
 		});
@@ -339,17 +338,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getJ() || x < zones.get(i-1).jMin){ 
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 3, false);
 					}
 					else{
 						zones.get(i-1).jMax = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 3, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 3, false);
 				}
 			}
@@ -363,7 +362,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).jMax = data.getSet().getNodeStructure().getIJKDimensions().getJ();
 			}
 		});
@@ -377,17 +376,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x > zones.get(i-1).kMax){ 
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 4, false);
 					}
 					else{
 						zones.get(i-1).kMin = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 4, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 4, false);
 				}
 			}
@@ -401,7 +400,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).kMin = 1;
 			}
 		});
@@ -415,17 +414,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					int x = Integer.valueOf(temp);
 					if(x < 1 || x > data.getSet().getNodeStructure().getIJKDimensions().getK() || x < zones.get(i-1).kMin){ 
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 5, false);
 					}
 					else{
 						zones.get(i-1).kMax = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 5, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 5, false);
 				}
 			}
@@ -439,7 +438,7 @@ public class PorosityDialog extends TitleAreaDialog {
 			public void focusLost(FocusEvent e) {
 				//If we lose focus and it's red, set it to the default so that the other value (max or min) can be set
 				//properly. Otherwise we get confusing cases where the UI holds on to the first part of a number typed.
-				if(((Text)e.getSource()).getForeground().equals(new Color(container.getDisplay(),255,0,0)))
+				if(((Text)e.getSource()).getForeground().equals(Constants.red))
 					zones.get(i-1).kMax = data.getSet().getNodeStructure().getIJKDimensions().getK();
 			}
 		});
@@ -453,17 +452,17 @@ public class PorosityDialog extends TitleAreaDialog {
 				try{
 					float x = Float.valueOf(temp);
 					if(x < 0 || x > 1){
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+						((Text)e.getSource()).setForeground(Constants.red);
 						readyToGo.put(7*(i-1) + 6, false);
 					}
 					else{
 						zones.get(i-1).porosity = x;
-						((Text)e.getSource()).setForeground(new Color(container.getDisplay(), 0,0,0));
+						((Text)e.getSource()).setForeground(Constants.black);
 						readyToGo.put(7*(i-1) + 6, true);
 					}
 				} 
 				catch(NumberFormatException f){
-					((Text)e.getSource()).setForeground(new Color(container.getDisplay(),255,0,0));
+					((Text)e.getSource()).setForeground(Constants.red);
 					readyToGo.put(7*(i-1) + 6, false);
 				}
 			}
