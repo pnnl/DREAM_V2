@@ -442,8 +442,10 @@ public class HDF5Interface {
 				try {
 					H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
 					hdf5Files.put(scenario,hdf5File);
-					if(size > freeMemory)
+					if(size > freeMemory) {
+						System.out.println("The H5 files were too large to read into memory.");
 						continue;
+					}
 					hdf5File.open();
 					
 					if(nodeStructure == null) {
