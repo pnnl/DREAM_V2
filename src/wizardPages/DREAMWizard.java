@@ -394,10 +394,10 @@ public class DREAMWizard extends Wizard {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							if(Constants.useParetoOptimal)
-								monitor.beginTask("Sensor settings", 1000*count);
+							if(sensorData.containsKey("Electrical Conductivity"))
+								monitor.beginTask("Sensor settings", 1000*count-1+1);
 							else
-								monitor.beginTask("Sensor settings", 300*count);
+								monitor.beginTask("Sensor settings", 1000*count+1);
 							for(String sensorType: sensorData.keySet()) {
 								if(monitor.isCanceled()) break;
 								SensorData data = sensorData.get(sensorType);
@@ -450,7 +450,8 @@ public class DREAMWizard extends Wizard {
 										set.getInferenceTest().setMinimumForType(sensorType, 0);							
 									}
 								}
-							} 
+							}
+							monitor.worked(1);
 						} catch (Exception e) {
 							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 							e.printStackTrace();
@@ -596,13 +597,14 @@ public class DREAMWizard extends Wizard {
 						// Run the Python script with the following input arguments
 						try {
 							File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
-							String input1 = e4dDialog.getStorageText(); //Storage File Location
+							String input1 = e4dDialog.getStorage(); //Storage File Location
 							String input2 = Constants.homeDirectory + "\\" + scenario.toString() + ".h5"; //Leakage File Location
 							String input3 = e4dWellList.getPath(); //Well List Location
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
-							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping*/
-							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\"";
+							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping
+							String input7 = String.valueOf(e4dDialog.getDetectionThreshold()); //Detection Threshold
+							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\" \"" +input7+ "\"";
 							File wDirectory = new File(Constants.userDir,"e4d");
 							
 							Process p = Runtime.getRuntime().exec(command, null, wDirectory);
