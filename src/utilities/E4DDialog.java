@@ -121,7 +121,7 @@ public class E4DDialog extends TitleAreaDialog {
 		spacer.setLayoutData(span2Columns);
 		
 		Label wellLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
-		wellLabel.setText("Number of Wells");
+		wellLabel.setText("Maximum Number of Wells");
 		wellLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
 		wellText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellText.setText("30");
