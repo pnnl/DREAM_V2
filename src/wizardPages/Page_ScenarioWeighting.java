@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import objects.Scenario;
+import utilities.Constants;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
@@ -244,7 +245,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 					for(Scenario scenario: weights.keySet()) {
 						if(!selectedScenarios.get(scenario).getSelection()) //Skip unchecked scenarios
 							continue;
-						if(isValidFloat(weights.get(scenario).getText())) //Valid number
+						if(Constants.isValidFloat(weights.get(scenario).getText())) //Valid number
 							weights.get(scenario).setForeground(black);
 						else { //Not a valid number
 							weights.get(scenario).setForeground(red);

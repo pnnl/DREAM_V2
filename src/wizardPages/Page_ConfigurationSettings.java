@@ -146,7 +146,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		costConstraint.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 				boolean minError = false;
 				if (numError==true)
 					((Text)e.getSource()).setForeground(red);
@@ -173,7 +173,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		maxWells.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidInt(((Text)e.getSource()).getText());
+				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
 				if (numError==true)
 					((Text)e.getSource()).setForeground(red);
 				else {
@@ -194,7 +194,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		exclusionRadius.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 				if (numError==true)
 					((Text)e.getSource()).setForeground(red);
 				else {
@@ -216,7 +216,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			wellCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
 						((Text)e.getSource()).setForeground(red);
 					else {
@@ -237,7 +237,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			wellDepthCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
 						((Text)e.getSource()).setForeground(red);
 					else {
@@ -258,7 +258,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			remediationCost.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					boolean numError = !isValidFloat(((Text)e.getSource()).getText());
+					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
 					if (numError==true)
 						((Text)e.getSource()).setForeground(red);
 					else {

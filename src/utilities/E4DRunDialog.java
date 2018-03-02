@@ -12,6 +12,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
@@ -20,6 +21,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
@@ -46,15 +48,20 @@ public class E4DRunDialog extends TitleAreaDialog {
 	private String brineSaturation;
 	private String gasSaturation;
 	private String saltConcentration;
+	private float detectionThreshold;
 	
 	private Text storageText;
 	private Combo brineCombo;
 	private Combo gasCombo;
 	private Combo saltCombo;
+	private Text detectionText;
 	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Button ok;
+	
+	private Color black = new Color(Display.getCurrent(), 0, 0, 0);
+	private Color red = new Color(Display.getCurrent(), 255, 0, 0);
 	
 	public E4DRunDialog(Shell parentShell, String ensemble, String brineSaturation, String gasSaturation, String saltConcentration, Map<String, SensorData> sensorData) {
 		super(parentShell);
@@ -80,7 +87,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 		Composite area = (Composite) super.createDialogArea(parent);
 		
 		sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.FILL);
-		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 180).create());
+		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 230).create());
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
 		
@@ -96,6 +103,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 		
 		createStorageInterface();
 		createMappings();
+		createUserInputs();
 		
 		container.layout();
 		sc.setContent(container);
@@ -119,15 +127,29 @@ public class E4DRunDialog extends TitleAreaDialog {
 				dialog.setFilterPath(storage);
 				storage = dialog.open();
 				File fileTest = new File(storage);
-				if(fileTest != null) {
+				if(fileTest != null)
 					storageText.setText(storage);
-					checkRequirements();
-				}
+				checkRequirements();
 			}
 		});
+		
 		storageText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		storageText.setText(storage);
 		storageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		storageText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				storageText = (Text)e.getSource();
+				try {
+					File fileTest = new File(storageText.getText());
+					if(fileTest != null)
+						storage = storageText.getText();
+				} catch (Exception ex) {
+					// Not a real file
+				}
+				checkRequirements();
+			}
+		});
 		
 		// Add some white space to separate the dialog box
 		Label spacer = new Label(container, SWT.NULL);
@@ -203,11 +225,82 @@ public class E4DRunDialog extends TitleAreaDialog {
 	}
 	
 	
+	// Creates the input section for detection threshold and number of wells
+	private void createUserInputs() {
+		// Add some white space to separate the dialog box
+		Label spacer = new Label(container, SWT.NULL);
+		GridData span2Columns = new GridData(GridData.FILL_HORIZONTAL);
+		span2Columns.horizontalSpan = 2;
+		spacer.setLayoutData(span2Columns);
+		
+		Label detectionLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
+		detectionLabel.setText("Detection Threshold (%)");
+		detectionLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		detectionText.setText("0.001");
+		detectionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		detectionText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				detectionText = (Text)e.getSource();
+				try {
+					detectionThreshold = Float.parseFloat(detectionText.getText()) / 100;
+				} catch (Exception ex) {
+					// Not a real number
+				}
+				checkRequirements();
+			}
+		});
+		
+		/*Label wellLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
+		wellLabel.setText("Number of Wells");
+		wellLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+		wellText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellText.setText("30");
+		wellText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		wellText.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				wellText = (Text)e.getSource();
+				try {
+					numberOfWells = Integer.parseInt((wellText).getText());
+				} catch (Exception ex) {
+					// Not a real number
+				}
+				checkRequirements();
+			}
+		});*/
+	}
+	
+	
 	private void checkRequirements() {
 		ok = getButton(IDialogConstants.OK_ID);
-		if(brineCombo.getText().length()==0 || gasCombo.getText().length()==0 || saltCombo.getText().length()==0 || !storageText.getText().contains(".h5"))
+		boolean error = false;
+		
+		// Combo boxes need to be mapped to a variable
+		if(brineCombo.getText().length()==0 || gasCombo.getText().length()==0 || saltCombo.getText().length()==0) {
+			error = true;
 			ok.setEnabled(false);
-		else
+		}
+		
+		// Storage text needs to be a real file that contains ".H5" in the name"
+		if(!storageText.getText().toLowerCase().contains(".h5") || !Constants.isValidFile(storageText.getText())) {
+			error = true;
+			storageText.setForeground(red);
+			ok.setEnabled(false);
+		} else
+			storageText.setForeground(black);
+		
+		// Detection Text needs to be a float
+		if(!Constants.isValidFloat(detectionText.getText())) {
+			error = true;
+			detectionText.setForeground(red);
+			ok.setEnabled(false);
+		} else
+			detectionText.setForeground(black);
+		
+		// If no errors are found, they can click ok
+		if(error==false)
 			ok.setEnabled(true);
 	}
 	
@@ -228,7 +321,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 	}
 	
 	
-	public String getStorageText() {
+	public String getStorage() {
 		return storage;
 	}
 	
@@ -242,5 +335,9 @@ public class E4DRunDialog extends TitleAreaDialog {
 	
 	public String getSaltConcentration() {
 		return saltConcentration;
+	}
+	
+	public float getDetectionThreshold() {
+		return detectionThreshold;
 	}
 }

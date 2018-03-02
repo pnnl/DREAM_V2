@@ -248,13 +248,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(temp.alias.isEmpty()) //No alias
 							emptyError = true;
 						//Cost
-						if(!isValidFloat(temp.costText.getText()))
+						if(!Constants.isValidFloat(temp.costText.getText()))
 							costError = true;
 						//Detection
-						if(!isValidFloat(temp.detectionText.getText()))
+						if(!Constants.isValidFloat(temp.detectionText.getText()))
 							detectionError = true;
 						//Zone bottom
-						if(!isValidFloat(temp.minZText.getText()))
+						if(!Constants.isValidFloat(temp.minZText.getText()))
 							botError = true;
 						else {
 							float minZValue = Float.parseFloat(temp.minZText.getText());
@@ -262,7 +262,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								botBoundError = true;
 						}
 						//Zone top
-						if(!isValidFloat(temp.maxZText.getText()))
+						if(!Constants.isValidFloat(temp.maxZText.getText()))
 							topError = true;
 						else {
 							float maxZValue = Float.parseFloat(temp.maxZText.getText());
@@ -347,7 +347,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean costError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(isValidFloat(temp.costText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.costText.getText())) { //Valid number
 							temp.costText.setForeground(black);
 							temp.cost = Float.valueOf(temp.costText.getText());
 						} else { //Not a valid number
@@ -427,7 +427,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean detectionError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(isValidFloat(temp.detectionText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.detectionText.getText())) { //Valid number
 							temp.detectionText.setForeground(black);
 							temp.detection = Float.valueOf(temp.detectionText.getText());
 							if(temp.trigger==Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
@@ -469,7 +469,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean botBoundError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(isValidFloat(temp.minZText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.minZText.getText())) { //Valid number
 							float minZValue = Float.valueOf(temp.minZText.getText());
 							if (minZValue < minZBound || minZValue > maxZBound) {
 								temp.minZText.setForeground(red);
@@ -505,7 +505,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean topBoundError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(isValidFloat(temp.maxZText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.maxZText.getText())) { //Valid number
 							float maxZValue = Float.valueOf(temp.maxZText.getText());
 							if (maxZValue < minZBound || maxZValue > maxZBound) {
 								temp.maxZText.setForeground(red);
@@ -580,8 +580,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			E4DSensors.addERTSensor(data);
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
+				// Adds all sensors from the list
 				if(data.getSensorSettings(dataType) != null)
 					sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+				// If the user went back after findings nodes, some sensors were removed and saved in another map
 				else
 					sensorData.put(dataType, new SensorData(data.getSet().getRemovedSensorSettings(dataType), dataType));
 			}

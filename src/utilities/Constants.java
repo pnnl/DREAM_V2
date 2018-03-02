@@ -178,5 +178,32 @@ public class Constants {
 		}
 		return lines;
 	}
-
+	
+	public static boolean isValidFloat(String string) {
+		try {
+			Float.parseFloat(string);
+			return true;
+		} catch (NumberFormatException ne) {
+			return false;
+		}
+	}
+	
+	public static boolean isValidInt(String string) {
+		try {
+			Integer.parseInt(string);
+			return true;
+		} catch (NumberFormatException ne) {
+			return false;
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	public static boolean isValidFile(String string) {
+		try {
+			File fileTest = new File(string);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
 }

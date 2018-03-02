@@ -306,7 +306,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				runsError = false;
-				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
 					((Text)e.getSource()).setForeground(black);
 					runs = Integer.parseInt(((Text)e.getSource()).getText());
 				} else { //Not a valid number
@@ -332,7 +332,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				iterationsError = false;
-				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
 					((Text)e.getSource()).setForeground(black);
 					data.getSet().setIterations(Integer.parseInt(((Text)e.getSource()).getText()));
 				} else { //Not a valid number
@@ -585,7 +585,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				samplesError = false;
-				if(isValidInt(((Text)e.getSource()).getText())) { //Valid number
+				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
 					((Text)e.getSource()).setForeground(black);
 					samples = Integer.parseInt(((Text)e.getSource()).getText());
 				} else { //Not a valid number

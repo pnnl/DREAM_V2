@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import objects.Sensor;
+import utilities.Constants;
 import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -150,12 +151,12 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				indText.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
-						if (isValidInt(((Text)e.getSource()).getText()))
+						if (Constants.isValidInt(((Text)e.getSource()).getText()))
 							data.getSet().getInferenceTest().setMinimumForType(dataType, Integer.parseInt(((Text)e.getSource()).getText()));
 						boolean individualError = false;
 						count = 0;
 						for(Text individualSensors: minimumSensors.values()) {
-							if(isValidInt(individualSensors.getText())) { //Valid number
+							if(Constants.isValidInt(individualSensors.getText())) { //Valid number
 								individualSensors.setForeground(black);
 								count += Integer.parseInt(individualSensors.getText());
 							} else {
@@ -199,7 +200,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		minText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !isValidInt(((Text)e.getSource()).getText());
+				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
 				boolean smallError = false;
 				if(numError) { //Not a valid number
 					((Text)e.getSource()).setForeground(red);

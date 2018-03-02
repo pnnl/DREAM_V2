@@ -34,23 +34,6 @@ public abstract class DreamWizardPage extends WizardPage {
 		DREAMWizard.errorMessage.getParent().layout();
 	}
 	
-	public boolean isValidFloat(String string) {
-		try {
-			Float.parseFloat(string);
-			return true;
-		} catch (NumberFormatException ne) {
-			return false;
-		}
-	}
-	
-	public boolean isValidInt(String string) {
-		try {
-			Integer.parseInt(string);
-			return true;
-		} catch (NumberFormatException ne) {
-			return false;
-		}
-	}
 	
 	@Override
 	public boolean canFlipToNextPage() {
