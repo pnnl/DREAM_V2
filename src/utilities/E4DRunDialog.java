@@ -46,7 +46,7 @@ public class E4DRunDialog extends TitleAreaDialog {
 	private String brineSaturation;
 	private String gasSaturation;
 	private String saltConcentration;
-	private float detectionThreshold = 0.001f;
+	private float detectionThreshold = 0.00001f;
 	
 	private Text storageText;
 	private Combo brineCombo;
