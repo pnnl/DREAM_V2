@@ -674,8 +674,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			@Override
 			public void handleEvent(Event arg0) {
 				fixMacBug();
+				if(changeSinceFindingNodes==false)
+					return;
 				HDF5Interface.hdf5CloudData.clear();
-				boolean reset = true;
 				int count = 0;
 				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 				
@@ -694,15 +695,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				Sensor.sensorAliases = sensorAliases;
 				
 				try {
-					if(reset) {
-						for(String dataType: data.getSet().getDataTypes()) {
-							data.getSet().getSensorSettings(dataType).setNodesReady(false);
-						}
-					}
-					if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
-						data.setupSensors(reset, sensorSettings, count);
-						changeSinceFindingNodes = false;
-					}
+					for(String dataType: data.getSet().getDataTypes())
+						data.getSet().getSensorSettings(dataType).setNodesReady(false);
+					
+					data.setupSensors(true, sensorSettings, count);
+					changeSinceFindingNodes = false;
+					
 					DREAMWizard.visLauncher.setEnabled(true);
 					for(String label: sensorData.keySet()){
 						SensorData temp = sensorData.get(label);
