@@ -123,6 +123,9 @@ public class E4DSensors {
 	// The top 5 well pairings are also mapped to each well
 	public static void addERTSensor(STORMData data) {
 		ertDetectionTimes.clear();
+		/*File dir = new File(Constants.userDir, "e4d");
+		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + "*.csv");
+		File[] files = dir.listFiles(fileFilter);*/
 		String ertInput = Constants.userDir + "/e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && ertDetectionTimes.isEmpty()) {
@@ -146,7 +149,7 @@ public class E4DSensors {
 					String[] lineList = line.split(",");
 
 					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
-					if ((lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario())) || lineList[0].equals("")) {
+					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario()) && !lineList[0].equals("")) {
 						orderedValidNodes.clear();
 						validNodes.clear();
 						for (int i=1; i<lineList.length; i++) {
