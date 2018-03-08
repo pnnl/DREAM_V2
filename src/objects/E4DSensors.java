@@ -146,7 +146,7 @@ public class E4DSensors {
 					String[] lineList = line.split(",");
 
 					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
-					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario())) {
+					if ((lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario())) || lineList[0].equals("")) {
 						orderedValidNodes.clear();
 						validNodes.clear();
 						for (int i=1; i<lineList.length; i++) {
