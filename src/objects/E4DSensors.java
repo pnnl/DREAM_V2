@@ -161,7 +161,7 @@ public class E4DSensors {
 					}
 
 					// The following lines list ERT detection times for valid nodes per scenario
-					else if (lineList.length!=1){
+					else if (lineList.length>1){
 						Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
 						Integer key = null;
 						String[] ijList = lineList[0].split(":");
@@ -199,8 +199,9 @@ public class E4DSensors {
 						float sumTTD = 0;
 						for(Scenario scenarioLoop: ertDetectionTimes.keySet())
 							sumTTD =+ ertDetectionTimes.get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
-						float avgTTD = sumTTD / ertDetectionTimes.size(); //TODO: if "no detection" is a null or a very large number, edit how the average TTD is taken
-						averageTTD.add(avgTTD);
+						float avgTTD = sumTTD / ertDetectionTimes.size();
+						if(avgTTD!=0)
+							averageTTD.add(avgTTD);
 						tempWellPairings.put(secondWellLoop, avgTTD);
 					}
 					Collections.sort(averageTTD); //sort with smallest first
@@ -239,7 +240,7 @@ public class E4DSensors {
 		// Return as triggered only if the timestep exceeds the detection value for the well pairing
 		if(ertWellPairings.containsKey(nodeNumber)) {
 			Float detection = ertDetectionTimes.get(scenario).get(nodeNumber).get(ertWellPairings.get(nodeNumber));
-			if(detection!=null && timestep.getTimeStep()>detection)
+			if(detection!=0 && timestep.getTimeStep()>detection)
 				triggered = true;
 		}
 		
