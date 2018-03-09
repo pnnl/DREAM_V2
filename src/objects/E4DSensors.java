@@ -259,11 +259,11 @@ public class E4DSensors {
 	
 	
 	// This method looks for an ERT sensor at a new location and picks a new random pairing
-	public static ExtendedConfiguration ertPairings(ExtendedConfiguration newConfiguration) {
+	public static ExtendedConfiguration ertAddPairing(ExtendedConfiguration newConfiguration) {
 		int i = 0;
 		for(ExtendedSensor sensor: newConfiguration.getExtendedSensors()) {
 			int nodePairNumber = sensor.getNodePairNumber();
-			if(sensor.getSensorType().contains("Electrical Conductivity") && nodePairNumber==0) {
+			if(sensor.getSensorType().contains("Electrical Conductivity")) {
 				int nodeNumber = sensor.getNodeNumber();
 				int n = new Random().nextInt(ertPotentialWellPairings.get(nodeNumber).size());
 				nodePairNumber = ertPotentialWellPairings.get(nodeNumber).get(n);
