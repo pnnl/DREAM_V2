@@ -980,7 +980,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
 		
 		if (!E4DSensors.ertDetectionTimes.isEmpty())
-			E4DSensors.ertNewPairings();
+			E4DSensors.ertNewPairing();
 		for(Scenario scenario: data.getSet().getScenarios()){
 			timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
 			for(Integer nodeNumber: nodes){	

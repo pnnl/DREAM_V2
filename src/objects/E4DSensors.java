@@ -205,7 +205,8 @@ public class E4DSensors {
 						tempWellPairings.put(secondWellLoop, avgTTD);
 					}
 					Collections.sort(averageTTD); //sort with smallest first
-					averageTTD.subList(wellPairs, averageTTD.size()).clear(); //trim to top wells
+					if(averageTTD.size()>=wellPairs)
+						averageTTD.subList(wellPairs, averageTTD.size()).clear(); //trim to top wells
 					for(Float value: averageTTD) {
 						for(Integer well: tempWellPairings.keySet()) {
 							if(tempWellPairings.get(well).equals(value)) {
@@ -248,7 +249,7 @@ public class E4DSensors {
 	}
 	
 	
-	public static void ertNewPairings() {
+	public static void ertNewPairing() {
 		for(Integer primaryWell: ertPotentialWellPairings.keySet()) {
 			Random rand = new Random();
 			int n = rand.nextInt(ertPotentialWellPairings.get(primaryWell).size());
@@ -273,10 +274,6 @@ public class E4DSensors {
 			i++;
 		}
 		return newConfiguration;
-	}
-	
-	public static Integer getWellPairing(Integer primaryWell) {
-		return ertWellPairings.get(primaryWell);
 	}
 	
 }
