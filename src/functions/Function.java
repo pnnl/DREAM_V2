@@ -191,16 +191,16 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		float totalObjectiveTime = 0;
 
 		Constants.log(Level.FINER, "Function: running - iteration", "-1\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
-				
+		
+		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
+		
 		// Did not detect in any scenario
 		if(bestValue < 0)
 			bestValue = Integer.MAX_VALUE;
 		
 		// Hack to add a well pairing for ERT technology
-		newConfiguration = E4DSensors.ertAddPairing(newConfiguration);
-		
-		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
-		
+		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
+				
 		for(int iteration = 0; iteration < set.getIterations(); iteration++) {
 			
 			if(monitor.isCanceled())
@@ -292,17 +292,16 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 			long ttmStart = System.currentTimeMillis();
 			// Mutate the new configuration
-			// Make sure we mutate the current
 			//temp = System.currentTimeMillis();
 			newConfiguration.matchConfiguration(set, currentConfiguration);
 			//timeToMatchConfig += System.currentTimeMillis() - temp;
 			
-			// Hack to add a well pairing for ERT technology
-			newConfiguration = E4DSensors.ertAddPairing(newConfiguration);
-			
 			//temp = System.currentTimeMillis();
 			mutate(newConfiguration, set);
 			//timeToMutate += System.currentTimeMillis() - temp;
+			
+			// Hack to add a well pairing for ERT technology
+			newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
 			
 			float ttm = System.currentTimeMillis()-ttmStart;
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");
@@ -396,7 +395,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				configuration.addSensor(set, sensor);
 			
 			// Hack to add a well pairing for ERT technology
-			E4DSensors.ertAddPairing(configuration);
+			//E4DSensors.ertAddPairing(configuration);
 			
 			objective(configuration, set, Constants.runThreaded);
 			//storeResult(configuration);

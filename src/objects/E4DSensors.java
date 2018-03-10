@@ -259,17 +259,29 @@ public class E4DSensors {
 	
 	
 	// This method looks for an ERT sensor at a new location and picks a new random pairing
-	public static ExtendedConfiguration ertAddPairing(ExtendedConfiguration newConfiguration) {
+	public static ExtendedConfiguration ertAddPairing(ExtendedConfiguration newConfiguration, ExtendedConfiguration currentConfiguration) {
 		int i = 0;
 		for(ExtendedSensor sensor: newConfiguration.getExtendedSensors()) {
-			int nodePairNumber = sensor.getNodePairNumber();
 			if(sensor.getSensorType().contains("Electrical Conductivity")) {
-				int nodeNumber = sensor.getNodeNumber();
-				int n = new Random().nextInt(ertPotentialWellPairings.get(nodeNumber).size());
-				nodePairNumber = ertPotentialWellPairings.get(nodeNumber).get(n);
-				ertWellPairings.put(nodeNumber, ertPotentialWellPairings.get(nodeNumber).get(n));
-				sensor.setNodePair(nodePairNumber);
-				newConfiguration.getExtendedSensors().set(i, sensor);
+				
+				//Check if a sensor was moved by comparing against all sensors in the last configuration
+				boolean moved = true;
+				for(ExtendedSensor current: currentConfiguration.getExtendedSensors()) {
+					if(sensor.getNodeNumber().intValue()==current.getNodeNumber().intValue() && current.getSensorType().contains("Electrical Conductivity")) {
+						moved = false;
+						break;
+					}
+				}
+				
+				//If moved, randomly pick one of the potential well pairings to assign
+				if(moved) {
+					int nodeNumber = sensor.getNodeNumber();
+					int n = new Random().nextInt(ertPotentialWellPairings.get(nodeNumber).size());
+					int nodePairNumber = ertPotentialWellPairings.get(nodeNumber).get(n);
+					ertWellPairings.put(nodeNumber, ertPotentialWellPairings.get(nodeNumber).get(n));
+					sensor.setNodePair(nodePairNumber);
+					newConfiguration.getExtendedSensors().set(i, sensor);
+				}
 			}
 			i++;
 		}
