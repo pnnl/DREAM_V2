@@ -121,25 +121,23 @@ public class E4DSensors {
 	// This method is called when a results matrix is found in the correct location
 	// The matrix is read and stored for all selected scenarios
 	// The top 5 well pairings are also mapped to each well
-	public static void addERTSensor(STORMData data) {
+	public static void addERTSensor(ScenarioSet set) {
 		ertDetectionTimes.clear();
 		/*File dir = new File(Constants.userDir, "e4d");
 		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + "*.csv");
 		File[] files = dir.listFiles(fileFilter);*/
-		String ertInput = Constants.userDir + "/e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv";
+		String ertInput = Constants.userDir + "/e4d/ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() + ".csv";
 		File ertFile = new File(ertInput);
 		if (ertFile.exists() && ertDetectionTimes.isEmpty()) {
-			data.getSet().getSensors().add("Electrical Conductivity");
-			data.getSet().getSensorSettings().put("Electrical Conductivity", new SensorSetting(data.getSet().getNodeStructure(), data.getSet(), "Electrical Conductivity", data.getSet().getScenarios(), 0, 0));
-			data.getSet().getSensorSettings().get("Electrical Conductivity").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
-			data.getSet().getNodeStructure().getDataTypes().add("Electrical Conductivity");
+			set.getSensors().add("Electrical Conductivity");
+			set.getSensorSettings().put("Electrical Conductivity", new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity", set.getScenarios(), 0, 0));
+			set.getSensorSettings().get("Electrical Conductivity").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
+			set.getNodeStructure().getDataTypes().add("Electrical Conductivity");
 			
 			// Here, we want to read sensor pairings and times from the matrix
 			String line = "";
-			List<Scenario> scenarios = data.getSet().getScenarios();
-			List<Integer> orderedValidNodes = new ArrayList<Integer>(); //need an ordered list for TTD pairings
-			HashSet<Integer> validNodes = new HashSet<Integer>(); //need a hashset for valid nodes
-			Map<Scenario, HashSet<Integer>> validNodesPerScenario = new HashMap<Scenario, HashSet<Integer>>();
+			List<Scenario> scenarios = set.getScenarios();
+			List<Integer> validNodes = new ArrayList<Integer>();
 			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
 			try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
 				// Iterate through all the scenarios
@@ -150,14 +148,11 @@ public class E4DSensors {
 
 					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
 					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario()) && !lineList[0].equals("")) {
-						orderedValidNodes.clear();
 						validNodes.clear();
 						for (int i=1; i<lineList.length; i++) {
 							String[] ijList = lineList[i].split(":");
-							orderedValidNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
-							validNodes.add(data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
+							validNodes.add(set.getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 						}
-						validNodesPerScenario.put(scenarios.get(scenarioIteration), validNodes);
 					}
 
 					// The following lines list ERT detection times for valid nodes per scenario
@@ -166,14 +161,15 @@ public class E4DSensors {
 						Integer key = null;
 						String[] ijList = lineList[0].split(":");
 						try { //if the scenario was removed during weighting, this will throw an error
-							key = data.getSet().getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
+							key = set.getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
 						} catch (NumberFormatException ne) {
+							System.out.println("Unable to parse ijk coordinate of E4D well.");
 							for(int i=0; i<lineList.length; i++)
 								br.readLine();
 							continue;
 						}
 						for (int i=1; i<lineList.length; i++) {
-							timePerPairedWell.put(orderedValidNodes.get(i-1), Float.parseFloat(lineList[i]));
+							timePerPairedWell.put(validNodes.get(i-1), Float.parseFloat(lineList[i]));
 						}
 						detectionTimesPerWell.put(key, timePerPairedWell);
 					}
@@ -181,6 +177,7 @@ public class E4DSensors {
 					// The following blank line triggers the saving of detection times for the scenario
 					else {
 						ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+						detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
 						scenarioIteration++;
 					}
 				}
@@ -190,7 +187,7 @@ public class E4DSensors {
 			}
 			// Add top well pairings
 			if(!ertDetectionTimes.isEmpty()) {
-				Scenario firstScenario = data.getSet().getScenarios().get(0);
+				Scenario firstScenario = set.getScenarios().get(0);
 				for(Integer firstWellLoop: ertDetectionTimes.get(firstScenario).keySet()) {
 					List<Float> averageTTD = new ArrayList<Float>(); // As a list, this is easier to sort and clip
 					Map<Integer, Float> tempWellPairings = new HashMap<Integer, Float>(); // Unsorted list

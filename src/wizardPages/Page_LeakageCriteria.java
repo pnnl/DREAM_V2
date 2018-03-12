@@ -577,7 +577,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorData = new TreeMap<String, SensorData>();
 			
 			//Only adds ERT sensor if a results matrix is detected in the correct location
-			E4DSensors.addERTSensor(data);
+			E4DSensors.addERTSensor(data.getScenarioSet());
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 				// Adds all sensors from the list
