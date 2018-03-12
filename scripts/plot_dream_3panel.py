@@ -4,12 +4,12 @@ Python script to plot DREAM optimial sensor configurations on 3-panel
 plume map
 
 Programmed by K. Mansoor - May 2016
+Updated to Python3 & Added ERT by J. Whiting - February 2018
 =========================================================================
-
 """)
 
 # cd /erdfilespace/userspace/mansoor1/work/co2/gen3_analysis/analysis_gen3_rev1/lanl_pkg_20150326/pnnl_dream_software
-# python plot_dream_3panel.v2.py solution_space.tabb best_configurations.csv 
+# python plot_dream_3panel.v2.py solution_space.txt best_configurations.csv 
 
 
 import os, re, sys, glob, scipy
@@ -48,23 +48,25 @@ mpl.rcParams['contour.negative_linestyle'] = 'solid'
 
 
 if (len(sys.argv) != 3):
-	print '\nUsage : plot_dream_3panel.v2.py <xyz dat file>  <sensor best config file>\n'
+	print ('Usage : plot_dream_3panel.v2.py <xyz dat file>  <sensor best config file>\n')
 	exit()
 
 fname=sys.argv[1]
 bcfile=sys.argv[2]
+#fname='C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\_results\\solution_space.txt'
+#bcfile='C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\_results\\best_configurations.csv'
 
 threshold=0.5 
 
 new_folder = os.path.join(os.path.dirname(fname) + '/best_config_visualizations')
 if not os.path.isdir(new_folder): os.mkdir(new_folder)
 
-if not re.search('.tab$',fname.lower()):
-	print '\nError - input file must be a *.tab file\n'
+if not re.search('.txt$',fname.lower()):
+	print ('\nError - input file must be a *.txt file\n')
 	exit()
 
 
-filepre=new_folder + "/" + re.sub('.tab$','',os.path.basename(fname))
+filepre=new_folder + "/" + re.sub('.txt$','',os.path.basename(fname))
 
 fignamepdf='%s.pdf'%(filepre)
 fignamepng='%s.png'%(filepre)
@@ -128,7 +130,7 @@ mpl.style.use('ggplot')
 
 
 
-df3 = pd.DataFrame(columns=['run','cost','vol_aq_degraded','sensor_type','x','y','z'])
+df3 = pd.DataFrame(columns=['run','cost','vol_aq_degraded','sensor_type','x','y','z','x2','y2'])
 
 f = open(bcfile,'r');bcdat=f.readlines();f.close()
 hdata=re.split('[,]',bcdat[0].strip())
@@ -139,11 +141,15 @@ rc=0
 for i,line in enumerate(bcdat[1:]):
 	ldat=re.split('[,]',line.strip())
 	for ldatv in ldat[sensind:]:
-		sname,sx,sy,sz=re.split('[ ]+',re.sub('[\(\)]','',ldatv)   )
-		df3.loc[rc]=[i+1, ldat[costind], ldat[voldind], sname,sx,sy,sz]
+		if ldatv.startswith("ERT"):
+			sname,sx,sy,sx2,sy2=re.split('[ ]+',re.sub('[\(\)]','',ldatv))
+			df3.loc[rc]=[i+1, ldat[costind], ldat[voldind], sname,sx,sy,0,sx2,sy2]
+		else:
+			sname,sx,sy,sz=re.split('[ ]+',re.sub('[\(\)]','',ldatv)   )
+			df3.loc[rc]=[i+1, ldat[costind], ldat[voldind], sname,sx,sy,sz,0,0]
 		rc+=1
-df3=df3.convert_objects(convert_numeric=True)
-df3=df3.sort(['run','sensor_type']).reset_index(drop=True)
+df3.apply(pd.to_numeric, errors='ignore')
+df3=df3.sort_values(by=['run','sensor_type'])
 
 ##CATHERINE!!! Things between these matching comments should be easy style adjustments, with (hopefully) clear descriptions.
 
@@ -177,17 +183,17 @@ for run, group in df3.groupby(['run']):
 
 		group2=group[group.sensor_type==field].reset_index(drop=True)
 		
-		fignamepdf='%s.configuration%03d.%s.pdf'%(filepre, run, field)
-		fignamepng='%s.configuration%03d.%s.png'%(filepre, run, field)
+		fignamepdf='%s/configuration%03d.%s.pdf'%(new_folder, run, field)
+		fignamepng='%s/configuration%03d.%s.png'%(new_folder, run, field)
 	
-		print '\n  Creating figure:  %s'%fignamepng	
+		print ('\n  Creating figure:  %s'%fignamepng	)
 		cost=group.cost.values[0]
 		vad=group.vol_aq_degraded.values[0]
 	
 
 		fig=plt.figure(figsize=(figwidth,figheight))
 
-		print "  1. Plotting XY plane: "
+		print ("  1. Plotting XY plane: ")
 		X, Y = np.meshgrid(xvals, yvals)
 		dfxy=df1.groupby(['y','x']).max().reset_index()
 		Z=np.abs(np.flipud(np.reshape(dfxy[field],(X.shape[0],X.shape[1]))))*zfact
@@ -206,7 +212,7 @@ for run, group in df3.groupby(['run']):
 		#l=ax1.legend(loc='center left', bbox_to_anchor(1,0.815), numpoints=1, ncol=1, fancybox=False, shadow=False)
 		l=ax1.legend(loc='lower left', bbox_to_anchor=(bboxleft, 0.00), ncol=1, numpoints=1)
 
-		print "  1. Plotting XZ plane: "
+		print ("  1. Plotting XZ plane: ")
 		X, Y = np.meshgrid(xvals, zvals)
 		dfxz=df1.groupby(['z','x']).max().reset_index()
 		Z=np.abs(np.flipud(np.reshape(dfxz[field],(X.shape[0],X.shape[1]))))*zfact
@@ -216,7 +222,7 @@ for run, group in df3.groupby(['run']):
 		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
 		#plt.contour(X,Y,Z,([0,1]),linewidth=1, alpha=1.0)
 
-	
+
 		#for i, row in group.iterrows(): plt.plot([row.x,row.x], [np.max(Y), np.max(Y)- row.z], '-', lw=2, mew=0.2, alpha=0.5)
 		#for i, row in group2.iterrows(): plt.plot(row.x, np.max(Y)-row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.x), alpha=0.75)
 		for i, row in group2.iterrows(): plt.plot(row.x, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
@@ -229,7 +235,7 @@ for run, group in df3.groupby(['run']):
 		fig.savefig(fignamepng)
 
 
-		print "  1. Plotting YZ plane: "
+		print ("  1. Plotting YZ plane: ")
 		X, Y = np.meshgrid(yvals, zvals)
 		dfyz=df1.groupby(['z','y']).max().reset_index()
 		Z=np.abs(np.flipud(np.reshape(dfyz[field],(X.shape[0],X.shape[1]))))*zfact
@@ -238,7 +244,8 @@ for run, group in df3.groupby(['run']):
 		ax3=plt.axes([0.65, bottom, width2, height2]) #left, bottom, width, height
 		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
 		#for i, row in group.iterrows(): plt.plot([row.y,row.y], [np.max(Y), np.max(Y)- row.z], '-', lw=2, mew=0.2, alpha=0.5)
-		for i, row in group2.iterrows(): plt.plot(row.y, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
+		for i, row in group2.iterrows():
+			plt.plot(row.y, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
 
 		plt.xlim(np.min(X), np.max(X))
 		plt.ylim(np.min(Y), np.max(Y))
@@ -247,7 +254,8 @@ for run, group in df3.groupby(['run']):
 	
 	
 		fig.text(0.73,textbottom,'File:\nConfiguration:\nField:\nVol Aq. Deg.:\nCost:',horizontalalignment='right', color=legendlabelcolor, fontsize=legendfontsize, **universalfont)
-		fig.text(0.74,textbottom,'%s\n%03d\n%s\n%1.1f\n$%6.2f'%(fname,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
+		fig.text(0.74,textbottom,'%s\n%03d\n%s\n%s\n$%s'%(fname,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
+		#fig.text(0.74,textbottom,'%s\n%03d\n%s\n%1.1f\n$%6.2f'%(fname,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
 
 
 		fig.savefig(fignamepng)
@@ -258,7 +266,6 @@ for run, group in df3.groupby(['run']):
 	
 
 t1=float(time.clock())
-print '\n\n  Done!![%4ds]   open %s.configuration???.*.png\n\n'%(t1-t0,filepre)
-
+print ('\n\n  Done!![%4ds]   open %s/configuration*.*.png\n\n'%(t1-t0,new_folder))
 
 
