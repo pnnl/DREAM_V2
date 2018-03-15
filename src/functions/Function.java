@@ -156,10 +156,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		// resultsByType = new HashMap<String, ArrayList<String>>();
 		
 		// storeResultSet(new ResultSet(set, mutate));
-
+		
 		Constants.log(Level.INFO, "Function: running", null);
 		Constants.log(Level.FINER, "Function: running - initial configuration", initialConfiguration);
-
+		
 		currentIteration = -3;
 		
 		// Create three more configurations from the initial configuration
@@ -176,20 +176,20 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		
 		// Apply first mutation
 		mutate(newConfiguration, set);
-
+		
 		Constants.log(Level.FINER, "Function: running - new configuration", newConfiguration);
 		currentIteration = -2;
 		currentValue = objective(currentConfiguration, set, true);
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
-	
+		
 		currentIteration = -1;
 		newValue = objective(newConfiguration, set, true);
 		bestValue = currentValue;
 		float temperature = 100;
-
+		
 		float totalMutateTime = 0;
 		float totalObjectiveTime = 0;
-
+		
 		Constants.log(Level.FINER, "Function: running - iteration", "-1\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
 		
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
@@ -200,54 +200,39 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		
 		// Hack to add a well pairing for ERT technology
 		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
-				
+		
 		for(int iteration = 0; iteration < set.getIterations(); iteration++) {
 			
 			if(monitor.isCanceled())
 				return true;
 			
-			//long timeToStoreResults = 0;
-			//long timeToMatchConfig = 0;
-			//long timeToMutate = 0;
-			//long timeForObjective = 0;
-			//long temp = 0;
-			
-			//long startTime = System.currentTimeMillis();
 			currentIteration = iteration;
 			if(monitor != null)
 				monitor.subTask("iteration " + iteration);
-		
+			
 			float calculatedValue;
 			float randomValue;
 			
 			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + ", Best " + bestValue);
-
 			
 			// If new configuration is better then current, set current equal to new
 			if(newValue >= 0 && newValue < currentValue) {
 				//storeResult(newConfiguration);
 				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+ newValue + ", currentValue=" + currentValue + ", Temp=" + temperature);
-				//temp = System.currentTimeMillis();
 				currentConfiguration.matchConfiguration(set, newConfiguration);
-				//timeToMatchConfig += System.currentTimeMillis() - temp;
 				//currentConfiguration = newConfiguration.makeCopy(set);
 				currentValue = newValue;				
 				// If our current value is better then our best value
 				if(currentValue >= 0 && currentValue < bestValue) {
 					
-					//temp = System.currentTimeMillis();
-					//timeToStoreResults += System.currentTimeMillis() - temp;
-					
 					Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue=" + currentValue + ", bestValue=" + bestValue + ", Temp=" + temperature);
 					// Make a copy of the current configuration and save it into the best configuration
 					//		bestConfiguration = currentConfiguration.makeCopy(set);	
-					//temp = System.currentTimeMillis();
 					bestConfiguration.matchConfiguration(set, currentConfiguration);
-					//timeToMatchConfig += System.currentTimeMillis() - temp;
 					bestValue = currentValue;
 				}
 			} 
-
+			
 			// If new configuration is worse than current, evaluate temp function to decide whether to swap
 			else if (newValue >= currentValue){
 				temperature= temperature * 0.99f;
@@ -257,9 +242,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				//randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
-					//temp = System.currentTimeMillis();					
 					currentConfiguration.matchConfiguration(set, newConfiguration);
-					//timeToMatchConfig += System.currentTimeMillis() - temp;
 										
 					currentValue = newValue;
 					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, but swapping them anyway.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
@@ -268,7 +251,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, NOT swapping.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
 				}
 			}
-
+			
 			//Do different stuff if new configuration and current are equal, using a somewhat arbitrary delta NOT DOING ANYTHING RIGHT NOW
 			else { //if (newValue == currentValue){
 				temperature= temperature * 0.99f;
@@ -278,27 +261,20 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				randomValue = 1;
 				if (calculatedValue > randomValue) {
 					//	currentConfiguration = newConfiguration.makeCopy(set);
-					//temp = System.currentTimeMillis();
 					currentConfiguration.matchConfiguration(set, newConfiguration);
-					//timeToMatchConfig += System.currentTimeMillis() - temp;
 					
 					currentValue = newValue;
 					Constants.log(Level.FINER, "Function: running - new configuration was equal to current, but swapping them anyway.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
-				}
-				else{
+				} else {
 					Constants.log(Level.FINER, "Function: running - new configuration was equal to current, Not swapping.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
 				}
 			}
-
-			long ttmStart = System.currentTimeMillis();
-			// Mutate the new configuration
-			//temp = System.currentTimeMillis();
-			newConfiguration.matchConfiguration(set, currentConfiguration);
-			//timeToMatchConfig += System.currentTimeMillis() - temp;
 			
-			//temp = System.currentTimeMillis();
+			long ttmStart = System.currentTimeMillis();
+			
+			// Mutate the new configuration
+			newConfiguration.matchConfiguration(set, currentConfiguration);
 			mutate(newConfiguration, set);
-			//timeToMutate += System.currentTimeMillis() - temp;
 			
 			// Hack to add a well pairing for ERT technology
 			newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
@@ -307,16 +283,14 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");
 			totalMutateTime += ttm;
 			Constants.log(Level.FINER, "Function: running - new configuration", newConfiguration);
-
+			
 			// Get the new value
 			ttmStart = System.currentTimeMillis();
-
-			//temp = System.currentTimeMillis();
+			
 			newValue = objective(newConfiguration, set, true);
-			//timeForObjective = System.currentTimeMillis() - temp;
-
+			
 			float tto = System.currentTimeMillis()-ttmStart;
-			Constants.log(Level.FINE, "Function: running - time taken to run objective", (tto) + " ms");		
+			Constants.log(Level.FINE, "Function: running - time taken to run objective", (tto) + " ms");
 			totalObjectiveTime += tto;
 			Constants.log(Level.FINER, "Function: running - iteration", iteration + "\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
 			
@@ -325,7 +299,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			if(viewer != null)
 				viewer.addConfiguration(currentConfiguration);
-
+			
 			if(monitor != null)
 				monitor.worked(1);
 		}
@@ -341,31 +315,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		System.out.println(Constants.timer);
 		return false;
 	}
-
-
-	public List<ExtendedSensor> getSensorsForTesting(ScenarioSet set) {
-		List<ExtendedSensor> smallList = new ArrayList<ExtendedSensor>();
-		// In well i = 1, j = 25
-		smallList.add(new ExtendedSensor(601, "CO2", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(1701, "CO2", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(601, "Pressure", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(6101, "Pressure", set.getNodeStructure()));
-
-		// In well i = 1 j = 27
-		smallList.add(new ExtendedSensor(651, "CO2", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(5051, "Pressure", set.getNodeStructure()));
-
-		// in well i = 3, j = 26
-		smallList.add(new ExtendedSensor(628, "CO2", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(6128, "Pressure", set.getNodeStructure()));
-
-		// in well i = 2, j = 26
-		smallList.add(new ExtendedSensor(627, "CO2", set.getNodeStructure()));
-		smallList.add(new ExtendedSensor(6127, "Pressure", set.getNodeStructure()));
-
-		return smallList;
-	}
-
+	
+	
 	public List<ExtendedSensor> getAllPossibleSensors(ScenarioSet set) {
 		List<ExtendedSensor> sensors = new ArrayList<ExtendedSensor>();
 		for (String type : set.getDataTypes()) {
@@ -375,16 +326,16 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		}
 		return sensors;
 	}
-
+	
+	
 	private int bruteForceEnumCount = 0;
 	private int max = 0;
 
-	public void generateConfigurations(List<ExtendedSensor> sensors,
-			List<ExtendedSensor> possibleSensors, ScenarioSet set) {
-
+	public void generateConfigurations(List<ExtendedSensor> sensors, List<ExtendedSensor> possibleSensors, ScenarioSet set) {
+		
 		if(max != 0 && bruteForceEnumCount == max)
 			return; // Done
-
+		
 		// Every configuration will go through here so long as there is at least
 		// enough sensors of each kind to trigger inference
 		String result = isDone(sensors, set);
