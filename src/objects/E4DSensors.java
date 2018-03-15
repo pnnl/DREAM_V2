@@ -256,10 +256,10 @@ public class E4DSensors {
 	
 	public static void ertNewPairing() {
 		for(float threshold: ertPotentialWellPairings.keySet()) {
+			ertWellPairings.put(threshold, new HashMap<Integer, Integer>());
 			for(Integer primaryWell: ertPotentialWellPairings.get(threshold).keySet()) {
 				Random rand = new Random();
 				int n = rand.nextInt(ertPotentialWellPairings.get(threshold).get(primaryWell).size());
-				ertWellPairings.put(threshold, new HashMap<Integer, Integer>());
 				ertWellPairings.get(threshold).put(primaryWell, ertPotentialWellPairings.get(threshold).get(primaryWell).get(n));
 			}
 		}
