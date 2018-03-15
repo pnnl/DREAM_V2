@@ -187,7 +187,8 @@ public class E4DSensors {
 						scenarioIteration++;
 					}
 				}
-				ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);//saves the last scenario
+				if(detectionTimesPerWell.size()!=0)
+					ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);//saves the last scenario
 			} catch (IOException ex) {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
