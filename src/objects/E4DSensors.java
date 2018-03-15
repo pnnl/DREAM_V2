@@ -187,6 +187,7 @@ public class E4DSensors {
 						scenarioIteration++;
 					}
 				}
+				ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);//saves the last scenario
 			} catch (IOException ex) {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
@@ -243,7 +244,8 @@ public class E4DSensors {
 		
 		// Return as triggered only if the timestep exceeds the detection value for the well pairing
 		if(ertWellPairings.get(threshold).containsKey(nodeNumber)) {
-			Float detection = ertDetectionTimes.get(threshold).get(scenario).get(nodeNumber).get(ertWellPairings.get(threshold).get(nodeNumber));
+			Integer wellPair = ertWellPairings.get(threshold).get(nodeNumber);
+			Float detection = ertDetectionTimes.get(threshold).get(scenario).get(nodeNumber).get(wellPair);
 			if(detection!=0 && timestep.getTimeStep()>detection)
 				triggered = true;
 		}
