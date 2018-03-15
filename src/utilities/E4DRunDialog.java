@@ -230,17 +230,17 @@ public class E4DRunDialog extends TitleAreaDialog {
 		spacer.setLayoutData(span2Columns);
 		
 		Label detectionLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
-		detectionLabel.setText("E4D Detection Threshold (%)");
+		detectionLabel.setText("E4D Detection Threshold");
 		detectionLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
 		detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		detectionText.setText("0.001");
+		detectionText.setText("0.00001");
 		detectionText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		detectionText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				detectionText = (Text)e.getSource();
 				try {
-					detectionThreshold = Float.parseFloat(detectionText.getText()) / 100;
+					detectionThreshold = Float.parseFloat(detectionText.getText());
 				} catch (Exception ex) {
 					// Not a real number
 				}

@@ -194,7 +194,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		if(directory.contains("whit162") && directory==Constants.homeDirectory) {
 			directory = directory + "\\Desktop\\BCO_new";
 			Constants.homeDirectory = directory;
-			//directory = directory + "\\Desktop\\BCO-Porosity";
 		}
 		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory) {
 			directory = directory + "\\Desktop\\BCO_new";

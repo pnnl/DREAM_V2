@@ -588,6 +588,7 @@ public class DREAMWizard extends Wizard {
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask("Running E4D.", 1000);
 					StringBuilder text = new StringBuilder();
+					String input7 = ""; //We want to add the detection threshold to the file name
 					
 					// Loop through all the scenarios - E4D needs to run once for each scenario
 					for(Scenario scenario: data.getSet().getScenarios()) {
@@ -603,7 +604,7 @@ public class DREAMWizard extends Wizard {
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
 							String input6 = e4dDialog.getSaltConcentration(); //Salt Concentration Mapping
-							String input7 = String.valueOf(e4dDialog.getDetectionThreshold()); //Detection Threshold
+							input7 = String.valueOf(e4dDialog.getDetectionThreshold()); //Detection Threshold
 							String command = "python \"" +e4dScript.getAbsolutePath()+ "\" \"" +input1+ "\" \"" +input2+ "\" \"" +input3+ "\" \"" +input4+ "\" \"" +input5+ "\" \"" +input6+ "\" \"" +input7+ "\"";
 							File wDirectory = new File(Constants.userDir,"e4d");
 							
@@ -616,7 +617,7 @@ public class DREAMWizard extends Wizard {
 							System.out.println("This is the standard output from the E4D code for " + scenario.toString() + ":");
 							while((s = stdInput.readLine()) != null)
 								System.out.println(s);
-							System.out.println("This is the standard output from the E4D code for " + scenario.toString() + ":");
+							System.out.println("This is the error output from the E4D code for " + scenario.toString() + ":");
 							while((s = stdError.readLine()) != null)
 								System.out.println(s);
 						} catch(Exception e) {
@@ -646,7 +647,8 @@ public class DREAMWizard extends Wizard {
 						}
 						monitor.worked(10);
 					}
-					File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".csv");
+					File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() +
+							"_" + input7 + ".csv");
 					try {
 						fullDetectionMatrix.createNewFile();
 						FileUtils.writeStringToFile(fullDetectionMatrix, text.toString());

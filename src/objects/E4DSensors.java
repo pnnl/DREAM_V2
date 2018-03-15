@@ -3,6 +3,7 @@ package objects;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import hdf5Tool.HDF5Interface;
@@ -25,9 +27,9 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class E4DSensors {
 	
-	public static Map<Scenario, Map<Integer, Map<Integer, Float>>> ertDetectionTimes = new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>();
-	public static Map<Integer, List<Integer>> ertPotentialWellPairings = new HashMap<Integer, List<Integer>>();
-	public static Map<Integer, Integer> ertWellPairings = new HashMap<Integer, Integer>();
+	public static Map<Float, Map<Scenario, Map<Integer, Map<Integer, Float>>>> ertDetectionTimes = new HashMap<Float, Map<Scenario, Map<Integer, Map<Integer, Float>>>>(); //detection threshold <scenario <first well <second well, detection>>>
+	public static Map<Float, Map<Integer, List<Integer>>> ertPotentialWellPairings = new HashMap<Float, Map<Integer, List<Integer>>>(); //detection threshold matrix <first well, list of top well pairs>>
+	public static Map<Float, Map<Integer, Integer>> ertWellPairings = new HashMap<Float, Map<Integer, Integer>>(); //detection threshold matrix <first well, second well>
 	public static int wellPairs = 5;
 	
 	// This method determines which wells should be passed along to E4D
@@ -123,23 +125,25 @@ public class E4DSensors {
 	// The top 5 well pairings are also mapped to each well
 	public static void addERTSensor(ScenarioSet set) {
 		ertDetectionTimes.clear();
-		/*File dir = new File(Constants.userDir, "e4d");
-		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + "*.csv");
-		File[] files = dir.listFiles(fileFilter);*/
-		String ertInput = Constants.userDir + "/e4d/ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() + ".csv";
-		File ertFile = new File(ertInput);
-		if (ertFile.exists() && ertDetectionTimes.isEmpty()) {
-			set.getSensors().add("Electrical Conductivity");
-			set.getSensorSettings().put("Electrical Conductivity", new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity", set.getScenarios(), 0, 0));
-			set.getSensorSettings().get("Electrical Conductivity").setUserSettings(100, Color.BLUE, 0, 0, Trigger.MINIMUM_THRESHOLD, false, DeltaType.BOTH, 0, 0);
-			set.getNodeStructure().getDataTypes().add("Electrical Conductivity");
+		File dir = new File(Constants.userDir, "e4d");
+		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() + "*.csv");
+		File[] files = dir.listFiles(fileFilter);
+		for(File ertInput: files) {
+			float threshold = Float.parseFloat(ertInput.getPath().substring(ertInput.getPath().lastIndexOf("_")+1, ertInput.getPath().length()-4));
+			ertDetectionTimes.put(threshold, new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>());
+			ertPotentialWellPairings.put(threshold, new HashMap<Integer, List<Integer>>());
+			
+			set.getSensors().add("Electrical Conductivity_" + threshold);
+			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold, set.getScenarios(), 0, 0));
+			set.getSensorSettings().get("Electrical Conductivity_" + threshold).setUserSettings(100, Color.BLUE, threshold, threshold, Trigger.RELATIVE_DELTA, false, DeltaType.BOTH, 0, 0);
+			set.getNodeStructure().getDataTypes().add("Electrical Conductivity_" + threshold);
 			
 			// Here, we want to read sensor pairings and times from the matrix
 			String line = "";
 			List<Scenario> scenarios = set.getScenarios();
 			List<Integer> validNodes = new ArrayList<Integer>();
 			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
-			try (BufferedReader br = new BufferedReader(new FileReader(ertFile))) {
+			try (BufferedReader br = new BufferedReader(new FileReader(ertInput))) {
 				// Iterate through all the scenarios
 				int scenarioIteration = 0;
 				// Read each line, comma delimited
@@ -149,14 +153,14 @@ public class E4DSensors {
 					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
 					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario()) && !lineList[0].equals("")) {
 						validNodes.clear();
-						for (int i=1; i<lineList.length; i++) {
-							String[] ijList = lineList[i].split(":");
+						for (int j=1; j<lineList.length; j++) {
+							String[] ijList = lineList[j].split(":");
 							validNodes.add(set.getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 						}
 					}
 
 					// The following lines list ERT detection times for valid nodes per scenario
-					else if (lineList.length>1){
+					else if (lineList.length>1) {
 						Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
 						Integer key = null;
 						String[] ijList = lineList[0].split(":");
@@ -164,19 +168,19 @@ public class E4DSensors {
 							key = set.getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1);
 						} catch (NumberFormatException ne) {
 							System.out.println("Unable to parse ijk coordinate of E4D well.");
-							for(int i=0; i<lineList.length; i++)
+							for(int j=0; j<lineList.length; j++)
 								br.readLine();
 							continue;
 						}
-						for (int i=1; i<lineList.length; i++) {
-							timePerPairedWell.put(validNodes.get(i-1), Float.parseFloat(lineList[i]));
+						for (int j=1; j<lineList.length; j++) {
+							timePerPairedWell.put(validNodes.get(j-1), Float.parseFloat(lineList[j]));
 						}
 						detectionTimesPerWell.put(key, timePerPairedWell);
 					}
 					
 					// The following blank line triggers the saving of detection times for the scenario
 					else {
-						ertDetectionTimes.put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+						ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);
 						detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
 						scenarioIteration++;
 					}
@@ -186,17 +190,17 @@ public class E4DSensors {
 				ex.printStackTrace();
 			}
 			// Add top well pairings
-			if(!ertDetectionTimes.isEmpty()) {
+			if(!ertDetectionTimes.get(threshold).isEmpty()) {
 				Scenario firstScenario = set.getScenarios().get(0);
-				for(Integer firstWellLoop: ertDetectionTimes.get(firstScenario).keySet()) {
+				for(Integer firstWellLoop: ertDetectionTimes.get(threshold).get(firstScenario).keySet()) {
 					List<Float> averageTTD = new ArrayList<Float>(); // As a list, this is easier to sort and clip
 					Map<Integer, Float> tempWellPairings = new HashMap<Integer, Float>(); // Unsorted list
 					List<Integer> wellList = new ArrayList<Integer>();
-					for(Integer secondWellLoop: ertDetectionTimes.get(firstScenario).get(firstWellLoop).keySet()) {
+					for(Integer secondWellLoop: ertDetectionTimes.get(threshold).get(firstScenario).get(firstWellLoop).keySet()) {
 						float sumTTD = 0;
-						for(Scenario scenarioLoop: ertDetectionTimes.keySet())
-							sumTTD =+ ertDetectionTimes.get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
-						float avgTTD = sumTTD / ertDetectionTimes.size();
+						for(Scenario scenarioLoop: ertDetectionTimes.get(threshold).keySet())
+							sumTTD =+ ertDetectionTimes.get(threshold).get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
+						float avgTTD = sumTTD / ertDetectionTimes.get(threshold).size();
 						if(avgTTD!=0)
 							averageTTD.add(avgTTD);
 						tempWellPairings.put(secondWellLoop, avgTTD);
@@ -213,7 +217,7 @@ public class E4DSensors {
 							}
 						}
 					}
-					ertPotentialWellPairings.put(firstWellLoop, wellList);
+					ertPotentialWellPairings.get(threshold).put(firstWellLoop, wellList);
 				}
 			}
 		}
@@ -221,23 +225,23 @@ public class E4DSensors {
 	
 	
 	// This method returns valid nodes for E4D
-	public static HashSet<Integer> setValidNodesERT(IProgressMonitor monitor) {
+	public static HashSet<Integer> setValidNodesERT(IProgressMonitor monitor, float threshold) {
 		HashSet<Integer> validNodes = new HashSet<Integer>();
-		for(Scenario scenario: ertDetectionTimes.keySet()) {
-			validNodes.addAll(ertDetectionTimes.get(scenario).keySet());
-			monitor.worked(300/ertDetectionTimes.size());
+		for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+			validNodes.addAll(ertDetectionTimes.get(threshold).get(scenario).keySet());
+			monitor.worked(300/ertDetectionTimes.get(threshold).size()); //TODO: Monitor needs to be updated so that it adds the correct amount worked with multiple thresholds
 		}
 		return validNodes;
 	}
 	
 	
 	// This method tells the Simulated Annealing process whether sensors have been triggered by ERT (reads matrix)
-	public static Boolean ertSensorTriggered(TimeStep timestep, Scenario scenario, Integer nodeNumber) throws Exception{
+	public static Boolean ertSensorTriggered(TimeStep timestep, Scenario scenario, Integer nodeNumber, float threshold) throws Exception{
 		Boolean triggered = false;
 		
 		// Return as triggered only if the timestep exceeds the detection value for the well pairing
-		if(ertWellPairings.containsKey(nodeNumber)) {
-			Float detection = ertDetectionTimes.get(scenario).get(nodeNumber).get(ertWellPairings.get(nodeNumber));
+		if(ertWellPairings.get(threshold).containsKey(nodeNumber)) {
+			Float detection = ertDetectionTimes.get(threshold).get(scenario).get(nodeNumber).get(ertWellPairings.get(threshold).get(nodeNumber));
 			if(detection!=0 && timestep.getTimeStep()>detection)
 				triggered = true;
 		}
@@ -247,10 +251,13 @@ public class E4DSensors {
 	
 	
 	public static void ertNewPairing() {
-		for(Integer primaryWell: ertPotentialWellPairings.keySet()) {
-			Random rand = new Random();
-			int n = rand.nextInt(ertPotentialWellPairings.get(primaryWell).size());
-			ertWellPairings.put(primaryWell, ertPotentialWellPairings.get(primaryWell).get(n));
+		for(float threshold: ertPotentialWellPairings.keySet()) {
+			for(Integer primaryWell: ertPotentialWellPairings.get(threshold).keySet()) {
+				Random rand = new Random();
+				int n = rand.nextInt(ertPotentialWellPairings.get(threshold).get(primaryWell).size());
+				ertWellPairings.put(threshold, new HashMap<Integer, Integer>());
+				ertWellPairings.get(threshold).put(primaryWell, ertPotentialWellPairings.get(threshold).get(primaryWell).get(n));
+			}
 		}
 	}
 	
@@ -260,11 +267,12 @@ public class E4DSensors {
 		int i = 0;
 		for(ExtendedSensor sensor: newConfiguration.getExtendedSensors()) {
 			if(sensor.getSensorType().contains("Electrical Conductivity")) {
+				float threshold = Float.parseFloat(sensor.getSensorType().substring(sensor.getSensorType().lastIndexOf("_")+1, sensor.getSensorType().length()));
 				
 				//Check if a sensor was moved by comparing against all sensors in the last configuration
 				boolean moved = true;
 				for(ExtendedSensor current: currentConfiguration.getExtendedSensors()) {
-					if(sensor.getNodeNumber().intValue()==current.getNodeNumber().intValue() && current.getSensorType().contains("Electrical Conductivity")) {
+					if(sensor.getNodeNumber().intValue()==current.getNodeNumber().intValue() && current.getSensorType().contains(sensor.getSensorType())) {
 						moved = false;
 						break;
 					}
@@ -273,9 +281,9 @@ public class E4DSensors {
 				//If moved, randomly pick one of the potential well pairings to assign
 				if(moved) {
 					int nodeNumber = sensor.getNodeNumber();
-					int n = new Random().nextInt(ertPotentialWellPairings.get(nodeNumber).size());
-					int nodePairNumber = ertPotentialWellPairings.get(nodeNumber).get(n);
-					ertWellPairings.put(nodeNumber, ertPotentialWellPairings.get(nodeNumber).get(n));
+					int n = new Random().nextInt(ertPotentialWellPairings.get(threshold).get(nodeNumber).size());
+					int nodePairNumber = ertPotentialWellPairings.get(threshold).get(nodeNumber).get(n);
+					ertWellPairings.get(threshold).put(nodeNumber, ertPotentialWellPairings.get(threshold).get(nodeNumber).get(n));
 					sensor.setNodePair(nodePairNumber);
 					newConfiguration.getExtendedSensors().set(i, sensor);
 				}

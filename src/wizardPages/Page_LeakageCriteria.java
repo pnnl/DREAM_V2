@@ -124,8 +124,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorType = sensorSettings.getType();
 			this.sensorName = sensorName;
 			alias = sensorName;
-			if(sensorName.contains("Electrical Conductivity"))
-				alias = "ERT";
 			isIncluded = false; //By default
 			cost = sensorSettings.getCost();
 			minValue = sensorSettings.getMinValue();
@@ -137,7 +135,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			deltaType = sensorSettings.getDeltaType();
 			
 			// Trigger should be relative delta when pressure
-			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p"))
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p") || sensorType.contains("Electrical Conductivity"))
 				trigger = Trigger.RELATIVE_DELTA;
 			
 			// Trigger should be maximum threshold when pH
@@ -154,6 +152,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
 				lowerThreshold = sensorSettings.getLowerThreshold();
 				upperThreshold = sensorSettings.getUpperThreshold();
+			}
+			// Exceptions for ERT
+			if(sensorName.contains("Electrical Conductivity")) {
+				alias = "ERT_" + sensorSettings.getLowerThreshold();
+				detection = sensorSettings.getLowerThreshold();
 			}
 		}	
 		
@@ -532,10 +535,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if (type.contains("Electrical Conductivity")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
-				thresholdCombo.setVisible(false);
-				detectionText.setVisible(false);
-				minZText.setVisible(false);
-				maxZText.setVisible(false);
+				thresholdCombo.setEnabled(false);
+				detectionText.setEnabled(false);
+				minZText.setEnabled(false);
+				maxZText.setEnabled(false);
 			}
 			
 			toggleEnabled();
@@ -548,19 +551,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
-			if(thresholdCombo != null && !thresholdCombo.isDisposed())
+			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !alias.contains("ERT"))
 				thresholdCombo.setEnabled(isIncluded);					
-			if(detectionText != null && !detectionText.isDisposed())
+			if(detectionText != null && !detectionText.isDisposed() && !alias.contains("ERT"))
 				detectionText.setEnabled(isIncluded);
 			if(detectionLabel != null && !detectionLabel.isDisposed())
 				detectionLabel.setEnabled(isIncluded);
 			if(minZLabel != null && !minZLabel.isDisposed())
 				minZLabel.setEnabled(isIncluded);
-			if(minZText != null && !minZText.isDisposed())
+			if(minZText != null && !minZText.isDisposed() && !alias.contains("ERT"))
 				minZText.setEnabled(isIncluded);
 			if(maxZLabel != null && !maxZLabel.isDisposed())
 				maxZLabel.setEnabled(isIncluded);
-			if(maxZText != null && !maxZText.isDisposed())
+			if(maxZText != null && !maxZText.isDisposed() && !alias.contains("ERT"))
 				maxZText.setEnabled(isIncluded);
 		}		
 	}
@@ -989,7 +992,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
 						try {
 							if (sensorType.contains("Electrical Conductivity")) {
-								if(E4DSensors.ertSensorTriggered(timeStep, scenario, nodeNumber))
+								if(E4DSensors.ertSensorTriggered(timeStep, scenario, nodeNumber, data.getSet().getSensorSettings(sensorType).getLowerThreshold()))
 									timeToDegredation = timeStep.getRealTime();
 							} else {
 								if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber))
