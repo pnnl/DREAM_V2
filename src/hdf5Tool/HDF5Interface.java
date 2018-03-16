@@ -14,7 +14,10 @@ import javax.swing.JOptionPane;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import functions.SimulatedAnnealing;
 import objects.NodeStructure;
+import objects.ScenarioSet;
+import objects.SensorSetting;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import objects.TimeStep;
@@ -41,6 +44,8 @@ public class HDF5Interface {
 	public static Map<String, Map<Float, Map<String, Map<Integer, Float>>>> hdf5CloudData = new HashMap<String, Map<Float, Map<String, Map<Integer, Float>>>>();
 	// Stores global statistics - min, average, max
 	public static Map<String, float[]> statistics = new HashMap<String, float[]>();
+	// Stores pareto optimal values to speed up that process
+	public static Map<String, Map<String, Map<Integer, Float>>> paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
 	
 	
 	public static Float queryValue(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
@@ -582,4 +587,74 @@ public class HDF5Interface {
 		return statistics.get(dataType)[index];
 	}
 	
+	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
+	public static void createParetoMap(ScenarioSet set, SensorSetting setting, String specificType) {
+		Map<Integer, Float> baseline = new HashMap<Integer, Float>(); //stores values at the initial timestep
+		Point3i structure = set.getNodeStructure().getIJKDimensions();
+		paretoMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
+		
+		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
+			String scenario = hdf5File.getName().replaceAll("\\.h5" , "");
+			try {
+				paretoMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
+				hdf5File.open();
+				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+				boolean plotsAreTimeIndices = plotFileHack(set.getNodeStructure(), root);
+				for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+					
+					// Skip these
+					if(root.getMemberList().get(rootIndex).getName().contains("data") || root.getMemberList().get(rootIndex).getName().contains("statistics"))
+						continue;
+					
+					// First time step sets the baseline
+					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == 0) {
+						Object group =  root.getMemberList().get(rootIndex);
+						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
+							Object child = ((Group)group).getMemberList().get(groupIndex);
+							if(child instanceof Dataset && ((Dataset)child).getName().equals(setting.getType())) {
+								// Found the right data type
+								int dataset_id = ((Dataset)child).open();
+								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
+								((Dataset)child).close(dataset_id);
+								for(int index=0; index<dataRead.length; index++) {
+									baseline.put(Constants.getNodeNumber(structure, index), dataRead[index]);
+								}
+							}
+						}
+					
+					// When looping through other timesteps, compare with the baseline
+					} else {
+						int timeIndex = Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", ""));
+						float timestep = (float)timeIndex;
+						if(plotsAreTimeIndices)
+							System.out.println("The timestep isn't a time index... check to make sure this isn't causing problems.");
+						Object group =  root.getMemberList().get(rootIndex);
+						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
+							Object child = ((Group)group).getMemberList().get(groupIndex);
+							if(child instanceof Dataset && ((Dataset)child).getName().equals(setting.getType())) {
+								// Found the right data type
+								int dataset_id = ((Dataset)child).open();
+								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
+								((Dataset)child).close(dataset_id);
+								for(int index=0; index<dataRead.length; index++) {
+									int nodeNumber = Constants.getNodeNumber(structure, index);
+									// If the node triggers, save the timestep
+									if(SimulatedAnnealing.paretoSensorTriggered(setting, dataRead[index], baseline.get(nodeNumber))) {
+										if(paretoMap.get(specificType).get(scenario).get(nodeNumber)==null || paretoMap.get(specificType).get(scenario).get(nodeNumber) > timestep)
+											paretoMap.get(specificType).get(scenario).put(nodeNumber, timestep);
+									}
+								}
+							}
+						}
+						
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("Unable to read detection values from the hdf5 files...");
+				e.printStackTrace();
+			}
+		}
+	}
 }

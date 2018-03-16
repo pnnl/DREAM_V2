@@ -25,6 +25,7 @@ import utilities.Constants;
  * Will handle all the functions as defined in the RIMVA 9.1 Code
  * This is the function that we use by default/exclusively, at the moment
  * @author port091
+ * @author whit162
  */
 
 public class SimulatedAnnealing extends Function {
@@ -218,17 +219,19 @@ public class SimulatedAnnealing extends Function {
 		return triggered;
 	}
 	
-	public static Boolean paretoSensorTriggered(SensorSetting setting, NodeStructure nodeStructure, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
+	
+	public static Float getParetoTTD(ScenarioSet set, SensorSetting setting, String specificType, String scenario, Integer nodeNumber) {
+		if(!HDF5Interface.paretoMap.containsKey(specificType)) {
+			HDF5Interface.createParetoMap(set, setting, specificType);
+			System.out.println("You just created a pareto map for " + specificType + "! Awesome! So Fast!");
+		}
+		return HDF5Interface.paretoMap.get(specificType).get(scenario).get(nodeNumber);
+	}
+	
+	
+	public static Boolean paretoSensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
 		Boolean triggered = null;
 		
-		String dataType = SensorSetting.sensorTypeToDataType.get(sensorType);
-
-		// Get the value at the current time step
-		Float currentValue = 0.0f;
-		Float valueAtTime0 = 0.0f;
-		currentValue = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-		valueAtTime0 = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
-
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
 			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
@@ -247,6 +250,7 @@ public class SimulatedAnnealing extends Function {
 		}
 		return triggered;
 	}
+	
 	
 	public static Boolean volumeSensorTriggered(SensorSetting setting, NodeStructure nodeStructure, TimeStep timeStep, Scenario scenario, String dataType, Integer nodeNumber) throws Exception{
 		Boolean triggered = null;

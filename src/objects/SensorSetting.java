@@ -333,7 +333,7 @@ public class SensorSetting {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				monitor.worked(300/scenarios.size());
+				monitor.worked(600/scenarios.size());
 			}
 			if(!validNodesPerScenario.isEmpty()) {
 				HashSet<Integer> allNodes = null;
@@ -364,7 +364,7 @@ public class SensorSetting {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				monitor.worked(300/scenarios.size());
+				monitor.worked(600/scenarios.size());
 			}
 			for(Integer nodeNumber: allNodes) {
 				validNodes.add(nodeNumber);
@@ -403,25 +403,24 @@ public class SensorSetting {
 	
 	private void paretoOptimal(IProgressMonitor monitor){
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
+		String specificType = "";
+		if(this.getTrigger() == Trigger.MAXIMUM_THRESHOLD)
+			specificType = this.getType() + "_max_" + this.getUpperThreshold();
+		else if(this.getTrigger() == Trigger.MINIMUM_THRESHOLD)
+			specificType = this.getType() + "_min_" + this.getLowerThreshold();
+		else if(this.getTrigger() == Trigger.RELATIVE_DELTA)
+			specificType = this.getType() + "_rel_" + this.getLowerThreshold();
+		else if(this.getTrigger() == Trigger.ABSOLUTE_DELTA)
+			specificType = this.getType() + "_abs_" + this.getLowerThreshold();
 		
-		int count = 0;
+		monitor.subTask("Reducing the size of triggering nodes for " + type + " using pareto optimal");
 		for(Integer nodeNumber: validNodes){
-			count++;
-			monitor.subTask("Calculating pareto optimal solution space for " + type + ": node " + count + " of " + validNodes.size());
-			monitor.worked(700/validNodes.size());
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(Scenario scenario: scenarios){
-				Float timeToDegredation = Float.MAX_VALUE;
-				for (TimeStep timeStep: nodeStructure.getTimeSteps()){
-					try {
-						if(SimulatedAnnealing.paretoSensorTriggered(this, nodeStructure, timeStep, scenario, type, nodeNumber))
-							timeToDegredation = timeStep.getRealTime();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if(timeToDegredation != Float.MAX_VALUE) break;
-				}
+				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(scenarioSet, this, specificType, scenario.getScenario(), nodeNumber);
+				if(timeToDegredation==null)
+					timeToDegredation = Float.MAX_VALUE;
 				ttds.add(timeToDegredation);
 			}
 			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
@@ -466,32 +465,24 @@ public class SensorSetting {
 				optimalSolutions.put(nodeNumber, ttds);
 			}
 		}
-		
+		monitor.worked(400);
+		System.out.println("Pareto Optimal just pared down valid nodes for " + specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
 		validNodes.clear();
 		validNodes.addAll(optimalSolutions.keySet());
 	}
 	
 
 	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
-	public static HashSet<Integer> paretoOptimalAll(HashSet<Integer> allNodes, List<Scenario> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
+	public static HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<Scenario> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
 		for(Integer nodeNumber: allNodes){
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(Scenario scenario: scenarios){
-				Float timeToDegredation = Float.MAX_VALUE;
-				for (TimeStep timeStep: ns.getTimeSteps()){
-					try {
-						//Need a loop for each sensor type
-						for(SensorSetting setting: sensorSettings.values())
-						if(SimulatedAnnealing.paretoSensorTriggered(setting, ns, timeStep, scenario, setting.type, nodeNumber)) timeToDegredation = timeStep.getRealTime();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					if(timeToDegredation != Float.MAX_VALUE) break;
-				}
-				ttds.add(timeToDegredation);
+				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(set, sensorSettings.get("all"), "all", scenario.getScenario(), nodeNumber);
+				if(timeToDegredation!=null)
+					ttds.add(timeToDegredation);
 			}
 			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
 			boolean everyReasonTo = false;
