@@ -152,11 +152,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	private boolean runInternal(final ExtendedConfiguration initialConfiguration, ScenarioSet set) {
 		iterative = true;
-		
-		// resultsByType = new HashMap<String, ArrayList<String>>();
-		
-		// storeResultSet(new ResultSet(set, mutate));
-		
+						
 		Constants.log(Level.INFO, "Function: running", null);
 		Constants.log(Level.FINER, "Function: running - initial configuration", initialConfiguration);
 		
@@ -217,17 +213,14 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			// If new configuration is better then current, set current equal to new
 			if(newValue >= 0 && newValue < currentValue) {
-				//storeResult(newConfiguration);
 				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+ newValue + ", currentValue=" + currentValue + ", Temp=" + temperature);
 				currentConfiguration.matchConfiguration(set, newConfiguration);
-				//currentConfiguration = newConfiguration.makeCopy(set);
 				currentValue = newValue;				
 				// If our current value is better then our best value
 				if(currentValue >= 0 && currentValue < bestValue) {
 					
 					Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue=" + currentValue + ", bestValue=" + bestValue + ", Temp=" + temperature);
 					// Make a copy of the current configuration and save it into the best configuration
-					//		bestConfiguration = currentConfiguration.makeCopy(set);	
 					bestConfiguration.matchConfiguration(set, currentConfiguration);
 					bestValue = currentValue;
 				}
@@ -237,11 +230,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			else if (newValue >= currentValue){
 				temperature= temperature * 0.99f;
 				calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
-				//calculatedValue = 1;
 				randomValue = Constants.random.nextFloat();
 				//randomValue = 1;
 				if (calculatedValue > randomValue) {
-					//	currentConfiguration = newConfiguration.makeCopy(set);
 					currentConfiguration.matchConfiguration(set, newConfiguration);
 										
 					currentValue = newValue;
@@ -257,10 +248,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				temperature= temperature * 0.99f;
 				float fiftyAtNinetyNine = (float)(-99*Math.log(.5));
 				calculatedValue = (float)Math.exp(-(fiftyAtNinetyNine) / temperature);
-				//randomValue = Constants.random.nextFloat();
-				randomValue = 1;
+				randomValue = Constants.random.nextFloat();
+				//randomValue = 1;
 				if (calculatedValue > randomValue) {
-					//	currentConfiguration = newConfiguration.makeCopy(set);
 					currentConfiguration.matchConfiguration(set, newConfiguration);
 					
 					currentValue = newValue;
@@ -346,10 +336,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				configuration.addSensor(set, sensor);
 			
 			// Hack to add a well pairing for ERT technology
-			//E4DSensors.ertAddPairing(configuration);
+			//E4DSensors.ertAddPairing(configuration); //TODO: Make sure this doesn't need to be called during Full Enumeration
 			
 			objective(configuration, set, Constants.runThreaded);
-			//storeResult(configuration);
 			bruteForceEnumCount++;
 			if(monitor != null)
 				monitor.worked(1);
