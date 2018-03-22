@@ -191,11 +191,11 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
-		if(directory.contains("whit162") && directory==Constants.homeDirectory) {
+		if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop")) {
 			directory = directory + "\\Desktop\\BCO_new";
 			Constants.homeDirectory = directory;
 		}
-		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory) {
+		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop")) {
 			directory = directory + "\\Desktop\\BCO_new";
 			Constants.homeDirectory = directory;
 		}
