@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import functions.MutationFunction.MUTATE;
+import hdf5Tool.HDF5Interface;
 import utilities.Constants;
 import utilities.Constants.ModelOption;
 import utilities.PorosityDialog;
@@ -132,6 +133,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			dialog.open();
 			//data.getScenarioSet().getNodeStructure().setDefaultPorosityOfNode(dialog.getPorosity());
 		}
+		
+		HDF5Interface.paretoMap.clear();
 	}
 
 	@Override
