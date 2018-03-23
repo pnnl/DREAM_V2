@@ -269,7 +269,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		data.getSet().getScenarios().clear();
 		
 		// Save the weights
-		for(Scenario scenario: weights.keySet()) {
+		for(Scenario scenario: data.getSet().getAllScenarios()) {
 			float weight = Float.valueOf(weights.get(scenario).getText());
 			if(selectedScenarios.get(scenario).getSelection() && weight!=0) {//If scenario is checked and weight is not 0
 				data.getSet().getScenarioWeights().put(scenario, weight);
