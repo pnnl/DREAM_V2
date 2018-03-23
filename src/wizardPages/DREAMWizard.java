@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -363,31 +362,8 @@ public class DREAMWizard extends Wizard {
 				}					
 			});
 		}
-
-		public void setupScenarios(final Map<Scenario, Float> scenarioWeights, final List<Scenario> scenariosToRemove) throws Exception {
-			dialog.run(true, false, new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					// Run tasks:
-					monitor.beginTask("Scenario set settings", scenarioWeights.size() + scenariosToRemove.size());
-					
-					for(Scenario scenario: scenarioWeights.keySet()) {
-						if(Float.compare(scenarioWeights.get(scenario), data.getSet().getScenarioWeights().get(scenario)) != 0) { //Changed weights
-							monitor.subTask("applying scenario weight: " + scenario);
-							set.setScenarioWeights(scenario, scenarioWeights.get(scenario));
-							monitor.worked(scenarioWeights.size());
-						}
-					}
-					
-					for(Scenario scenario: scenariosToRemove) {
-						monitor.subTask("removing unused scenario: " + scenario);
-						set.removeScenario(scenario);
-						monitor.worked(scenariosToRemove.size());
-					}
-				}
-			});		
-		}
-
+		
+		
 		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData, final int count) throws Exception {
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {

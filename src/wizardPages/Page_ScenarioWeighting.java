@@ -49,10 +49,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	private Composite rootContainer;
 	
 	private STORMData data;
-	
-	//private Button checkBox;
-	//private Text weightText;
-	
+		
 	private boolean isCurrentPage;
 		
 	protected Page_ScenarioWeighting(STORMData data) {
@@ -185,18 +182,18 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		for(Scenario scenario: scenarios) {
 			Button checkBox = new Button(container, SWT.CHECK);
 			final Text weightText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			
 			if(data.getSet().getScenarios().contains(scenario)){
 				checkBox.setSelection(true);
-				weightText.setText(data.getSet().getScenarioWeights().get(scenario).toString()); // Do not format this
+				weightText.setEnabled(true);
+				weightText.setText(data.getSet().getScenarioWeights().get(scenario).toString());
 			} else{
 				checkBox.setSelection(false);
+				weightText.setEnabled(false);
 				weightText.setText("1.0");
-				if(!checkBox.getSelection())
-					weightText.setEnabled(false);
 			}
 			checkBox.setText(scenario.getScenario());
 			weightText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+			
 			selectedScenarios.put(scenario, checkBox);
 			weights.put(scenario, weightText);
 			
@@ -208,32 +205,28 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				}
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					boolean isIncluded = ((Button)e.getSource()).getSelection();
-					
-					//Throws an error message when no scenarios are selected
+					boolean isIncluded = ((Button)e.getSource()).getSelection();					
 					boolean countError = true;
-					for(Scenario scenario: selectedScenarios.keySet()) {
-						if(selectedScenarios.get(scenario).getSelection())
-							countError = false;
-					}
-					errorFound(countError, "  Select at least one scenario.");
+					boolean numberError = false;
 					
-					//Special handling if weight is not real number and scenario unchecked...
-					boolean error = false;
-					for(Scenario scenario: weights.keySet()) {
-						if(selectedScenarios.get(scenario).getSelection()) {
-							try {
-								Float.parseFloat(weights.get(scenario).getText());
-							} catch (NumberFormatException ne) {
-								error = true;
+					for(Scenario scenario: selectedScenarios.keySet()) {
+						if(((Button)e.getSource()).getText().contains(scenario.getScenario()))
+							selectedScenarios.put(scenario, (Button)e.getSource());
+						if(selectedScenarios.get(scenario).getSelection()) {//If scenario is checked
+							countError = false;
+							if(Constants.isValidFloat(weights.get(scenario).getText())) {//Valid number
+								weights.get(scenario).setForeground(Constants.black);
+							} else { //Not a valid number
+								weights.get(scenario).setForeground(Constants.red);
+								numberError = true;
 							}
-						} else { //Handles a bug where a disabled non-float wan't allowing the page to advance
-							weightText.setForeground(Constants.black);
-							weightText.setText("1.0");
+						} else {
+							weightText.setEnabled(false);
 						}
 					}
-					errorFound(error, "  Weight is not a real number.");
 					weightText.setEnabled(isIncluded);
+					errorFound(countError, "  Select at least one scenario.");
+					errorFound(numberError, "  Weight is not a real number.");
 				}
 			});
 			
@@ -241,18 +234,21 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			weightText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					boolean weightError = false;
+					boolean numberError = false;
+					
 					for(Scenario scenario: weights.keySet()) {
-						if(!selectedScenarios.get(scenario).getSelection()) //Skip unchecked scenarios
-							continue;
-						if(Constants.isValidFloat(weights.get(scenario).getText())) //Valid number
-							weights.get(scenario).setForeground(Constants.black);
-						else { //Not a valid number
-							weights.get(scenario).setForeground(Constants.red);
-							weightError = true;
+						if(((Text)e.getSource()).getText().contains(scenario.getScenario()))
+							weights.put(scenario, (Text)e.getSource());
+						if(selectedScenarios.get(scenario).getSelection()) {//If scenario is checked
+							if(Constants.isValidFloat(weights.get(scenario).getText())) {//Valid number
+								weights.get(scenario).setForeground(Constants.black);
+							} else { //Not a valid number
+								weights.get(scenario).setForeground(Constants.red);
+								numberError = true;
+							}
 						}
 					}
-					errorFound(weightError, "  Weight is not a real number.");
+					errorFound(numberError, "  Weight is not a real number.");
 				}
 			});
 		}
@@ -269,23 +265,17 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		isCurrentPage = false;
 		
 		data.needToResetMonitoringParameters = true;
-		Map<Scenario, Float> scenarioWeights = new HashMap<Scenario, Float>();
-		List<Scenario> scenariosToRemove = new ArrayList<Scenario>();
+		data.getSet().getScenarioWeights().clear();
+		data.getSet().getScenarios().clear();
 		
 		// Save the weights
 		for(Scenario scenario: weights.keySet()) {
-			scenarioWeights.put(scenario, Float.valueOf(weights.get(scenario).getText()));
-		}
-		
-		// Remove any unselected scenarios from the set
-		for(Scenario scenario: selectedScenarios.keySet()) {
-			if(!selectedScenarios.get(scenario).getSelection()) {
-				scenariosToRemove.add(scenario);
-				scenarioWeights.remove(scenario);
+			float weight = Float.valueOf(weights.get(scenario).getText());
+			if(selectedScenarios.get(scenario).getSelection() && weight!=0) {//If scenario is checked and weight is not 0
+				data.getSet().getScenarioWeights().put(scenario, weight);
+				data.getSet().getScenarios().add(scenario);
 			}
 		}
-		
-		data.setupScenarios(scenarioWeights, scenariosToRemove);
 		
 		//In case the user finds nodes on the next page, then goes back, we don't want nodes to remain
 		data.getSet().getSensors().clear();

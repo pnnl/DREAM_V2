@@ -125,6 +125,7 @@ public class E4DSensors {
 	// The top 5 well pairings are also mapped to each well
 	public static void addERTSensor(ScenarioSet set) {
 		ertDetectionTimes.clear();
+		ertPotentialWellPairings.clear();
 		File dir = new File(Constants.userDir, "e4d");
 		if(!dir.exists())
 			System.out.println("Did not find the e4d folder.");

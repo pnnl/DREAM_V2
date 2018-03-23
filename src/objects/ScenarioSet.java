@@ -257,10 +257,6 @@ public class ScenarioSet {
 	public Map<Scenario, Float> getScenarioWeights() {
 		return scenarioWeights;
 	}
-
-	public void setScenarioWeights(Scenario scenario, float weight) {
-		this.scenarioWeights.replace(scenario, weight);
-	}
 	
 	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
 		this.edgeMovesOnly = edgeMovesOnly;
@@ -662,13 +658,7 @@ public class ScenarioSet {
 		ScenarioSet set = new ScenarioSet();
 		set.loadRunData(Constants.RUN_TEST);
 	}
-
-	public void removeScenario(Scenario scenario) {
-		// Remove the given scenario from all maps
-		scenarios.remove(scenario);
-		scenarioWeights.remove(scenario);
-	}
-
+	
 	public void clearRun() {
 		runLoaded = false;
 		isReady = false;
