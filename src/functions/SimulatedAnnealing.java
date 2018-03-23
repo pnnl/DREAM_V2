@@ -220,9 +220,9 @@ public class SimulatedAnnealing extends Function {
 	}
 	
 	
-	public static Float getParetoTTD(ScenarioSet set, SensorSetting setting, String specificType, String scenario, Integer nodeNumber) {
+	public static Float getParetoTTD(NodeStructure nodeStructure, SensorSetting setting, String specificType, String scenario, Integer nodeNumber) {
 		if(!HDF5Interface.paretoMap.containsKey(specificType)) {
-			HDF5Interface.createParetoMap(set, setting, specificType);
+			HDF5Interface.createParetoMap(nodeStructure, setting, specificType);
 			System.out.println("You just created a pareto map for " + specificType + "! Awesome! So Fast!");
 		}
 		return HDF5Interface.paretoMap.get(specificType).get(scenario).get(nodeNumber);

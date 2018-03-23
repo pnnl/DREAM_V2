@@ -92,13 +92,10 @@ public class SensorSetting {
 
 	private List<Scenario> scenarios; // If this changes these will need to be updated
 	public NodeStructure nodeStructure;
-	
-	ScenarioSet scenarioSet;
-	
+		
 	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios) {
 
 		this.nodeStructure = nodeStructure;
-		this.scenarioSet = scenarioSet;
 		this.scenarios = scenarios;
 		this.type = type;
 		this.cost = 100;
@@ -126,7 +123,6 @@ public class SensorSetting {
 	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios, float minValue, float maxValue) {
 
 		this.nodeStructure = nodeStructure;
-		this.scenarioSet = scenarioSet;
 		this.scenarios = scenarios;
 		this.type = type;
 		this.cost = 100;
@@ -328,7 +324,7 @@ public class SensorSetting {
 				// Query for valid nodes per scenario
 				HashSet<Integer> nodes = null;
 				try {
-					nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
+					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 					validNodesPerScenario.put(scenario.toString(), nodes);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -355,7 +351,7 @@ public class SensorSetting {
 			for(Scenario scenario: scenarios) {
 				try {
 					HashSet<Integer> nodes = null;
-					nodes = HDF5Interface.queryNodes(scenarioSet.getNodeStructure(), scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
+					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
 					if(allNodes==null)
 						allNodes = new HashSet<Integer>(nodes);
 					else
@@ -418,7 +414,7 @@ public class SensorSetting {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(Scenario scenario: scenarios){
-				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(scenarioSet, this, specificType, scenario.getScenario(), nodeNumber);
+				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(nodeStructure, this, specificType, scenario.getScenario(), nodeNumber);
 				if(timeToDegredation==null)
 					timeToDegredation = Float.MAX_VALUE;
 				ttds.add(timeToDegredation);
@@ -480,7 +476,7 @@ public class SensorSetting {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(Scenario scenario: scenarios){
-				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(set, sensorSettings.get("all"), "all", scenario.getScenario(), nodeNumber);
+				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(ns, sensorSettings.get("all"), "all", scenario.getScenario(), nodeNumber);
 				if(timeToDegredation!=null)
 					ttds.add(timeToDegredation);
 			}

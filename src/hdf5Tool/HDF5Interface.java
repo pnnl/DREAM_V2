@@ -588,9 +588,9 @@ public class HDF5Interface {
 	}
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
-	public static void createParetoMap(ScenarioSet set, SensorSetting setting, String specificType) {
+	public static void createParetoMap(NodeStructure nodeStructure, SensorSetting setting, String specificType) {
 		Map<Integer, Float> baseline = new HashMap<Integer, Float>(); //stores values at the initial timestep
-		Point3i structure = set.getNodeStructure().getIJKDimensions();
+		Point3i structure = nodeStructure.getIJKDimensions();
 		paretoMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
 		
 		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
@@ -599,7 +599,7 @@ public class HDF5Interface {
 				paretoMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
 				hdf5File.open();
 				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-				boolean plotsAreTimeIndices = plotFileHack(set.getNodeStructure(), root);
+				boolean plotsAreTimeIndices = plotFileHack(nodeStructure, root);
 				for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
 					
 					// Skip these
@@ -614,7 +614,7 @@ public class HDF5Interface {
 							if(child instanceof Dataset && ((Dataset)child).getName().equals(setting.getType())) {
 								// Found the right data type
 								int dataset_id = ((Dataset)child).open();
-								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								float[] dataRead = new float[nodeStructure.getTotalNodes()];
 								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
 								((Dataset)child).close(dataset_id);
 								for(int index=0; index<dataRead.length; index++) {
@@ -635,7 +635,7 @@ public class HDF5Interface {
 							if(child instanceof Dataset && ((Dataset)child).getName().equals(setting.getType())) {
 								// Found the right data type
 								int dataset_id = ((Dataset)child).open();
-								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								float[] dataRead = new float[nodeStructure.getTotalNodes()];
 								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
 								((Dataset)child).close(dataset_id);
 								for(int index=0; index<dataRead.length; index++) {
