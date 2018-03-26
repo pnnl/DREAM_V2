@@ -239,7 +239,7 @@ public class ResultPrinter {
 				for(Sensor sensor: configuration.getSensors()) {		
 					Point3f xyz = results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
 					// Special exception for ERT where no z is needed
-					if(sensor.getSensorType()=="Electrical Conductivity") {
+					if(sensor.getSensorType().contains("Electrical Conductivity")) {
 						Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
 						Point3f xyzPair = results.set.getNodeStructure().getXYZEdgeFromIJK(ijkPair);
 						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");

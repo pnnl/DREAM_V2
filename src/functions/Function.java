@@ -24,6 +24,7 @@ import visualization.DomainVisualization;
 /**
  * Any new functions should extend this class, that will allow pluggable pieces.
  * @author port091
+ * @author whit162
  */
 
 public class Function implements ObjectiveFunction, MutationFunction, InferenceModel {
@@ -288,7 +289,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 			
 			if(viewer != null)
-				viewer.addConfiguration(currentConfiguration);
+				viewer.addConfiguration(newConfiguration);
 			
 			if(monitor != null)
 				monitor.worked(1);
