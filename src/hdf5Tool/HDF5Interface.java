@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 
 import functions.SimulatedAnnealing;
 import objects.NodeStructure;
-import objects.ScenarioSet;
 import objects.SensorSetting;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;

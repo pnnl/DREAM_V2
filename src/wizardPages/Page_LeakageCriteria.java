@@ -995,7 +995,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 								if(E4DSensors.ertSensorTriggered(timeStep, scenario, nodeNumber, data.getSet().getSensorSettings(sensorType).getLowerThreshold()))
 									timeToDegredation = timeStep.getRealTime();
 							} else {
-								if(SimulatedAnnealing.sensorTriggered(data.getSet(), timeStep, scenario, sensorType, nodeNumber))
+								if(SimulatedAnnealing.sensorTriggered(data.getSet().getSensorSettings(sensorType).getSpecificType(), scenario.getScenario(), nodeNumber, timeStep))
 									timeToDegredation = timeStep.getRealTime();
 							}
 						} catch (Exception e) {

@@ -172,50 +172,29 @@ public class SimulatedAnnealing extends Function {
 	
 	
 	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario) throws Exception {
-		for (ExtendedSensor sensor : con.getExtendedSensors()) {
-			// Make sure the sensor is in the cloud...
-			if (sensor.isInCloud(set)) {
-				Boolean triggered = null;
-				if(triggered == null) {
-					if (sensor.getSensorType().contains("Electrical Conductivity"))
-						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
-					else
-						triggered = sensorTriggered(set, timeStep, scenario, sensor.getSensorType(), sensor.getNodeNumber());
-				}
-				sensor.setTriggered(triggered, scenario, timeStep, 0.0);
-			}
+		for(ExtendedSensor sensor: con.getExtendedSensors()) {
+			String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
+			Boolean triggered = null;
+			if(sensor.getSensorType().contains("Electrical Conductivity"))
+				triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
+			else
+				triggered = sensorTriggered(specificType, scenario.getScenario(), sensor.getNodeNumber(), timeStep);
+			sensor.setTriggered(triggered, scenario, timeStep, 0.0);
 		}
 		return inference(con, set, scenario);
 	}
 	
-	public static Boolean sensorTriggered(ScenarioSet set, TimeStep timeStep, Scenario scenario, String sensorType, Integer nodeNumber) throws Exception{
-		Boolean triggered = null;
+	// This method tells the Simulated Annealing process whether sensors have been triggered
+	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep) throws Exception{
+		Boolean triggered = false;
 		
-		String dataType = SensorSetting.sensorTypeToDataType.get(sensorType);
-		SensorSetting temp = set.getSensorSettings().get(sensorType);
-
-		// Get the value at the current time step
-		Float currentValue = 0.0f;
-		Float valueAtTime0 = 0.0f;
-		currentValue = HDF5Interface.queryValue(set.getNodeStructure(), scenario.getScenario(), timeStep, dataType, nodeNumber);
-		valueAtTime0 = HDF5Interface.queryValue(set.getNodeStructure(), scenario.getScenario(), set.getNodeStructure().getTimeSteps().get(0), dataType, nodeNumber);
-
-		// See if we exceeded threshold
-		if(currentValue != null && (temp.getTrigger() == Trigger.MINIMUM_THRESHOLD || temp.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = temp.getLowerThreshold() <= currentValue && currentValue <= temp.getUpperThreshold();
-		} else if(currentValue != null && temp.getTrigger() == Trigger.RELATIVE_DELTA) {
-			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
-			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
-			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);					
-		} else if(currentValue != null && temp.getTrigger() == Trigger.ABSOLUTE_DELTA) {
-			float change = currentValue - valueAtTime0;
-			if(temp.getDeltaType() == DeltaType.INCREASE) triggered = temp.getLowerThreshold() <= change;
-			else if(temp.getDeltaType() == DeltaType.DECREASE) triggered = temp.getLowerThreshold() >= change;
-			else if(temp.getDeltaType() == DeltaType.BOTH) triggered = temp.getLowerThreshold() <= Math.abs(change);		
-		} else {
-			triggered = false;
+		// Return as triggered only if the timestep exceeds the detection value for the well pairing
+		if(HDF5Interface.paretoMap.get(specificType).get(scenario).containsKey(nodeNumber)) {
+			float detection = HDF5Interface.paretoMap.get(specificType).get(scenario).get(nodeNumber);
+			if(detection!=0 && timestep.getTimeStep()>detection)
+				triggered = true;
 		}
+		
 		return triggered;
 	}
 	

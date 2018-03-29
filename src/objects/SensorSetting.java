@@ -399,15 +399,7 @@ public class SensorSetting {
 	
 	private void paretoOptimal(IProgressMonitor monitor){
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		String specificType = "";
-		if(this.getTrigger() == Trigger.MAXIMUM_THRESHOLD)
-			specificType = this.getType() + "_max_" + this.getUpperThreshold();
-		else if(this.getTrigger() == Trigger.MINIMUM_THRESHOLD)
-			specificType = this.getType() + "_min_" + this.getLowerThreshold();
-		else if(this.getTrigger() == Trigger.RELATIVE_DELTA)
-			specificType = this.getType() + "_rel_" + this.getLowerThreshold();
-		else if(this.getTrigger() == Trigger.ABSOLUTE_DELTA)
-			specificType = this.getType() + "_abs_" + this.getLowerThreshold();
+		String specificType = getSpecificType();
 		
 		monitor.subTask("Reducing the size of triggering nodes for " + type + " using pareto optimal");
 		for(Integer nodeNumber: validNodes){
@@ -663,5 +655,18 @@ public class SensorSetting {
 		validNodes.clear();
 		isReady = false;
 		nodesReady = false;
+	}
+	
+	public String getSpecificType() {
+		String specificType = "";
+		if(this.getTrigger() == Trigger.MAXIMUM_THRESHOLD)
+			specificType = this.getType() + "_max_" + this.getUpperThreshold();
+		else if(this.getTrigger() == Trigger.MINIMUM_THRESHOLD)
+			specificType = this.getType() + "_min_" + this.getLowerThreshold();
+		else if(this.getTrigger() == Trigger.RELATIVE_DELTA)
+			specificType = this.getType() + "_rel_" + this.getLowerThreshold();
+		else if(this.getTrigger() == Trigger.ABSOLUTE_DELTA)
+			specificType = this.getType() + "_abs_" + this.getLowerThreshold();
+		return specificType;
 	}
 }
