@@ -151,7 +151,16 @@ public class SimulatedAnnealing extends Function {
 			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
 				ts = timeStep;
 				long startTime = System.currentTimeMillis();	
-				inferenceResult = runOneTime(con, set, timeStep, scenario);
+				for(ExtendedSensor sensor: con.getExtendedSensors()) {
+					String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
+					Boolean triggered = null;
+					if(sensor.getSensorType().contains("Electrical Conductivity"))
+						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
+					else
+						triggered = sensorTriggered(specificType, scenario.getScenario(), sensor.getNodeNumber(), timeStep);
+					sensor.setTriggered(triggered, scenario, timeStep, 0.0);
+				}
+				inferenceResult = inference(con, set, scenario);
 				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
 				if (inferenceResult.isInferred())
 					break;
@@ -170,19 +179,6 @@ public class SimulatedAnnealing extends Function {
 		}
 	}
 	
-	
-	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario) throws Exception {
-		for(ExtendedSensor sensor: con.getExtendedSensors()) {
-			String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
-			Boolean triggered = null;
-			if(sensor.getSensorType().contains("Electrical Conductivity"))
-				triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
-			else
-				triggered = sensorTriggered(specificType, scenario.getScenario(), sensor.getNodeNumber(), timeStep);
-			sensor.setTriggered(triggered, scenario, timeStep, 0.0);
-		}
-		return inference(con, set, scenario);
-	}
 	
 	// This method tells the Simulated Annealing process whether sensors have been triggered
 	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep) throws Exception{
@@ -210,35 +206,6 @@ public class SimulatedAnnealing extends Function {
 	
 	public static Boolean paretoSensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
 		Boolean triggered = null;
-		
-		// See if we exceeded threshold
-		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
-		} else if(currentValue != null && setting.getTrigger() == Trigger.RELATIVE_DELTA) {
-			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);					
-		} else if(currentValue != null && setting.getTrigger() == Trigger.ABSOLUTE_DELTA) {
-			float change = currentValue - valueAtTime0;
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);		
-		} else {
-			triggered = false;
-		}
-		return triggered;
-	}
-	
-	
-	public static Boolean volumeSensorTriggered(SensorSetting setting, NodeStructure nodeStructure, TimeStep timeStep, Scenario scenario, String dataType, Integer nodeNumber) throws Exception{
-		Boolean triggered = null;
-		
-		// Get the value at the current time step
-		Float currentValue = 0.0f;
-		Float valueAtTime0 = 0.0f;
-		currentValue = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), timeStep, dataType, nodeNumber);
-		valueAtTime0 = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), nodeStructure.getTimeSteps().get(0), dataType, nodeNumber);
 		
 		// See if we exceeded threshold
 		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
