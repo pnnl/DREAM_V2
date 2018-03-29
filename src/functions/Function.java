@@ -182,7 +182,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		currentIteration = -1;
 		newValue = objective(newConfiguration, set, true);
 		bestValue = currentValue;
-		float temperature = 100;
+		double temperature = 100;
 		
 		float totalMutateTime = 0;
 		float totalObjectiveTime = 0;
@@ -199,6 +199,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
 		
 		for(int iteration = 0; iteration < set.getIterations(); iteration++) {
+			//temperature= temperature * 0.99f;
+			temperature = 100*java.lang.Math.pow(0.01,(double)iteration/(double)set.getIterations()); //exponential decay
 			
 			if(monitor.isCanceled())
 				return true;
@@ -229,7 +231,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			// If new configuration is worse than current, evaluate temp function to decide whether to swap
 			else if (newValue >= currentValue){
-				temperature= temperature * 0.99f;
 				calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
 				randomValue = Constants.random.nextFloat();
 				//randomValue = 1;
@@ -246,7 +247,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			//Do different stuff if new configuration and current are equal, using a somewhat arbitrary delta NOT DOING ANYTHING RIGHT NOW
 			else { //if (newValue == currentValue){
-				temperature= temperature * 0.99f;
 				float fiftyAtNinetyNine = (float)(-99*Math.log(.5));
 				calculatedValue = (float)Math.exp(-(fiftyAtNinetyNine) / temperature);
 				randomValue = Constants.random.nextFloat();
