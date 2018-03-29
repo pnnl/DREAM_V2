@@ -239,7 +239,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	            	outputError = true;
 	            }
 	            errorFound(outputError, "  Results folder must use valid characters.");
-				DREAMWizard.nextButton.setEnabled(false);
 				if (outputError) {
 					bestTTDTableButton.setEnabled(false);
 					vadButton.setEnabled(false);
@@ -319,7 +318,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					runsError = true;
 				}
 				errorFound(runsError, "  Runs is not a real number.");
-				DREAMWizard.nextButton.setEnabled(false);
 				if (iterationsError || runsError)
 					iterativeProceedureButton.setEnabled(false);
 				else if (!outputError)
@@ -345,7 +343,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					iterationsError = true;
 				}
 				errorFound(iterationsError, "  Iterations is not a real number.");
-				DREAMWizard.nextButton.setEnabled(false);
 				if (iterationsError || runsError)
 					iterativeProceedureButton.setEnabled(false);
 				else if (!outputError)
@@ -598,7 +595,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					samplesError = true;
 				}
 				errorFound(samplesError, "  Samples is not a real number.");
-				DREAMWizard.nextButton.setEnabled(false);
 				if (samplesError)
 					randomSampleButton.setEnabled(false);
 				else if (!outputError)
@@ -976,7 +972,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
 		
-		DREAMWizard.nextButton.setEnabled(false);
+		DREAMWizard.nextButton.setVisible(false);
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
