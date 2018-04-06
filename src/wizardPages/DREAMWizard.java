@@ -374,8 +374,6 @@ public class DREAMWizard extends Wizard {
 								monitor.beginTask("Sensor settings", 1000*(count-1)+301); //e4d sensors are 300 each
 							else
 								monitor.beginTask("Sensor settings", 1000*count+1); //normal sensors are 1000 each
-							if(HDF5Interface.paretoMap.size()>15) //if the user tries many different leakage thresholds, we don't want this map getting too big
-								HDF5Interface.paretoMap.clear();
 							for(String sensorType: sensorData.keySet()) {
 								if(monitor.isCanceled()) break;
 								SensorData data = sensorData.get(sensorType);
