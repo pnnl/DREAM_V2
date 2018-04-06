@@ -387,6 +387,7 @@ public class ScenarioSet {
 			if(!foundWell){
 				locations.add(point);
 			}
+			cost += sensorSettings.get(sensor.getSensorType()).getCost();
 		}
 		for(Point3i location: locations){
 			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ

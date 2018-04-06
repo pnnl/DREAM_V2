@@ -34,7 +34,6 @@ public class Results {
 	// Create a summary of all the unique best configurations
 	//     value, node type: node id1, node type: nodeid2, node type: nodeid3
 	// or  value, node type: (i, j, k), node type: (i, j, k), node type: (i, j, k)
-	public boolean bestConfigSum = true;
 	public float bestObjValue;
 	public HashSet<ExtendedConfiguration> bestConfigSumList;
 	public HashMap<Configuration, Float> bestConfigSumTTDs;
@@ -98,7 +97,7 @@ public class Results {
 
 	public void storeResult(int run, int iteration, Type type, ExtendedConfiguration configuration, ScenarioSet set) {
 
-		if(bestConfigSum) {
+		if(type == Type.Best && !bestConfigSumList.contains(configuration)) {
 //			float ttd = configuration.getTimeToDetection();	
 			float ttd = configuration.getNormalizedAverageTimeToDetection(set.getScenarioWeights());
 			float percent = configuration.getNormalizedPercentScenariosDetected(set.getScenarioWeights(), set.getTotalScenarioWeight());

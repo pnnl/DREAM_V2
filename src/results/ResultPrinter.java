@@ -143,8 +143,6 @@ public class ResultPrinter {
 	 * @throws IOException 
 	 */
 	public static void printBestConfigSum() throws IOException {
-		if(!results.bestConfigSum)
-			return;
 		String fileName = "best_configurations";
 		String ttdFileName = "best_configuration_ttds";
 		String vadFileName = "best_configuration_vads";
@@ -155,7 +153,7 @@ public class ResultPrinter {
 		List<String> ttdLines = new ArrayList<String>();
 		List<String> vadLines = new ArrayList<String>();	
 		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
-				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Number of Wells, Cost of Well Configuration, Volume of Aquifer Degraded, Sensor Types (x y z)");
+				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Number of Wells, Cost of Configuration, Volume of Aquifer Degraded, Sensor Types (x y z)");
 
 		Map<Integer, List<ExtendedConfiguration>> resultsByNumSensors = new HashMap<Integer, List<ExtendedConfiguration>>();
 		for(ExtendedConfiguration configuration: results.bestConfigSumList) {
@@ -179,7 +177,8 @@ public class ResultPrinter {
 				float volumeDegraded = SensorSetting.getVolumeDegradedByTTDs(configuration.getTimesToDetection(), results.set.getScenarios().size());
 				float totalWeightsForDetectedScenarios = 0.0f;
 				float weightedAverageTTD = 0.0f;
-
+				
+				//Determine the sum of scenario weights for detecting scenarios
 				for(Scenario scenario: results.set.getScenarios()) {
 					if(configuration.getTimesToDetection().containsKey(scenario)) {	
 						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(scenario);
@@ -196,9 +195,7 @@ public class ResultPrinter {
 					globallyWeightedPercentage += results.set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
 				}
 				
-				
-						
-				
+				//Determining the min and max years from the configuration
 				float minYear = Float.MAX_VALUE;
 				float maxYear = -Float.MAX_VALUE;			
 				for(Sensor sensor: configuration.getSensors()) {
