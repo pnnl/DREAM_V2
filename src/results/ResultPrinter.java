@@ -146,130 +146,135 @@ public class ResultPrinter {
 		String fileName = "best_configurations";
 		String ttdFileName = "best_configuration_ttds";
 		String vadFileName = "best_configuration_vads";
-		Map<Float, String> linesToSort = new HashMap<Float, String>();
-		Map<Float, String> ttdLinesToSort = new HashMap<Float, String>();
-		Map<Float, String> vadLinesToSort = new HashMap<Float, String>();
-		List<String> lines = new ArrayList<String>();	
+		
+		List<String> lines = new ArrayList<String>();
 		List<String> ttdLines = new ArrayList<String>();
-		List<String> vadLines = new ArrayList<String>();	
-		lines.add("Scenarios with Leak Detected Weighted %, Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios, Unweighted Average TTD of Successful Scenarios, "+
-				  "Unweighted Range of TTD over Successful Scenarios, Scenarios with No Leak Detected, Number of Wells, Cost of Configuration, Volume of Aquifer Degraded, Sensor Types (x y z)");
-
-		Map<Integer, List<ExtendedConfiguration>> resultsByNumSensors = new HashMap<Integer, List<ExtendedConfiguration>>();
-		for(ExtendedConfiguration configuration: results.bestConfigSumList) {
-			Integer sensors = configuration.getExtendedSensors().size();
-			if(!resultsByNumSensors.containsKey(sensors))
-				resultsByNumSensors.put(sensors, new ArrayList<ExtendedConfiguration>());
-			resultsByNumSensors.get(sensors).add(configuration);
-		}
+		List<String> vadLines = new ArrayList<String>();
+		
+		Map<Float, List<String>> linesToSort = new HashMap<Float, List<String>>();
+		Map<Float, List<String>> ttdLinesToSort = new HashMap<Float, List<String>>();
+		Map<Float, List<String>> vadLinesToSort = new HashMap<Float, List<String>>();
+		
+		lines.add(",Scenarios with Leak Detected Weighted %,Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios,Unweighted Average TTD of Successful Scenarios,"+
+				  "Range of TTD over Successful Scenarios,Scenarios with No Leak Detected,Number of Wells,Cost of Configuration,Volume of Aquifer Degraded,Sensor Types (x y z)");
 
 		List<Scenario> scenariosThatDidNotDetect = new ArrayList<Scenario>();
-		for(List<ExtendedConfiguration> configurations: resultsByNumSensors.values()) {
-			for(ExtendedConfiguration configuration: configurations) {
-				String scenariosNotDetected = "";
-				
-				float scenariosDetected = configuration.countScenariosDetected();
-				float totalScenarios = results.set.getScenarios().size();
-				float globallyWeightedPercentage = 0;
-				float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
-				int numberOfWells = results.set.countWells(configuration);
-				float costOfConfig = results.set.costOfConfiguration(configuration);
-				float volumeDegraded = SensorSetting.getVolumeDegradedByTTDs(configuration.getTimesToDetection(), results.set.getScenarios().size());
-				float totalWeightsForDetectedScenarios = 0.0f;
-				float weightedAverageTTD = 0.0f;
-				
-				//Determine the sum of scenario weights for detecting scenarios
-				for(Scenario scenario: results.set.getScenarios()) {
-					if(configuration.getTimesToDetection().containsKey(scenario)) {	
-						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(scenario);
-					} else {
-						scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;	
-					}
-				}	
-				
-				// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
-				// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
-				for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
-					float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
-					weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
-					globallyWeightedPercentage += results.set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
+		for(ExtendedConfiguration configuration: results.bestConfigSumList) {
+			String scenariosNotDetected = "";
+			
+			float scenariosDetected = configuration.countScenariosDetected();
+			float totalScenarios = results.set.getScenarios().size();
+			float globallyWeightedPercentage = 0;
+			float unweightedAverageTTD = configuration.getUnweightedTimeToDetectionInDetectingScenarios() / scenariosDetected;
+			int numberOfWells = results.set.countWells(configuration);
+			float costOfConfig = results.set.costOfConfiguration(configuration);
+			float volumeDegraded = SensorSetting.getVolumeDegradedByTTDs(configuration.getTimesToDetection(), results.set.getScenarios().size());
+			float totalWeightsForDetectedScenarios = 0.0f;
+			float weightedAverageTTD = 0.0f;
+			
+			//Determine the sum of scenario weights for detecting scenarios
+			for(Scenario scenario: results.set.getScenarios()) {
+				if(configuration.getTimesToDetection().containsKey(scenario)) {	
+					totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(scenario);
+				} else {
+					scenariosNotDetected += scenariosNotDetected.isEmpty() ? scenario : " " + scenario;	
 				}
-				
-				//Determining the min and max years from the configuration
-				float minYear = Float.MAX_VALUE;
-				float maxYear = -Float.MAX_VALUE;			
-				for(Sensor sensor: configuration.getSensors()) {
-					if(sensor instanceof ExtendedSensor) {
-						for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
-							if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) {
-								continue;
-							}			
-							if(scenariosThatDidNotDetect.contains(scenario)) {
-								continue;
-							}
-							TreeMap<TimeStep, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
-							for(TimeStep ts: ttds.keySet()) {
-								if(ts.getRealTime() < minYear)
-									minYear = ts.getRealTime();
-								if(ts.getRealTime() > maxYear) {
-									maxYear = ts.getRealTime();
-								}
+			}	
+			
+			// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
+			// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
+			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+				float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
+				weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
+				globallyWeightedPercentage += results.set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
+			}
+			
+			//Determining the min and max years from the configuration
+			float minYear = Float.MAX_VALUE;
+			float maxYear = -Float.MAX_VALUE;			
+			for(Sensor sensor: configuration.getSensors()) {
+				if(sensor instanceof ExtendedSensor) {
+					for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
+						if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) {
+							continue;
+						}			
+						if(scenariosThatDidNotDetect.contains(scenario)) {
+							continue;
+						}
+						TreeMap<TimeStep, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
+						for(TimeStep ts: ttds.keySet()) {
+							if(ts.getRealTime() < minYear)
+								minYear = ts.getRealTime();
+							if(ts.getRealTime() > maxYear) {
+								maxYear = ts.getRealTime();
 							}
 						}
-					}								
-				}
-				
-				StringBuilder line = new StringBuilder();
-				line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + ", " +
-						  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + ", " + 
-						  Constants.percentageFormat.format(weightedAverageTTD) + ", " + 
-						  Constants.percentageFormat.format(unweightedAverageTTD));	
-				
-				line.append(",[" + Constants.percentageFormat.format(minYear) + " " + Constants.percentageFormat.format(maxYear) + "]," + scenariosNotDetected);
-				
-				line.append(", " + numberOfWells);
-				
-				line.append(", " + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
-				
-				line.append(", " + volumeDegraded);
-				
-				for(Sensor sensor: configuration.getSensors()) {		
-					Point3f xyz = results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
-					// Special exception for ERT where no z is needed
-					if(sensor.getSensorType().contains("Electrical Conductivity")) {
-						Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
-						Point3f xyzPair = results.set.getNodeStructure().getXYZEdgeFromIJK(ijkPair);
-						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");
-					} else {
-						line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 					}
-				}
-				
-				linesToSort.put(costOfConfig, line.toString());
-				
-
-				
-				Collection<Float> ttds = configuration.getTimesToDetection().values();
-				StringBuilder ttdLine = new StringBuilder();
-				for(float ttd: ttds){
-					ttdLine.append("," + ttd);
-				}
-				ttdLinesToSort.put(costOfConfig, ttdLine.toString());
-				
-				StringBuilder vadLine = new StringBuilder();
-				Collection<Float> vads = SensorSetting.getVolumesDegraded(configuration.getTimesToDetection()).values();
-				for(float vad: vads){
-					vadLine.append("," + vad);
-				}
-				vadLinesToSort.put(costOfConfig, vadLine.toString());
+				}								
 			}
+			
+			StringBuilder line = new StringBuilder();
+			line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + "," +
+					  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + "," + 
+					  Constants.percentageFormat.format(weightedAverageTTD) + "," + 
+					  Constants.percentageFormat.format(unweightedAverageTTD));	
+			
+			line.append("," + Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " years," + scenariosNotDetected);
+			
+			line.append("," + numberOfWells);
+			
+			line.append("," + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
+			
+			line.append("," + volumeDegraded);
+			
+			for(Sensor sensor: configuration.getSensors()) {		
+				Point3f xyz = results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+				// Special exception for ERT where no z is needed
+				if(sensor.getSensorType().contains("Electrical Conductivity")) {
+					Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
+					Point3f xyzPair = results.set.getNodeStructure().getXYZEdgeFromIJK(ijkPair);
+					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");
+				} else {
+					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
+				}
+			}
+			
+			// If cost is missing, add the key with a blank array
+			if(!linesToSort.containsKey(costOfConfig)) {
+				linesToSort.put(costOfConfig, new ArrayList<String>());
+				ttdLinesToSort.put(costOfConfig, new ArrayList<String>());
+				vadLinesToSort.put(costOfConfig, new ArrayList<String>());
+			}
+			
+			// Store lines listing the best configurations
+			linesToSort.get(costOfConfig).add(line.toString());
+			
+			// Store lines listing the TTD per best configuration
+			Collection<Float> ttds = configuration.getTimesToDetection().values();
+			StringBuilder ttdLine = new StringBuilder();
+			for(float ttd: ttds)
+				ttdLine.append("," + ttd);
+			ttdLinesToSort.get(costOfConfig).add(ttdLine.toString());
+			
+			// Store lines listing the VAD per best configuration
+			Collection<Float> vads = SensorSetting.getVolumesDegraded(configuration.getTimesToDetection()).values();
+			StringBuilder vadLine = new StringBuilder();
+			for(float vad: vads)
+				vadLine.append("," + vad);
+			vadLinesToSort.get(costOfConfig).add(vadLine.toString());
 		}
 		
+		// Sort the configurations by cost
 		List<Float> keySet = new ArrayList<Float>();
 		keySet.addAll(linesToSort.keySet());
 		java.util.Collections.sort(keySet);
-		for(float key: keySet){
-			lines.add(linesToSort.get(key));
+		
+		// Assemble strings of the best configurations
+		for(float key: keySet) {
+			for(String line: linesToSort.get(key)) {
+				int count = lines.size();
+				lines.add("Config_" + count + "," + line);
+			}
 		}
 		File bestConfigFile = new File(resultsDirectory, fileName + ".csv");
 		FileUtils.writeLines(bestConfigFile, lines);
@@ -286,16 +291,17 @@ public class ResultPrinter {
 			}
 		}
 		
-		int i=1;
-		for(float key: keySet){
-			ttdLines.add("Config_" + i + ttdLinesToSort.get(key));
-			i++;
+		// Assemble strings of TTDs for the best configurations
+		StringBuilder title = new StringBuilder();
+		for(Scenario scenario: results.set.getScenarios()) {
+			title.append("," + scenario);
 		}
-		
-		i=1;
-		for(float key: keySet){
-			vadLines.add("Config_" + i + vadLinesToSort.get(key));
-			i++;
+		ttdLines.add(title.toString());
+		for(float key: keySet) {
+			for(String line: ttdLinesToSort.get(key)) {
+				int count = ttdLines.size();
+				ttdLines.add("Config_" + count + line);
+			}
 		}
 		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
 		FileUtils.writeLines(ttdFile, ttdLines);
@@ -310,9 +316,17 @@ public class ResultPrinter {
 				System.out.println("Install python3 and required libraries to create a PDF visualization");
 			}
 		}
+		
+		// Assemble strings of VADs for the best configurations
+		vadLines.add(title.toString());
+		for(float key: keySet){
+			for(String line: vadLinesToSort.get(key)) {
+				int count = vadLines.size();
+				vadLines.add("Config_" + count + line);
+			}
+		}
 		File vadFile = new File(resultsDirectory, vadFileName + ".csv");
 		FileUtils.writeLines(vadFile, vadLines);
-		
 		if(runScripts){
 			//Try running script
 			try {

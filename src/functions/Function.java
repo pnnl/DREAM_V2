@@ -215,13 +215,13 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + ", Best " + bestValue);
 			
 			// If new configuration is better then current, set current equal to new
-			if(newValue >= 0 && newValue < currentValue) {
+			if(newValue >= 0 && newValue <= currentValue) {
 				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+ newValue + ", currentValue=" + currentValue + ", Temp=" + temperature);
 				currentConfiguration.matchConfiguration(set, newConfiguration);
 				currentValue = newValue;				
 				// If our current value is better then our best value
-				if(currentValue >= 0 && currentValue < bestValue) {
-					
+				if(currentValue >= 0 && currentValue <= bestValue) {
+					//System.out.println("New best = " + currentValue);
 					Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue=" + currentValue + ", bestValue=" + bestValue + ", Temp=" + temperature);
 					// Make a copy of the current configuration and save it into the best configuration
 					bestConfiguration.matchConfiguration(set, currentConfiguration);
@@ -230,7 +230,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			} 
 			
 			// If new configuration is worse than current, evaluate temp function to decide whether to swap
-			else if (newValue >= currentValue){
+			else if (newValue > currentValue){
 				calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
 				randomValue = Constants.random.nextFloat();
 				//randomValue = 1;

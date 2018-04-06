@@ -98,11 +98,9 @@ public class Results {
 	public void storeResult(int run, int iteration, Type type, ExtendedConfiguration configuration, ScenarioSet set) {
 
 		if(type == Type.Best && !bestConfigSumList.contains(configuration)) {
-//			float ttd = configuration.getTimeToDetection();	
 			float ttd = configuration.getNormalizedAverageTimeToDetection(set.getScenarioWeights());
 			float percent = configuration.getNormalizedPercentScenariosDetected(set.getScenarioWeights(), set.getTotalScenarioWeight());
 			float global_ttd = ttd + (1-percent)*1000000; //penalty
-			//float ttd = configuration.getObjectiveValue();
 			if(Float.compare(global_ttd, bestObjValue) < 0) {
 				// Clear the list and set this as our new best objective value
 				bestConfigSumList.clear();
