@@ -869,7 +869,18 @@ public class DomainVisualization {
 
 		return table;
 	}
+	
+	public void clearViewer() {
+		if(shell != null && !shell.isDisposed()) {
+			shell.getDisplay().syncExec(new Runnable() {
+				public void run() {
+					rebuildTree();
+				}
+			});
+		}
+	}
 
+	
 	public void addConfiguration(final Configuration configuration) {
 		if(shell != null && !shell.isDisposed()) {
 			shell.getDisplay().syncExec(new Runnable() {
@@ -990,7 +1001,7 @@ public class DomainVisualization {
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
+				
 			}
 
 		});

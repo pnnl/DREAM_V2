@@ -168,9 +168,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		float bestValue = currentValue;
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 		
-		if(viewer != null)
-			viewer.addConfiguration(currentConfiguration);
-		
 		// Apply first mutation
 		mutate(newConfiguration, set);
 		
@@ -212,7 +209,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			float calculatedValue;
 			float randomValue;
 			
-			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + ", Best " + bestValue);
+			int scenarioCount = newConfiguration.countScenariosDetected();
+			System.out.println("Iteration " + iteration + ", Current " + currentValue + ", New " + newValue + "(" + scenarioCount + " detected), Best " + bestValue);
 			
 			// If new configuration is better then current, set current equal to new
 			if(newValue >= 0 && newValue <= currentValue) {
@@ -294,6 +292,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			if(monitor != null)
 				monitor.worked(1);
 		}
+		
+		if(viewer != null)
+			viewer.clearViewer();
 		
 		currentIteration = null;
 
