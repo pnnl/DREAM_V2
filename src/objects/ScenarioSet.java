@@ -40,7 +40,7 @@ public class ScenarioSet {
 	private Point3i addPoint;
 	private int maxWells;
 	private int iterations;
-	private float costConstraint;
+	private float sensorCostConstraint;
 	private float exclusionRadius;
 	private float inclusionRadius;
 	private float wellCost;
@@ -82,7 +82,7 @@ public class ScenarioSet {
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
 		iterations = 1000;
-		costConstraint = 300;
+		sensorCostConstraint = 0;
 		exclusionRadius = 0;
 		inclusionRadius = Float.MAX_VALUE;
 		wellCost = 0;
@@ -113,7 +113,7 @@ public class ScenarioSet {
 		for(String parameter: sensorSettings.keySet()) {
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
-			builder.append("\t\tCost: " + sensorSettings.get(parameter).getCost() + " per sensor\r\n");
+			builder.append("\t\tCost: " + sensorSettings.get(parameter).getSensorCost() + " per sensor\r\n");
 			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
 			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
@@ -139,26 +139,25 @@ public class ScenarioSet {
 			builder.append("Configuration settings not set - using defaults:\r\n");
 		else
 			builder.append("Configuration settings:\r\n");
-		builder.append("\tSensor budget: " + costConstraint + "\r\n");
+		builder.append("\tSensor budget: " + sensorCostConstraint + "\r\n");
 		builder.append("\tMax wells: " + maxWells + "\r\n");
 		builder.append("\tMax distance between wells: " + exclusionRadius + "\r\n");
-		if(Constants.buildDev){
-			builder.append("\tCost per well: " + wellCost + "\r\n");
-			builder.append("\tCost per unit depth of well: " + wellDepthCost + "\r\n");
+		builder.append("\tCost per well: " + wellCost + "\r\n");
+		builder.append("\tCost per unit depth of well: " + wellDepthCost + "\r\n");
+		if(Constants.buildDev)
 			builder.append("\tRemediation cost per water unit: " + remediationCost + "\r\n");
-		}
 		builder.append("\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 
 		return builder.toString();
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float costConstraint, float exclusionRadius, float wellCost, float wellDepthCost, float remediationCost, boolean allowMultipleSensorsInWell) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float sensorCostConstraint, float exclusionRadius, float wellCost, float wellDepthCost, float remediationCost, boolean allowMultipleSensorsInWell) {
 		
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
 		this.addPoint = addPoint;
 		this.maxWells = maxWells;
-		this.costConstraint = costConstraint;
+		this.sensorCostConstraint = sensorCostConstraint;
 		this.exclusionRadius = exclusionRadius;
 		this.wellCost = wellCost;
 		this.wellDepthCost = wellDepthCost;
@@ -333,13 +332,9 @@ public class ScenarioSet {
 	public float getCost(ExtendedConfiguration configuration) {
 		float cost = 0;
 		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
-			cost += getCost(sensor.getSensorType());
+			cost += getSensorSettings(sensor.getSensorType()).getSensorCost();
 		}
 		return cost;
-	}
-
-	public float getCost(String type) {
-		return getSensorSettings(type).getCost();
 	}
 	
 	public int countWells(ExtendedConfiguration configuration){
@@ -360,48 +355,60 @@ public class ScenarioSet {
 		return ijs.size();
 	}
 	
-	/*
-	 * This returns the cost for post-processing cost-analysis.
-	 * TODO: eliminate any redundancy that might be in place with above getCost functions.
-	 */
-	public float costOfConfiguration(Configuration configuration){
+	// This returns the cost for post-processing cost-analysis.
+	public float costOfConfiguration(ExtendedConfiguration configuration){
+		if(configuration.getConfigCost() != 0)
+			return configuration.getConfigCost();
 		float cost = 0;
-		List<Sensor> sensors = configuration.getSensors();
+		List<ExtendedSensor> sensors = configuration.getExtendedSensors();
 		List<Point3i> locations = new ArrayList<Point3i>();
-		boolean foundWell = false;
-		for(Sensor sensor: sensors){
-			foundWell = false;
+		boolean addLocation;
+		boolean addPairLocation;
+		for(ExtendedSensor sensor: sensors){
+			addLocation = true;
 			Point3i point = sensor.getIJK();
 			for(Point3i location: locations){
-				if(location.getI() == point.getI() && location.getJ() == point.getJ()){
-					//this is at least the second sensor in the well
-					// k=0 is the lowest point! (or the most-negative point is the lowest)
-					if(point.getK() < location.getK()){
+				if(location.getI()==point.getI() && location.getJ()==point.getJ()) { //Same well location
+					if(point.getK() < location.getK()) {
 						locations.remove(location);
 						locations.add(point);
 					}
-					foundWell = true;
-					break;
+					addLocation = false;
 				}
 			}
-			if(!foundWell){
+			if(addLocation)
 				locations.add(point);
+			if(sensor.getSensorType().contains("Electrical Conductivity")) { //ERT will have a second paired well that also needs to be factored into cost
+				addPairLocation = true;
+				Point3i pointPair = this.getNodeStructure().getIJKFromNodeNumber(sensor.getNodePairNumber()); //Paired point from ERT technology
+				for(Point3i location: locations){
+					if(location.getI()==pointPair.getI() && location.getJ()==pointPair.getJ()) { //Same well location
+						if(pointPair.getK() < location.getK()) {
+							locations.remove(location);
+							locations.add(pointPair);
+						}
+					}
+				}
+				if(addPairLocation)
+					locations.add(pointPair);
 			}
-			cost += sensorSettings.get(sensor.getSensorType()).getCost();
+			cost += sensorSettings.get(sensor.getSensorType()).getSensorCost();
 		}
 		for(Point3i location: locations){
 			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
 			cost += (maxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellDepthCost;
+			cost += this.wellCost;
 		}
+		configuration.setConfigCost(cost);
 		return cost;
 	}
 	
-	public float getCostConstraint() {
-		return costConstraint;
+	public float getSensorCostConstraint() {
+		return sensorCostConstraint;
 	}
 
-	public void setCostConstraint(float costConstraint) {
-		this.costConstraint = costConstraint;
+	public void setSensorCostConstraint(float sensorCostConstraint) {
+		this.sensorCostConstraint = sensorCostConstraint;
 	}
 
 	public List<Well> getWells() {
@@ -473,9 +480,9 @@ public class ScenarioSet {
 		// Make sure we can afford adding a new sensor of the given type
 		if(cost) {
 			float configurationCost = getCost(configuration);
-			float sensorCost = getCost(sensorType);
+			float sensorCost = getSensorSettings(sensorType).getSensorCost();
 			
-			if(configurationCost+sensorCost > getCostConstraint())
+			if(configurationCost+sensorCost > getSensorCostConstraint())
 				return validNodes; // Can't afford a new sensor of this type
 		}
 		
@@ -590,10 +597,10 @@ public class ScenarioSet {
 		List<String> types = getDataTypes();
 		//Decrement the current cost by the sensor whose type we might be changing
 		float configurationCost = getCost(configuration);
-		configurationCost -= getCost(currentType);
+		configurationCost -= getSensorSettings(currentType).getSensorCost();
 		List<String> toRemove = new ArrayList<String>();
 		for(String type : types)
-			if(configurationCost + getCost(type) > getCostConstraint()) toRemove.add(type);
+			if(configurationCost + getSensorSettings(type).getSensorCost() > getSensorCostConstraint()) toRemove.add(type);
 		for(String type : toRemove)
 			types.remove(type);
 		return types;
@@ -673,7 +680,7 @@ public class ScenarioSet {
 		addPoint = new Point3i(0,0,0);
 		maxWells = 10;
 		iterations = 1000;
-		costConstraint = 300;
+		sensorCostConstraint = 0;
 		
 		wells.clear();
 		
@@ -696,10 +703,10 @@ public class ScenarioSet {
 		int count = 0;
 		float min = Integer.MAX_VALUE;
 		for(String sensor: sensorSettings.keySet()) {
-			countMinCost += inferenceTest.getMinimumForType(sensor) * sensorSettings.get(sensor).getCost();
+			countMinCost += inferenceTest.getMinimumForType(sensor) * sensorSettings.get(sensor).getSensorCost();
 			count += inferenceTest.getMinimumForType(sensor);
-			if(sensorSettings.get(sensor).getCost() < min)
-				min = sensorSettings.get(sensor).getCost();
+			if(sensorSettings.get(sensor).getSensorCost() < min)
+				min = sensorSettings.get(sensor).getSensorCost();
 		}
 		if(inferenceTest.getOverallMinimum() > count)
 			countMinCost += min * (inferenceTest.getOverallMinimum() - count);

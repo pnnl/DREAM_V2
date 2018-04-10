@@ -742,8 +742,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					float oldExclusionRadius = data.getSet().getExclusionRadius();
 					HashMap<String, Float> costPerType = new HashMap<String, Float>();
 					for(String sensorType: data.getSet().getSensorSettings().keySet()){
-						costPerType.put(sensorType, data.getSet().getCost(sensorType));
-						data.getSet().getSensorSettings(sensorType).setCost(100);
+						costPerType.put(sensorType, data.getSet().getSensorSettings(sensorType).getSensorCost());
+						data.getSet().getSensorSettings(sensorType).setSensorCost(100);
 					}
 					
 					//these will be an ordered list corresponding to x and y coordinates on the scatterplots
@@ -755,7 +755,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					List<Configuration> configs = new ArrayList<Configuration>();
 					List<Float> budgets = new ArrayList<Float>();
 					List<Integer> wells = new ArrayList<Integer>();
-					float budget = data.getSet().getCostConstraint();
+					float budget = data.getSet().getSensorCostConstraint();
 					int well = data.getSet().getMaxWells();
 					//Generate the set of budges and well numbers to run over
 					float budgetIncrement = budget/2;
@@ -788,7 +788,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 								
 								float ttd = ResultPrinter.results.bestObjValue;
 								HashSet<ExtendedConfiguration> bestConfigs = ResultPrinter.results.bestConfigSumList;
-								for(Configuration config: bestConfigs){
+								for(ExtendedConfiguration config: bestConfigs){
 									configurationTTDs.add(ttd);
 									float cost = data.getScenarioSet().costOfConfiguration(config);
 									if(cost < minCost) minCost = cost;
@@ -846,7 +846,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					//Reset parameters that we messed with
 					data.getSet().setExclusionRadius(oldExclusionRadius);
 					for(String sensorType: costPerType.keySet()){
-						data.getSet().getSensorSettings(sensorType).setCost(costPerType.get(sensorType));
+						data.getSet().getSensorSettings(sensorType).setSensorCost(costPerType.get(sensorType));
 					}
 				}
 			}
@@ -868,8 +868,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					HashMap<String, Float> costStorage = new HashMap<String, Float>();
 					for(String sensor: data.getSet().getDataTypes()){
 						if(sensor != sensor1){
-							costStorage.put(sensor, data.getScenarioSet().getCost(sensor));
-							data.getSet().getSensorSettings().get(sensor).setCost(Float.MAX_VALUE);
+							costStorage.put(sensor, data.getScenarioSet().getSensorSettings(sensor).getSensorCost());
+							data.getSet().getSensorSettings().get(sensor).setSensorCost(Float.MAX_VALUE);
 						}
 					}
 					try {
@@ -958,7 +958,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						e.printStackTrace();
 					}
 					for(String type: costStorage.keySet()){
-						data.getSet().getSensorSettings().get(type).setCost(costStorage.get(type));
+						data.getSet().getSensorSettings().get(type).setSensorCost(costStorage.get(type));
 					}
 				}
 				else{

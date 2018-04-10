@@ -402,10 +402,10 @@ public class DREAMWizard extends Wizard {
 								for(String setting: set.getSensorSettings().keySet()){
 									if(setting.equals("all")) continue;
 									nodes.addAll(set.getSensorSettings().get(setting).getCloudNodes(monitor));
-									cost += set.getSensorSettings().get(setting).getCost();
+									cost += set.getSensorSettings().get(setting).getSensorCost();
 								}
 								set.addSensorSetting("all", "all");
-								set.getSensorSettings().get("all").setCost(cost);
+								set.getSensorSettings().get("all").setSensorCost(cost);
 								set.getSensorSettings().get("all").setFullCloudNodes(nodes);
 								set.getSensorSettings().get("all").setValidNodes(SensorSetting.paretoOptimalAll(set, nodes, set.getAllScenarios(), set.getNodeStructure(), set.getSensorSettings()));
 							}

@@ -137,8 +137,8 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		//Cost constraint
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Sensor Budget");
-		if (cost<data.getSet().getCostConstraint())
-			cost = data.getSet().getCostConstraint();
+		if (cost<data.getSet().getSensorCostConstraint())
+			cost = data.getSet().getSensorCostConstraint();
 		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
 		costConstraint.setText(String.valueOf(cost));
 		costConstraint.setForeground(Constants.black);
@@ -205,49 +205,50 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 		});
 		
+		
+		//Cost per well
+		Label wellCostLabel = new Label(container, SWT.NULL);
+		wellCostLabel.setText("Cost Per Well");
+		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
+		wellCost.setForeground(Constants.black);
+		wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		wellCost.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(Constants.red);
+				else {
+					((Text)e.getSource()).setForeground(Constants.black);
+					data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
+				errorFound(numError, "  Cost is not a real number.");
+			}
+		});
+		
+		//Cost per well depth
+		Label wellDepthCostLabel = new Label(container, SWT.NULL);
+		wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
+		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
+		wellDepthCost.setForeground(Constants.black);
+		wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		wellDepthCost.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
+				if (numError==true)
+					((Text)e.getSource()).setForeground(Constants.red);
+				else {
+					((Text)e.getSource()).setForeground(Constants.black);
+					data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
+				}
+				errorFound(numError, "  Cost is not a real number.");
+			}
+		});
+			
 		if (Constants.buildDev) {
-			//Cost per well
-			Label wellCostLabel = new Label(container, SWT.NULL);
-			wellCostLabel.setText("Cost Per Well");
-			wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-			wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-			wellCost.setForeground(Constants.black);
-			wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			wellCost.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-					if (numError==true)
-						((Text)e.getSource()).setForeground(Constants.red);
-					else {
-						((Text)e.getSource()).setForeground(Constants.black);
-						data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
-					}
-					errorFound(numError, "  Cost is not a real number.");
-				}
-			});
-			
-			//Cost per well depth
-			Label wellDepthCostLabel = new Label(container, SWT.NULL);
-			wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
-			wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-			wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
-			wellDepthCost.setForeground(Constants.black);
-			wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			wellDepthCost.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-					if (numError==true)
-						((Text)e.getSource()).setForeground(Constants.red);
-					else {
-						((Text)e.getSource()).setForeground(Constants.black);
-						data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
-					}
-					errorFound(numError, "  Cost is not a real number.");
-				}
-			});
-			
 			//Remediation cost
 			Label remediationCostLabel = new Label(container, SWT.NULL);
 			remediationCostLabel.setText("Remediation Cost Per Water Unit");

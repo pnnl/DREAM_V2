@@ -125,7 +125,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			this.sensorName = sensorName;
 			alias = sensorName;
 			isIncluded = false; //By default
-			cost = sensorSettings.getCost();
+			cost = sensorSettings.getSensorCost();
 			minValue = sensorSettings.getMinValue();
 			maxValue = sensorSettings.getMaxValue();
 			minZ = minZBound = sensorSettings.getGlobalMinZ();

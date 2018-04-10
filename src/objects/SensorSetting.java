@@ -65,7 +65,7 @@ public class SensorSetting {
 	}
 	
 	private String type;
-	private float cost;
+	private float sensorCost;
 
 	private Float minValue;
 	private Float maxValue;
@@ -98,7 +98,7 @@ public class SensorSetting {
 		this.nodeStructure = nodeStructure;
 		this.scenarios = scenarios;
 		this.type = type;
-		this.cost = 100;
+		this.sensorCost = 100;
 
 		this.minValue = HDF5Interface.queryStatistic(nodeStructure, type, 0); //Global minimum value
 		this.maxValue = HDF5Interface.queryStatistic(nodeStructure, type, 2); //Global maximum value
@@ -125,7 +125,7 @@ public class SensorSetting {
 		this.nodeStructure = nodeStructure;
 		this.scenarios = scenarios;
 		this.type = type;
-		this.cost = 100;
+		this.sensorCost = 100;
 
 		this.minValue = minValue; //Global minimum value
 		this.maxValue = maxValue; //Global maximum value
@@ -232,7 +232,7 @@ public class SensorSetting {
 		return minVADMap;
 	}
 
-	public void setUserSettings(float cost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
+	public void setUserSettings(float sensorCost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
 			DeltaType deltaType, float minZ, float maxZ) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
@@ -242,8 +242,8 @@ public class SensorSetting {
 		float realMaxZ = Math.max(minZ, maxZ);
 		float realMinZ = Math.min(minZ, maxZ);
 		
-		if(Float.compare(cost, this.cost) != 0) {
-			this.cost = cost;
+		if(Float.compare(sensorCost, this.sensorCost) != 0) {
+			this.sensorCost = sensorCost;
 			changeOccured = true;
 		}
 	
@@ -534,12 +534,12 @@ public class SensorSetting {
 		isReady = false;
 	}
 	
-	public float getCost() {
-		return cost;
+	public float getSensorCost() {
+		return sensorCost;
 	}
 
-	public void setCost(float cost) {
-		this.cost = cost;
+	public void setSensorCost(float sensorCost) {
+		this.sensorCost = sensorCost;
 	}
 
 	public boolean isReady() {

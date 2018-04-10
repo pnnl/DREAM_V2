@@ -374,9 +374,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public boolean canAffordSensors(List<ExtendedSensor> sensors, ScenarioSet set) {
 		float totalCost = 0;
 		for (ExtendedSensor sensor : sensors) {
-			totalCost += set.getCost(sensor.getSensorType());
+			totalCost += set.getSensorSettings(sensor.getSensorType()).getSensorCost();
 		}
-		boolean canAffordConfiguration = totalCost <= set.getCostConstraint();
+		boolean canAffordConfiguration = totalCost <= set.getSensorCostConstraint();
 		return canAffordConfiguration;
 	}
 
@@ -385,7 +385,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		List<String> ijs = new ArrayList<String>();
 		float totalCost = 0;
 		for (ExtendedSensor sensor : sensors) {
-			totalCost += set.getCost(sensor.getSensorType());
+			totalCost += set.getSensorSettings(sensor.getSensorType()).getSensorCost();
 			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
 			if (!ijs.contains(IJ))
 				ijs.add(IJ);
@@ -400,16 +400,16 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 					- (sensorsPerType.containsKey(type) ? sensorsPerType
 							.get(type) : 0);
 			if (difference > 0) {
-				totalCost += set.getCost(type) * difference;// We need to
+				totalCost += set.getSensorSettings(type).getSensorCost() * difference;// We need to
 				// consider the cost
 				// of adding those
 				// sensors
 			}
 		}
-		float costConstraint = set.getCostConstraint();
+		float sensorCostConstraint = set.getSensorCostConstraint();
 		int wellConstraint = set.getMaxWells();
 		// If we can afford it and the well constraint is satisfied
-		boolean canAffordConfiguration = totalCost <= costConstraint;
+		boolean canAffordConfiguration = totalCost <= sensorCostConstraint;
 		boolean canDrillWells = ijs.size() <= wellConstraint;
 		boolean isValid = canAffordConfiguration && canDrillWells;
 		// System.out.println("\t\t" + (isValid ? "Valid" : "Not valid: ") +

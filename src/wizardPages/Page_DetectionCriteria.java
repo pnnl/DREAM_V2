@@ -245,7 +245,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			}
 		}
 		data.setupInferenceTest(requiredSensors, overallMin);
-		data.getSet().setCostConstraint(data.getSet().getMinWellCost());
+		data.getSet().setSensorCostConstraint(data.getSet().getMinWellCost());
 	}
 	
 	@Override

@@ -21,6 +21,10 @@ import utilities.Point3i;
 
 public class ExtendedConfiguration extends Configuration {
 	
+	// Cost of configuration
+	private float configCost = 0;
+	
+	// List of wells
 	private List<Well> wells;
 
 	// Weighted with penalty for scenarios that do not detect
@@ -304,16 +308,8 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		return positions;
 	}
-
-	public float getCost(ScenarioSet set) {
-		// Get the cost
-		float totalCost = 0;
-		for(Sensor sensor: sensors) {			
-			totalCost += set.getCost(sensor.getSensorType());
-		}
-		return totalCost;
-	}
-
+	
+	
 	public String getSummary(NodeStructure nodeStructure) {
 		StringBuffer nodePositions = new StringBuffer();
 		List<String> ijs = new ArrayList<String>();
@@ -357,6 +353,14 @@ public class ExtendedConfiguration extends Configuration {
 
 	public void setTimesToDetection(Map<Scenario, Float> timesToDetection) {
 		this.timesToDetection = timesToDetection;
+	}
+	
+	public float getConfigCost() {
+		return configCost;
+	}
+	
+	public void setConfigCost(float configCost) {
+		this.configCost = configCost;
 	}
 	
 	/*******************************************************************************************
