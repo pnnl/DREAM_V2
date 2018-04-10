@@ -328,8 +328,9 @@ public class ScenarioSet {
 	public void setInferenceTest(InferenceTest test) {
 		this.inferenceTest = test;
 	}
-
-	public float getCost(ExtendedConfiguration configuration) {
+	
+	// This returns the cost of all sensors in the configuration
+	public float getSensorCost(ExtendedConfiguration configuration) {
 		float cost = 0;
 		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
 			cost += getSensorSettings(sensor.getSensorType()).getSensorCost();
@@ -479,7 +480,7 @@ public class ScenarioSet {
 		
 		// Make sure we can afford adding a new sensor of the given type
 		if(cost) {
-			float configurationCost = getCost(configuration);
+			float configurationCost = getSensorCost(configuration);
 			float sensorCost = getSensorSettings(sensorType).getSensorCost();
 			
 			if(configurationCost+sensorCost > getSensorCostConstraint())
@@ -596,7 +597,7 @@ public class ScenarioSet {
 		//Get all candidate types
 		List<String> types = getDataTypes();
 		//Decrement the current cost by the sensor whose type we might be changing
-		float configurationCost = getCost(configuration);
+		float configurationCost = getSensorCost(configuration);
 		configurationCost -= getSensorSettings(currentType).getSensorCost();
 		List<String> toRemove = new ArrayList<String>();
 		for(String type : types)
