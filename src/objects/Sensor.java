@@ -14,7 +14,6 @@ import utilities.Point3i;
 public class Sensor {
 	
 	//Static functions for accessing the aliases
-	
 	static public Map<String, String> sensorAliases;
 	
 	// About the sensors location
@@ -24,15 +23,6 @@ public class Sensor {
 	
 	// What type of sensor
 	protected String type;
-		
-    public Sensor(float x, float y, float z, String type, NodeStructure domain) {
-    	
-    	point = new Point3f(x,y,z);
-    	node = domain.getIJKFromXYZ(point);
-    	nodeNumber = domain.getNodeNumber(node);
-    	
-    	this.type = type;
-    }
     
     public Sensor(int i, int j, int k, String type, NodeStructure domain) {
     	
@@ -81,10 +71,6 @@ public class Sensor {
 	public Point3i getIJK() {
 		return node;
 	}
-	
-	public Point3f getPoint() {
-		return point;
-	}	
 	
     @Override
     public int hashCode() {

@@ -31,15 +31,6 @@ public class ExtendedSensor extends Sensor {
     // Well pairing for E4D
     private int nodePairNumber;
     
-    public ExtendedSensor(float x, float y, float z, String type, NodeStructure domain) {
-    	super(x, y, z, type, domain);
-    	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<Scenario, TreeMap<TimeStep, Double>>());
-    	history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
-    	
-    	triggering = false;
-    	well = null;
-    }
     
     public ExtendedSensor(int i, int j, int k, String type, NodeStructure domain) {
     	super(i, j, k, type, domain);
@@ -128,31 +119,6 @@ public class ExtendedSensor extends Sensor {
 			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
 	
 		history.clear();
-	}
-	
-	public synchronized void addHistory(Scenario scenario, int timeStep, Double value) {
-
-		if(history == null)
-			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
-	
-		if(!history.containsKey(scenario))
-			history.put(scenario, Collections.synchronizedMap(new HashMap<Integer, Double>()));
-		
-		history.get(scenario).put(timeStep, value);
-		
-	}
-	
-	public synchronized Double getHistory(Scenario scenario, int timeStep) {
-		if(history == null)
-			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
-	
-		if(!history.containsKey(scenario))
-			return null;
-		
-		if(!history.get(scenario).containsKey(timeStep))
-			return null;
-		
-		return history.get(scenario).get(timeStep);
 	}
 	
 	public boolean isInCloud(ScenarioSet scenarioSet) {		

@@ -23,7 +23,6 @@ import utilities.Point3i;
  */
 public class ScenarioSet {
 
-	private boolean runLoaded;
 	private boolean isReady;
 		
 	/**
@@ -68,7 +67,6 @@ public class ScenarioSet {
 	
 	public ScenarioSet() {
 		
-		runLoaded = false;
 		isReady = false;
 		
 		scenarios = new ArrayList<Scenario>();
@@ -210,9 +208,7 @@ public class ScenarioSet {
 		
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
-		
-		runLoaded = true;
-		
+				
 		Constants.log(Level.CONFIG, "Scenario set: loaded run data", this);
 	}
 
@@ -224,13 +220,9 @@ public class ScenarioSet {
 	public boolean isReady() {
 		return isReady;
 	}
-
+	
 	public List<Scenario> getScenarios() {
 		return scenarios;
-	}
-
-	public void setScenarios(List<Scenario> scenarios) {
-		this.scenarios = scenarios;
 	}
 	
 	public String getScenarioEnsemble() {
@@ -240,15 +232,11 @@ public class ScenarioSet {
 	public void setScenarioEnsemble(String scenarioEnsemble) {
 		this.scenarioEnsemble = scenarioEnsemble;
 	}
-
+	
 	public List<Scenario> getAllScenarios() {
 		return allScenarios;
 	}
-
-	public void setAllScenarios(List<Scenario> scenarios) {
-		this.allScenarios = scenarios;
-	}
-
+	
 	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
 		return scenarioWeights.get(scenario) / getTotalScenarioWeight();
 	}
@@ -284,7 +272,7 @@ public class ScenarioSet {
 	public float getWellCost() {
 		return wellCost;
 	}
-
+	
 	public void setWellCost(float wellCost) {
 		this.wellCost = wellCost;
 	}
@@ -292,7 +280,7 @@ public class ScenarioSet {
 	public float getWellDepthCost() {
 		return wellDepthCost;
 	}
-
+	
 	public void setWellDepthCost(float wellDepthCost) {
 		this.wellDepthCost = wellDepthCost;
 	}
@@ -300,17 +288,13 @@ public class ScenarioSet {
 	public float getRemediationCost() {
 		return remediationCost;
 	}
-
+	
 	public void setRemediationCost(float remediationCost) {
 		this.remediationCost = remediationCost;
 	}
-
+	
 	public boolean getAllowMultipleSensorsInWell() {
 		return allowMultipleSensorsInWell;
-	}
-
-	public void setAllowMultipleSensorsInWell(boolean allowMultipleSensorsInWell) {
-		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 	}
 	
 	public int getIterations() {
@@ -323,10 +307,6 @@ public class ScenarioSet {
 
 	public InferenceTest getInferenceTest() {
 		return inferenceTest;
-	}
-	
-	public void setInferenceTest(InferenceTest test) {
-		this.inferenceTest = test;
 	}
 	
 	// This returns the cost of all sensors in the configuration
@@ -407,29 +387,13 @@ public class ScenarioSet {
 	public float getSensorCostConstraint() {
 		return sensorCostConstraint;
 	}
-
+	
 	public void setSensorCostConstraint(float sensorCostConstraint) {
 		this.sensorCostConstraint = sensorCostConstraint;
 	}
-
-	public List<Well> getWells() {
-		return wells;
-	}
-
-	public void setWells(List<Well> wells) {
-		this.wells = wells;
-	}
-
+	
 	public NodeStructure getNodeStructure() {
 		return nodeStructure;
-	}
-
-	public void setNodeStructure(NodeStructure nodeStructure) {
-		this.nodeStructure = nodeStructure;
-	}
-
-	public boolean isRunLoaded() {
-		return runLoaded;
 	}
 	
 	public Map<Integer, List<Integer>> getAllPossibleWells(ModelOption modelOption) {
@@ -454,18 +418,8 @@ public class ScenarioSet {
 				ijs.get(ijk.getI()).add(ijk.getJ());
 		}
 		return ijs;
-		/*
-		List<Well> wells = new ArrayList<Well>();
-		for(Integer i: ijs.keySet()) {
-			for(Integer j: ijs.get(i)) {
-				wells.add(new Well(i,j, this));
-			}
-		}
-		return wells;
-		*/
 	}
-
-
+	
 	/**
 	 * Returns a list of affordable unoccupied node numbers.
 	 * All nodes will be in the cloud and unoccupied.
@@ -638,10 +592,6 @@ public class ScenarioSet {
 		sensorSettingsRemoved.put(dataType, sensorSettings.get(dataType));
 		sensorSettings.remove(dataType);
 	}
-
-	public void setSensorSettings(Map<String, SensorSetting> sensorSettings) {
-		this.sensorSettings = sensorSettings;
-	}
 	
 	public SensorSetting getRemovedSensorSettings(String sensorType) {
 		return sensorSettingsRemoved.get(sensorType);
@@ -669,7 +619,6 @@ public class ScenarioSet {
 	}
 	
 	public void clearRun() {
-		runLoaded = false;
 		isReady = false;
 		
 		scenarios.clear();
@@ -688,11 +637,7 @@ public class ScenarioSet {
 		Constants.log(Level.INFO, "Scenario set: re-initialized", null);
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
-
-	public void setAddPoint(Point3i addPoint) {
-		this.addPoint = new Point3i(addPoint);
-	}
-
+	
 	public float getTotalScenarioWeight() {
 		float totalScenarioWeight = 0;
 		for(float value: scenarioWeights.values()) totalScenarioWeight += value;

@@ -11,6 +11,7 @@ package mapView;
 import java.util.Hashtable;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class CoordinateConversion
 {
 
@@ -522,7 +523,7 @@ public class CoordinateConversion
 
     double _a3;
 
-    double b = 6356752.314;
+	double b = 6356752.314;
 
     double a = 6378137;
 
@@ -536,9 +537,9 @@ public class CoordinateConversion
 
   private class Digraphs
   {
-    private Map digraph1 = new Hashtable();
+    private Map<Integer, String> digraph1 = new Hashtable<Integer, String>();
 
-    private Map digraph2 = new Hashtable();
+    private Map<Integer, String> digraph2 = new Hashtable<Integer, String>();
 
     private String[] digraph1Array = { "A", "B", "C", "D", "E", "F", "G", "H",
         "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X",

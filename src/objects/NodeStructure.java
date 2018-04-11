@@ -28,7 +28,6 @@ import utilities.Point3f;
 public class NodeStructure {
 
 	// private KdTree<XYZPoint> nodes; // the grid
-	private String run;
 	private List<Float> x;
 	private List<Float> y;
 	private List<Float> z;
@@ -90,7 +89,6 @@ public class NodeStructure {
 	private void loadRun(String run) {
 
 		Constants.log(Level.INFO, "Node structure: loading run data ", run);
-		this.setRun(run);
 		try {
 			HDF5Interface.fillNodeStructureFromFiles(this);
 		} catch (Exception e) {
@@ -185,7 +183,7 @@ public class NodeStructure {
 				k++;
 		return k;
 	}
-
+	
 	public float getVolumeOfNode(Point3i location){
 		Point3i nextCorner = new Point3i(location.getI()+1, location.getJ()+1, location.getK()+1);
 		Point3f lowerxyz = getXYZEdgeFromIJK(location);
@@ -198,8 +196,6 @@ public class NodeStructure {
 		return totalVolume*porosity;
 	}
 	
-
-
 	public Point3f getXYZCenterFromIJK(Point3i node) {
 		
 		// We have to compute the cell center
@@ -210,7 +206,7 @@ public class NodeStructure {
 		
 		return new Point3f(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));	
 	}
-
+	
 	public Point3f getXYZEdgeFromIJK(Point3i node) {
 		try {
 			
@@ -230,25 +226,25 @@ public class NodeStructure {
 	public Point3f getNodeCenteredXYZFromIJK(Point3i node) {
 		return  new Point3f(x.get(node.getI()-1), y.get(node.getJ()-1), z.get(node.getK()-1));				
 	}
-
+	
 	public int getNodeNumber(Point3i node) {
 		return getNodeNumber(node.getI(), node.getJ(), node.getK());
 	}
-
+	
 	public int getNodeNumber(Point3f point) {
 		return getNodeNumber(getI(point.getX()), getJ(point.getY()), getK(point.getZ()));
 	}
-
+	
 	public int getNodeNumber(int i, int j, int k) {
 		int iMax = ijkDimensions.getI();
 		int jMax = ijkDimensions.getJ();
 		return (k-1) * iMax * jMax + (j-1) * iMax + i;
 	}
-
+	
 	public Point3i getIJKFromXYZ(Point3f point) {
 		return new Point3i(getI(point.getX()), getJ(point.getY()), getK(point.getZ()));
 	}
-
+	
 	public Point3i getIJKFromNodeNumber(int nodeNumber) {
 
 		int iMax = ijkDimensions.getI();
@@ -267,37 +263,27 @@ public class NodeStructure {
 
 		return new Point3i(i, j, k);
 	}
-
+	
 	public List<TimeStep> getTimeSteps() {
 		return timeSteps;
-	}
-
-
-	public void setTimeSteps(List<TimeStep> timeSteps) {
-		this.timeSteps = timeSteps;
 	}
 	
 	public int getTotalNodes() {
 		return ijkDimensions.getI() * ijkDimensions.getJ() * ijkDimensions.getK();	
 	}
-
-	public int[] getNodes() {
-		return new int[] { ijkDimensions.getI(), ijkDimensions.getJ(),
-				ijkDimensions.getK() };
-	}
-
+	
 	public List<Float> getX() {
 		return x;
 	}
-
+	
 	public List<Float> getY() {
 		return y;
 	}
-
+	
 	public List<Float> getZ() {
 		return z;
 	}
-
+	
 	public HashMap<Point3i, Float> getPorosityOfNode() {
 		return porosityOfNode;
 	}
@@ -306,7 +292,7 @@ public class NodeStructure {
 		if(porosityOfNode.size() == 0) return false;
 		return true;
 	}
-
+	
 	public boolean setPorositiesFromIJKOrderedFile(File file) throws IOException {
 		/*
 		 *This function assumes that the porosities are listed in an order that increments i, then j, then k.
@@ -365,19 +351,15 @@ public class NodeStructure {
 	public List<String> getDataTypes() {
 		return dataTypes;
 	}
-
-	public void setDataTypes(List<String> dataTypes) {
-		this.dataTypes = dataTypes;
-	}
-
+	
 	public Point3i getIJKDimensions() {
 		return ijkDimensions;
 	}
-
+	
 	public void setIJKDimensions(int i, int j, int k) {
 		ijkDimensions = new Point3i(i,j,k);
 	}
-
+	
 	/**
 	 * Returns a list of all the neighboring nodes.
 	 * 
@@ -405,7 +387,7 @@ public class NodeStructure {
 		}
 		return neighborNodes;
 	}
-
+	
 	public List<Integer> getNodesInWell(Well well) {
 		List<Integer> nodesInWell = new ArrayList<Integer>();
 		for(int k = 1; k <= ijkDimensions.getK(); k++) {
@@ -414,40 +396,23 @@ public class NodeStructure {
 		return nodesInWell;
 
 	}
-
+	
 	public static void main(String args[]) {
 		NodeStructure structure = new NodeStructure(Constants.RUN_TEST);
 
 		// Test the ijk functions
-
 		int nodeNumber = 651;
 		Point3i startNode = structure.getIJKFromNodeNumber(nodeNumber);
 		Point3f point = structure.getXYZEdgeFromIJK(startNode);
 
-
 		System.out.println("Node: " + startNode.toString());
 		System.out.println("\tFrom nodeNumber: " + structure.getIJKFromNodeNumber(1).toString());
 		//System.out.println("\tFrom point: " + structure.getIJKFromXYZ(point).toString());
-
 
 		System.out.println("Node Number: " + nodeNumber);
 		System.out.println("\tFrom startNode: " + structure.getNodeNumber(startNode));
 		System.out.println("\tFrom point: " + structure.getNodeNumber(point));
 		System.out.println("Point: " + point.toString());
 		System.out.println("\tFrom startNode: " + structure.getXYZEdgeFromIJK(startNode));
-
-
-
 	}
-
-	public String getRun() {
-		return run;
-	}
-
-	public void setRun(String run) {
-		this.run = run;
-	}
-
-
-
 }

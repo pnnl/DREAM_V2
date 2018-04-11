@@ -11,38 +11,31 @@ import java.util.Map;
  */
 
 public class Configuration {
-
-	protected List<Sensor> sensors = new ArrayList<Sensor>();	
 	
+	protected List<Sensor> sensors = new ArrayList<Sensor>();	
 	protected Map<Scenario, Float> timesToDetection;
-
+	
 	public Configuration() {
 		sensors = new ArrayList<Sensor>();
 	}
-
+	
 	public Configuration(ExtendedConfiguration configuration) {
 		sensors = new ArrayList<Sensor>();
 
-		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
+		for(ExtendedSensor sensor: configuration.getExtendedSensors())
 			sensors.add(sensor.makeCopy());
-		}
 		
 		timesToDetection = new HashMap<Scenario, Float>(configuration.getTimesToDetection());
-		
 	}
-
-	public Configuration(List<Sensor> sensors) {
-		this.sensors = new ArrayList<Sensor>(sensors);
-	}
-
+	
 	public void addSensor(Sensor sensor) {
 		sensors.add(sensor);
 	}
-
+	
 	public List<Sensor> getSensors() {
 		return sensors;
 	}
-
+	
 	public float getUnweightedTimeToDetectionInDetectingScenarios() {
 		float ttd = 0.0f;
 		//if(timesToDetection != null)
@@ -51,7 +44,7 @@ public class Configuration {
 		//else ttd = Float.MAX_VALUE;
 		return ttd;
 	}	
-
+	
 	@Override
 	public boolean equals(Object object) {
 		if(object instanceof Configuration) {
@@ -73,25 +66,12 @@ public class Configuration {
 		} 
 		return false;
 	}
-
-	@Override
-	public int hashCode() {
-		int hash = 7;
-		for(Sensor sensor: sensors) {
-			hash *= 31 * sensor.hashCode();
-		}
-		return hash;
-	}
 	
 	public int countScenariosDetected() {
 		return timesToDetection == null ? 0 : timesToDetection.keySet().size();
 	}
-
+	
 	public Map<Scenario, Float> getTimesToDetection() {
 		return timesToDetection;
-	}
-	
-	public void setTimesToDetection(Map<Scenario, Float> map) {
-		this.timesToDetection = new HashMap<Scenario, Float>(map);
 	}
 }

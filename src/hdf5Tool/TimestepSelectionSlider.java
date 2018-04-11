@@ -21,8 +21,8 @@ import javax.swing.event.ChangeListener;
  */
 
 public class TimestepSelectionSlider extends javax.swing.JPanel {
-
-
+	
+	private static final long serialVersionUID = -8365692982194717454L;
 	JSlider timestepSlider;
 	JLabel sliderIndexTitle;
 	JLabel sliderIndexText;
@@ -32,7 +32,7 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 	JLabel totalScenariosText;
 	Map<Integer, List<String>> temp;
 	Integer[] variableSteps;
-
+	
 	public TimestepSelectionSlider(Integer[] variableSteps, Map<Integer, List<String>> temp) {
 		this.variableSteps = variableSteps;
 		this.temp = temp;
@@ -40,7 +40,7 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 		setSize(500, 200);
 	//	setVisible(true);
 	}
-
+	
 	private void initComponents() {
 
 		setBackground(new java.awt.Color(240, 240, 240));
@@ -83,9 +83,8 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 		add(hPanel3);
 		
 		add(timestepSlider);
-
 	}
-
+	
 	public static void main(String [] args) {
 		Integer[] data = new Integer[]{1, 2, 5};
 
@@ -112,9 +111,8 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 
 		TimestepSelectionSlider slider = new TimestepSelectionSlider(data, map);
 		JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
-
 	}
-
+	
 	public int getValue(){
 		return timestepSlider.getValue();
 	}
@@ -127,9 +125,6 @@ public class TimestepSelectionSlider extends javax.swing.JPanel {
 			sliderIndexText.setText(String.valueOf(timestepSlider.getValue()));
 			timestepsText.setText(String.valueOf(variableSteps[timestepSlider.getValue()]));
 			totalScenariosText.setText(String.valueOf(totalScenarios));
-
 		}
 	}
-
-
 }

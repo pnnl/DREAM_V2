@@ -87,7 +87,6 @@ public class SensorSetting {
 
 	private Color color;
 
-	private boolean isReady;
 	private boolean nodesReady;
 
 	private List<Scenario> scenarios; // If this changes these will need to be updated
@@ -112,7 +111,6 @@ public class SensorSetting {
 		this.validNodes = new HashSet<Integer>(); //None yet
 		this.color = Color.GREEN;	
 
-		this.isReady = false;
 		this.nodesReady = false;
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
@@ -139,7 +137,6 @@ public class SensorSetting {
 		this.validNodes = new HashSet<Integer>(); //None yet
 		this.color = Color.GREEN;	
 
-		this.isReady = false;
 		this.nodesReady = false;
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
@@ -282,8 +279,6 @@ public class SensorSetting {
 			changeOccured = true;
 		}
 		
-		this.isReady = true;
-
 		if(changeOccured) {
 			// Clear the vis window
 			this.nodesReady = false; // We will need to re-query the database
@@ -369,7 +364,6 @@ public class SensorSetting {
 		
 	//	System.out.println(type + " total nodes: " + validNodes);
 
-		isReady = true;
 		nodesReady = true;
 		trimZ();
 		
@@ -528,11 +522,6 @@ public class SensorSetting {
 	public String getType() {
 		return type;
 	}
-
-	public void setType(String type) {
-		this.type = type;
-		isReady = false;
-	}
 	
 	public float getSensorCost() {
 		return sensorCost;
@@ -540,10 +529,6 @@ public class SensorSetting {
 
 	public void setSensorCost(float sensorCost) {
 		this.sensorCost = sensorCost;
-	}
-
-	public boolean isReady() {
-		return isReady;
 	}
 	
 	public synchronized Set<Integer> getValidNodes(IProgressMonitor monitor) {
@@ -564,24 +549,12 @@ public class SensorSetting {
 		return fullCloudNodes;
 	}
 	
-	public Color getColor() {
-		return color;
-	}
-	
-	public void setColor(Color color) {
-		this.color = color;
-	}
-	
 	public boolean areNodesReady() {
 		return nodesReady;
 	}
 	
 	public void setNodesReady(boolean nodesReady) {
 		this.nodesReady = nodesReady;
-	}
-	
-	public void setIsReady(boolean isReady) {
-		this.isReady = isReady;
 	}
 
 	public float getMinValue() {
@@ -599,24 +572,12 @@ public class SensorSetting {
 		return trigger;
 	}
 	
-	public void setTrigger(Trigger trigger) {
-		this.trigger = trigger;
-	}
-	
 	public float getLowerThreshold() {
 		return lowerThreshold;
-	}
-	
-	public void setLowerThreshold(Float lowerThreshold) {
-		this.lowerThreshold = lowerThreshold;
 	}
 
 	public float getUpperThreshold() {
 		return upperThreshold;
-	}
-
-	public void setUpperThreshold(Float upperThreshold) {
-		this.upperThreshold = upperThreshold;
 	}
 	
 	public DeltaType getDeltaType() {
@@ -653,7 +614,6 @@ public class SensorSetting {
 
 	public void clearNodes() {
 		validNodes.clear();
-		isReady = false;
 		nodesReady = false;
 	}
 	

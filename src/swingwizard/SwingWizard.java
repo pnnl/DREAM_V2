@@ -174,8 +174,8 @@ public class SwingWizard extends JFrame {
 	        JTextField jTextField1 = new javax.swing.JTextField();
 	        JLabel jLabel1 = new javax.swing.JLabel();
 	        JLabel jLabel2 = new javax.swing.JLabel();
-	        JComboBox jComboBox1 = new javax.swing.JComboBox();
-	        JComboBox jComboBox2 = new javax.swing.JComboBox();
+	        JComboBox<String[]> jComboBox1 = new javax.swing.JComboBox<String[]>();
+	        JComboBox<String[]> jComboBox2 = new javax.swing.JComboBox<String[]>();
 
 	        setLayout(new java.awt.GridBagLayout());
 
@@ -216,7 +216,8 @@ public class SwingWizard extends JFrame {
 	        gridBagConstraints.insets = new java.awt.Insets(17, 10, 0, 0);
 	        add(jLabel2, gridBagConstraints);
 
-	        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+	        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<String[]>());
+	        jComboBox1.getModel().setSelectedItem(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" });
 	        gridBagConstraints = new java.awt.GridBagConstraints();
 	        gridBagConstraints.gridx = 1;
 	        gridBagConstraints.gridy = 2;
@@ -225,8 +226,9 @@ public class SwingWizard extends JFrame {
 	        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
 	        gridBagConstraints.insets = new java.awt.Insets(11, 6, 0, 0);
 	        add(jComboBox1, gridBagConstraints);
-
-	        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+	        
+	        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<String[]>());
+	        jComboBox2.getModel().setSelectedItem(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" });
 	        gridBagConstraints = new java.awt.GridBagConstraints();
 	        gridBagConstraints.gridx = 1;
 	        gridBagConstraints.gridy = 4;

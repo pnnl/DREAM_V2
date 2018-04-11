@@ -13,53 +13,44 @@ import utilities.Point3i;
 
 public class Well 
 {
-
+	
 	protected int i;
 	protected int j;
-
+	
 	protected List<ExtendedSensor> sensors;
-
+	
 	public Well(int i, int j, ScenarioSet scenarioSet) {
-
+		
 		this.i = i;
 		this.j = j;
-
+		
 		sensors = new ArrayList<ExtendedSensor>();
 	}
-
+	
 	@Override 
 	public String toString()
 	{
 		return "[i=" + i + ", j=" + j + "]";	
 	}
-
+	
 	public int getI() {
 		return i;
 	}
-
+	
 	public int getJ() {
 		return j;
 	}
-
+	
 	public boolean addSensor(ExtendedSensor sensor)
 	{
 		sensors.add(sensor);
 		return true;
 	}
-
-	public boolean isEmpty()
-	{
-		return sensors.isEmpty();
-	}
-
-	public void removeSensor(ExtendedSensor sensor) {
-		sensors.remove(sensor);
-	}
-
+	
 	public boolean isAt(ExtendedSensor sensor) {
 		return i == sensor.getIJK().getI() && j == sensor.getIJK().getJ();
 	}
-
+	
 	public List<ExtendedSensor> getSensors() {
 		return sensors;
 	}
@@ -179,14 +170,12 @@ public class Well
 	//	System.out.println("-------------------------Done-----------------------------");
 
 		return false;
-
-
 	}
 	
 	public boolean shuffle(ExtendedConfiguration configuration, ScenarioSet scenarioSet) {
 		return move(configuration, scenarioSet, this);
 	}
-
+	
 	/**
 	 * If for some reason we are trying to shuffle a well that contains more sensors of a given type then are valid, 
 	 * this will fail.  Otherwise shuffle should always return true.
@@ -266,42 +255,20 @@ public class Well
 		
 		return true;
 	}
-
-
+	
+	
 	private Map<String, List<Integer>> getSensorCountByType() {
 		Map<String, List<Integer>> typeCount = new HashMap<String, List<Integer>>();
 		for(ExtendedSensor sensor: sensors) {
 			if(!typeCount.containsKey(sensor.getSensorType())) 
 				typeCount.put(sensor.getSensorType(), new ArrayList<Integer>());
 			typeCount.get(sensor.getSensorType()).add(sensor.getNodeNumber());
-
 		}
 		return typeCount;
 	}
-
+	
 	public void moveTo(Point3i ijk) {
 		this.i = (ijk.getI());
 		this.j = (ijk.getJ());
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

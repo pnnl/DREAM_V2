@@ -203,12 +203,6 @@ public class ExtendedConfiguration extends Configuration {
 		return copyOfWells;
 	}
 
-	public synchronized void Clear() {
-		objectiveValues.clear();
-		timesToDetection.clear();
-		inferenceResults.clear();
-	}
-
 	public synchronized void addObjectiveValue(Scenario scenario, float timeInYears) {
 		objectiveValues.put(scenario, timeInYears);
 	}
@@ -220,11 +214,7 @@ public class ExtendedConfiguration extends Configuration {
 	public synchronized void addInferenceResult(Scenario scenario, InferenceResult inferenceResult) {
 		inferenceResults.put(scenario, inferenceResult);
 	}
-
-	public synchronized void ClearSensors() {
-		sensors.clear();
-	}
-
+	
 	
 	/**
 	 * Returns the average objective value of all scenarios
@@ -242,20 +232,7 @@ public class ExtendedConfiguration extends Configuration {
 		return sum;
 	}
 	
-	/**
-	 * Returns the absolute time to detection of the triggering scenarios
-	 * 
-	 * This value does not include any weights or penalties
-	 * 
-	 */
-	public synchronized float getAbsoluteTimeToDetection() {
-		float sum = 0;
-		for(Scenario scenario: getTimesToDetection().keySet()) {
-			sum += getTimesToDetection().get(scenario); // No weights here
-		}
-		return sum;
-	}
-		
+	
 	/**
 	 * Returns the average time to detection of the triggering scenarios
 	 * 
@@ -683,12 +660,6 @@ public class ExtendedConfiguration extends Configuration {
 			ExtendedSensor extendedSensor = (ExtendedSensor)sensor;
 			if(sensor.getNodeNumber().equals(nodeToMove)) sensorsToMove.add(extendedSensor);
 		}
-		/*
-		if(extendedSensor.move(this, scenarioSet)) {
-			addSensor(scenarioSet, extendedSensor);	
-			return extendedSensor; // We were able to move an out of bounds sensor into the cloud
-		}
-		*/
 		if(ExtendedSensor.move(sensorsToMove, this, scenarioSet)){
 			for(ExtendedSensor sensor: sensorsToMove){
 				addSensor(scenarioSet, sensor);
@@ -715,5 +686,4 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		wells.add(realizedWell);
 	}
-
 }

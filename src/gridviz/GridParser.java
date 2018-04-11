@@ -23,17 +23,14 @@ import hdf5Tool.FileBrowser;
  * @date   3/7/12
  */
 public class GridParser {
-
-
+	
 	public static enum FileType { PLOT, NTAB, TECPLOT};
-
 	public FileType fileType = FileType.PLOT;
-
+	
 	/// Describes the data file from which this parser will extract data
 	private File dataFile;
-
-	private int timeStep = 0;
 	
+	private int timeStep = 0;
 	private static List<Float> timesAsFloats = new ArrayList<Float>();
 	
 	private static enum Tecplot {
@@ -50,11 +47,9 @@ public class GridParser {
 		Tecplot(String key) {
 			this.key = key;
 		}
-		//public String getKey() { // Not used
-			//return key;
-		//}		
 	}
-
+	
+	@SuppressWarnings("unused")
 	private static enum Ntab {
 		INDEX("index"), I("i"), J("j"), K("k"), 
 		ELEMENT_REF("element reference"), 
@@ -64,11 +59,8 @@ public class GridParser {
 		Ntab(String key) {
 			this.key = key;
 		}
-		//public String getKey() { // Not used
-			//return key;
-		//}
 	}
-
+	
 	private List<File> filesToMerge = new ArrayList<File>();
 
 	// STOMP keys used for parsing the header information

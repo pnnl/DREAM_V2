@@ -32,24 +32,13 @@ public class OptionSet {
 		this.scale = scale;
 		this.color = color;
 	}
-
+	
 	public void applyOptions(DataSlice slice) {
 		slice.setAnnotationOption(annotationOption);
 		slice.setRenderMesh(mesh);
 		slice.setRenderTickMarks(tick);
 		slice.setRenderAxis(axis);
 		slice.setUseGlobalExtrema(globalExtrema);
-
-		/*
-		if(scale == 0)
-			slice.lnScale();
-		else
-			slice.log10Scale();
-
-		slice.minMaxNormalize();
-		 */
-		
-
 	}
 	
 	public BufferedImage generateImage(DataSlice slice) {
@@ -57,11 +46,6 @@ public class OptionSet {
 
 		if(color == 0)
 			image = slice.renderGradient(0);
-		//else if(color == 1)
-		//	image = slice.renderBGR(Color.BLUE, Color.RED);
-		//else
-		//	image = slice.renderGray();
-
 		return image;
 	}
 	
@@ -92,7 +76,7 @@ public class OptionSet {
 		} else {
 			options.append("Grayscale");
 		}
-
+		
 		return options.toString();
 	}
 	
@@ -120,8 +104,7 @@ public class OptionSet {
 		options.append("_(Ticks - "+tick+")");
 		options.append("_(Axis - "+axis+")");
 		options.append("_(Global Scale - "+globalExtrema+")");
-
+		
 		return options.toString();
 	}
-
 }
