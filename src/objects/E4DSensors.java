@@ -190,6 +190,26 @@ public class E4DSensors {
 				}
 				if(detectionTimesPerWell.size()!=0)
 					ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);//saves the last scenario
+				
+				//Final check if any potential wells had no detections across all scenarios and delete
+				Map<Integer, Float> zeroDetectionWells = new HashMap<Integer, Float>();
+				for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+					for(Integer primaryWell: ertDetectionTimes.get(threshold).get(scenario).keySet()) {
+						if(!zeroDetectionWells.containsKey(primaryWell))
+							zeroDetectionWells.put(primaryWell, (float)0);
+						float count = zeroDetectionWells.get(primaryWell);
+						for(Integer secondaryWell: ertDetectionTimes.get(threshold).get(scenario).get(primaryWell).keySet())
+							count += ertDetectionTimes.get(threshold).get(scenario).get(primaryWell).get(secondaryWell);
+						zeroDetectionWells.put(primaryWell, count);
+					}
+				}
+				for(Integer primaryWell: zeroDetectionWells.keySet()) {
+					if(zeroDetectionWells.get(primaryWell)==0) {
+						for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+							ertDetectionTimes.get(threshold).get(scenario).remove(primaryWell);//TODO: Do I also need to remove from secondary well lists?
+						}
+					}
+				}
 			} catch (IOException ex) {
 				System.out.println("Something went wrong trying to read the ERT matrix");
 				ex.printStackTrace();
@@ -222,6 +242,8 @@ public class E4DSensors {
 							}
 						}
 					}
+					if(wellList.size()==0) //to prevent later errors, add a dummy pairing
+						wellList.add(firstWellLoop);
 					ertPotentialWellPairings.get(threshold).put(firstWellLoop, wellList);
 				}
 			}
