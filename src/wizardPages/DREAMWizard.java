@@ -622,15 +622,17 @@ public class DREAMWizard extends Wizard {
 							e.printStackTrace();
 						}
 						monitor.worked(10);
-					}
-					File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() +
-							"_" + input7 + ".csv");
-					try {
-						fullDetectionMatrix.createNewFile();
-						FileUtils.writeStringToFile(fullDetectionMatrix, text.toString());
-					} catch (IOException e) {
-						JOptionPane.showMessageDialog(null, "Could not write to " + fullDetectionMatrix.getName() + ", make sure the file is not currently open");
-						e.printStackTrace();
+						
+						// Write out the current cumulative detection matrix file at each iteration
+						File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() +
+								"_" + input7 + ".csv");
+						try {
+							fullDetectionMatrix.createNewFile();
+							FileUtils.writeStringToFile(fullDetectionMatrix, text.toString());
+						} catch (IOException e) {
+							JOptionPane.showMessageDialog(null, "Could not write to " + fullDetectionMatrix.getName() + ", make sure the file is not currently open");
+							e.printStackTrace();
+						}
 					}
 				}
 			});
