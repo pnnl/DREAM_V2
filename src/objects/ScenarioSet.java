@@ -644,18 +644,17 @@ public class ScenarioSet {
 		return totalScenarioWeight;
 	}
 
-	public float getMinWellCost() {
+	public float getMinCost() {
 		float countMinCost = 0;
-		int count = 0;
-		float min = Integer.MAX_VALUE;
+		float minSensorCost = Integer.MAX_VALUE;
 		for(String sensor: sensorSettings.keySet()) {
 			countMinCost += inferenceTest.getMinimumForType(sensor) * sensorSettings.get(sensor).getSensorCost();
-			count += inferenceTest.getMinimumForType(sensor);
-			if(sensorSettings.get(sensor).getSensorCost() < min)
-				min = sensorSettings.get(sensor).getSensorCost();
+			if(sensorSettings.get(sensor).getSensorCost() < minSensorCost) //Find the cheapest sensor Cost
+				minSensorCost = sensorSettings.get(sensor).getSensorCost();
 		}
-		if(inferenceTest.getOverallMinimum() > count)
-			countMinCost += min * (inferenceTest.getOverallMinimum() - count);
+		float overallMinCost = inferenceTest.getOverallMinimum() * minSensorCost;
+		if(overallMinCost < countMinCost)
+			return overallMinCost;
 		return countMinCost;
 	}
 }

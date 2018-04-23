@@ -46,7 +46,6 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 
 	private boolean isCurrentPage = false;
 	private Text minText;
-	private int count;
 	
 	protected Page_DetectionCriteria(STORMData data) {
 		super("Detection Criteria");
@@ -140,7 +139,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			for(final String dataType: data.getSet().getSensors()) {
 				
 				final Label dataLabel = new Label(container, SWT.NULL);
-				dataLabel.setText(Sensor.sensorAliases.get(dataType));
+				dataLabel.setText(Sensor.sensorAliases.get(dataType) + " (Cost = " + data.getSet().getSensorSettings().get(dataType).getSensorCost() + ")");
 				dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
 				new Label(container, SWT.NULL);
 				
@@ -151,32 +150,28 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				indText.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
-						if (Constants.isValidInt(((Text)e.getSource()).getText()))
+						if(Constants.isValidInt(((Text)e.getSource()).getText()) && Integer.parseInt(((Text)e.getSource()).getText()) > 0)
 							data.getSet().getInferenceTest().setMinimumForType(dataType, Integer.parseInt(((Text)e.getSource()).getText()));
-						boolean individualError = false;
-						count = 0;
+						boolean numError = false;
+						boolean zeroError = false;
 						for(Text individualSensors: minimumSensors.values()) {
-							if(Constants.isValidInt(individualSensors.getText())) { //Valid number
-								individualSensors.setForeground(Constants.black);
-								count += Integer.parseInt(individualSensors.getText());
-							} else {
+							if(!Constants.isValidInt(individualSensors.getText())) { //Not a valid number
 								individualSensors.setForeground(Constants.red);
-								individualError = true;
+								numError = true;
+							} else if(Integer.parseInt(individualSensors.getText()) < 1) { //Can't be zero
+								individualSensors.setForeground(Constants.red);
+								zeroError = true;
+							} else { //Valid number
+								individualSensors.setForeground(Constants.black);
 							}
-						}
-						errorFound(individualError, "  Min is not a real number.");
-						if (count > Integer.parseInt(minText.getText()))
-							minText.setText(Integer.toString(count));
-						else {
-							minText.setForeground(Constants.black);
-							errorFound(false, "  Overall cannot be less than the sum of individual sensors.");
+							errorFound(numError, "  Min is not a real number.");
+							errorFound(zeroError, "  Min cannot be zero.");
 						}
 					}
 				});
 				minimumSensors.put(dataType, indText);
 			}
-		}
-		else{
+		} else {
 			for(String dataType: data.getSet().getDataTypes()) {
 				minimumSensors.put(dataType, null);
 			}
@@ -188,7 +183,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		orText.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
 		Label orFiller2 = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		orFiller2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-			
+		
 		Label dataLabel = new Label(container, SWT.NULL);
 		dataLabel.setText("Overall Minimum Required ");
 		dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
@@ -200,20 +195,20 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		minText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
-				boolean smallError = false;
-				if(numError) { //Not a valid number
+				boolean numError = false;
+				boolean zeroError = false;
+				if(!Constants.isValidInt(((Text)e.getSource()).getText())) { //Not a valid number
 					((Text)e.getSource()).setForeground(Constants.red);
+					numError = true;
+				} else if(Integer.parseInt(((Text)e.getSource()).getText()) < 1) { //Can't be zero
+					((Text)e.getSource()).setForeground(Constants.red);
+					zeroError = true;
 				} else { //Valid number
 					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().getInferenceTest().setOverallMinimum(Integer.parseInt(((Text)e.getSource()).getText()));
-					if(Integer.parseInt(((Text)e.getSource()).getText()) < count) {
-						smallError = true;
-						((Text)e.getSource()).setForeground(Constants.red);
-					}
 				}
 				errorFound(numError, "  Overall min is not a real number.");
-				errorFound(smallError, "  Overall cannot be less than the sum of individual sensors.");
+				errorFound(zeroError, "  Overall min cannot be zero.");
 			}
 		});
 		
@@ -245,7 +240,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			}
 		}
 		data.setupInferenceTest(requiredSensors, overallMin);
-		data.getSet().setSensorCostConstraint(data.getSet().getMinWellCost());
+		data.getSet().setSensorCostConstraint(data.getSet().getMinCost());
 	}
 	
 	@Override
