@@ -278,6 +278,25 @@ public class E4DSensors {
 	}
 	
 	
+	// Emulates the above function, but forces the selection of the best well pairing
+	public static Boolean ertBestSensorTriggered(TimeStep timestep, Scenario scenario, Integer nodeNumber, float threshold) throws Exception{
+		Boolean triggered = false;
+		
+		// Return as triggered only if the timestep exceeds the detection value for the well pairing
+		if(ertDetectionTimes.get(threshold).get(scenario).containsKey(nodeNumber)) {
+			float minDetection = Float.MAX_VALUE;
+			// Use the minimum TTD from all well pairings
+			for(Float detection: ertDetectionTimes.get(threshold).get(scenario).get(nodeNumber).values()) {
+				if(detection < minDetection && detection!=0)
+					minDetection = detection;
+			}
+			if(timestep.getTimeStep()>minDetection)
+				triggered = true;
+		}
+		return triggered;
+	}
+	
+	
 	public static void ertNewPairing() {
 		for(float threshold: ertPotentialWellPairings.keySet()) {
 			ertWellPairings.put(threshold, new HashMap<Integer, Integer>());

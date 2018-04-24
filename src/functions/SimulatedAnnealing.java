@@ -154,9 +154,12 @@ public class SimulatedAnnealing extends Function {
 				for(ExtendedSensor sensor: con.getExtendedSensors()) {
 					String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
 					Boolean triggered = null;
-					if(sensor.getSensorType().contains("Electrical Conductivity"))
-						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
-					else
+					if(sensor.getSensorType().contains("Electrical Conductivity")) {
+						if(this.currentIteration==-3) //A hack to trigger the calculation of the best TTD for ERT (complicated because of well pairings)
+							triggered = E4DSensors.ertBestSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
+						else
+							triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
+					} else
 						triggered = sensorTriggered(specificType, scenario.getScenario(), sensor.getNodeNumber(), timeStep);
 					sensor.setTriggered(triggered, scenario, timeStep, 0.0);
 				}
