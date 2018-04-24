@@ -381,9 +381,9 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				
 				float percentDetectable = 0;
 				
-				Map<String, Float> sensorTestedToTTD = new HashMap<String, Float>();
+				Map<String, Float> sensorTestedToTTD = new TreeMap<String, Float>();
 				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
-				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new TreeMap<String, Map<String, Float>>();
+				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new HashMap<String, Map<String, Float>>();
 				
 				for(List<String> sensors: sensorsToTest) {
 					ExtendedConfiguration configuration = new ExtendedConfiguration();
@@ -413,7 +413,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "Any";
 					sensorTestedToTTD.put(sensorTested, (totalTimeToDetection/detectedScenarios));
 					sensorTestedScenariosDetected.put(sensorTested, scenariosDetected);
-					
 					ttdPerSensorPerScenarioDetected.put(sensorTested, ttdForEachDetected);
 				}
 				
@@ -433,7 +432,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
 						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
 						int scenariosTested = data.getScenarioSet().getScenarios().size();
-						text.append(((float)detectedScenarios)/scenariosTested*100);
+						text.append(((float)detectedScenarios)/scenariosTested*100 + ",");
 						text.append(detectedScenarios + ",");
 						text.append(scenariosTested);
 						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
