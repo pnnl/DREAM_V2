@@ -108,16 +108,27 @@ public class Results {
 				bestConfigSumPercents.clear();
 				bestObjValue = global_ttd;
 			}
+			
+			boolean newConfiguration = true;
 			if(Float.compare(global_ttd, bestObjValue) == 0) {
-				ExtendedConfiguration newExtendedConfiguration = new ExtendedConfiguration();
-				for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
-					if(sensor.isInferred())
-						newExtendedConfiguration.addSensor(sensor.makeCopy());
+				// Check if the configuration already exists in the best configuration list
+				for(ExtendedConfiguration configurationCheck: bestConfigSumList) {
+					if(configuration.checkForMatch(configuration, configurationCheck)) {
+						newConfiguration = false;
+						break;
+					}
 				}
-				newExtendedConfiguration.setTimesToDetection(configuration.getTimesToDetection());
-				bestConfigSumList.add(newExtendedConfiguration);
-				bestConfigSumTTDs.put(newExtendedConfiguration, ttd);
-				bestConfigSumPercents.put(newExtendedConfiguration, percent);
+				if(newConfiguration) {
+					ExtendedConfiguration newExtendedConfiguration = new ExtendedConfiguration();
+					for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
+						if(sensor.isInferred())
+							newExtendedConfiguration.addSensor(sensor.makeCopy());
+					}
+					newExtendedConfiguration.setTimesToDetection(configuration.getTimesToDetection());
+					bestConfigSumList.add(newExtendedConfiguration);
+					bestConfigSumTTDs.put(newExtendedConfiguration, ttd);
+					bestConfigSumPercents.put(newExtendedConfiguration, percent);
+				}
 			}
 		}
 		

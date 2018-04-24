@@ -680,10 +680,22 @@ public class ExtendedConfiguration extends Configuration {
 		return null;
 	}
 
-	public synchronized void addRealizedWell(RealizedWell realizedWell) {
+	private void addRealizedWell(RealizedWell realizedWell) {
 		for(ExtendedSensor sensor: realizedWell.getSensors()) {
 			sensors.add(sensor);
 		}
 		wells.add(realizedWell);
+	}
+	
+	public boolean checkForMatch(ExtendedConfiguration configuration1, ExtendedConfiguration configuration2) {
+		if(configuration1.sensors.size() != configuration2.sensors.size())
+			return false;
+		for(int i=0; i<configuration1.sensors.size(); i++) {
+			if(configuration1.sensors.get(i).getNodeNumber().intValue() != configuration1.sensors.get(i).getNodeNumber().intValue())
+				return false;
+			if(configuration1.getExtendedSensors().get(i).getNodePairNumber() != configuration2.getExtendedSensors().get(i).getNodePairNumber())
+				return false;
+		}
+		return true;
 	}
 }
