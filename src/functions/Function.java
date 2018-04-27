@@ -293,8 +293,12 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				monitor.worked(1);
 		}
 		
-		if(viewer != null)
+		if(viewer != null) {
+			//After running iterations, scan through the viewer configurations and remove duplicates
+			viewer.removeDuplicates();
+			//After running iterations, clear the last displayed configuration
 			viewer.clearViewer();
+		}
 		
 		currentIteration = null;
 

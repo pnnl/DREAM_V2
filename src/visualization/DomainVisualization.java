@@ -1292,6 +1292,25 @@ public class DomainVisualization {
 		}
 	}
 	
+	
+	public void removeDuplicates() {
+		for(Float percent: configurations.keySet()) {
+			for(Float ttd: configurations.get(percent).children.keySet()) {
+				List<String> toKeep = new ArrayList<String>();
+				List<TreeConfigItem> toRemove = new ArrayList<TreeConfigItem>();
+				for(TreeConfigItem configItem: configurations.get(percent).children.get(ttd).children) {
+					String name = configItem.name;
+					if(toKeep.contains(name))
+						toRemove.add(configItem);
+					else
+						toKeep.add(name);
+				}
+				configurations.get(percent).children.get(ttd).children.removeAll(toRemove);
+			}
+		}
+	}
+	
+	
 	public static void main(String[] args) {
 		new DomainVisualization(new Display(), null, true);
 	}
