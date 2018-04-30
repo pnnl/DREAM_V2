@@ -126,6 +126,14 @@ public class E4DSensors {
 	public static void addERTSensor(ScenarioSet set) {
 		ertDetectionTimes.clear();
 		ertPotentialWellPairings.clear();
+		// May need to remove these if they were added previously
+		List<String> toRemove = new ArrayList<String>();
+		for(String type: set.getNodeStructure().getDataTypes()) {
+			if(type.contains("Electrical Conductivity"))
+				toRemove.add(type);
+		}
+		set.getNodeStructure().getDataTypes().removeAll(toRemove);
+		
 		File dir = new File(Constants.userDir, "e4d");
 		if(!dir.exists())
 			System.out.println("Did not find the e4d folder.");
