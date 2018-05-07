@@ -306,7 +306,7 @@ public class NodeStructure {
 	}
 	
 	public boolean porosityOfNodeIsSet(){
-		if(porosityOfNode==null) return false;
+		if(porosityOfNode==null || porosityOfNode.size()==0) return false;
 		return true;
 	}
 	
