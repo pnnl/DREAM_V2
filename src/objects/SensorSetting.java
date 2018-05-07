@@ -67,8 +67,6 @@ public class SensorSetting {
 	private String type;
 	private float sensorCost;
 
-	private Float minValue;
-	private Float maxValue;
 	private float minZ;
 	private float maxZ;
 
@@ -99,8 +97,6 @@ public class SensorSetting {
 		this.type = type;
 		this.sensorCost = 100;
 
-		this.minValue = HDF5Interface.queryStatistic(type, 0); //Global minimum value
-		this.maxValue = HDF5Interface.queryStatistic(type, 2); //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
 		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
@@ -118,36 +114,12 @@ public class SensorSetting {
 
 	}
 	
-	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios, float minValue, float maxValue) {
-
-		this.nodeStructure = nodeStructure;
-		this.scenarios = scenarios;
-		this.type = type;
-		this.sensorCost = 100;
-
-		this.minValue = minValue; //Global minimum value
-		this.maxValue = maxValue; //Global maximum value
-		this.trigger = Trigger.MAXIMUM_THRESHOLD;
-		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
-		this.upperThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
-		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
-		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
-		
-		this.validNodes = new HashSet<Integer>(); //None yet
-		this.color = Color.GREEN;	
-
-		this.nodesReady = false;
-
-		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
-		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
-
-	}
-
+	
 	public static void setVolumeDegradedByYear(Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
 		years = yearList;
 		volumeDegradedByYear = volumeDegradedByYear2;
 	}
+	
 	
 	public static Map<Scenario, Float> getVolumesDegraded(Map<Scenario, Float> ttdMap){
 		HashMap<Scenario, Float> vadMap = new HashMap<Scenario, Float>();
@@ -555,13 +527,6 @@ public class SensorSetting {
 	
 	public void setNodesReady(boolean nodesReady) {
 		this.nodesReady = nodesReady;
-	}
-
-	public float getMinValue() {
-		return minValue;
-	}
-	public float getMaxValue() {
-		return maxValue;
 	}
 
 	public void removeNode(Integer node) {

@@ -145,7 +145,7 @@ public class E4DSensors {
 			ertPotentialWellPairings.put(threshold, new HashMap<Integer, List<Integer>>());
 			
 			set.getSensors().add("Electrical Conductivity_" + threshold);
-			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold, set.getScenarios(), 0, 0));
+			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold, set.getScenarios()));
 			set.getSensorSettings().get("Electrical Conductivity_" + threshold).setUserSettings(100, Color.BLUE, threshold, threshold, Trigger.RELATIVE_DELTA, false, DeltaType.BOTH, 0, 0);
 			set.getNodeStructure().getDataTypes().add("Electrical Conductivity_" + threshold);
 			

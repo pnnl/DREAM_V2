@@ -113,14 +113,15 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		else if(strOption.equals(ModelOption.ALL_SENSORS.toString()))
 			modelOption = ModelOption.ALL_SENSORS;
 		
+		HDF5Interface.paretoMap.clear();
+		HDF5Interface.statistics.clear();
+		
 		data.setupScenarioSet(modelOption, this.modelOption.toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, simulation, hdf5Text.getText());
 		data.getSet().setScenarioEnsemble(hdf5Text.getText().substring(hdf5Text.getText().lastIndexOf(File.separator)+1));
 		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
 		}
-		
-		HDF5Interface.paretoMap.clear();
 	}
 
 	@Override

@@ -576,7 +576,7 @@ public class ScenarioSet {
 				HDF5Interface.hdf5CloudData.get(scenario).get(type).clear();
 			}
 		}
-		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type, this.scenarios, min, max));	// User should adjust these settings
+		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type, this.scenarios));	// User should adjust these settings
 	}
 
 	public SensorSetting getSensorSettings(String sensorType) {
