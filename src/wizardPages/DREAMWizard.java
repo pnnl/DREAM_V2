@@ -287,7 +287,7 @@ public class DREAMWizard extends Wizard {
 	}
 	
 	public ScenarioSet getScenarioSet() {
-		return data.getScenarioSet();
+		return data.getSet();
 	}
 
 	public class STORMData {
@@ -319,11 +319,8 @@ public class DREAMWizard extends Wizard {
 			needToResetWells = true;
 			needToResetMonitoringParameters = true;
 		}
-
-		public ScenarioSet getScenarioSet() {
-			return set;
-		}
-
+		
+		
 		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String input) throws Exception {	
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override

@@ -92,8 +92,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private float detection;
 		public float minZ;
 		public float maxZ;
-		public float minValue;
-		public float maxValue;
 		
 		private Float maxZBound;
 		private Float minZBound;
@@ -126,8 +124,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			alias = sensorName;
 			isIncluded = false; //By default
 			cost = sensorSettings.getSensorCost();
-			minValue = sensorSettings.getMinValue();
-			maxValue = sensorSettings.getMaxValue();
 			minZ = minZBound = sensorSettings.getGlobalMinZ();
 			maxZ = maxZBound = sensorSettings.getGlobalMaxZ();
 			
@@ -581,7 +577,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorData = new TreeMap<String, SensorData>();
 			
 			//Only adds ERT sensor if a results matrix is detected in the correct location
-			E4DSensors.addERTSensor(data.getScenarioSet());
+			E4DSensors.addERTSensor(data.getSet());
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 				if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
@@ -1020,7 +1016,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			for(Integer nodeNumber: timeToDegradationPerNode.get(scenario).keySet()){
 				Float year = timeToDegradationPerNode.get(scenario).get(nodeNumber);
 				years.add(year);
-				Point3i location = data.getScenarioSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
+				Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
 				if(!volumeDegradedByYear.get(scenario).containsKey(year))
 					volumeDegradedByYear.get(scenario).put(year, data.getSet().getNodeStructure().getVolumeOfNode(location));
 				else

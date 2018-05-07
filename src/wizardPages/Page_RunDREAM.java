@@ -420,7 +420,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				
 				// Heading
 				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
-				for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+				for(Scenario scenario: data.getSet().getScenarios()) {
 					text.append("," + scenario.getScenario());
 				}
 				text.append("\n");
@@ -431,11 +431,11 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append(sensorType + ",");
 						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
 						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
-						int scenariosTested = data.getScenarioSet().getScenarios().size();
+						int scenariosTested = data.getSet().getScenarios().size();
 						text.append(((float)detectedScenarios)/scenariosTested*100 + ",");
 						text.append(detectedScenarios + ",");
 						text.append(scenariosTested);
-						for(Scenario scenario: data.getScenarioSet().getScenarios()) {
+						for(Scenario scenario: data.getSet().getScenarios()) {
 							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
 									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
 						}
@@ -446,7 +446,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append("N/A" + ",");
 						text.append("N/A" + ",");
 						text.append("N/A");
-						for(int i = 0; i < data.getScenarioSet().getScenarios().size(); i++)
+						for(int i = 0; i < data.getSet().getScenarios().size(); i++)
 							text.append(",N/A");
 						text.append("\n");
 					}
@@ -789,7 +789,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 								HashSet<ExtendedConfiguration> bestConfigs = ResultPrinter.results.bestConfigSumList;
 								for(ExtendedConfiguration config: bestConfigs){
 									configurationTTDs.add(ttd);
-									float cost = data.getScenarioSet().costOfConfiguration(config);
+									float cost = data.getSet().costOfConfiguration(config);
 									if(cost < minCost) minCost = cost;
 									if(cost > maxCost) maxCost = cost;
 									configurationCosts.add(cost);
@@ -867,7 +867,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					HashMap<String, Float> costStorage = new HashMap<String, Float>();
 					for(String sensor: data.getSet().getDataTypes()){
 						if(sensor != sensor1){
-							costStorage.put(sensor, data.getScenarioSet().getSensorSettings(sensor).getSensorCost());
+							costStorage.put(sensor, data.getSet().getSensorSettings(sensor).getSensorCost());
 							data.getSet().getSensorSettings().get(sensor).setSensorCost(Float.MAX_VALUE);
 						}
 					}
@@ -894,12 +894,12 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 										}
 										if(contains){ //add a sensor of type 2 in the same spot
 											ExtendedSensor oldSensor = config.getExtendedSensors().get(j);
-											newConfig.addSensor(data.getScenarioSet(), new ExtendedSensor(
+											newConfig.addSensor(data.getSet(), new ExtendedSensor(
 													oldSensor.getNodeNumber(),
 													sensor2,
 													data.getSet().getNodeStructure()));
 										}
-										else newConfig.addSensor(data.getScenarioSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
+										else newConfig.addSensor(data.getSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
 									}
 									data.runObjective(newConfig, true);
 									float objective = newConfig.getObjectiveValue();
