@@ -15,7 +15,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
@@ -45,7 +44,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	private Combo scenarioSet;
 	private String simulation = "SimulatedAnnealing";
 	private String modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
 	private STORMData data;
@@ -104,34 +102,22 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		setPageComplete(true);
 	}
 
-	public String getScenario() {
-		return scenarioSet.getText();
-	}
-
-	public String getSimulation() {
-		return simulation;
-	}
-
-	public String getModelOption() {
-		return modelOption;
-	}
-
 	public void completePage() throws Exception {	
 		isCurrentPage = false;
 		
+		Constants.homeDirectory = directory;
 		ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
-		String strOption = getModelOption();
+		String strOption = this.modelOption;
 		if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS_2.toString()))
 			modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 		else if(strOption.equals(ModelOption.ALL_SENSORS.toString()))
 			modelOption = ModelOption.ALL_SENSORS;
 		
-		data.setupScenarioSet(modelOption, getModelOption().toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, getSimulation(), hdf5Text.getText());
+		data.setupScenarioSet(modelOption, this.modelOption.toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, simulation, hdf5Text.getText());
 		data.getScenarioSet().setScenarioEnsemble(hdf5Text.getText().substring(hdf5Text.getText().lastIndexOf(File.separator)+1));
-		if(!data.getScenarioSet().getNodeStructure().porosityOfNodeIsSet()){
+		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
-			//data.getScenarioSet().getNodeStructure().setDefaultPorosityOfNode(dialog.getPorosity());
 		}
 		
 		HDF5Interface.paretoMap.clear();
@@ -144,42 +130,31 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
+		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Input Directory");
-		GridData infoGridData1 = new GridData(GridData.BEGINNING);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
-		infoGridData1.verticalSpan = 2;
-		infoLabel1.setLayoutData(infoGridData1);
+		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLabel1.setFont(boldFont);
 		
-		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
-		infoLinkData.horizontalSpan = 1;
-		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 		infoLink.setAlignment(SWT.RIGHT);
+		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
 				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 files for all leakage simulations to be considered. If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. Read more about the DREAM HDF5 Converter tool in the user manual. Note: The HDF5 files must be directly available within the directory provided; they may not be in subdirectories within the root directory.");	
-			}			
+			}
 		});
-		infoLink.setLayoutData(infoLinkData);
-				
-		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);	
-		infoLabel.setText("Provide the path to a single directory containing hdf5 formatted files of all subsurface simulation output at specified plot times.");
 		
-		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData.verticalSpan = 4;
-		infoLabel.setLayoutData(infoGridData);
-			
+		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);
+		infoLabel.setText("Provide the path to a single directory containing hdf5 formatted files of all subsurface simulation output at specified plot times.");
+		infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 4));
 		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
-		buttonSelectDir.setText("Select a directory");
+		buttonSelectDir.setText(" Select a directory ");
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				directoryDialog.setFilterPath(hdf5Text.getText());
@@ -194,29 +169,16 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 		
 		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
-		if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop")) {
+		//// Hack that allows Jonathan and Catherine automatic directory inputs ////
+		if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "\\Desktop\\BCO_new";
-			Constants.homeDirectory = directory;
-		}
-		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop")) {
+		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "\\Desktop\\BCO_new";
-			Constants.homeDirectory = directory;
-		}
+		//// End of hack ////
 		hdf5Text.setText(directory);
 		hdf5Text.setForeground(Constants.black);
 		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		boolean h5Error = true;
-		File resultsFolder = new File(hdf5Text.getText());
-		File[] fList = resultsFolder.listFiles();
-		for (File file : fList) {
-			if(file.getName().contains(".h5")) {
-				h5Error = false;
-				break;
-			}
-		}
-		errorFound(h5Error, "  Directory must contain an h5 file.");
-		
-		//Change text red when directory is invalid
+		errorFound(h5FileCheck(hdf5Text.getText()), "  Directory must contain an h5 file.");
 		hdf5Text.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
@@ -229,25 +191,17 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				} else {
 					((Text)e.getSource()).setForeground(Constants.black);
 					directory = ((Text)e.getSource()).getText();
-					Constants.homeDirectory = directory;
-					File[] fList = resultsFolder.listFiles();
-					for (File file : fList) {
-						if(file.getName().contains(".h5")) {
-							h5Error = false;
-							break;
-						}
-					}
+					h5Error = h5FileCheck(resultsFolder.getPath());
 				}
 				errorFound(dirError, "  Invalid directory.");
 				errorFound(h5Error, "  Directory must contain an h5 file.");
 			}
 		});
 
-		GridData buttonGridData = new GridData(GridData.FILL_HORIZONTAL);
-		buttonGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		Group radioButton = new Group(container, SWT.SHADOW_NONE);
 		radioButton.setText("Model option");
 		radioButton.setLayout(new RowLayout(SWT.VERTICAL));
+		radioButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 		Button button1 = new Button(radioButton, SWT.RADIO);
 		button1.setText(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
 		button1.addListener(SWT.Selection, new Listener(){
@@ -265,7 +219,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				modelOption = Constants.ModelOption.ALL_SENSORS.toString();
 			}
 		});
-		radioButton.setLayoutData(buttonGridData);
 				
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
@@ -282,6 +235,20 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(true);
 	}
+	
+	private boolean h5FileCheck(String folderDir) {
+		boolean h5Error = true;
+		File folder = new File(folderDir);
+		File[] fList = folder.listFiles();
+		for (File file : fList) {
+			if(file.getName().contains(".h5")) {
+				h5Error = false;
+				break;
+			}
+		}
+		return h5Error;
+	}
+	
 	
 	@Override
 	public boolean isPageCurrent() {
