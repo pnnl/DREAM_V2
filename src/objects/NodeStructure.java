@@ -1,7 +1,5 @@
 package objects;
 
-import hdf5Tool.HDF5Interface;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,7 +25,6 @@ import utilities.Point3f;
  */
 public class NodeStructure {
 
-	// private KdTree<XYZPoint> nodes; // the grid
 	private List<Float> x;
 	private List<Float> y;
 	private List<Float> z;
@@ -40,14 +37,46 @@ public class NodeStructure {
 	private Point3i ijkDimensions;
 	
 	private HashMap<Point3i, Float> porosityOfNode;
-
+	
+	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosities) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.edgex = edgex;
+		this.edgey = edgey;
+		this.edgez = edgez;
+		this.timeSteps = timeSteps;
+		this.dataTypes = new ArrayList<String>();
+		this.ijkDimensions = new Point3i(x.size(), y.size(), z.size());
+		this.porosityOfNode = porosities;
+		
+		Constants.log(Level.INFO, "Node structure: initialized", null);
+		Constants.log(Level.CONFIG, "Node structure: configuration", this);
+	}
+	
+	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<TimeStep> timeSteps) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		setEdgeX();
+		setEdgeY();
+		setEdgeZ();
+		this.timeSteps = timeSteps;
+		this.porosityOfNode = new HashMap<Point3i, Float>();
+		this.dataTypes = new ArrayList<String>();
+		this.ijkDimensions = new Point3i(x.size(), y.size(), z.size());
+		
+		Constants.log(Level.INFO, "Node structure: initialized", null);
+		Constants.log(Level.CONFIG, "Node structure: configuration", this);
+	}
+	
+	
 	/**
 	 * Loads a node structure from the database
 	 * 
 	 * @param run
 	 */
 	public NodeStructure(String run) {
-		// nodes = new KdTree<XYZPoint>();
 
 		timeSteps = new ArrayList<TimeStep>();
 		dataTypes = new ArrayList<String>();
@@ -58,8 +87,6 @@ public class NodeStructure {
 		z = new ArrayList<Float>();
 		
 		porosityOfNode = new HashMap<Point3i, Float>();
-
-		loadRun(run);
 
 		setEdgeX();
 		setEdgeY();
@@ -85,17 +112,7 @@ public class NodeStructure {
 		return builder.toString();
 
 	}
-
-	private void loadRun(String run) {
-
-		Constants.log(Level.INFO, "Node structure: loading run data ", run);
-		try {
-			HDF5Interface.fillNodeStructureFromFiles(this);
-		} catch (Exception e) {
-			// Something went wrong...
-			e.printStackTrace();
-		}		
-	}
+	
 	
 	private void setEdgeX() {
 		List<Float> xs = this.x;
@@ -289,7 +306,7 @@ public class NodeStructure {
 	}
 	
 	public boolean porosityOfNodeIsSet(){
-		if(porosityOfNode.size() == 0) return false;
+		if(porosityOfNode==null) return false;
 		return true;
 	}
 	

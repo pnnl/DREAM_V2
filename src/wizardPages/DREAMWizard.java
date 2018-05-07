@@ -324,7 +324,7 @@ public class DREAMWizard extends Wizard {
 			return set;
 		}
 
-		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String hdf5) throws Exception {	
+		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String input) throws Exception {	
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -334,8 +334,16 @@ public class DREAMWizard extends Wizard {
 
 					monitor.subTask("reading hdf5 files");
 
-					if(!hdf5.isEmpty()) 
-						HDF5Interface.loadHdf5Files(hdf5);	// Load the hdf5 files into the constants
+					if(!input.isEmpty()) {
+						File hdf5Folder = new File(input);
+						if(hdf5Folder.exists() && hdf5Folder.isDirectory()) {
+							File[] list = hdf5Folder.listFiles();
+							if(list[0].getPath().endsWith(".h5"))
+								data.getSet().setNodeStructure(HDF5Interface.loadHdf5Files(input)); //Load the hdf5 files into the constants
+							else if (hdf5Folder.listFiles()[0].getPath().endsWith(".iam")) //TODO: Write new function for IAM Files
+								data.getSet().setNodeStructure(HDF5Interface.loadHdf5Files(input)); //Load the IAM files into the constants
+						}
+					}
 					monitor.worked(5);
 
 					monitor.subTask("clearing previous data");				

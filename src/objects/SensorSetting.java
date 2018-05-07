@@ -99,8 +99,8 @@ public class SensorSetting {
 		this.type = type;
 		this.sensorCost = 100;
 
-		this.minValue = HDF5Interface.queryStatistic(nodeStructure, type, 0); //Global minimum value
-		this.maxValue = HDF5Interface.queryStatistic(nodeStructure, type, 2); //Global maximum value
+		this.minValue = HDF5Interface.queryStatistic(type, 0); //Global minimum value
+		this.maxValue = HDF5Interface.queryStatistic(type, 2); //Global maximum value
 		this.trigger = Trigger.MAXIMUM_THRESHOLD;
 		this.setDeltaType(DeltaType.BOTH);
 		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes

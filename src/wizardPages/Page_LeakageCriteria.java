@@ -421,7 +421,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Detection Value
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detection));
-			detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(data.getSet().getNodeStructure(), type, 2));
+			if(HDF5Interface.queryStatistic(type, 0)!=null)
+				detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
 			detectionText.setForeground(Constants.black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
@@ -583,11 +584,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			E4DSensors.addERTSensor(data.getScenarioSet());
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
-				// Adds all sensors from the list
-				if(data.getSensorSettings(dataType) != null)
+				if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
 					sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
-				// If the user went back after findings nodes, some sensors were removed and saved in another map
-				else
+				else // If the user went back after findings nodes, some sensors were removed and saved in another map
 					sensorData.put(dataType, new SensorData(data.getSet().getRemovedSensorSettings(dataType), dataType));
 			}
 			data.getSet().resetRemovedSensorSettings();

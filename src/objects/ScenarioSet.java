@@ -178,7 +178,6 @@ public class ScenarioSet {
 	 */
 	public void loadRunData(String run) {
 		
-		nodeStructure = new NodeStructure(run);
 		sensorSettings.clear();
 		sensors.clear();
 		allScenarios.clear();
@@ -394,6 +393,10 @@ public class ScenarioSet {
 	
 	public NodeStructure getNodeStructure() {
 		return nodeStructure;
+	}
+	
+	public void setNodeStructure(NodeStructure nodeStructure) {
+		this.nodeStructure = nodeStructure;
 	}
 	
 	public Map<Integer, List<Integer>> getAllPossibleWells(ModelOption modelOption) {
