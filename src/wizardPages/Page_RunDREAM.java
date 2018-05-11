@@ -96,7 +96,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private boolean iterationsError;
 	private boolean samplesError;
 	
-	private String outputs = Constants.parentDir + "\\_results";
+	private String outputs = Constants.parentDir + File.separator + "_results";
 	private int runs = 1;
 	private int samples = 20;
 	private boolean isCurrentPage = false;

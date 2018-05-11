@@ -798,7 +798,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					StringBuilder ijStringBuilder = new StringBuilder();
 					for(Point3i well: wells)
 						ijStringBuilder.append(Point3i.toCleanString(well) + "\n");
-					File e4dWellFile = new File(Constants.userDir, "e4d//ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
+					File e4dWellFile = new File(Constants.userDir, "e4d" + File.separator + "ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
 					try{
 						e4dWellFile.createNewFile();
 						FileUtils.writeStringToFile(e4dWellFile, ijStringBuilder.toString());

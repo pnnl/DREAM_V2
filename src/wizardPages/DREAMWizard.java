@@ -578,9 +578,9 @@ public class DREAMWizard extends Wizard {
 						
 						// Run the Python script with the following input arguments
 						try {
-							File e4dScript = new File(Constants.userDir, "e4d/run_dream2e4d_windows.py");
+							File e4dScript = new File(Constants.userDir, "e4d" + File.separator + "run_dream2e4d_windows.py");
 							String input1 = e4dDialog.getStorage(); //Storage File Location
-							String input2 = Constants.homeDirectory + "\\" + scenario.toString() + ".h5"; //Leakage File Location
+							String input2 = Constants.homeDirectory + File.separator + scenario.toString() + ".h5"; //Leakage File Location
 							String input3 = e4dWellList.getPath(); //Well List Location
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping
