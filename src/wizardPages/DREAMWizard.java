@@ -608,7 +608,7 @@ public class DREAMWizard extends Wizard {
 						monitor.worked(1000 / data.getSet().getScenarios().size() - 10);
 						monitor.subTask("Writing the scenario results: " + scenario.getScenario());
 						// Read the result matrix from each scenario into a master file
-						File detectionMatrix = new File(Constants.userDir, "e4d/detection_matrix.csv");
+						File detectionMatrix = new File(Constants.userDir, "e4d" + File.separator + "detection_matrix.csv");
 						String line = "";
 						int lineNum = 0;
 						try (BufferedReader br = new BufferedReader(new FileReader(detectionMatrix))) {

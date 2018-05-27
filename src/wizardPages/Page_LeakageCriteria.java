@@ -728,10 +728,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		}
 		
 		// If the user has the E4D module installed, allow the E4D buttons to show up
-		String e4dModuleDirectory = Constants.userDir + "//e4d";
+		String e4dModuleDirectory = Constants.userDir + File.separator + "e4d";
 		File e4dDirectory = new File(e4dModuleDirectory);
 		if (e4dDirectory.exists()) {
-			final File e4dWellList = new File(Constants.userDir, "e4d/ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
+			final File e4dWellList = new File(Constants.userDir, "e4d" + File.separator + "ertWellLocationsIJ_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() + ".txt");
 			
 			Composite composite_E4D = new Composite(container, SWT.NULL);
 			GridLayout gridLayout_E4D = new GridLayout();
