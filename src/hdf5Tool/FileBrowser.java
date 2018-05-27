@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,13 +89,14 @@ public class FileBrowser extends javax.swing.JFrame {
 	private CheckList checkList_timesteps;
 	private CheckList checkList_scenarios;
 	private CheckList checkList_dataFields;	
-
-	private boolean debug = false;
-
+	
 	private Map<String, Map<Integer, GridParser>> gridsByTimeAndScenario;
-	private Map<String, List<Float>> statisticsByDataField;
+	private Map<String, float[]> statisticsByDataField;
 	private ProgressMonitor monitor;
 	private int processedTasks = 0;
+	
+	private boolean porosityAdded = false;
+	private Float porosity = Float.MIN_VALUE;
 
 	private JLabel statusLabel;
 
@@ -469,7 +468,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private class FileConverterThread implements Runnable {
 
 		private String scenario;
-		private JCheckBox[] timeSteps;			
+		private JCheckBox[] timeSteps;
 		public FileConverterThread(String scenario, JCheckBox[] timeSteps) {
 			this.scenario = scenario;
 			this.timeSteps = timeSteps;
@@ -479,8 +478,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		public void run() {
 			H5File hdf5File = null;
 			try {
-				FileFormat hdf5Format = null;
-				hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
+				FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");	
 				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
 				System.out.println("Writing to File: " + hdf5File);
@@ -499,6 +497,9 @@ public class FileBrowser extends javax.swing.JFrame {
 						timeStepIndex++;
 						firstFile = false;
 					}
+					computeStatistics(hdf5File, timeSteps.length);
+					if(porosityAdded==false)
+						addPorosity(hdf5File, ntabData);
 				//STOMP
 				} else if(jComboBox_fileType.getSelectedItem().toString().equals(STOMP)) {
 					for(JCheckBox timeStep: timeSteps) {
@@ -555,7 +556,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
 		// Open a folder
 		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>();
-		statisticsByDataField = new TreeMap<String, List<Float>>();
+		statisticsByDataField = new TreeMap<String, float[]>();
 
 		JFileChooser chooser = new JFileChooser();
 		//chooser.setCurrentDirectory(new File("C:\\"));
@@ -721,7 +722,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		for(File subFile: file_inputDir.listFiles()) {
 			// Filter on ntab files
 			if(fileType.equals(NTAB) && subFile.getName().endsWith(".ntab")) {
-				// File the grid	
+				// File the grid
 				String name = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
 				if(!gridsByTimeAndScenario.containsKey(name))
 					gridsByTimeAndScenario.put(name, new TreeMap<Integer, GridParser>());
@@ -734,7 +735,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				try {
 					List<Integer> years = GridParser.getTecplotTimestep(subFile);
 					for(int year: years) {
-						GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), year); 
+						GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), year);
 						if(gridsByTimeAndScenario.get(name).containsKey(year)) {
 							// In this case we really want to merge the two files...
 							gridsByTimeAndScenario.get(name).get(year).mergeFile(subFile);
@@ -777,12 +778,11 @@ public class FileBrowser extends javax.swing.JFrame {
 							GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), yrs); 
 							String name = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
 							if(gridsByTimeAndScenario.get(name).containsKey(yrs)) {
-								// In this case we really want to merge the two files...
-							
-								gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile);
+								gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile); // In this case we really want to merge the two files...
 								//	System.out.println("Merging time step = " + yrs + " to map at " + name);
 							} else {
 								gridsByTimeAndScenario.get(name).put(yrs, thisTimeStep);
+								//gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile);
 								//	System.out.println("Adding time step = " + yrs + " to map at " + name);
 							}
 						} catch (NumberFormatException e) {
@@ -815,92 +815,77 @@ public class FileBrowser extends javax.swing.JFrame {
 	}
 	
 	private void addDataFromFiles(DataStructure ntabData, H5File hdf5File, String plotFileName, boolean firstFile, int timeStepIndex) throws Exception {
-
-		// Sending the print statements from the grid jar to a dummy output stream to keep them off the console
-		PrintStream originalStream = System.out;
-		if(!debug) {
-			PrintStream dummyStream    = new PrintStream(new OutputStream(){
-				public void write(int b) { }
-			});
-			System.setOut(dummyStream);
-		}
 		
-		// Restoring the console print stream
-		System.setOut(originalStream);
-
 		// Get the root
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
-
+		
 		long startTime = System.currentTimeMillis();
-
+		
+		// Get the dimensions of the grid
+		long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
+		int iMax = new Long(dims3D[0]).intValue();
+		int jMax = new Long(dims3D[1]).intValue();
+		int kMax = new Long(dims3D[2]).intValue();
+		JCheckBox[] dataFields = checkList_dataFields.getListData();
+		
+		//Data group is filled from the first file only
 		if(firstFile) {
-			// Times/Timesteps
+			statisticsByDataField = ntabData.statistics;
+			
 			int timeStep = 0;
-			List<Float> timeStepsAsInts = new ArrayList<Float>();
+			List<Float> timeStepsAsFloats = new ArrayList<Float>();
 			List<Float> timeStepsInYears = new ArrayList<Float>();
 			JCheckBox[] timeSteps = checkList_timesteps.getListData();
 			
-			
-			// Time steps are already in years ...
-			for(JCheckBox cb: timeSteps) {	    		
-				if(!cb.isSelected()) continue;	   
+			// Time steps are already in years
+			for(JCheckBox cb: timeSteps) {
+				if(!cb.isSelected()) continue;
 				try {
 					Integer ts = Integer.parseInt(cb.getText());
 					float tsf = ts.floatValue();
 					timeStepsInYears.add(tsf);
-					timeStepsAsInts.add(new Integer(timeStep).floatValue());
+					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
 				} catch (Exception e) {
 					// Nothing to do...
 				}
 				timeStep++;
 			}
-
-			float[] timeStepArray = new float[timeStepsAsInts.size()];
-			float[] timesArray = new float[timeStepsAsInts.size()]; 
+			
+			float[] timeStepArray = new float[timeStepsAsFloats.size()];
+			float[] timesArray = new float[timeStepsAsFloats.size()]; 
 			for(int i = 0; i < timesArray.length; i++) {
-				timeStepArray[i] = timeStepsAsInts.get(i);
+				timeStepArray[i] = timeStepsAsFloats.get(i);
 				timesArray[i] = timeStepsInYears.get(i);
 			}
-
-			//  deltas_y, deltas_x deltas_z, data_types, nodes_y, nodes_x, nodes_z, timestep
+			
+			// Create the data group in the H5 File, contains header information
 			Group dataGroup = hdf5File.createGroup("data", root);
 			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{ntabData.x.length}, null, null, 0, ntabData.x);
 			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{ntabData.y.length}, null, null, 0, ntabData.y);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z); //TODO: Add "x-vertex" for NTAB
-
-			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
-			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);			
+			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z);
+			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{ntabData.vertexX.length}, null, null, 0, ntabData.vertexX);
+			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{ntabData.vertexY.length}, null, null, 0, ntabData.vertexY);
+			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{ntabData.vertexZ.length}, null, null, 0, ntabData.vertexZ);
+			
+			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);
+			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
 		}
-
-		System.out.println("Time to add grid info: " + (System.currentTimeMillis() - startTime));
-
+		
 		// Create a group for each time in the set
 		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
-
-		// Get the dimensions of the grid
-		long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
-
-		JCheckBox[] dataFields = checkList_dataFields.getListData();
-
-		int iMax = new Long(dims3D[0]).intValue();
-		int jMax = new Long(dims3D[1]).intValue();
-		int kMax = new Long(dims3D[2]).intValue();
-
+		
 		for(JCheckBox dataField: dataFields) {
 			startTime = System.currentTimeMillis();
+			if(!dataField.isSelected()) continue; 
 			String field = dataField.getText();    		
-			if(!dataField.isSelected())
-				continue;    	
-			if(field.equals("x") || field.equals("y") || field.equals("z"))
-				continue;
+			if(field.equals("x") || field.equals("y") || field.equals("z")) continue;
 			// Replacing strange characters in the field name
 			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-			if(debug)
-				System.out.print("\t\t\tAdding field: " + fieldClean + "...");	
-
+			
+			System.out.print("\tAdding " + fieldClean + "...");
 			try {
-
+				
 				float[] dataAsFloats = ntabData.data.get(field)[timeStepIndex];
 				float[] temp = new float[dataAsFloats.length];
 				
@@ -914,22 +899,23 @@ public class FileBrowser extends javax.swing.JFrame {
 							
 							counter++;
 						}
-					}	
+					}
 				}
-
-
-				hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
-				if(debug)
-					System.out.println("SUCCESS");
+				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
+					if(firstFile) { // Only need to do this once
+						hdf5File.createScalarDS("porosities", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
+						porosityAdded = true;
+					}
+				} else {
+					hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
+				}
+				System.out.print("SUCCESS. ");
 			} catch(Exception e) {
-				if(debug)
-					System.out.println("FAILED");
+				System.out.print("FAILED. ");
 			}
-
-			System.out.println("Time to add "+field+" info: " + (System.currentTimeMillis() - startTime));
+			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
 		}
-		if(debug)
-			System.out.println("\t\tDone loading plot file: plotFileName");
+		System.out.println("Done loading plot file: " + plotFileName);
 	}
 	
 	//This function is called during a loop through time steps (each file)
@@ -948,7 +934,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		int iMax = new Long(dims3D[0]).intValue();
 		int jMax = new Long(dims3D[1]).intValue();
 		int kMax = new Long(dims3D[2]).intValue();
-		
 		JCheckBox[] dataFields = checkList_dataFields.getListData();
 		
 		//Data group is filled from the first file only
@@ -981,9 +966,8 @@ public class FileBrowser extends javax.swing.JFrame {
 			}
 			//	System.out.println("Timesteps: " + Arrays.toString(timeStepArray));
 			//	System.out.println("Times: " + Arrays.toString(timesArray));
-
-
-			//  deltas_y, deltas_x deltas_z, data_types, nodes_y, nodes_x, nodes_z, timestep
+			
+			// Create the data group in the H5 File, contains header information
 			Group dataGroup = hdf5File.createGroup("data", root);
 			float[] xCoordinates = new float[grid.getSize().getX()];
 			float[] yCoordinates = new float[grid.getSize().getY()];
@@ -1053,7 +1037,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					porosityReader.close();
 					float[] dataAsFloats = new float[dataAsDoubles.length];
 
-					int counter = 0;	
+					int counter = 0; //
 					for(int i = 1; i <= iMax; i++) {
 						for(int j = 1; j <= jMax; j++) {	
 							for(int k = 1; k <= kMax; k++) {
@@ -1080,10 +1064,10 @@ public class FileBrowser extends javax.swing.JFrame {
 			// Replacing strange characters in the field name
 			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
 			
-			if(fieldClean.toLowerCase().contains("porosity")) // Skip this field, as it is handled above
+			if(fieldClean.toLowerCase().contains("porosity")) // Skip this field, as it is handled later
 				continue;
 			
-			System.out.print("\tAdding " + fieldClean + "... ");
+			System.out.print("\tAdding " + fieldClean + "...  ");
 			try {
 				// Convert to float[] and reorder for hdf5
 				//long getDataStartTime = System.currentTimeMillis();
@@ -1091,7 +1075,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				//System.out.println(" Time to read info: " + (System.currentTimeMillis() - getDataStartTime));
 				
 				float[] dataAsFloats = new float[dataAsDoubles.length];
-				List<Float> stats = new ArrayList<Float>();
+				float[] stats = new float[3];
 				
 				int counter = 0;
 				float sum = 0;
@@ -1110,13 +1094,13 @@ public class FileBrowser extends javax.swing.JFrame {
 					}	
 				}
 				if(statisticsByDataField.containsKey(fieldClean)) {
-					stats.add(0, Math.min(statisticsByDataField.get(fieldClean).get(0), min));
-					stats.add(1, sum/counter + statisticsByDataField.get(fieldClean).get(1));//Sum averages now, divide by time step later
-					stats.add(2, Math.max(statisticsByDataField.get(fieldClean).get(2), max));
+					stats[0] = Math.min(statisticsByDataField.get(fieldClean)[0], min);
+					stats[1] = sum/counter + statisticsByDataField.get(fieldClean)[1]; // Sum averages now, divide by time step later
+					stats[2] = Math.max(statisticsByDataField.get(fieldClean)[2], max);
 				} else {
-					stats.add(0, min);
-					stats.add(1, sum/counter); //Average for time step
-					stats.add(2, max);
+					stats[0] = min;
+					stats[1] = sum/counter;
+					stats[2] = max;
 				}
 				statisticsByDataField.put(fieldClean, stats);
 				
@@ -1134,15 +1118,31 @@ public class FileBrowser extends javax.swing.JFrame {
 		// Get the root
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
-		
-		Group statisticsGroup;
-		statisticsGroup = hdf5File.createGroup("statistics", root);
-		for(String dataField: statisticsByDataField.keySet()) {
-			float[] statsArray = new float[statisticsByDataField.get(dataField).size()];
-			statsArray[0] = statisticsByDataField.get(dataField).get(0); //min
-			statsArray[1] = statisticsByDataField.get(dataField).get(1)/timeSteps; //average
-			statsArray[2] = statisticsByDataField.get(dataField).get(2); //max
-			hdf5File.createScalarDS(dataField, statisticsGroup, dtype, new long[]{statsArray.length}, null, null, 0, statsArray);
+		Group statisticsGroup = hdf5File.createGroup("statistics", root);
+		for(JCheckBox checked: checkList_dataFields.getListData()) {
+			if(!checked.isSelected()) continue;
+			String dataField = checked.getText();
+			hdf5File.createScalarDS(dataField, statisticsGroup, dtype, new long[]{statisticsByDataField.get(dataField).length}, null, null, 0, statisticsByDataField.get(dataField));
+		}
+	}
+	
+	private synchronized void addPorosity(H5File hdf5File, DataStructure ntabData) {
+		while(porosity.equals(Float.MIN_VALUE)) { // Loop until a real float value is entered
+			try {
+				porosity = Float.parseFloat(JOptionPane.showInputDialog(FileBrowser.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+		    }
+		}
+		try { // Write the porosities to the H5 file
+			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+			Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
+			long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
+			float[] temp = new float[ntabData.i * ntabData.j * ntabData.k];
+			Arrays.fill(temp, porosity);
+			hdf5File.createScalarDS("porosities", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 	}
 	

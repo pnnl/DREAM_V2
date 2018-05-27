@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -58,9 +57,9 @@ public class NodeStructure {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		setEdgeX();
-		setEdgeY();
-		setEdgeZ();
+		this.edgex = setEdge(x);
+		this.edgey = setEdge(y);
+		this.edgez = setEdge(z);
 		this.timeSteps = timeSteps;
 		this.porosityOfNode = new HashMap<Point3i, Float>();
 		this.dataTypes = new ArrayList<String>();
@@ -88,9 +87,9 @@ public class NodeStructure {
 		
 		porosityOfNode = new HashMap<Point3i, Float>();
 
-		setEdgeX();
-		setEdgeY();
-		setEdgeZ();
+		edgex = setEdge(x);
+		edgey = setEdge(y);
+		edgez = setEdge(z);
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -114,50 +113,17 @@ public class NodeStructure {
 	}
 	
 	
-	private void setEdgeX() {
-		List<Float> xs = this.x;
-		List<Float> cellBoundsX = new ArrayList<Float>();		
-		for(int x = 1; x < xs.size(); x++) {
-			float half = (xs.get(x)-xs.get(x-1))/2;
-			if(x == 1)
-				cellBoundsX.add(new Float(xs.get(x-1)-half).floatValue());
-			cellBoundsX.add(new Float(xs.get(x-1)+half).floatValue());
-			if(x == xs.size()-1) 
-				cellBoundsX.add(new Float(xs.get(x)+half).floatValue());
+	public static List<Float> setEdge(List<Float> cells) {
+		List<Float> cellBounds = new ArrayList<Float>();		
+		for(int i=1; i<cells.size(); i++) {
+			float half = (cells.get(i)-cells.get(i-1))/2;
+			if(i == 1)
+				cellBounds.add(new Float(cells.get(i-1)-half).floatValue());
+			cellBounds.add(new Float(cells.get(i-1)+half).floatValue());
+			if(i == cells.size()-1) 
+				cellBounds.add(new Float(cells.get(i)+half).floatValue());
 		}
-		this.edgex = cellBoundsX;
-	}
-
-	private void setEdgeY() {
-		List<Float> ys = this.y;
-		List<Float> cellBoundsY = new ArrayList<Float>();
-		for(int y = 1; y < ys.size(); y++) {
-			float half = (ys.get(y)-ys.get(y-1))/2;
-			if(y == 1)
-				cellBoundsY.add(new Float(ys.get(y-1)-half).floatValue());
-			cellBoundsY.add(new Float(ys.get(y-1)+half).floatValue());
-			if(y == ys.size()-1) 
-				cellBoundsY.add(new Float(ys.get(y)+half).floatValue());
-		}
-		this.edgey = cellBoundsY;
-	}
-
-	private void setEdgeZ() {
-		List<Float> zs = this.z;	
-		List<Float> cellBoundsZ = new ArrayList<Float>();
-		for(int z = 1; z < zs.size(); z++) {
-			float half = (Math.abs(zs.get(z))-Math.abs(zs.get(z-1)))/2;
-			if(z == 1)
-			//	cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))-half).floatValue());
-				cellBoundsZ.add(new Float(zs.get(z-1)-half).floatValue());
-			//cellBoundsZ.add(new Float(Math.abs(zs.get(z-1))+half).floatValue());
-			cellBoundsZ.add(new Float(zs.get(z-1)+half).floatValue());
-			if(z == zs.size()-1) 
-				//	cellBoundsZ.add(new Float(Math.abs(zs.get(z))+half).floatValue());
-					cellBoundsZ.add(new Float(zs.get(z)+half).floatValue());
-		}
-		Collections.sort(cellBoundsZ);
-		this.edgez = cellBoundsZ;
+		return cellBounds;
 	}
 
 	public Float getTimeAt(int index) {

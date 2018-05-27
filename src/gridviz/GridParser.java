@@ -1,5 +1,6 @@
 package gridviz;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,6 +17,7 @@ import javax.vecmath.Point3i;
 import javax.vecmath.Vector3f;
 
 import hdf5Tool.FileBrowser;
+import objects.NodeStructure;
 
 /**
  * @brief  Provides a parser to extract DataGrid objects from Stomp data files
@@ -107,17 +109,21 @@ public class GridParser {
 	}
 
 	public class DataStructure {
-
-		public float[] x;
-		public float[] y;
-		public float[] z;
-
+		
 		public int i;
 		public int j;
 		public int k;
-
+		
+		public float[] x;
+		public float[] y;
+		public float[] z;
+		
+		public float[] vertexX;
+		public float[] vertexY;
+		public float[] vertexZ;
+		
 		public Map<String, float[][]> data;
-
+		public Map<String, float[]> statistics;
 	}
 
 	/**
@@ -610,211 +616,118 @@ public class GridParser {
 	}
 
 	public DataStructure extractNTABData() throws Exception {
-
 		DataStructure structure = new DataStructure();
-		Map<Ntab, Integer> indexOf = new HashMap<Ntab, Integer>();
-
-		// Determine how many nodes we have and where the time steps start
-		Scanner sc = new Scanner(dataFile);
-		String firstLine = "";			
-		while(!(firstLine = sc.nextLine()).startsWith("index") && sc.hasNextLine());
-
-		int dataIndex = 0;
-		int dataValues = 0;
-
-		if(firstLine.startsWith("index")) {
-			// Everything else will be nodes
-			String[] tokens = firstLine.split("\\s+");
-			// skip these 
-			// index i j k element_ref nuft_ind x y z dx dy dz
-			boolean read = false;
-
-			for(String token: tokens) {
-				if(read) {
-					String tmep = token;
-					if(tmep.contains("."))
-						tmep = tmep.split("\\.")[0];
-					String years = tmep.replaceAll("\\D+", "");
-					try {
-						int yrs = Integer.parseInt(years);
-						if(yrs == this.timeStep) {
-							indexOf.put(Ntab.DATA, dataIndex);
+		structure.data = new HashMap<String, float[][]>();
+		structure.statistics = new HashMap<String, float[]>();
+		Map<String, Integer> indexMap = new HashMap<String, Integer>();
+		ArrayList<Float> years = new ArrayList<Float>();
+		String line = "";
+		
+		//////////////////////////////////////////////////////////////////////////////
+		//// Read the first file to get the file structure and header information ////
+		//////////////////////////////////////////////////////////////////////////////
+		try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","");
+			ArrayList<Float> uniqueXs = new ArrayList<Float>();
+			ArrayList<Float> uniqueYs = new ArrayList<Float>();
+			ArrayList<Float> uniqueZs = new ArrayList<Float>();
+			while ((line = br.readLine()) != null) { // Read each line
+				String[] lineList = line.split(" "); //space delimited
+				
+				// Read the header information to map the desired variables
+				if(lineList[0].equalsIgnoreCase("index")) {
+					for(int i=0; i<lineList.length; i++) {
+						String token = lineList[i];
+						if(token.equalsIgnoreCase("i") || token.equalsIgnoreCase("j") || token.equalsIgnoreCase("k"))
+							indexMap.put(token, i);
+						else if(token.equalsIgnoreCase("x") || token.equalsIgnoreCase("y") || token.equalsIgnoreCase("z"))
+							indexMap.put(token, i);
+						else if(token.equalsIgnoreCase("index"))
+							indexMap.put(token, i);
+						else if(token.equalsIgnoreCase("dx") || token.equalsIgnoreCase("dy") || token.equalsIgnoreCase("dz")) {
+							//do nothing
+						} else if(token.equalsIgnoreCase("element_ref") || token.equalsIgnoreCase("nuft_ind") || token.equalsIgnoreCase("volume")) {
+							//do nothing
+						} else { //Denotes the start of the data values
+							indexMap.put("data", i);
 							break;
 						}
-					} catch (NumberFormatException ne) {
-						ne.printStackTrace();
 					}
+					for(int i=indexMap.get("data"); i<lineList.length; i++) {
+						String token = lineList[i].replaceAll(fieldKey, "").replaceAll("y", "");
+						years.add(Float.parseFloat(token));
+					}
+				} else {
+					int i = Integer.parseInt(lineList[indexMap.get("i")]);
+					int j = Integer.parseInt(lineList[indexMap.get("j")]);
+					int k = Integer.parseInt(lineList[indexMap.get("k")]);
+					if(i > structure.i) structure.i = i;
+					if(j > structure.j) structure.j = j;
+					if(k > structure.k) structure.k = k;
+					
+					float x = Float.parseFloat(lineList[indexMap.get("x")]);
+					float y = Float.parseFloat(lineList[indexMap.get("y")]);
+					float z = Float.parseFloat(lineList[indexMap.get("z")]);
+					if(!uniqueXs.contains(x)) uniqueXs.add(x);
+					if(!uniqueYs.contains(y)) uniqueYs.add(y);
+					if(!uniqueZs.contains(z)) uniqueZs.add(z);
 				}
-				if(token.equalsIgnoreCase("volume")) {
-					//		indexOf.put(NTAB_KEY.VOLUME, dataIndex);
-					read = true;
-				} else if(token.equalsIgnoreCase("dz")) {
-					//		indexOf.put(NTAB_KEY.DZ, dataIndex);
-				} else if(token.equalsIgnoreCase("dy")) {
-					//		indexOf.put(NTAB_KEY.DY, dataIndex);
-				} else if(token.equalsIgnoreCase("dx")) {
-					//		indexOf.put(NTAB_KEY.DX, dataIndex);
-				} else if(token.equalsIgnoreCase("z")) {
-					indexOf.put(Ntab.Z, dataIndex);
-				} else if(token.equalsIgnoreCase("y")) {
-					indexOf.put(Ntab.Y, dataIndex);
-				} else if(token.equalsIgnoreCase("x")) {
-					indexOf.put(Ntab.X, dataIndex);
-				} else if(token.equalsIgnoreCase("nuft_ind")) {
-					//		indexOf.put(NTAB_KEY.NUFT_INDEX, dataIndex);
-				} else if(token.equalsIgnoreCase("element_ref")) {
-					//		indexOf.put(NTAB_KEY.ELEMENT_REF, dataIndex);
-				} else if(token.equalsIgnoreCase("k")) {
-					indexOf.put(Ntab.K, dataIndex);
-				} else if(token.equalsIgnoreCase("j")) {
-					indexOf.put(Ntab.J, dataIndex);
-				} else if(token.equalsIgnoreCase("i")) {
-					indexOf.put(Ntab.I, dataIndex);
-				} else if(token.equalsIgnoreCase("index")) {
-					//		indexOf.put(NTAB_KEY.INDEX, dataIndex);
-				} 
-				dataIndex++;
 			}
-			dataValues = tokens.length - dataIndex;
-		} else {		
-			sc.close();
-			return null; // Failed to find a line starting with index
+			structure.x = listToArray(uniqueXs);
+			structure.y = listToArray(uniqueYs);
+			structure.z = listToArray(uniqueZs);
+			
+			List<Float> uniqueVertexX = NodeStructure.setEdge(uniqueXs);
+			List<Float> uniqueVertexY = NodeStructure.setEdge(uniqueYs);
+			List<Float> uniqueVertexZ = NodeStructure.setEdge(uniqueZs);
+			structure.vertexX = listToArray(uniqueVertexX);
+			structure.vertexY = listToArray(uniqueVertexY);
+			structure.vertexZ = listToArray(uniqueVertexZ);
+			
+			filesToMerge.add(dataFile); // Not initially added to the list, need to include for the following loop
+			
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
-
-		// Get the last line, expect index, i, j, k
-		int lines = 0;
-		while(sc.hasNextLine()) {
-			sc.nextLine();
-			lines++;
-		}
-		sc.close();
-		// Get all the float data out of the file's that make up this scenario
-
-		appendNTABData(dataFile, structure, true, dataIndex, dataValues, lines, indexOf);
-		for(File fileToMerge: filesToMerge) {			
-			appendNTABData(fileToMerge, structure, false, dataIndex, dataValues, lines, indexOf);
-		}	
-
-		return structure;
-	}
-
-
-	private void appendNTABData(File file, DataStructure structure, boolean appendMetaData, int metaDataLength, int timeSteps, int lineCount, Map<Ntab, Integer> indexOf) throws FileNotFoundException {
-
-		System.out.println(file);
-		Scanner sc = new Scanner(file); // Skip index line
-		while(!sc.nextLine().startsWith("index") && sc.hasNextLine());
-
-		float[][] dataDoubleArray = new float[timeSteps][lineCount];
-		// Need unique xyz's only
-		HashSet<Float> uniqueXs = new HashSet<Float>();
-		HashSet<Float> uniqueYs = new HashSet<Float>();
-		HashSet<Float> uniqueZs = new HashSet<Float>();
-
-		int[][] ijks = new int[3][lineCount];
-
-		int maxis = 0;
-		int maxjs = 0;
-		int maxks = 0;
-
-		for(int i = 0; i < lineCount; i++) {
-			// Meta data, only need to do this once
-			if(appendMetaData) {
-				for(int j = 0; j < metaDataLength; j++) {
-					int nextInt = 0;
-					float nextFloat = 0f;
-					boolean isInt = false;
-					if(sc.hasNextInt()) {
-						nextInt = sc.nextInt();
-						isInt = true;
-					} else {
-						nextFloat = sc.nextFloat();
-					}
-					for(Ntab key: indexOf.keySet()) {
-						if(indexOf.get(key) == j) {						
-							if(key == Ntab.I) {
-								if(i == lineCount - 1)
-									maxis = nextInt;
-								ijks[0][i] = nextInt;
-							} else if(key == Ntab.J) {
-								ijks[1][i] = nextInt;
-								if(i == lineCount - 1)
-									maxjs = nextInt;
-							} else if(key == Ntab.K) {
-								ijks[2][i] = nextInt;		
-								if(i == lineCount - 1)
-									maxks = nextInt;
-							} else if(key == Ntab.X) {
-								uniqueXs.add(isInt ? nextInt: nextFloat);
-								//  xyzs[0][i] = isInt ? nextInt: nextFloat;
-							} else if(key == Ntab.Y) {
-								uniqueYs.add(isInt ? nextInt: nextFloat);
-								//	xyzs[1][i] = isInt ? nextInt: nextFloat;
-							} else if(key == Ntab.Z) {
-								uniqueZs.add(isInt ? nextInt: nextFloat);
-								//	xyzs[2][i] = isInt ? nextInt: nextFloat;						
-							}								
+		
+		///////////////////////////////////////////////////////
+		//// Loop through files to read and merge the data ////
+		///////////////////////////////////////////////////////
+		for(File dataFile: filesToMerge) {
+			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","");
+			float[][] dataMap = new float[years.size()][structure.i * structure.j * structure.k];
+			float max = Float.MIN_VALUE;
+			float min = Float.MAX_VALUE;
+			float sum = 0;
+			try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+				while ((line = br.readLine()) != null) { // Read each line
+					String[] lineList = line.split(" "); //space delimited
+					
+					// Skip the header and read the data throughout the file
+					if(!lineList[0].equalsIgnoreCase("index")) {
+						int index = Integer.parseInt(lineList[indexMap.get("index")]) - 1;
+						for(int i=indexMap.get("data"); i<lineList.length; i++) { // Only read data
+							int timestep = i - indexMap.get("data");
+							float value = Float.parseFloat(lineList[i]);
+							dataMap[timestep][index] = value;
+							if(value<min) min = value;
+							if(value>max) max = value;
+							sum += value;
 						}
 					}
 				}
-				// Just skip the meta data
-			}  else {
-				for(int j = 0; j < metaDataLength; j++) {
-					//if(sc.hasNext())
-					sc.next();
-					//else System.out.println(metaDataLength + " expected, at " + j);
-				}
+				structure.data.put(fieldKey, dataMap);
+				
+				float average = sum / (structure.i * structure.j * structure.k * years.size());
+				float[] statistics = {min, average, max};
+				structure.statistics.put(fieldKey, statistics);
+				
+				
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-			// sc should point to the first float, we can parse until the end of the line
-			for(int j = 0; j < timeSteps; j++) {
-				dataDoubleArray[j][i] = sc.nextFloat();
-			}				
 		}
-		sc.close();		
-
-		// Get a nice name for this files data set
-		String fieldKey = "unknown";
-		// Need to figure out the key -> file is named scenario.variable.extension
-		String[] fileName = file.getName().split("\\.");
-		if(fileName.length > 2)
-			fieldKey = fileName[1];
-		else 
-			fieldKey = fileName[0].split("\\d+")[0];
-
-		if(structure.data == null) {
-			structure.data = new HashMap<String, float[][]>();
-		}
-		structure.data.put(fieldKey, dataDoubleArray);
-
-		ArrayList<Float> xs = new ArrayList<Float>(uniqueXs);
-		ArrayList<Float> ys = new ArrayList<Float>(uniqueYs);
-		ArrayList<Float> zs = new ArrayList<Float>(uniqueZs);
-
-		Collections.sort(xs);
-		Collections.sort(ys);
-		Collections.sort(zs);
-
-		float[] x = new float[xs.size()];
-		for(int i = 0; i < xs.size(); i++) {
-			x[i] = xs.get(i);
-		}
-		float[] y = new float[ys.size()];
-		for(int i = 0; i < ys.size(); i++) {
-			y[i] = ys.get(i);
-		}
-		float[] z = new float[zs.size()];
-		for(int i = 0; i < zs.size(); i++) {
-			z[i] = zs.get(i);
-		}
-
-		if(appendMetaData) {
-			structure.x = x;
-			structure.y = y;
-			structure.z = z;
-			structure.i = maxis;
-			structure.j = maxjs;
-			structure.k = maxks;
-		}			
+		return structure;
 	}
 
 	public Object[] getDataTypes(String fileType, Collection<GridParser> files) throws GridError, FileNotFoundException {
@@ -845,6 +758,14 @@ public class GridParser {
 			}
 		}
 		return new Object[]{};
+	}
+	
+	public float[] listToArray(List<Float> list) {
+		float[] array = new float[list.size()];
+		for(int i=0; i<list.size(); i++) {
+			array[i] = list.get(i);
+		}
+		return array;
 	}
 	
 	public static float getTime(int time) {
