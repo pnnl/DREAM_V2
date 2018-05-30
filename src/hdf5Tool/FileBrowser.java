@@ -517,7 +517,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					if(porosityAdded==false)
 						addPorosity(hdf5File, dims3D);
 					
-				//TECPLOT //TODO: Need to test with Tecplot files, using the new approach
+				//TECPLOT //TODO: I haven't updated the converter for TecPlot files under the new logic (add vertex, porosity handling, statistics)
 				} else if(jComboBox_fileType.getSelectedItem().toString().equals(TECPLOT)) {
 					// Only file type with the option to be a single folder or multiple folders
 					if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FILE)) {
