@@ -6,71 +6,64 @@ package gridviz;
  * @date   3/7/12
  */
 public class FieldValues {
-
-    /// The values for this field
-    private float[] values;
-
-    /// The extrema for this field
-    private Extrema extrema;
-
-    // The vertex for this field (only x, y, and z)
-    private float[] vertex;
-
-    /// Constructs this field container
+    
+    private float[] values; // The values for this field
+    private Extrema extrema; // The extrema for this field
+    private float[] vertex; // The vertex for this field (only x, y, and z)
+    
+    // Constructs this field container
     public FieldValues(int size) {
-
         values = new float[size];
         extrema = new Extrema();
         vertex = new float[size+1];
     }
-
-
-
-    /// Sets a value for the field at the given index and updates the extrema
+    
+    
+    // Sets a value for the field at the given index and updates the extrema
     public void setValue(int index, float value) throws GridError {
-
-        if (index >= values.length) {
-   //     	System.out.println("Index: " + index + ", " + values.length);
+        if (index >= values.length)
         	return;
-      //      throw new GridError("Index exceeds number of field values");
-		}
-
+        
         values[index] = value;
-
+        
         extrema.min = Math.min(extrema.min, value);
         extrema.max = Math.max(extrema.max, value);
     }
     
     
-    /// Gets the value for a given index
+    // Gets the value for a given index
     public float getValue(int index) {
         return values[index];
     }
     
     
-  /// Gets the value for a given index
+	// Gets the value for a given index
     public float getVertex(int index) {
         return vertex[index];
     }
     
     
-    /// Gets the extrema for the field
+    // Gets the extrema for the field
     public Extrema getExtrema() {
         return extrema;
     }
-
-
-
-    /// Overrides the computed extrema with a user defined extrema
+    
+    
+    // Overrides the computed extrema with a user defined extrema
     public void overrideExtrema(Extrema extrema) {
         this.extrema = extrema;
     }
-
-
-
-    /// Fetches the values for the grid
+    
+    
+    // Fetches the values for the grid
     public float[] getValues() {
         return values;
+    }
+    
+    
+    // Fetches the vertices for the grid
+    public float[] getVertices() {
+        return vertex;
     }
 
 	public void addNodalValue(int nodeIndex, String[] vertices) {
@@ -98,6 +91,5 @@ public class FieldValues {
 	public void addValues(float[] values) {
 		this.values = values;
 	}
-
 }
 

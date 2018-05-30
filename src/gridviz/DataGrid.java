@@ -130,9 +130,16 @@ public class DataGrid {
 	 */
 	public FieldValues getFieldValues(String fieldKey) {
 		// If there isn't a matching field, add it
-		if (!fieldValueMap.containsKey(fieldKey))
-			fieldValueMap.put(fieldKey, new FieldValues(gridder.getL()));
-
+		if(!fieldValueMap.containsKey(fieldKey)) {
+			if(fieldKey=="x")
+				fieldValueMap.put(fieldKey, new FieldValues(gridder.getSize().x));
+			else if(fieldKey=="y")
+				fieldValueMap.put(fieldKey, new FieldValues(gridder.getSize().y));
+			else if(fieldKey=="z")
+				fieldValueMap.put(fieldKey, new FieldValues(gridder.getSize().z));
+			else
+				fieldValueMap.put(fieldKey, new FieldValues(gridder.getL()));
+		}
 		return fieldValueMap.get(fieldKey);
 	}
 

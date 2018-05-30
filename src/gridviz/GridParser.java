@@ -180,7 +180,6 @@ public class GridParser {
 	}
 	
 	public DataGrid extractStompData() throws GridError {
-		
 		DataGrid grid = null; // will contain all the extracted data from the file
 		Point3i size = new Point3i(0, 0, 0); // This will hold the size of the grid to extract
 		Vector3f center = new Vector3f();
@@ -191,19 +190,19 @@ public class GridParser {
 		int linearIndex = -1; // The linear index will keep track of where to insert the data into the array that holds the node data for each field
 		String fieldKey = ""; // This will hold the name of the field that is being extracted
 		FieldValues values = null; // The field values will be first extracted then assigned
+		String line = "";
 		
-		try (Scanner dataScanner = new Scanner(new FileReader(dataFile))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
 			System.out.println("File: " + dataFile);
-			while (dataScanner.hasNextLine()) {
-				String line = dataScanner.nextLine().trim();
+			while ((line = br.readLine()) != null) {
 				
+				// Skip empty lines, but note when they occur
 				if (line.isEmpty())
 					emptyLine = true;
 				
-				// Reads in the Time Steps from the plot file
-				else if(line.startsWith("Time") && line.contains(",yr")) {
-					continue; // Time is handled elsewhere
-				}
+				// Ignore this line, as time is handled elsewhere
+				else if(line.startsWith("Time") && line.contains(",yr"))
+					continue;
 				
 				// Reads in the grid configuration information from the plot file
 				else if(line.contains("=")) {
@@ -243,13 +242,13 @@ public class GridParser {
 								hasCenter= true;
 							}
 						}
-
+						
 						// Create the data grid to store the field data
 						if(hasCenter)
 							grid = new DataGrid(size, center);
 						else
 							grid = new DataGrid(size);
-
+						
 						grid.setTimestep(timesAsFloats.get(timeStep));
 					}
 				}
@@ -719,9 +718,16 @@ public class GridParser {
 				structure.data.put(fieldKey, dataMap);
 				
 				float average = sum / (structure.i * structure.j * structure.k * years.size());
-				float[] statistics = {min, average, max};
+				float[] statistics;
+				if(structure.statistics.containsKey(fieldKey)) {
+					statistics = new float[3];
+					statistics[0] = Math.min(structure.statistics.get(fieldKey)[0], min);
+					statistics[0] = average + structure.statistics.get(fieldKey)[1];
+					statistics[2] = Math.max(structure.statistics.get(fieldKey)[2], max);
+				} else {
+					statistics = new float[]{min, average, max};
+				}
 				structure.statistics.put(fieldKey, statistics);
-				
 				
 			} catch(Exception e) {
 				e.printStackTrace();
