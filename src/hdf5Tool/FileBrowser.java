@@ -467,7 +467,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
 				}
 			}
-			monitor.setProgress(processedTasks);	
+			monitor.setProgress(processedTasks);
 			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success, h5 files are located here: " + file_outputDir.getAbsolutePath() : "Canceled File Conversion"));
 		}
 	}
@@ -551,8 +551,10 @@ public class FileBrowser extends javax.swing.JFrame {
 				statusLabel.setForeground(new java.awt.Color(5, 70, 5));
 			} catch (Exception e) {
 				e.printStackTrace();
+				statusLabel.setText("Error converting the files.");
+				statusLabel.setForeground(Color.RED);
 				JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
-				hdf5File.delete(); // Remove the file					
+				hdf5File.delete(); // Remove the file
 			} finally {
 				if(hdf5File != null)  {
 					try {
@@ -573,7 +575,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		statisticsByDataField = new TreeMap<String, float[]>();
 
 		JFileChooser chooser = new JFileChooser();
-		//chooser.setCurrentDirectory(new File("C:\\"));
 		chooser.setCurrentDirectory(saveCurrentDirectory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		int returnValue = chooser.showOpenDialog(null);
@@ -926,6 +927,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				System.out.print("SUCCESS. ");
 			} catch(Exception e) {
 				System.out.print("FAILED. ");
+				throw e;
 			}
 			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
 		}
@@ -1050,6 +1052,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				System.out.print("SUCCESS. ");
 			} catch(Exception e) {
 				System.out.print("FAILED. ");
+				throw e;
 			}
 			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
 		}
