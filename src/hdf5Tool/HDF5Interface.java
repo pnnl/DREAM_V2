@@ -375,7 +375,7 @@ public class HDF5Interface {
 					String name = root.getMemberList().get(rootIndex).getName();
 					
 					if(name.startsWith("data") && firstData) {
-						HashMap<Point3i, Float> porosities = new HashMap<Point3i, Float>();
+						HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
 						List<TimeStep> times = new ArrayList<TimeStep>();
 						List<Float> xValues = new ArrayList<Float>();
 						List<Float> yValues = new ArrayList<Float>();
@@ -394,7 +394,7 @@ public class HDF5Interface {
 								for(int i=0; i<dataRead.size(); i++)
 									times.add(new TimeStep(i, dataRead.get(i), Math.round(dataRead.get(i))));
 							}
-							else if(dataset.getName().equals("porosities")) {
+							else if(dataset.getName().equals("porosity") || dataset.getName().equals("porosities")) { // Should be porosity, but for a little while it was named porosities... remove second option when ready to discontinue
 								long size = dataset.getDims()[0] * dataset.getDims()[1] * dataset.getDims()[2];
 								temp = new float[(int)size];
 								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, temp);
@@ -402,7 +402,7 @@ public class HDF5Interface {
 								for(int i=1; i<=dataset.getDims()[0]; i++) {
 									for(int j=1; j<=dataset.getDims()[1]; j++) {
 										for(int k = 1; k<=dataset.getDims()[2]; k++) {
-											porosities.put(new Point3i(i, j, k), temp[counter]);
+											porosity.put(new Point3i(i, j, k), temp[counter]);
 											counter++;
 										}
 									}
@@ -417,7 +417,7 @@ public class HDF5Interface {
 							dataset.close(dataset_id);
 						}
 						if(edgex.size()>0) {
-							nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosities);
+							nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity);
 						} else { //support for old file structures that don't have vertex information
 							nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
 						}

@@ -37,7 +37,7 @@ public class NodeStructure {
 	
 	private HashMap<Point3i, Float> porosityOfNode;
 	
-	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosities) {
+	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosity) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -47,7 +47,7 @@ public class NodeStructure {
 		this.timeSteps = timeSteps;
 		this.dataTypes = new ArrayList<String>();
 		this.ijkDimensions = new Point3i(x.size(), y.size(), z.size());
-		this.porosityOfNode = porosities;
+		this.porosityOfNode = porosity;
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -278,7 +278,7 @@ public class NodeStructure {
 	
 	public boolean setPorositiesFromIJKOrderedFile(File file) throws IOException {
 		/*
-		 *This function assumes that the porosities are listed in an order that increments i, then j, then k.
+		 *This function assumes that the porosity is listed in an order that increments i, then j, then k.
 		 *It also ignores any lines that it cannot intepret as a float and continues on to the next.
 		 *If we have found precisely the number of floats that we expect, the porosity is set and it returns true.
 		 *Otherwise, porosity is not set and false is returned.

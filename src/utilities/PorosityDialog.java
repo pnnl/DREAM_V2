@@ -560,7 +560,7 @@ public class PorosityDialog extends TitleAreaDialog {
 					} catch (Exception e){
 						e.printStackTrace();
 						String[] buttons = {"OK"};
-						MessageDialog message = new MessageDialog(parentShell, "Error Writing to File", null, "An error occurred while trying to write the porosities to the specified file", 
+						MessageDialog message = new MessageDialog(parentShell, "Error Writing to File", null, "An error occurred while trying to write the porosity to the specified file", 
 								MessageDialog.NONE, buttons, 0);
 						message.open();
 					}

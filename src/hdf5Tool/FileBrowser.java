@@ -911,7 +911,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
 					if(firstFile) { // Only need to do this once
-						hdf5File.createScalarDS("porosities", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
+						hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
 						porosityAdded = true;
 					}
 				} else {
@@ -1023,7 +1023,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
 					if(firstFile) { // Only need to do this once
-						hdf5File.createScalarDS("porosities", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
+						hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
 						porosityAdded = true;
 					}
 				} else {
@@ -1071,12 +1071,12 @@ public class FileBrowser extends javax.swing.JFrame {
 				e.printStackTrace();
 		    }
 		}
-		try { // Write the porosities to the H5 file
+		try { // Write porosity to the H5 file
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
 			float[] temp = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
 			Arrays.fill(temp, porosity);
-			hdf5File.createScalarDS("porosities", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
+			hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
