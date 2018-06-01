@@ -626,7 +626,7 @@ public class GridParser {
 		//// Read the first file to get the file structure and header information ////
 		//////////////////////////////////////////////////////////////////////////////
 		try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
-			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll(".","");
+			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll("\\.","");
 			ArrayList<Float> uniqueXs = new ArrayList<Float>();
 			ArrayList<Float> uniqueYs = new ArrayList<Float>();
 			ArrayList<Float> uniqueZs = new ArrayList<Float>();
@@ -693,7 +693,7 @@ public class GridParser {
 		//// Loop through files to read and merge the data ////
 		///////////////////////////////////////////////////////
 		for(File dataFile: filesToMerge) {
-			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll(".","");
+			String fieldKey = dataFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll("\\.","");
 			float[][] dataMap = new float[years.size()][structure.i * structure.j * structure.k];
 			float max = Float.MIN_VALUE;
 			float min = Float.MAX_VALUE;

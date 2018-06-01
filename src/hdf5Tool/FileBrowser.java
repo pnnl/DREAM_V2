@@ -93,11 +93,11 @@ public class FileBrowser extends javax.swing.JFrame {
 	private Map<String, Map<Integer, GridParser>> gridsByTimeAndScenario;
 	private Map<String, float[]> statisticsByDataField;
 	private ProgressMonitor monitor;
-	private int processedTasks = 0;
+	private int processedTasks;
 	
-	private boolean porosityAdded = false;
-	private Float porosity = Float.MIN_VALUE;
-	private int times = 0;
+	private boolean porosityAdded;
+	private Float porosity;
+	private int times;
 
 	private JLabel statusLabel;
 
@@ -335,7 +335,13 @@ public class FileBrowser extends javax.swing.JFrame {
 	}
 
 	private void jButton_doneActionPerformed(ActionEvent evt) throws Exception {
-
+		
+		// Initialize global variables
+		processedTasks = 0;
+		porosityAdded = false;
+		porosity = Float.MIN_VALUE;
+		times = 0;
+		
 		// Create the HDF5 Files
 		if(!file_outputDir.exists())
 			file_outputDir.mkdir();
@@ -462,7 +468,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 			}
 			monitor.setProgress(processedTasks);	
-			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success" : "Canceled") + ", h5 files are located here: " + file_outputDir.getAbsolutePath());
+			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success, h5 files are located here: " + file_outputDir.getAbsolutePath() : "Canceled File Conversion"));
 		}
 	}
 
@@ -1056,11 +1062,8 @@ public class FileBrowser extends javax.swing.JFrame {
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
 		Group statisticsGroup = hdf5File.createGroup("statistics", root);
-		for(JCheckBox checked: checkList_dataFields.getListData()) {
-			if(!checked.isSelected()) continue;
-			String dataField = checked.getText().split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");;
+		for(String dataField: statisticsByDataField.keySet())
 			hdf5File.createScalarDS(dataField, statisticsGroup, dtype, new long[]{statisticsByDataField.get(dataField).length}, null, null, 0, statisticsByDataField.get(dataField));
-		}
 	}
 	
 	private synchronized void addPorosity(H5File hdf5File, long[] dims3D) {
