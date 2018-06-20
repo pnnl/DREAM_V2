@@ -59,27 +59,26 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWizardPage {
-		
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	protected Map<String, Integer> num_duplicates = new HashMap<String, Integer>();
-	
 	private STORMData data;
-	private boolean isCurrentPage = false;
-	private boolean changeSinceFindingNodes = true;
 	
+	protected Map<String, Integer> num_duplicates = new HashMap<String, Integer>();
 	private Map<String, SensorData> sensorData;
+	private boolean changeSinceFindingNodes = true;
 	private Button runE4DButton;
 	
-		
+	private boolean isCurrentPage = false;
+	
 	protected Page_LeakageCriteria(STORMData data) {
 		super("Leakage Criteria");
 		this.data = data;	
 	}
 	
 	public class SensorData {
-
+		
 		private Button addButton;
 		public String sensorType;
 		public String sensorName;

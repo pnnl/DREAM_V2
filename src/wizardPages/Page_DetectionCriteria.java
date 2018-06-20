@@ -35,17 +35,16 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_DetectionCriteria extends DreamWizardPage implements AbstractWizardPage {
-
-	STORMData data;
 	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	private STORMData data;
 	
 	private Map<String, Text> minimumSensors;
-
-	private boolean isCurrentPage = false;
 	private Text minText;
+	
+	private boolean isCurrentPage = false;
 	
 	protected Page_DetectionCriteria(STORMData data) {
 		super("Detection Criteria");
@@ -53,13 +52,13 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		this.data = data;	
 		
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
-
+		
 		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
         sc.setExpandHorizontal(true);

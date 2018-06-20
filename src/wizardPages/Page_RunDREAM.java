@@ -69,11 +69,11 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage {
-
-	private STORMData data;
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	private STORMData data;
 	
 	private Button bestTTDTableButton;
 	private Button vadButton;
@@ -99,6 +99,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private String outputs = Constants.parentDir + File.separator + "_results";
 	private int runs = 1;
 	private int samples = 20;
+	
 	private boolean isCurrentPage = false;
 	
 	protected Page_RunDREAM(STORMData data) {

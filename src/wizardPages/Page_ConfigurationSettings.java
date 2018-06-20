@@ -32,11 +32,12 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_ConfigurationSettings extends DreamWizardPage implements AbstractWizardPage {
-
-	private STORMData data;
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	private STORMData data;
+	
 	private Text costConstraint;
 	private Text addPoint;
 	private Text maxWells;
@@ -45,10 +46,10 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text wellDepthCost;
 	private Text remediationCost;
 	private Button allowMultipleSensorsInWell;
-	
 	private float cost = 0; //Since data.getSet().getCostConstraint is set at the end of the previous page, use local variable
+	
 	private boolean isCurrentPage = false;
-
+	
 	protected Page_ConfigurationSettings(STORMData data) {
 		super("Configuration Settings");
 		//	setDescription("Run setup");

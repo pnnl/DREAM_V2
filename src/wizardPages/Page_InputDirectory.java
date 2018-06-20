@@ -40,28 +40,29 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_InputDirectory extends DreamWizardPage implements AbstractWizardPage {
-
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	private STORMData data;
+	
 	private String simulation = "SimulatedAnnealing";
 	private ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
-	private STORMData data;
 	private Text fileDirectoryText;
-	private boolean isCurrentPage = false;
-	
 	private String directory = Constants.homeDirectory;
+	
+	private boolean isCurrentPage = false;
 	
 	protected Page_InputDirectory(STORMData data) {
 		super("Input Directory");
 		this.data = data;
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
-
+		
 		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
 		sc.setExpandHorizontal(true);

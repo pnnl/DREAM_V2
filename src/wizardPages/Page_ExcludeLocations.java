@@ -42,25 +42,24 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_ExcludeLocations extends WizardPage implements AbstractWizardPage {
-
-	STORMData data;
-
+	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
+	private STORMData data;
+	
 	private GridLayout layout;
 	private Map<Integer, Map<Integer, Button>> buttons;
 	private Map<Integer, List<Integer>> wells;
-
 	private Map<Integer, Map<Integer, Boolean>> selection;
-
-	private boolean isCurrentPage = false;
-
+	
 	private int minI = Integer.MAX_VALUE;
 	private int maxI = -Integer.MAX_VALUE;
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
-
+	
+	private boolean isCurrentPage = false;
+	
 	public Page_ExcludeLocations(STORMData data) {
 		super("Exclude Locations");
 		this.data = data;		

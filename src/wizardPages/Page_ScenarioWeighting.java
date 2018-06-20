@@ -40,23 +40,22 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractWizardPage {
-
-	Map<Scenario, Text> weights;
-	Map<Scenario, Button> selectedScenarios;
 	
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
-	
 	private STORMData data;
-		
-	private boolean isCurrentPage;
-		
+	
+	private Map<Scenario, Text> weights;
+	private Map<Scenario, Button> selectedScenarios;
+	
+	private boolean isCurrentPage = false;
+	
 	protected Page_ScenarioWeighting(STORMData data) {
 		super("Scenario Weighting");
 		this.data = data;	
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
