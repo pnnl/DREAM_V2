@@ -32,6 +32,7 @@ public class ScenarioSet {
 	private List<Scenario> allScenarios;
 	private List<Scenario> scenarios;
 	private List<String> sensors;
+	private List<Well> wells;
 	
 	/**
 	 * User settings - 
@@ -55,18 +56,11 @@ public class ScenarioSet {
 	private Map<String, SensorSetting> sensorSettingsRemoved;
 	
 	private InferenceTest inferenceTest;
-	
 	private boolean edgeMovesOnly = false;
 	
-	private List<Well> wells;
 	
-	/**
-	 * Once the algorithm is running
-	 */
-	
-	
+	// Reset everything in ScenarioSet - do this before loading new files
 	public ScenarioSet() {
-		
 		isReady = false;
 		
 		scenarios = new ArrayList<Scenario>();
@@ -75,6 +69,7 @@ public class ScenarioSet {
 		sensorSettings = new HashMap<String, SensorSetting>();
 		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
 		sensors = new ArrayList<String>();
+		wells = new ArrayList<Well>();
 		
 		scenarioEnsemble = "";
 		addPoint = new Point3i(1,1,1);
@@ -88,9 +83,35 @@ public class ScenarioSet {
 		remediationCost = 0;
 		allowMultipleSensorsInWell = true;
 		
-		wells = new ArrayList<Well>();
-		
 		Constants.log(Level.INFO, "Scenario set: initialized", null);
+		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
+	}
+	
+	
+	public void clearRun() {
+		isReady = false;
+		
+		scenarios.clear();
+		allScenarios.clear();
+		scenarioWeights.clear();
+		sensorSettings.clear();
+		sensorSettingsRemoved.clear();
+		sensors.clear();
+		wells.clear();
+		
+		scenarioEnsemble = "";
+		addPoint = new Point3i(0,0,0);
+		maxWells = 10;
+		iterations = 1000;
+		sensorCostConstraint = 0;
+		exclusionRadius = 0;
+		inclusionRadius = Float.MAX_VALUE;
+		wellCost = 0;
+		wellDepthCost = 0;
+		remediationCost = 0;
+		allowMultipleSensorsInWell = true;
+		
+		Constants.log(Level.INFO, "Scenario set: re-initialized", null);
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
 	
@@ -172,45 +193,27 @@ public class ScenarioSet {
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
 
-	
-	/**
-	 * Loads data from the database, sets up scenarios
-	 */
-	public void loadRunData(String run) {
+	public void setupScenarios(List<String> inputScenarios) {
+		// Convert string to scenario and add to lists
+		for(String scenario: inputScenarios) {
+			Scenario s = new Scenario(scenario);
+			scenarios.add(s);
+			allScenarios.add(s);
+		}
 		
-		sensorSettings.clear();
-		sensors.clear();
-		allScenarios.clear();
-		scenarios.clear();
+		// Scenario weights should start at 1.0
+		for(Scenario scenario: scenarios)
+			scenarioWeights.put(scenario, (float)1);
 		
-		Constants.log(Level.INFO, "Scenario set: loading run data", run);
-		
-		String query =  "SELECT has_scenarios, scenario_names FROM run WHERE run_name='" + run + "'";
-		
-		Constants.log(Level.FINE, "Scenario set: QUERY", query);
-		
-		List<String> scenarios = HDF5Interface.queryScenarioNamesFromFiles();
-		
-		if(!scenarios.isEmpty()) {
-			for(String scenario: scenarios) {
-				Scenario s = new Scenario(scenario);
-				this.scenarios.add(s);
-				this.allScenarios.add(s);
-			}
-			for(Scenario scenario: this.scenarios) {
-				scenarioWeights.put(scenario, (float)1);
-			}
-		} 
-		
+		// Setup the sensor settings array
 		for(final String type: nodeStructure.getDataTypes())
-			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
+			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));
 		
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
-				
-		Constants.log(Level.CONFIG, "Scenario set: loaded run data", this);
 	}
-
+	
+	
 	/**					**\
 	 * Getters & Setters *
 	 * 					 *
@@ -614,31 +617,6 @@ public class ScenarioSet {
 
 	public List<String> getSensors() {
 		return sensors;
-	}
-	
-	public static void main(String[] args) {
-		ScenarioSet set = new ScenarioSet();
-		set.loadRunData(Constants.RUN_TEST);
-	}
-	
-	public void clearRun() {
-		isReady = false;
-		
-		scenarios.clear();
-		allScenarios.clear();
-		scenarioWeights.clear();
-		sensorSettings.clear();
-		sensors.clear();
-		
-		addPoint = new Point3i(0,0,0);
-		maxWells = 10;
-		iterations = 1000;
-		sensorCostConstraint = 0;
-		
-		wells.clear();
-		
-		Constants.log(Level.INFO, "Scenario set: re-initialized", null);
-		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
 	
 	public float getTotalScenarioWeight() {

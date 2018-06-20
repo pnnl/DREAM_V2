@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
@@ -45,6 +46,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import hdf5Tool.HDF5Interface;
+import hdf5Tool.IAMInterface;
 import utilities.Constants;
 import utilities.E4DRunDialog;
 import utilities.Point3i;
@@ -303,6 +305,8 @@ public class DREAMWizard extends Wizard {
 		private ArrayList<Point3i> wells;
 		
 		public Constants.ModelOption modelOption;
+		public String fileType;
+		public Map<String, Map<String, Map<Integer, Float>>> paretoMap;
 
 		public STORMData(DREAMWizard wizard) {
 			this.wizard = wizard;
@@ -325,45 +329,68 @@ public class DREAMWizard extends Wizard {
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-
-					// Run tasks:
-					monitor.beginTask("Loading scenario set", 10);
-
-					monitor.subTask("reading hdf5 files");
-
-					if(!input.isEmpty()) {
-						File hdf5Folder = new File(input);
-						if(hdf5Folder.exists() && hdf5Folder.isDirectory()) {
-							File[] list = hdf5Folder.listFiles();
-							if(list[0].getPath().endsWith(".h5"))
-								data.getSet().setNodeStructure(HDF5Interface.loadHdf5Files(input)); //Load the hdf5 files into the constants
-							else if (hdf5Folder.listFiles()[0].getPath().endsWith(".iam")) //TODO: Write new function for IAM Files
-								data.getSet().setNodeStructure(HDF5Interface.loadHdf5Files(input)); //Load the IAM files into the constants
+					
+					// Create a list of files in the directory, excluding any that aren't .h5 or .iam files
+					File inputFolder = new File(input); // We are already assured that the directory exists and contains .h5 or .iam files from previous constraints
+					FilenameFilter fileNameFilter = new FilenameFilter() {
+						@Override
+						public boolean accept(File dir, String name) {
+							if(name.endsWith(".h5") || name.endsWith(".iam"))
+								return true;
+							return false;
 						}
+					};
+					File[] list = inputFolder.listFiles(fileNameFilter);
+					set.clearRun();	// Important - clear any old run data before starting
+					
+					// If the directory has H5 files, handle it this way...
+					if(list[0].getPath().endsWith(".h5")) {
+						monitor.beginTask("Loading scenario set", 10);
+						
+						monitor.subTask("reading Node Structure from first file");
+						set.setNodeStructure(HDF5Interface.readNodeStructureH5(list[0])); //Load the H5 files into the constants
+						monitor.worked(6);
+						
+						monitor.subTask("reading scenarios from all files");
+						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list));
+						monitor.worked(3);
+						
+						monitor.subTask("initializing algorithm");
+						STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
+						STORMData.this.modelOption = modelOption;
+						if(function.endsWith("SimulatedAnnealing"))
+							runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
+						STORMData.this.fileType = "hdf5";
+						monitor.worked(1);
+						
+						monitor.subTask("done");
 					}
-					monitor.worked(5);
-
-					monitor.subTask("clearing previous data");				
-					set.clearRun();	// Clear any old run data
-					monitor.worked(1);
-
-					monitor.subTask("loading new data");
-					set.loadRunData(""); // Load the new data (this will be hdf5)
-					monitor.worked(1);
-
-					monitor.subTask("applying user settings");
-					STORMData.this.mutate = mutate;	// Set the mutate option
-					STORMData.this.modelOption = modelOption;
-
-					monitor.worked(1);
-
-					monitor.subTask("initializing algorithm");
-					if(function.endsWith("SimulatedAnnealing"))
-						runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)	
-					monitor.worked(1);
-
-					monitor.subTask("done");					
-					monitor.worked(1);					
+					
+					// If the directory has IAM files, handle it this way...
+					else if(list[0].getPath().endsWith(".iam")) {
+						monitor.beginTask("Loading scenario set", list.length + 3);
+						
+						monitor.subTask("reading Node Structure from first file");
+						set.setNodeStructure(IAMInterface.readNodeStructureIAM(list[0])); //Load the H5 files into the constants
+						monitor.worked(2);
+						
+						monitor.subTask("reading scenarios from all files");
+						IAMInterface.readIAMFiles(list, set.getNodeStructure());
+						STORMData.this.paretoMap = IAMInterface.getParetoMap(); // Set the pareto Map
+						set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
+						set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
+						monitor.worked(list.length);
+						
+						monitor.subTask("initializing algorithm");
+						STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
+						STORMData.this.modelOption = modelOption;
+						if(function.endsWith("SimulatedAnnealing"))
+							runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
+						STORMData.this.fileType = "iam";
+						monitor.worked(1);
+						
+						monitor.subTask("done");
+					}
 				}					
 			});
 		}
@@ -572,7 +599,7 @@ public class DREAMWizard extends Wizard {
 					String input7 = ""; //We want to add the detection threshold to the file name
 					
 					// Loop through all the scenarios - E4D needs to run once for each scenario
-					for(Scenario scenario: data.getSet().getScenarios()) {
+					for(Scenario scenario: set.getScenarios()) {
 						if(monitor.isCanceled()) return;
 						monitor.subTask("Looping through the selected scenarios: " + scenario.getScenario());
 						
@@ -605,7 +632,7 @@ public class DREAMWizard extends Wizard {
 							System.out.println(e);
 							System.out.println("Install python3 and required libraries to run E4D");
 						}
-						monitor.worked(1000 / data.getSet().getScenarios().size() - 10);
+						monitor.worked(1000 / set.getScenarios().size() - 10);
 						monitor.subTask("Writing the scenario results: " + scenario.getScenario());
 						// Read the result matrix from each scenario into a master file
 						File detectionMatrix = new File(Constants.userDir, "e4d" + File.separator + "detection_matrix.csv");
@@ -629,7 +656,7 @@ public class DREAMWizard extends Wizard {
 						monitor.worked(10);
 						
 						// Write out the current cumulative detection matrix file at each iteration
-						File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + data.getSet().getScenarioEnsemble() + "_" + data.getSet().getScenarios().size() +
+						File fullDetectionMatrix = new File(Constants.userDir, "e4d/ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() +
 								"_" + input7 + ".csv");
 						try {
 							fullDetectionMatrix.createNewFile();

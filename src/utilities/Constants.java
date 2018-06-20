@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -211,5 +212,21 @@ public class Constants {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+	
+	public static float[] listToArray(List<Float> list) {
+		float[] array = new float[list.size()];
+		for(int i=0; i<list.size(); i++) {
+			array[i] = list.get(i);
+		}
+		return array;
+	}
+	
+	public static List<Float> arrayToList(float[] array) {
+		List<Float> list = new ArrayList<Float>();
+		for(int i=0; i<array.length; i++) {
+			list.add(array[i]);
+		}
+		return list;
 	}
 }

@@ -45,9 +45,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private Composite container;
 	private Composite rootContainer;
 	private String simulation = "SimulatedAnnealing";
-	private String modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
+	private ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 	private STORMData data;
-	private Text hdf5Text;
+	private Text fileDirectoryText;
 	private boolean isCurrentPage = false;
 	
 	private String directory = Constants.homeDirectory;
@@ -105,19 +105,12 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	public void completePage() throws Exception {	
 		isCurrentPage = false;
 		
-		Constants.homeDirectory = directory;
-		ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
-		String strOption = this.modelOption;
-		if(strOption.equals(ModelOption.INDIVIDUAL_SENSORS_2.toString()))
-			modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
-		else if(strOption.equals(ModelOption.ALL_SENSORS.toString()))
-			modelOption = ModelOption.ALL_SENSORS;
-		
 		HDF5Interface.paretoMap.clear();
 		HDF5Interface.statistics.clear();
 		
-		data.setupScenarioSet(modelOption, this.modelOption.toLowerCase().contains("sensor") ? MUTATE.SENSOR : MUTATE.WELL, simulation, hdf5Text.getText());
-		data.getSet().setScenarioEnsemble(hdf5Text.getText().substring(hdf5Text.getText().lastIndexOf(File.separator)+1));
+		Constants.homeDirectory = directory;
+		data.setupScenarioSet(modelOption, MUTATE.SENSOR, simulation, fileDirectoryText.getText());
+		data.getSet().setScenarioEnsemble(fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator)+1));
 		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
@@ -158,44 +151,45 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		buttonSelectDir.setText(" Select a directory ");
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				directoryDialog.setFilterPath(hdf5Text.getText());
+				directoryDialog.setFilterPath(fileDirectoryText.getText());
 				directoryDialog.setMessage("Please select a directory and click OK");
 				String dir = directoryDialog.open();
 				if (dir != null) {
 					Constants.homeDirectory = dir;
-					hdf5Text.setText(dir);
+					fileDirectoryText.setText(dir);
 					data.reset();
 				}
 			}
 		});
 		
-		hdf5Text = new Text(container, SWT.BORDER | SWT.SINGLE);
 		//// Hack that allows Jonathan and Catherine automatic directory inputs ////
 		if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "\\Desktop\\BCO_new";
 		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "\\Desktop\\BCO_new";
 		//// End of hack ////
-		hdf5Text.setText(directory);
-		hdf5Text.setForeground(Constants.black);
-		hdf5Text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		errorFound(h5FileCheck(hdf5Text.getText()), "  Directory must contain an h5 file.");
-		hdf5Text.addModifyListener(new ModifyListener() {
+		
+		fileDirectoryText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		fileDirectoryText.setText(directory);
+		fileDirectoryText.setForeground(Constants.black);
+		fileDirectoryText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		errorFound(validFileCheck(fileDirectoryText.getText()), "  Directory must contain an h5 or iam file.");
+		fileDirectoryText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
 				File resultsFolder = new File(((Text)e.getSource()).getText());
 				boolean dirError = !resultsFolder.isDirectory();
-				boolean h5Error = true;
+				boolean fileError = true;
 				if (dirError == true) {
 					((Text)e.getSource()).setForeground(Constants.red);
-					h5Error = false;
+					fileError = false;
 				} else {
 					((Text)e.getSource()).setForeground(Constants.black);
 					directory = ((Text)e.getSource()).getText();
-					h5Error = h5FileCheck(resultsFolder.getPath());
+					fileError = validFileCheck(resultsFolder.getPath());
 				}
 				errorFound(dirError, "  Invalid directory.");
-				errorFound(h5Error, "  Directory must contain an h5 file.");
+				errorFound(fileError, "  Directory must contain an h5 or iam file.");
 			}
 		});
 
@@ -208,7 +202,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		button1.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				modelOption = Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString();
+				modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 			}
 		});
 		button1.setSelection(true);
@@ -217,7 +211,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		button2.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				modelOption = Constants.ModelOption.ALL_SENSORS.toString();
+				modelOption = ModelOption.ALL_SENSORS;
 			}
 		});
 				
@@ -237,12 +231,12 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		DREAMWizard.convertDataButton.setEnabled(true);
 	}
 	
-	private boolean h5FileCheck(String folderDir) {
+	private boolean validFileCheck(String folderDir) {
 		boolean h5Error = true;
 		File folder = new File(folderDir);
 		File[] fList = folder.listFiles();
 		for (File file : fList) {
-			if(file.getName().contains(".h5")) {
+			if(file.getName().contains(".h5") || file.getName().contains(".iam")) {
 				h5Error = false;
 				break;
 			}

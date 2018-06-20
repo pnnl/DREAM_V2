@@ -335,6 +335,10 @@ public class NodeStructure {
 		return dataTypes;
 	}
 	
+	public void setDataTypes(List<String> dataTypes) {
+		this.dataTypes = dataTypes;
+	}
+	
 	public Point3i getIJKDimensions() {
 		return ijkDimensions;
 	}

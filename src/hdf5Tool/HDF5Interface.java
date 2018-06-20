@@ -35,6 +35,7 @@ import utilities.Point3i;
  */
 
 public class HDF5Interface {
+	
 	// Storing the files
 	public static Map<String, H5File> hdf5Files;
 	// If we can store this in memory
@@ -45,6 +46,146 @@ public class HDF5Interface {
 	public static Map<String, float[]> statistics = new HashMap<String, float[]>();
 	// Stores pareto optimal values to speed up that process
 	public static Map<String, Map<String, Map<Integer, Float>>> paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
+	
+	/*	
+	 *  Example of node number vs. index. Each cell has: 
+	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
+	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
+	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
+	 *  _________________________    _________________________    _________________________    
+	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
+	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
+	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
+	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
+	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
+	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
+	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
+	 * 
+	 */
+	
+	// Read one file to extract the Node Structure information from H5 files
+	public static NodeStructure readNodeStructureH5 (File file) {
+		NodeStructure nodeStructure = null;
+		String scenario = file.getName().replaceAll("\\.h5" , "");
+		try {
+			H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
+			hdf5Files.put(scenario, hdf5File);//TODO: remove this line and call it when counting scenarios
+			hdf5File.open();
+			
+			// Get the root node
+			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+			// Get the data group
+			for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+				String name = root.getMemberList().get(rootIndex).getName();
+				
+				if(name.startsWith("data")) {
+					HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
+					List<TimeStep> times = new ArrayList<TimeStep>();
+					List<Float> xValues = new ArrayList<Float>();
+					List<Float> yValues = new ArrayList<Float>();
+					List<Float> zValues = new ArrayList<Float>();
+					List<Float> edgex = new ArrayList<Float>();
+					List<Float> edgey = new ArrayList<Float>();
+					List<Float> edgez = new ArrayList<Float>();
+					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+						//List<Float> dataRead = new ArrayList<Float>();
+						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+						int dataset_id = dataset.open();
+						float[] temp =  (float[])dataset.read();
+	
+						if(dataset.getName().equals("times")) {
+							for(int i=0; i<temp.length; i++)
+								times.add(new TimeStep(i, temp[i], Math.round(temp[i])));
+						}
+						else if(dataset.getName().equals("porosity") || dataset.getName().equals("porosities")) { // Should be porosity, but for a little while it was named porosities... remove second option when ready to discontinue
+							long size = dataset.getDims()[0] * dataset.getDims()[1] * dataset.getDims()[2];
+							temp = new float[(int)size];
+							H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, temp);
+							int counter = 0;
+							for(int i=1; i<=dataset.getDims()[0]; i++) {
+								for(int j=1; j<=dataset.getDims()[1]; j++) {
+									for(int k = 1; k<=dataset.getDims()[2]; k++) {
+										porosity.put(new Point3i(i, j, k), temp[counter]);
+										counter++;
+									}
+								}
+							}
+						}
+						else if(dataset.getName().equals("x")) xValues = Constants.arrayToList(temp);
+						else if(dataset.getName().equals("y")) yValues = Constants.arrayToList(temp);
+						else if(dataset.getName().equals("z")) zValues = Constants.arrayToList(temp);
+						else if(dataset.getName().equals("vertex-x")) edgex = Constants.arrayToList(temp);
+						else if(dataset.getName().equals("vertex-y")) edgey = Constants.arrayToList(temp);
+						else if(dataset.getName().equals("vertex-z")) edgez = Constants.arrayToList(temp);
+						dataset.close(dataset_id);
+					}
+					if(edgex.size()>0)
+						nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity);
+					else //support for old file structures that don't have vertex information
+						nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
+					
+				} else if(name.startsWith("plot") && nodeStructure.getDataTypes().isEmpty()) {
+					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+						nodeStructure.getDataTypes().add(dataset.getName());
+					}
+					
+				} else if(name.startsWith("statistics")) {
+					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+						int dataset_id = dataset.open();
+						float[] temp = (float[])dataset.read();
+						if (statistics.containsKey(dataset.getName())) {
+							temp[0] = Math.min(temp[0], statistics.get(dataset.getName())[0]);
+							temp[1] = temp[1] + statistics.get(dataset.getName())[1]; //Sum averages now, divide by time step later
+							temp[2] = Math.max(temp[2], statistics.get(dataset.getName())[2]);
+						}
+						statistics.put(dataset.getName(), temp);
+						dataset.close(dataset_id);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error loading Node Struture from " + file.getName());
+			e.printStackTrace();
+		}
+		return nodeStructure;
+	}
+	
+	public static List<String> queryScenarioNamesFromFiles(File[] list) {
+		List<String> scenarios = new ArrayList<String>();
+		for(File file: list) {
+			scenarios.add(file.getName().replaceAll("\\.h5" , ""));
+		}
+
+		//Sort the scenarios - needed a special comparator for strings + numbers
+		Collections.sort(scenarios, new Comparator<String>() {
+			public int compare(String o1, String o2) {
+		        return extractInt(o1) - extractInt(o2);
+		    }
+
+		    int extractInt(String s) {
+		        String num = s.replaceAll("\\D", "");
+		        // return 0 if no digits found
+		        return num.isEmpty() ? 0 : Integer.parseInt(num);
+		    }
+		});
+		return scenarios;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static Float queryValue(NodeStructure nodeStructure, String scenario, TimeStep timestep, String dataType, int index) throws Exception {
@@ -257,25 +398,7 @@ public class HDF5Interface {
 	}
 	
 	
-	public static List<String> queryScenarioNamesFromFiles() {
-		List<String> scenarios = new ArrayList<String>();
-		for(String key: hdf5Files.keySet()) {
-			scenarios.add(key);
-		}
-		//Sort the scenarios - needed a special comparator for strings + numbers
-		Collections.sort(scenarios, new Comparator<String>() {
-			public int compare(String o1, String o2) {
-		        return extractInt(o1) - extractInt(o2);
-		    }
-
-		    int extractInt(String s) {
-		        String num = s.replaceAll("\\D", "");
-		        // return 0 if no digits found
-		        return num.isEmpty() ? 0 : Integer.parseInt(num);
-		    }
-		});
-		return scenarios;
-	}
+	
 	
 	
 	private static void addNodeToCloud(String scenario, float timeInYears, String dataType, int nodeNumber, float value) {
@@ -331,129 +454,6 @@ public class HDF5Interface {
 		return plotsAreTimeIndices;
 	}
 	
-	/*	
-	 *  Example of node number vs. index. Each cell has: 
-	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
-	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
-	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
-	 *  _________________________    _________________________    _________________________    
-	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
-	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
-	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
-	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
-	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
-	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
-	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
-	 * 
-	 */
-	
-	public static NodeStructure loadHdf5Files(String location) {
-		
-		NodeStructure nodeStructure = null;
-		File hdf5Folder = new File(location);
-		hdf5Files = new HashMap<String, H5File>();
-		boolean firstData = true;
-		boolean firstPlot = true;
-		
-		for(File file: hdf5Folder.listFiles()) {
-			String scenario = file.getName().replaceAll("\\.h5" , "");
-			if(!file.getName().contains(".h5")) continue; //skip any files other than the h5 files
-			try { //need to get NodeStructure and statistics information from the first file
-				H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
-				hdf5Files.put(scenario, hdf5File);
-				hdf5File.open();
-				
-				// Get the root node
-				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-				// Get the data group
-				for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
-					String name = root.getMemberList().get(rootIndex).getName();
-					
-					if(name.startsWith("data") && firstData) {
-						HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
-						List<TimeStep> times = new ArrayList<TimeStep>();
-						List<Float> xValues = new ArrayList<Float>();
-						List<Float> yValues = new ArrayList<Float>();
-						List<Float> zValues = new ArrayList<Float>();
-						List<Float> edgex = new ArrayList<Float>();
-						List<Float> edgey = new ArrayList<Float>();
-						List<Float> edgez = new ArrayList<Float>();
-						for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-							List<Float> dataRead = new ArrayList<Float>();
-							Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-							int dataset_id = dataset.open();
-							float[] temp =  (float[])dataset.read();
-							for(int i=0; i<temp.length; i++)
-								dataRead.add(temp[i]);
-							if(dataset.getName().equals("times")) {
-								for(int i=0; i<dataRead.size(); i++)
-									times.add(new TimeStep(i, dataRead.get(i), Math.round(dataRead.get(i))));
-							}
-							else if(dataset.getName().equals("porosity") || dataset.getName().equals("porosities")) { // Should be porosity, but for a little while it was named porosities... remove second option when ready to discontinue
-								long size = dataset.getDims()[0] * dataset.getDims()[1] * dataset.getDims()[2];
-								temp = new float[(int)size];
-								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, temp);
-								int counter = 0;
-								for(int i=1; i<=dataset.getDims()[0]; i++) {
-									for(int j=1; j<=dataset.getDims()[1]; j++) {
-										for(int k = 1; k<=dataset.getDims()[2]; k++) {
-											porosity.put(new Point3i(i, j, k), temp[counter]);
-											counter++;
-										}
-									}
-								}
-							}
-							else if(dataset.getName().equals("x")) xValues = dataRead;
-							else if(dataset.getName().equals("y")) yValues = dataRead;
-							else if(dataset.getName().equals("z")) zValues = dataRead;
-							else if(dataset.getName().equals("vertex-x")) edgex = dataRead;
-							else if(dataset.getName().equals("vertex-y")) edgey = dataRead;
-							else if(dataset.getName().equals("vertex-z")) edgez = dataRead;
-							dataset.close(dataset_id);
-						}
-						if(edgex.size()>0) {
-							nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity);
-						} else { //support for old file structures that don't have vertex information
-							nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
-						}
-						firstData = false;
-						
-					} else if(name.startsWith("plot") && firstPlot) {
-						for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-							Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-							nodeStructure.getDataTypes().add(dataset.getName());
-						}
-						firstPlot = false;
-						
-					} else if(name.startsWith("statistics")) {
-						for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-							Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-							int dataset_id = dataset.open();
-							float[] temp = (float[])dataset.read();
-							if (statistics.containsKey(dataset.getName())) {
-								temp[0] = Math.min(temp[0], statistics.get(dataset.getName())[0]);
-								temp[1] = temp[1] + statistics.get(dataset.getName())[1]; //Sum averages now, divide by time step later
-								temp[2] = Math.max(temp[2], statistics.get(dataset.getName())[2]);
-							}
-							statistics.put(dataset.getName(), temp);
-							dataset.close(dataset_id);
-						}
-					}
-				}
-			} catch (Exception e) {
-				System.out.println("Error loading scenario: " + scenario);
-				e.printStackTrace();
-			}
-		}
-		return nodeStructure;
-	}
-	
-	
 	public static Float queryStatistic(String dataType, int index) {
 		// 0 = minimum
 		// 1 = average
@@ -462,7 +462,6 @@ public class HDF5Interface {
 			return statistics.get(dataType)[index];			
 		return null;
 	}
-	
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
 	public static void createParetoMap(NodeStructure nodeStructure, SensorSetting setting, String specificType) {

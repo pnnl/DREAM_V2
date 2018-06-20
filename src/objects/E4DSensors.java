@@ -135,8 +135,6 @@ public class E4DSensors {
 		set.getNodeStructure().getDataTypes().removeAll(toRemove);
 		
 		File dir = new File(Constants.userDir, "e4d");
-		if(!dir.exists())
-			System.out.println("Did not find the e4d folder.");
 		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() + "*.csv");
 		File[] files = dir.listFiles(fileFilter);
 		for(File ertInput: files) {

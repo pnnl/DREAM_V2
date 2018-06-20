@@ -577,7 +577,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorData = new TreeMap<String, SensorData>();
 			
 			//Only adds ERT sensor if a results matrix is detected in the correct location
-			E4DSensors.addERTSensor(data.getSet());
+			if(new File(Constants.userDir, "e4d").exists())
+				E4DSensors.addERTSensor(data.getSet());
 			
 			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 				if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
@@ -820,8 +821,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 	  		
 	  		// If the user has a well list that matches the scenario ensemble and size, allow the run E4D button to show up
-			
-	  		
 	  		runE4DButton = new Button(composite_E4D, SWT.PUSH);
 	  		runE4DButton.setText("  Run E4D  ");
 	  		runE4DButton.addListener(SWT.Selection, new Listener() {

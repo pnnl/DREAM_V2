@@ -18,6 +18,7 @@ import javax.vecmath.Vector3f;
 
 import hdf5Tool.FileBrowser;
 import objects.NodeStructure;
+import utilities.Constants;
 
 /**
  * @brief  Provides a parser to extract DataGrid objects from Stomp data files
@@ -190,7 +191,7 @@ public class GridParser {
 		int linearIndex = -1; // The linear index will keep track of where to insert the data into the array that holds the node data for each field
 		String fieldKey = ""; // This will hold the name of the field that is being extracted
 		FieldValues values = null; // The field values will be first extracted then assigned
-		String line = "";
+		String line;
 		
 		try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
 			System.out.println("File: " + dataFile);
@@ -620,7 +621,7 @@ public class GridParser {
 		structure.statistics = new HashMap<String, float[]>();
 		Map<String, Integer> indexMap = new HashMap<String, Integer>();
 		ArrayList<Float> years = new ArrayList<Float>();
-		String line = "";
+		String line;
 		
 		//////////////////////////////////////////////////////////////////////////////
 		//// Read the first file to get the file structure and header information ////
@@ -672,16 +673,16 @@ public class GridParser {
 					if(!uniqueZs.contains(z)) uniqueZs.add(z);
 				}
 			}
-			structure.x = listToArray(uniqueXs);
-			structure.y = listToArray(uniqueYs);
-			structure.z = listToArray(uniqueZs);
+			structure.x = Constants.listToArray(uniqueXs);
+			structure.y = Constants.listToArray(uniqueYs);
+			structure.z = Constants.listToArray(uniqueZs);
 			
 			List<Float> uniqueVertexX = NodeStructure.setEdge(uniqueXs);
 			List<Float> uniqueVertexY = NodeStructure.setEdge(uniqueYs);
 			List<Float> uniqueVertexZ = NodeStructure.setEdge(uniqueZs);
-			structure.vertexX = listToArray(uniqueVertexX);
-			structure.vertexY = listToArray(uniqueVertexY);
-			structure.vertexZ = listToArray(uniqueVertexZ);
+			structure.vertexX = Constants.listToArray(uniqueVertexX);
+			structure.vertexY = Constants.listToArray(uniqueVertexY);
+			structure.vertexZ = Constants.listToArray(uniqueVertexZ);
 			
 			filesToMerge.add(dataFile); // Not initially added to the list, need to include for the following loop
 			
@@ -759,14 +760,6 @@ public class GridParser {
 			}
 		}
 		return new Object[]{};
-	}
-	
-	public float[] listToArray(List<Float> list) {
-		float[] array = new float[list.size()];
-		for(int i=0; i<list.size(); i++) {
-			array[i] = list.get(i);
-		}
-		return array;
 	}
 	
 	public static float getTime(int time) {
