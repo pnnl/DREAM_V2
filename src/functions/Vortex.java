@@ -8,7 +8,6 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
-import objects.Scenario;
 import objects.ScenarioSet;
 import objects.ExtendedSensor;
 import objects.TimeStep;
@@ -27,7 +26,7 @@ public class Vortex extends Function {
 
 	boolean firstTime = true;
 	@Override
-	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, Scenario scenario) {
+	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
 
 		String sensorType = set.getSensorSettings().keySet().toArray()[0].toString();
 		Set<Integer> cloudNodes = set.getSensorSettings(sensorType).getValidNodes(null);
@@ -218,7 +217,7 @@ public class Vortex extends Function {
 		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {
 			sensor.clearScenariosUsed();
 		}
-		for (final Scenario scenario : set.getScenarios())
+		for (final String scenario: set.getScenarios())
 		{
 			Thread thread = new Thread(new Runnable() {
 				@Override
@@ -252,7 +251,7 @@ public class Vortex extends Function {
 	 * 					 *
 	\*					 */
 
-	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception
+	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, String scenario) throws Exception
 	{
 		if (set.getScenarioWeights().get(scenario) > 0)
 		{
@@ -276,7 +275,7 @@ public class Vortex extends Function {
 		}
 	}
 
-	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, Scenario scenario, boolean usedSensors) throws Exception
+	private InferenceResult runOneTime(ExtendedConfiguration con, ScenarioSet set, TimeStep timeStep, String scenario, boolean usedSensors) throws Exception
 	{
 		/* TODO: We need to update this to match the history query
 		int time = timeStep.getTimeStep();

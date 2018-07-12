@@ -14,7 +14,6 @@ import org.apache.commons.io.FileUtils;
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
-import objects.Scenario;
 import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
@@ -113,11 +112,11 @@ public class ResultPrinter {
 					float weightedAverageTTD = 0.0f;
 
 					// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
-					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+					for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(detectingScenario);
 					}	
 					
-					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+					for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 						float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
 						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 					}
@@ -158,7 +157,7 @@ public class ResultPrinter {
 		lines.add(",Scenarios with Leak Detected Weighted %,Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios,Unweighted Average TTD of Successful Scenarios,"+
 				  "Range of TTD over Successful Scenarios,Scenarios with No Leak Detected,Number of Wells,Cost of Configuration,Volume of Aquifer Degraded,Sensor Types (x y z)");
 
-		List<Scenario> scenariosThatDidNotDetect = new ArrayList<Scenario>();
+		List<String> scenariosThatDidNotDetect = new ArrayList<String>();
 		for(ExtendedConfiguration configuration: results.bestConfigSumList) {
 			String scenariosNotDetected = "";
 			
@@ -173,7 +172,7 @@ public class ResultPrinter {
 			float weightedAverageTTD = 0.0f;
 			
 			//Determine the sum of scenario weights for detecting scenarios
-			for(Scenario scenario: results.set.getScenarios()) {
+			for(String scenario: results.set.getScenarios()) {
 				if(configuration.getTimesToDetection().containsKey(scenario)) {	
 					totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(scenario);
 				} else {
@@ -183,7 +182,7 @@ public class ResultPrinter {
 			
 			// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
 			// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
-			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+			for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 				float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
 				weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 				globallyWeightedPercentage += results.set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
@@ -194,7 +193,7 @@ public class ResultPrinter {
 			float maxYear = -Float.MAX_VALUE;			
 			for(Sensor sensor: configuration.getSensors()) {
 				if(sensor instanceof ExtendedSensor) {
-					for(Scenario scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
+					for(String scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
 						if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) {
 							continue;
 						}			
@@ -293,7 +292,7 @@ public class ResultPrinter {
 		
 		// Assemble strings of TTDs for the best configurations
 		StringBuilder title = new StringBuilder();
-		for(Scenario scenario: results.set.getScenarios()) {
+		for(String scenario: results.set.getScenarios()) {
 			title.append("," + scenario);
 		}
 		ttdLines.add(title.toString());

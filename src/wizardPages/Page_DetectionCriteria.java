@@ -134,46 +134,40 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		setLabel.setFont(boldFont);
 		probabilityLabel.setFont(boldFont);
 		
-		if(!(data.modelOption == ModelOption.ALL_SENSORS)){
-			for(final String dataType: data.getSet().getSensors()) {
-				
-				final Label dataLabel = new Label(container, SWT.NULL);
-				dataLabel.setText(Sensor.sensorAliases.get(dataType) + " (Cost = " + data.getSet().getSensorSettings().get(dataType).getSensorCost() + ")");
-				dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
-				new Label(container, SWT.NULL);
-				
-				Text indText = new Text(container, SWT.BORDER | SWT.SINGLE);
-				indText.setText(String.valueOf(data.getSet().getInferenceTest().getMinimumForType(dataType)));
-				indText.setForeground(Constants.black);
-				indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-				indText.addModifyListener(new ModifyListener() {
-					@Override
-					public void modifyText(ModifyEvent e) {
-						if(Constants.isValidInt(((Text)e.getSource()).getText()) && Integer.parseInt(((Text)e.getSource()).getText()) > 0)
-							data.getSet().getInferenceTest().setMinimumForType(dataType, Integer.parseInt(((Text)e.getSource()).getText()));
-						boolean numError = false;
-						boolean zeroError = false;
-						for(Text individualSensors: minimumSensors.values()) {
-							if(!Constants.isValidInt(individualSensors.getText())) { //Not a valid number
-								individualSensors.setForeground(Constants.red);
-								numError = true;
-							} else if(Integer.parseInt(individualSensors.getText()) < 1) { //Can't be zero
-								individualSensors.setForeground(Constants.red);
-								zeroError = true;
-							} else { //Valid number
-								individualSensors.setForeground(Constants.black);
-							}
-							errorFound(numError, "  Min is not a real number.");
-							errorFound(zeroError, "  Min cannot be zero.");
+		for(final String dataType: data.getSet().getSensors()) {
+			
+			final Label dataLabel = new Label(container, SWT.NULL);
+			dataLabel.setText(Sensor.sensorAliases.get(dataType) + " (Cost = " + data.getSet().getSensorSettings().get(dataType).getSensorCost() + ")");
+			dataLabel.setLayoutData(new GridData(SWT.NULL, SWT.NULL, false, false, 1, 1));
+			new Label(container, SWT.NULL);
+			
+			Text indText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			indText.setText(String.valueOf(data.getSet().getInferenceTest().getMinimumForType(dataType)));
+			indText.setForeground(Constants.black);
+			indText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+			indText.addModifyListener(new ModifyListener() {
+				@Override
+				public void modifyText(ModifyEvent e) {
+					if(Constants.isValidInt(((Text)e.getSource()).getText()) && Integer.parseInt(((Text)e.getSource()).getText()) > 0)
+						data.getSet().getInferenceTest().setMinimumForType(dataType, Integer.parseInt(((Text)e.getSource()).getText()));
+					boolean numError = false;
+					boolean zeroError = false;
+					for(Text individualSensors: minimumSensors.values()) {
+						if(!Constants.isValidInt(individualSensors.getText())) { //Not a valid number
+							individualSensors.setForeground(Constants.red);
+							numError = true;
+						} else if(Integer.parseInt(individualSensors.getText()) < 1) { //Can't be zero
+							individualSensors.setForeground(Constants.red);
+							zeroError = true;
+						} else { //Valid number
+							individualSensors.setForeground(Constants.black);
 						}
+						errorFound(numError, "  Min is not a real number.");
+						errorFound(zeroError, "  Min cannot be zero.");
 					}
-				});
-				minimumSensors.put(dataType, indText);
-			}
-		} else {
-			for(String dataType: data.getSet().getDataTypes()) {
-				minimumSensors.put(dataType, null);
-			}
+				}
+			});
+			minimumSensors.put(dataType, indText);
 		}
 		Label orFiller1 = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		orFiller1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
@@ -227,16 +221,11 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		int overallMin = firstMinimum.length() > 0 ? Integer.parseInt(firstMinimum) : -1;
 		Map<String, Integer> requiredSensors = new HashMap<String, Integer>();
 		for(String sensorType: minimumSensors.keySet())  {
-			if(!(data.modelOption == ModelOption.ALL_SENSORS)){
-				String minimum = minimumSensors.get(sensorType).getText();
-				if(minimum.length() > 0)
-					requiredSensors.put(sensorType, Integer.parseInt(minimum));
-				else
-					requiredSensors.put(sensorType, -1);
-			}
-			else{
-				requiredSensors.put(sensorType, overallMin);
-			}
+			String minimum = minimumSensors.get(sensorType).getText();
+			if(minimum.length() > 0)
+				requiredSensors.put(sensorType, Integer.parseInt(minimum));
+			else
+				requiredSensors.put(sensorType, -1);
 		}
 		data.setupInferenceTest(requiredSensors, overallMin);
 		data.getSet().setSensorCostConstraint(data.getSet().getMinCost());

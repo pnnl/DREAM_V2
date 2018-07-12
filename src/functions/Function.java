@@ -13,7 +13,6 @@ import hdf5Tool.HDF5Interface;
 import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
-import objects.Scenario;
 import objects.ScenarioSet;
 import objects.ExtendedSensor;
 import results.ResultPrinter;
@@ -39,7 +38,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	
 	// Keep some history for nodes, will be faster to look here for values then from the database/file
 	// Scenario, node #, time step, data type, value
-	protected volatile Map<Scenario, Map<Integer, Map<Float, Map<String, Boolean>>>> history;
+	protected volatile Map<String, Map<Integer, Map<Float, Map<String, Boolean>>>> history;
 
 	private IProgressMonitor monitor; // So we can update the status
 	private DomainVisualization viewer; // Graphical representation of the run
@@ -460,7 +459,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * should override	 *
 	\* these methods	 */
 	@Override
-	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, Scenario scenario) {
+	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
 		Constants.log(Level.WARNING, "Function: inference - no child inference model defined",  null);
 		return null;
 	}
@@ -503,13 +502,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 * Helper Methods	 *
 	\* 					 */
 
-	protected synchronized void storeHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType, Boolean triggered) {
-
-		if(!HDF5Interface.hdf5Data.isEmpty())
-			return; // Don't need this
+	protected synchronized void storeHistory(String scenario, Integer nodeNumber, Float timeStep, String dataType, Boolean triggered) {
 		
 		if(history == null)
-			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Map<Float, Map<String, Boolean>>>>());
+			history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Map<Float, Map<String, Boolean>>>>());
 
 		if(!history.containsKey(scenario)) {
 			history.put(scenario, Collections.synchronizedMap(new HashMap<Integer, Map<Float, Map<String, Boolean>>>()));
@@ -530,10 +526,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	}
 
 
-	protected synchronized Boolean getHistory(Scenario scenario, Integer nodeNumber, Float timeStep, String dataType) {
-
-		if(!HDF5Interface.hdf5Data.isEmpty())
-			return null; // Don't need this
+	protected synchronized Boolean getHistory(String scenario, Integer nodeNumber, Float timeStep, String dataType) {
 		
 		if(history == null)
 			return null;

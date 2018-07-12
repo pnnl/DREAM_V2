@@ -48,7 +48,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
-import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
 import objects.TecplotNode;
@@ -400,12 +399,12 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					int detectedScenarios = 0;
 					List<String> scenariosDetected = new ArrayList<String>();
 					Map<String, Float> ttdForEachDetected = new HashMap<String, Float>();
-					for(Scenario scenario: configuration.getTimesToDetection().keySet()) {
+					for(String scenario: configuration.getTimesToDetection().keySet()) {
 						float timeToDetection = configuration.getTimesToDetection().get(scenario);
 						detectedScenarios++;
 						totalTimeToDetection += timeToDetection;
-						scenariosDetected.add(scenario.getScenario());
-						ttdForEachDetected.put(scenario.getScenario(), timeToDetection);
+						scenariosDetected.add(scenario);
+						ttdForEachDetected.put(scenario, timeToDetection);
 						if(sensorsToTest.size() == 1 || sensors.size() > 1){
 							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
 						}
@@ -421,8 +420,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				
 				// Heading
 				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
-				for(Scenario scenario: data.getSet().getScenarios()) {
-					text.append("," + scenario.getScenario());
+				for(String scenario: data.getSet().getScenarios()) {
+					text.append("," + scenario);
 				}
 				text.append("\n");
 								
@@ -436,9 +435,9 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append(((float)detectedScenarios)/scenariosTested*100 + ",");
 						text.append(detectedScenarios + ",");
 						text.append(scenariosTested);
-						for(Scenario scenario: data.getSet().getScenarios()) {
-							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario.getScenario()) ?
-									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario.getScenario())) : ""));			
+						for(String scenario: data.getSet().getScenarios()) {
+							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
+									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario)) : ""));			
 						}
 						text.append("\n");
 					}
@@ -915,8 +914,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						}
 						StringBuilder sb = new StringBuilder();
 						sb.append("Replaced Sensors,Volume Degraded,Objective Result");
-						List<Scenario> scenarios = data.getSet().getScenarios();
-						for(Scenario s: scenarios) sb.append("," + s.toString());
+						List<String> scenarios = data.getSet().getScenarios();
+						for(String s: scenarios) sb.append("," + s.toString());
 						sb.append(",Sensor Types and Locations\n");
 						for(List<ExtendedConfiguration> innerSet: fullSet){
 							int j=0;
@@ -926,8 +925,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 								sb.append(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
 								sb.append(",");
 								sb.append(config.getObjectiveValue());
-								Map<Scenario, Float> ttds = config.getTimesToDetection();
-								for(Scenario s: scenarios){
+								Map<String, Float> ttds = config.getTimesToDetection();
+								for(String s: scenarios){
 									sb.append(",");
 									sb.append(ttds.get(s) == null ? "N/A" : ttds.get(s));
 								}

@@ -339,6 +339,10 @@ public class NodeStructure {
 		this.dataTypes = dataTypes;
 	}
 	
+	public void addDataType(String dataType) {
+		dataTypes.add(dataType);
+	}
+	
 	public Point3i getIJKDimensions() {
 		return ijkDimensions;
 	}

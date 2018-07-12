@@ -28,10 +28,10 @@ public class ExtendedConfiguration extends Configuration {
 	private List<Well> wells;
 
 	// Weighted with penalty for scenarios that do not detect
-	private Map<Scenario, Float> objectiveValues;
+	private Map<String, Float> objectiveValues;
 	
 	
-	private Map<Scenario, InferenceResult> inferenceResults;
+	private Map<String, InferenceResult> inferenceResults;
 
 	public ExtendedConfiguration() {
 		this(false);
@@ -41,9 +41,9 @@ public class ExtendedConfiguration extends Configuration {
 
 		wells = Collections.synchronizedList(new ArrayList<Well>());
 		sensors = Collections.synchronizedList(new ArrayList<Sensor>());
-		timesToDetection = Collections.synchronizedMap(new HashMap<Scenario, Float>());
-		objectiveValues = Collections.synchronizedMap(new HashMap<Scenario, Float>());		
-		inferenceResults = Collections.synchronizedMap(new HashMap<Scenario, InferenceResult>());
+		timesToDetection = Collections.synchronizedMap(new HashMap<String, Float>());
+		objectiveValues = Collections.synchronizedMap(new HashMap<String, Float>());		
+		inferenceResults = Collections.synchronizedMap(new HashMap<String, InferenceResult>());
 
 		if(!copy) {
 			Constants.log(Level.INFO, "Sensor configuration: initialized", null);
@@ -72,19 +72,19 @@ public class ExtendedConfiguration extends Configuration {
 		inferenceResults.clear();
 
 		if(toDuplicate.getTimesToDetection() != null) {
-			for(Scenario key: toDuplicate.getTimesToDetection().keySet()) {
+			for(String key: toDuplicate.getTimesToDetection().keySet()) {
 				addTimeToDetection(key, toDuplicate.getTimesToDetection().get(key));
 			}
 		}
 
 		if(toDuplicate.getTimesToDetection() != null) {
-			for(Scenario key: toDuplicate.objectiveValues.keySet()) {
+			for(String key: toDuplicate.objectiveValues.keySet()) {
 				addObjectiveValue(key, toDuplicate.objectiveValues.get(key));
 			}
 		}
 
 		if(toDuplicate.inferenceResults != null) {		
-			for(Scenario key: toDuplicate.inferenceResults.keySet()) {
+			for(String key: toDuplicate.inferenceResults.keySet()) {
 				addInferenceResult(key, toDuplicate.inferenceResults.get(key));
 			}
 		}
@@ -112,20 +112,20 @@ public class ExtendedConfiguration extends Configuration {
 			}
 		}
 		
-		copy.timesToDetection = new HashMap<Scenario, Float>(timesToDetection);
-		copy.objectiveValues = new HashMap<Scenario, Float>(objectiveValues);
-		copy.inferenceResults = new HashMap<Scenario, InferenceResult>(inferenceResults);
+		copy.timesToDetection = new HashMap<String, Float>(timesToDetection);
+		copy.objectiveValues = new HashMap<String, Float>(objectiveValues);
+		copy.inferenceResults = new HashMap<String, InferenceResult>(inferenceResults);
 /*
 		// Copy in ttd and objective values?
-		for(Scenario key: getTimesToDetection().keySet()) {
+		for(String key: getTimesToDetection().keySet()) {
 			copy.addTimeToDetection(key, timesToDetection.get(key));
 		}
 
-		for(Scenario key: objectiveValues.keySet()) {
+		for(String key: objectiveValues.keySet()) {
 			copy.addObjectiveValue(key, objectiveValues.get(key));
 		}
 
-		for(Scenario key: inferenceResults.keySet()) {
+		for(String key: inferenceResults.keySet()) {
 			copy.addInferenceResult(key, inferenceResults.get(key));
 		}
 */
@@ -152,9 +152,9 @@ public class ExtendedConfiguration extends Configuration {
 
 		toString.append("\n");
 		
-		Map<String, Scenario> sorted = new TreeMap<String, Scenario>();
-		for(Scenario key: getTimesToDetection().keySet()) {
-			sorted.put(key.getScenario(), key);
+		Map<String, String> sorted = new TreeMap<String, String>();
+		for(String key: getTimesToDetection().keySet()) {
+			sorted.put(key, key);
 		}
 
 		for(String scenario: sorted.keySet()) {
@@ -164,8 +164,8 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		
 		sorted.clear();
-		for(Scenario key: objectiveValues.keySet()) {
-			sorted.put(key.getScenario(), key);
+		for(String key: objectiveValues.keySet()) {
+			sorted.put(key, key);
 		}
 
 		for(String scenario: sorted.keySet()) {
@@ -175,8 +175,8 @@ public class ExtendedConfiguration extends Configuration {
 		}
 
 		sorted.clear();
-		for(Scenario key: inferenceResults.keySet()) {
-			sorted.put(key.getScenario(), key);
+		for(String key: inferenceResults.keySet()) {
+			sorted.put(key, key);
 		}
 		
 		for(String scenario: sorted.keySet()) {
@@ -203,15 +203,15 @@ public class ExtendedConfiguration extends Configuration {
 		return copyOfWells;
 	}
 
-	public synchronized void addObjectiveValue(Scenario scenario, float timeInYears) {
+	public synchronized void addObjectiveValue(String scenario, float timeInYears) {
 		objectiveValues.put(scenario, timeInYears);
 	}
 
-	public synchronized void addTimeToDetection(Scenario scenario, float timeToDetection) {
+	public synchronized void addTimeToDetection(String scenario, float timeToDetection) {
 		timesToDetection.put(scenario, timeToDetection);
 	}
 
-	public synchronized void addInferenceResult(Scenario scenario, InferenceResult inferenceResult) {
+	public synchronized void addInferenceResult(String scenario, InferenceResult inferenceResult) {
 		inferenceResults.put(scenario, inferenceResult);
 	}
 	
@@ -226,7 +226,7 @@ public class ExtendedConfiguration extends Configuration {
 	 */
 	public synchronized float getObjectiveValue() {
 		float sum = 0;
-		for(Scenario scenario: getObjectiveValues().keySet()) {
+		for(String scenario: getObjectiveValues().keySet()) {
 			sum += getObjectiveValues().get(scenario); // No weights here
 		}
 		return sum;
@@ -239,10 +239,10 @@ public class ExtendedConfiguration extends Configuration {
 	 * This value has been normalized against all detecting scenarios
 	 * 
 	 */
-	public synchronized float getNormalizedAverageTimeToDetection(Map<Scenario, Float> scenarioWeights) {	
+	public synchronized float getNormalizedAverageTimeToDetection(Map<String, Float> scenarioWeights) {	
 		float sum = 0;
 		float totalWeight = 0;
-		for(Scenario scenario: getTimesToDetection().keySet()) {
+		for(String scenario: getTimesToDetection().keySet()) {
 			sum += getTimesToDetection().get(scenario) * scenarioWeights.get(scenario);
 			totalWeight += scenarioWeights.get(scenario);
 		}
@@ -255,9 +255,9 @@ public class ExtendedConfiguration extends Configuration {
 	 * This value has been normalized against all detecting scenarios
 	 * 
 	 */
-	public synchronized float getNormalizedPercentScenariosDetected(Map<Scenario, Float> scenarioWeights, float totalScenarioWeights) {
+	public synchronized float getNormalizedPercentScenariosDetected(Map<String, Float> scenarioWeights, float totalScenarioWeights) {
 		float detectedWeight = 0;
-		for(Scenario scenario: getTimesToDetection().keySet()) {
+		for(String scenario: getTimesToDetection().keySet()) {
 			detectedWeight += scenarioWeights.get(scenario);
 		}
 		return detectedWeight / totalScenarioWeights;
@@ -314,21 +314,21 @@ public class ExtendedConfiguration extends Configuration {
 
 	public String getInferenceResults() {
 		StringBuffer toString = new StringBuffer();
-		for(Scenario key: inferenceResults.keySet()) {
+		for(String key: inferenceResults.keySet()) {
 			toString.append("\tInference result for " + key.toString() + ": " + inferenceResults.get(key).toString() + "\n");
 		}
 		return toString.toString();
 	}
 	
-	public Map<Scenario, Float> getTimesToDetection() {
+	public Map<String, Float> getTimesToDetection() {
 		return timesToDetection;
 	}
 
-	public Map<Scenario, Float> getObjectiveValues() {
+	public Map<String, Float> getObjectiveValues() {
 		return objectiveValues;
 	}
 
-	public void setTimesToDetection(Map<Scenario, Float> timesToDetection) {
+	public void setTimesToDetection(Map<String, Float> timesToDetection) {
 		this.timesToDetection = timesToDetection;
 	}
 	
@@ -413,25 +413,20 @@ public class ExtendedConfiguration extends Configuration {
 		//	boolean debug = true;
 
 		Object addedSensor;
-		if(modelOption == ModelOption.ALL_SENSORS) addedSensor = addAllSensor(scenarioSet);
-		else
-			addedSensor = addSensor(scenarioSet);
+		addedSensor = addSensor(scenarioSet);
 		if(addedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, ADDED SENSOR", addedSensor);
 			return true;
 		}
 		//Have to skip this if we're running as one sensor, this is pretty much guaranteed to have out of bounds sensors we don't want to move (outside of their clouds)
-		if(!(modelOption == ModelOption.ALL_SENSORS)){
-			Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
-			if(movedSensorInBounds != null) {
-				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);
-				return true;
-			}
+		Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
+		if(movedSensorInBounds != null) {
+			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);
+			return true;
 		}
 		
 		Object movedSensor;
-		if(modelOption == ModelOption.ALL_SENSORS) movedSensor = moveAllSensor(scenarioSet);
-		else movedSensor = moveSensor(scenarioSet);
+		movedSensor = moveSensor(scenarioSet);
 		if(movedSensor != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);
 			return true;

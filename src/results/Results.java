@@ -8,7 +8,6 @@ import java.util.Map;
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
-import objects.Scenario;
 import objects.ScenarioSet;
 
 /**
@@ -142,16 +141,16 @@ public class Results {
 			float weightedAverageTTD = 0.0f;
 
 			// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
-			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+			for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 				totalWeightsForDetectedScenarios += set.getScenarioWeights().get(detectingScenario);
 			}
 			
 			// If we want weighted percent of scenarios detected, we can just add up the globally normalized values for each detecting scenario
-			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+			for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 				scenariosDetected += set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
 			}
 			
-			for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+			for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 				float scenarioWeight = set.getScenarioWeights().get(detectingScenario);
 				weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 			}

@@ -13,7 +13,7 @@ import java.util.Map;
 public class Configuration {
 	
 	protected List<Sensor> sensors = new ArrayList<Sensor>();	
-	protected Map<Scenario, Float> timesToDetection;
+	protected Map<String, Float> timesToDetection;
 	
 	public Configuration() {
 		sensors = new ArrayList<Sensor>();
@@ -25,7 +25,7 @@ public class Configuration {
 		for(ExtendedSensor sensor: configuration.getExtendedSensors())
 			sensors.add(sensor.makeCopy());
 		
-		timesToDetection = new HashMap<Scenario, Float>(configuration.getTimesToDetection());
+		timesToDetection = new HashMap<String, Float>(configuration.getTimesToDetection());
 	}
 	
 	public void addSensor(Sensor sensor) {
@@ -71,7 +71,7 @@ public class Configuration {
 		return timesToDetection == null ? 0 : timesToDetection.keySet().size();
 	}
 	
-	public Map<Scenario, Float> getTimesToDetection() {
+	public Map<String, Float> getTimesToDetection() {
 		return timesToDetection;
 	}
 }

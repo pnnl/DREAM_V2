@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import objects.Scenario;
 import utilities.Constants;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -46,8 +45,8 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	private Composite rootContainer;
 	private STORMData data;
 	
-	private Map<Scenario, Text> weights;
-	private Map<Scenario, Button> selectedScenarios;
+	private Map<String, Text> weights;
+	private Map<String, Button> selectedScenarios;
 	
 	private boolean isCurrentPage = false;
 	
@@ -144,11 +143,11 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		infoLabel.setLayoutData(infoGridData);
 		
 		if(weights == null)
-			weights = new HashMap<Scenario, Text>();
+			weights = new HashMap<String, Text>();
 		weights.clear();
 
 		if(selectedScenarios == null)
-			selectedScenarios = new HashMap<Scenario, Button>();
+			selectedScenarios = new HashMap<String, Button>();
 		selectedScenarios.clear();
 		
 		Label setLabel = new Label(container, SWT.NULL);
@@ -156,7 +155,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		Label probabilityLabel = new Label(container, SWT.NULL);
 		probabilityLabel.setText("Weight");
 		
-		List<Scenario> scenarios = new ArrayList<Scenario>(data.getSet().getAllScenarios());
+		List<String> scenarios = new ArrayList<String>(data.getSet().getAllScenarios());
 
 		if(scenarios.size() > 1) {
 			Label setLabel2 = new Label(container, SWT.NULL);
@@ -178,7 +177,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		}
 		
-		for(Scenario scenario: scenarios) {
+		for(String scenario: scenarios) {
 			Button checkBox = new Button(container, SWT.CHECK);
 			final Text weightText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			if(data.getSet().getScenarios().contains(scenario)){
@@ -190,7 +189,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				weightText.setEnabled(false);
 				weightText.setText("1.0");
 			}
-			checkBox.setText(scenario.getScenario());
+			checkBox.setText(scenario);
 			weightText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			
 			selectedScenarios.put(scenario, checkBox);
@@ -208,8 +207,8 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 					boolean countError = true;
 					boolean numberError = false;
 					
-					for(Scenario scenario: selectedScenarios.keySet()) {
-						if(((Button)e.getSource()).getText().contains(scenario.getScenario()))
+					for(String scenario: selectedScenarios.keySet()) {
+						if(((Button)e.getSource()).getText().contains(scenario))
 							selectedScenarios.put(scenario, (Button)e.getSource());
 						if(selectedScenarios.get(scenario).getSelection()) {//If scenario is checked
 							countError = false;
@@ -235,8 +234,8 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				public void modifyText(ModifyEvent e) {
 					boolean numberError = false;
 					
-					for(Scenario scenario: weights.keySet()) {
-						if(((Text)e.getSource()).getText().contains(scenario.getScenario()))
+					for(String scenario: weights.keySet()) {
+						if(((Text)e.getSource()).getText().contains(scenario))
 							weights.put(scenario, (Text)e.getSource());
 						if(selectedScenarios.get(scenario).getSelection()) {//If scenario is checked
 							if(Constants.isValidFloat(weights.get(scenario).getText())) {//Valid number
@@ -268,13 +267,15 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		data.getSet().getScenarios().clear();
 		
 		// Save the weights
-		for(Scenario scenario: data.getSet().getAllScenarios()) {
+		for(String scenario: data.getSet().getAllScenarios()) {
 			float weight = Float.valueOf(weights.get(scenario).getText());
 			if(selectedScenarios.get(scenario).getSelection() && weight!=0) {//If scenario is checked and weight is not 0
 				data.getSet().getScenarioWeights().put(scenario, weight);
 				data.getSet().getScenarios().add(scenario);
 			}
 		}
+		
+		System.out.println("Number of scenarios = " + data.getSet().getScenarios().size() + " (" + data.getSet().getAllScenarios().size() + " availble)");
 		
 		//In case the user finds nodes on the next page, then goes back, we don't want nodes to remain
 		data.getSet().getSensors().clear();

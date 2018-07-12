@@ -20,13 +20,13 @@ public class ExtendedSensor extends Sensor {
 	
     private Well well; // Reference to well, may be null
     
-    private Map<Scenario, Map<Integer, Double>> history;
+    private Map<String, Map<Integer, Double>> history;
     
     // If this sensor has reached inference
     private boolean triggering;
     
     // Which scenarios it was used to determine inference
-    private Map<Scenario, TreeMap<TimeStep, Double>> scenariosUsed;
+    private Map<String, TreeMap<TimeStep, Double>> scenariosUsed;
     
     // Well pairing for E4D
     private int nodePairNumber;
@@ -35,8 +35,8 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(int i, int j, int k, String type, NodeStructure domain) {
     	super(i, j, k, type, domain);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<Scenario, TreeMap<TimeStep, Double>>());
-    	history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
+    	history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
     	
     	triggering = false;
     	well = null;
@@ -45,7 +45,7 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(int nodeNumber, String type, NodeStructure domain) {
     	super(nodeNumber, type, domain);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<Scenario, TreeMap<TimeStep, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
 
     	triggering = false;
     	well = null;
@@ -54,8 +54,8 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(ExtendedSensor toCopy) {
     	super(toCopy);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<Scenario, TreeMap<TimeStep, Double>>());
-    	history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
+    	history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
     	scenariosUsed = toCopy.getScenariosUsed();
     	
     	triggering = toCopy.isInferred();
@@ -74,7 +74,7 @@ public class ExtendedSensor extends Sensor {
     	String xyzs = (point != null) ? (point.toString() + ",                                        ").substring(0, 40) : "";
     	String nnum =  (nodeNumber + ",          ").substring(0, 10);
     	StringBuilder str = new StringBuilder();
-    	for(Scenario scenario: scenariosUsed.keySet()) {
+    	for(String scenario: scenariosUsed.keySet()) {
     		str.append("\t" + scenario + ": ");
     		for(TimeStep ts:scenariosUsed.get(scenario).keySet()) {
     			str.append("[" + ts.getTimeStep() + ": " + Constants.decimalFormat.format(scenariosUsed.get(scenario).get(ts)) + "], ");
@@ -116,7 +116,7 @@ public class ExtendedSensor extends Sensor {
 	
 	public synchronized void clearHistory() {
 		if(history == null)
-			history = Collections.synchronizedMap(new HashMap<Scenario, Map<Integer, Double>>());
+			history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
 	
 		history.clear();
 	}
@@ -125,12 +125,12 @@ public class ExtendedSensor extends Sensor {
 		return scenarioSet.getSensorSettings(getSensorType()).getValidNodes(null).contains(getNodeNumber());
 	}
 	
-	public synchronized boolean isTriggeredInScenario(Scenario scenario) {
+	public synchronized boolean isTriggeredInScenario(String scenario) {
 		return scenariosUsed.containsKey(scenario);
 	}
 	
-	public synchronized Map<Scenario, TreeMap<TimeStep, Double>> getScenariosUsed() {
-		return new HashMap<Scenario, TreeMap<TimeStep, Double>>(scenariosUsed);
+	public synchronized Map<String, TreeMap<TimeStep, Double>> getScenariosUsed() {
+		return new HashMap<String, TreeMap<TimeStep, Double>>(scenariosUsed);
 	}
 	
 	public synchronized void clearScenariosUsed() {
@@ -282,7 +282,7 @@ public class ExtendedSensor extends Sensor {
     	
 	}
 
-	public synchronized void setTriggered(boolean triggered, Scenario scenario, TimeStep time, Double value) {
+	public synchronized void setTriggered(boolean triggered, String scenario, TimeStep time, Double value) {
 		if(triggered && !this.triggering) {
 			this.triggering = true;
 		}

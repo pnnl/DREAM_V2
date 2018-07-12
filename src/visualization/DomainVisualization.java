@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import objects.Configuration;
 import objects.ExtendedConfiguration;
-import objects.Scenario;
 import objects.ScenarioSet;
 import objects.Sensor;
 import utilities.Constants;
@@ -899,7 +898,7 @@ public class DomainVisualization {
 					float totalWeightsForDetectedScenarios = 0.0f;
 					float weightedAverageTTD = 0.0f;
 
-					for(Scenario scenario: set.getScenarios()) {
+					for(String scenario: set.getScenarios()) {
 						if(configuration.getTimesToDetection().containsKey(scenario)) {	
 							totalWeightsForDetectedScenarios += set.getScenarioWeights().get(scenario);
 						}
@@ -907,7 +906,7 @@ public class DomainVisualization {
 
 					// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
 					// If we wanted weighted percentages, just add up the globally normalized value of detected scenarios
-					for(Scenario detectingScenario: configuration.getTimesToDetection().keySet()) {
+					for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 						float scenarioWeight = set.getScenarioWeights().get(detectingScenario);
 						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 						globallyWeightedPercentage += set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
