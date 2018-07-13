@@ -595,7 +595,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorData = new TreeMap<String, SensorData>(); // New UI
 			
 			// If we are dealing with H5 files, add all possible data types
-			if(data.fileType=="hdf5" && !E4DSensors.ertDetectionTimes.isEmpty()) {
+			if(data.fileType=="hdf5") {
 				for(String dataType: data.getSet().getAllPossibleDataTypes()) {
 					if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
 						sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
