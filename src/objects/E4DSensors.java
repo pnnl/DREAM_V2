@@ -1,6 +1,5 @@
 package objects;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -27,7 +26,7 @@ import wizardPages.DREAMWizard.STORMData;
 
 public class E4DSensors {
 	
-	public static Map<Float, Map<Scenario, Map<Integer, Map<Integer, Float>>>> ertDetectionTimes = new HashMap<Float, Map<Scenario, Map<Integer, Map<Integer, Float>>>>(); //detection threshold <scenario <first well <second well, detection>>>
+	public static Map<Float, Map<String, Map<Integer, Map<Integer, Float>>>> ertDetectionTimes = new HashMap<Float, Map<String, Map<Integer, Map<Integer, Float>>>>(); //detection threshold <scenario <first well <second well, detection>>>
 	public static Map<Float, Map<Integer, List<Integer>>> ertPotentialWellPairings = new HashMap<Float, Map<Integer, List<Integer>>>(); //detection threshold matrix <first well, list of top well pairs>>
 	public static Map<Float, Map<Integer, Integer>> ertWellPairings = new HashMap<Float, Map<Integer, Integer>>(); //detection threshold matrix <first well, second well>
 	public static int wellPairs = 5;
@@ -41,23 +40,26 @@ public class E4DSensors {
 		ArrayList<Point3i> wellList = new ArrayList<Point3i>();
 		HashSet<Integer> allNodes = new HashSet<Integer>(); //All nodes that meet the above threshold
 		
-		
 		// Successively remove a level of magnitude to the search threshold until nodes are found
 		int iteration = 1;
+		String specificType = "";
 		while (allNodes.size()==0) {
 			if(iteration>1) monitor.worked(-600/iteration);
-			// Loop through scenarios and add all nodes that trigger in all
+			// Loop through scenarios and add all nodes that trigger
 			monitor.subTask("Scanning for valid nodes with threshold = " + threshold);
-			for(Scenario scenario: data.getSet().getScenarios()) {
-				if(monitor.isCanceled()) return null;
-				try {
-					HashSet<Integer> nodes = null;
-					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.getScenario(), parameter, threshold, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, monitor);
-					allNodes.addAll(nodes);
-				} catch (Exception e) {
-					System.out.println("Unable to query nodes from files.");
-					e.printStackTrace();
-				}
+			specificType = parameter + "_rel_" + threshold;
+			if(!data.getSet().getSensorSettings().containsKey(parameter)) { //Sensor Settings might be in the removed list...
+				data.getSet().getRemovedSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
+				data.getSet().getRemovedSensorSettings(parameter).setDetectionThreshold(threshold);
+				HDF5Interface.createParetoMap(data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
+			} else {
+				data.getSet().getSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
+				data.getSet().getSensorSettings(parameter).setDetectionThreshold(threshold);
+				HDF5Interface.createParetoMap(data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
+			}
+			for(Map<Integer, Float> detections: data.getSet().getParetoMap().get(specificType).values()) {
+				for(Integer node: detections.keySet())
+					allNodes.add(node);
 			}
 			threshold /= 10;
 			monitor.worked(600/iteration); //This loop will be 60% of the progress bar
@@ -74,48 +76,45 @@ public class E4DSensors {
 		
 		// If a reasonable number of wells is found, sort and return
 		monitor.subTask("Valid wells = " + wellList.size() + "; starting goal seek.");
-		if(wellList.size() <= maximumWells) {
-			Collections.sort(wellList, Point3i.IJ_COMPARATOR);
 		// If too many wells are found, goal seek to the desired number
-		} else {
+		if(wellList.size() > maximumWells) {
 			wellList = new ArrayList<Point3i>(); //reset
-			TreeMap<Float, Integer> changePerNode = new TreeMap<Float, Integer>();
+			TreeMap<Integer, Float> ttdPerNode = new TreeMap<Integer, Float>();
 			
-			// Find the relative difference for all the nodes found above
-			TimeStep firstStep = nodeStructure.getTimeSteps().get(0);
-			TimeStep lastStep = nodeStructure.getTimeSteps().get(nodeStructure.getTimeSteps().size()-1);
+			// Find the average TTD for each node above (no detection has penalty)
 			for(Integer node: allNodes) {
-				float maxDifference = 0;
-				for(Scenario scenario: data.getSet().getScenarios()) {
-					if(monitor.isCanceled()) return null;
-					float start = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), firstStep, parameter, node);
-					float end = HDF5Interface.queryValue(nodeStructure, scenario.getScenario(), lastStep, parameter, node);
-					float difference = Math.abs((end - start) / start);
-					if(difference > maxDifference)
-						maxDifference = difference;
+				float ttd = 0;
+				for(String scenario: data.getSet().getParetoMap().get(specificType).keySet()) {
+					if(data.getSet().getParetoMap().get(specificType).get(scenario).containsKey(node))
+						ttd += data.getSet().getParetoMap().get(specificType).get(scenario).get(node);
+					else
+						ttd += 1000000;
 				}
-				changePerNode.put(maxDifference, node);
+				ttdPerNode.put(node, ttd);
 				monitor.worked(400/allNodes.size());
 			}
 			
-			// Sort the nodes by greatest relative change
-			ArrayList<Float> keys = new ArrayList<Float>(changePerNode.keySet());
-			ArrayList<Integer> values = new ArrayList<Integer>(keys.size());
-			Collections.sort(keys, Collections.reverseOrder());
-			for(Float key: keys)
-				values.add(changePerNode.get(key));
+			// Sort the times to detection
+			ArrayList<Float> values = new ArrayList<Float>(ttdPerNode.values());
+			Collections.sort(values);
 			
-			// Convert to Point3i and sort
-			for(Integer node: values) {
-				Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
-				Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
-				if(!wellList.contains(well))
-					wellList.add(well);
-				if(wellList.size() == maximumWells)
+			// Reference the sorted values to the ttdPerNode to get the top wells
+			// Not the cleanest solution because TreeMaps can't be sorted by value, but it works
+			for(Float ttdMinimum: values) {
+				for(Integer node: ttdPerNode.keySet()) {
+					if(ttdPerNode.get(node).equals(ttdMinimum)) { //Match
+						Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
+						Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
+						wellList.add(well);
+						if(wellList.size()==maximumWells)
+							break;
+					}
+				}
+				if(wellList.size()==maximumWells)
 					break;
 			}
-			Collections.sort(wellList, Point3i.IJ_COMPARATOR);
 		}
+		Collections.sort(wellList, Point3i.IJ_COMPARATOR);
 		return wellList;
 	}
 	
@@ -139,17 +138,16 @@ public class E4DSensors {
 		File[] files = dir.listFiles(fileFilter);
 		for(File ertInput: files) {
 			float threshold = Float.parseFloat(ertInput.getPath().substring(ertInput.getPath().lastIndexOf("_")+1, ertInput.getPath().length()-4));
-			ertDetectionTimes.put(threshold, new HashMap<Scenario, Map<Integer, Map<Integer, Float>>>());
+			ertDetectionTimes.put(threshold, new HashMap<String, Map<Integer, Map<Integer, Float>>>());
 			ertPotentialWellPairings.put(threshold, new HashMap<Integer, List<Integer>>());
 			
-			set.getSensors().add("Electrical Conductivity_" + threshold);
-			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold, set.getScenarios()));
-			set.getSensorSettings().get("Electrical Conductivity_" + threshold).setUserSettings(100, Color.BLUE, threshold, threshold, Trigger.RELATIVE_DELTA, false, DeltaType.BOTH, 0, 0);
+			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold));
+			set.getSensorSettings().get("Electrical Conductivity_" + threshold).setUserSettings(100, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, 0, 0);
 			set.getNodeStructure().getDataTypes().add("Electrical Conductivity_" + threshold);
 			
 			// Here, we want to read sensor pairings and times from the matrix
 			String line = "";
-			List<Scenario> scenarios = set.getScenarios();
+			List<String> scenarios = set.getScenarios();
 			List<Integer> validNodes = new ArrayList<Integer>();
 			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
 			try (BufferedReader br = new BufferedReader(new FileReader(ertInput))) {
@@ -160,7 +158,7 @@ public class E4DSensors {
 					String[] lineList = line.split(",");
 
 					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
-					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration).getScenario()) && !lineList[0].equals("")) {
+					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration)) && !lineList[0].equals("")) {
 						validNodes.clear();
 						for (int j=1; j<lineList.length; j++) {
 							String[] ijList = lineList[j].split(":");
@@ -199,7 +197,7 @@ public class E4DSensors {
 				
 				//Final check if any potential wells had no detections across all scenarios and delete
 				Map<Integer, Float> zeroDetectionWells = new HashMap<Integer, Float>();
-				for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+				for(String scenario: ertDetectionTimes.get(threshold).keySet()) {
 					for(Integer primaryWell: ertDetectionTimes.get(threshold).get(scenario).keySet()) {
 						if(!zeroDetectionWells.containsKey(primaryWell))
 							zeroDetectionWells.put(primaryWell, (float)0);
@@ -211,7 +209,7 @@ public class E4DSensors {
 				}
 				for(Integer primaryWell: zeroDetectionWells.keySet()) {
 					if(zeroDetectionWells.get(primaryWell)==0) {
-						for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+						for(String scenario: ertDetectionTimes.get(threshold).keySet()) {
 							ertDetectionTimes.get(threshold).get(scenario).remove(primaryWell);//TODO: Do I also need to remove from secondary well lists?
 						}
 					}
@@ -222,14 +220,14 @@ public class E4DSensors {
 			}
 			// Add top well pairings
 			if(!ertDetectionTimes.get(threshold).isEmpty()) {
-				Scenario firstScenario = set.getScenarios().get(0);
+				String firstScenario = set.getScenarios().get(0);
 				for(Integer firstWellLoop: ertDetectionTimes.get(threshold).get(firstScenario).keySet()) {
 					List<Float> averageTTD = new ArrayList<Float>(); // As a list, this is easier to sort and clip
 					Map<Integer, Float> tempWellPairings = new HashMap<Integer, Float>(); // Unsorted list
 					List<Integer> wellList = new ArrayList<Integer>();
 					for(Integer secondWellLoop: ertDetectionTimes.get(threshold).get(firstScenario).get(firstWellLoop).keySet()) {
 						float sumTTD = 0;
-						for(Scenario scenarioLoop: ertDetectionTimes.get(threshold).keySet())
+						for(String scenarioLoop: ertDetectionTimes.get(threshold).keySet())
 							sumTTD =+ ertDetectionTimes.get(threshold).get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
 						float avgTTD = sumTTD / ertDetectionTimes.get(threshold).size();
 						if(avgTTD!=0)
@@ -258,18 +256,16 @@ public class E4DSensors {
 	
 	
 	// This method returns valid nodes for E4D
-	public static HashSet<Integer> setValidNodesERT(IProgressMonitor monitor, float threshold) {
+	public static HashSet<Integer> setValidNodesERT(float threshold) {
 		HashSet<Integer> validNodes = new HashSet<Integer>();
-		for(Scenario scenario: ertDetectionTimes.get(threshold).keySet()) {
+		for(String scenario: ertDetectionTimes.get(threshold).keySet())
 			validNodes.addAll(ertDetectionTimes.get(threshold).get(scenario).keySet());
-			monitor.worked(300/ertDetectionTimes.get(threshold).size()); //TODO: Monitor needs to be updated so that it adds the correct amount worked with multiple thresholds
-		}
 		return validNodes;
 	}
 	
 	
 	// This method tells the Simulated Annealing process whether sensors have been triggered by ERT (reads matrix)
-	public static Boolean ertSensorTriggered(TimeStep timestep, Scenario scenario, Integer nodeNumber, float threshold) throws Exception{
+	public static Boolean ertSensorTriggered(TimeStep timestep, String scenario, Integer nodeNumber, float threshold) throws Exception{
 		Boolean triggered = false;
 		
 		// Return as triggered only if the timestep exceeds the detection value for the well pairing
@@ -285,7 +281,7 @@ public class E4DSensors {
 	
 	
 	// Emulates the above function, but forces the selection of the best well pairing
-	public static Boolean ertBestSensorTriggered(TimeStep timestep, Scenario scenario, Integer nodeNumber, float threshold) throws Exception{
+	public static Boolean ertBestSensorTriggered(TimeStep timestep, String scenario, Integer nodeNumber, float threshold) throws Exception{
 		Boolean triggered = false;
 		
 		// Return as triggered only if the timestep exceeds the detection value for the well pairing

@@ -23,7 +23,6 @@ import org.eclipse.swt.widgets.Text;
 
 import objects.Sensor;
 import utilities.Constants;
-import utilities.Constants.ModelOption;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -134,7 +133,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		setLabel.setFont(boldFont);
 		probabilityLabel.setFont(boldFont);
 		
-		for(final String dataType: data.getSet().getSensors()) {
+		for(final String dataType: data.getSet().getSensorSettings().keySet()) {
 			
 			final Label dataLabel = new Label(container, SWT.NULL);
 			dataLabel.setText(Sensor.sensorAliases.get(dataType) + " (Cost = " + data.getSet().getSensorSettings().get(dataType).getSensorCost() + ")");

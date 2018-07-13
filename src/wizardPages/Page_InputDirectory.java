@@ -106,12 +106,15 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	public void completePage() throws Exception {	
 		isCurrentPage = false;
 		
-		HDF5Interface.paretoMap.clear();
+		// We want to essentially reset everything at this point
+		data.getSet().getParetoMap().clear();
 		HDF5Interface.statistics.clear();
 		
+		// Read in scenario and parameter information from the files
 		Constants.homeDirectory = directory;
 		data.setupScenarioSet(modelOption, MUTATE.SENSOR, simulation, fileDirectoryText.getText());
 		data.getSet().setScenarioEnsemble(fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator)+1));
+		// Ask for porosity input if it doesn't exist yet
 		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()){
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
@@ -122,10 +125,11 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	public void loadPage() {
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren()) {
+		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
-		}
+		
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Input Directory");
 		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));

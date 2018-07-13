@@ -1,8 +1,5 @@
 package objects;
 
-import hdf5Tool.HDF5Interface;
-
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,7 +11,6 @@ import java.util.logging.Level;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import functions.SimulatedAnnealing;
 import utilities.Constants;
 import utilities.Point3f;
 
@@ -26,9 +22,7 @@ import utilities.Point3f;
  */
 
 public class SensorSetting {
-	
-	public static HashMap<String, String> sensorTypeToDataType;
-	
+		
 	public enum Trigger {
 		
 		MAXIMUM_THRESHOLD("Maximum threshold"), MINIMUM_THRESHOLD("Minimum threshold"), 
@@ -69,61 +63,57 @@ public class SensorSetting {
 
 	private float minZ;
 	private float maxZ;
-
+	
 	private Trigger trigger;
 	private DeltaType deltaType;
 
-	private float lowerThreshold;
-	private float upperThreshold;
+	private float detectionThreshold;
 
 	private HashSet<Integer> validNodes; //Pareto optimal locations (if set in Constants class)
 	private HashSet<Integer> fullCloudNodes; //Full set of allowed locations
-	private static Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear;
+	private static Map<String, HashMap<Float, Float>> volumeDegradedByYear;
 	private static List<Float> years;
 	public static float globalMinZ;
 	public static float globalMaxZ;
-
-	private Color color;
-
-	private boolean nodesReady;
-
-	private List<Scenario> scenarios; // If this changes these will need to be updated
-	public NodeStructure nodeStructure;
+	private String specificType;
+	
+	private NodeStructure nodeStructure;
 		
-	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type, List<Scenario> scenarios) {
+	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type) {
 
 		this.nodeStructure = nodeStructure;
-		this.scenarios = scenarios;
 		this.type = type;
-		this.sensorCost = 100;
+		sensorCost = 100;
 
-		this.trigger = Trigger.MAXIMUM_THRESHOLD;
-		this.setDeltaType(DeltaType.BOTH);
-		this.lowerThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
-		this.upperThreshold = 0; //Based on the trigger, detection value, this represents the range for valid nodes
-		this.setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
-		this.setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
+		trigger = Trigger.MAXIMUM_THRESHOLD;
+		setDeltaType(DeltaType.BOTH);
+		detectionThreshold = 0; //Based on the trigger, this represents the range for valid nodes
+		setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
+		setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
 		
-		this.validNodes = new HashSet<Integer>(); //None yet
-		this.color = Color.GREEN;	
-
-		this.nodesReady = false;
-
+		fullCloudNodes = new HashSet<Integer>(); //Added later
+		validNodes = new HashSet<Integer>(); //Added later
+		
+		specificType = getSpecificType();
+		
 		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
 
 	}
 	
 	
-	public static void setVolumeDegradedByYear(Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
+	public static void setVolumeDegradedByYear(Map<String, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
 		years = yearList;
 		volumeDegradedByYear = volumeDegradedByYear2;
 	}
 	
+	public static List<Float> getYears() {
+		return years;
+	}
 	
-	public static Map<Scenario, Float> getVolumesDegraded(Map<Scenario, Float> ttdMap){
-		HashMap<Scenario, Float> vadMap = new HashMap<Scenario, Float>();
-		for(Scenario scenario: ttdMap.keySet()){
+	public static Map<String, Float> getVolumesDegraded(Map<String, Float> ttdMap){
+		HashMap<String, Float> vadMap = new HashMap<String, Float>();
+		for(String scenario: ttdMap.keySet()){
 			if(volumeDegradedByYear.containsKey(scenario)){
 				int i=1;
 				while(i <= years.size()){
@@ -143,10 +133,10 @@ public class SensorSetting {
 		return vadMap;
 	}
 	
-	public static float getVolumeDegradedByTTDs(Map<Scenario, Float> ttdMap, int numScenarios) {
+	public static float getVolumeDegradedByTTDs(Map<String, Float> ttdMap, int numScenarios) {
 		float volume = 0;
 		//Note that this only loops over scenarios in which some volume of aquifer is degraded
-		for(Scenario scenario: volumeDegradedByYear.keySet()){
+		for(String scenario: volumeDegradedByYear.keySet()){
 			if(!ttdMap.containsKey(scenario) && years.size() != 0){
 				volume += volumeDegradedByYear.get(scenario).get(years.get(years.size()-1));
 				continue;
@@ -169,7 +159,7 @@ public class SensorSetting {
 		int numScenarios = volumeDegradedByYear.keySet().size();
 		for(Float year: years){
 			float totalVAD = 0;
-			for(Scenario scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()){
 				totalVAD += volumeDegradedByYear.get(scenario).get(year);
 			}
 			averageVADMap.put(year, totalVAD/numScenarios);
@@ -181,7 +171,7 @@ public class SensorSetting {
 		HashMap<Float,Float> maxVADMap = new HashMap<Float,Float>();
 		for(Float year: years){
 			float maxVAD = 0;
-			for(Scenario scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()){
 				maxVAD = Math.max(maxVAD, volumeDegradedByYear.get(scenario).get(year));
 			}
 			maxVADMap.put(year, maxVAD);
@@ -193,7 +183,7 @@ public class SensorSetting {
 		HashMap<Float,Float> minVADMap = new HashMap<Float,Float>();
 		for(Float year: years){
 			float minVAD = Float.MAX_VALUE;
-			for(Scenario scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()){
 				minVAD = Math.min(minVAD, volumeDegradedByYear.get(scenario).get(year));
 			}
 			minVADMap.put(year, minVAD);
@@ -201,70 +191,27 @@ public class SensorSetting {
 		return minVADMap;
 	}
 
-	public void setUserSettings(float sensorCost, Color color, float lowerThreshold, float upperThreshold, Trigger trigger, boolean reset,
-			DeltaType deltaType, float minZ, float maxZ) {
+	public void setUserSettings(float sensorCost, float detectionThreshold, Trigger trigger, DeltaType deltaType, float minZ, float maxZ) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
 		
-		boolean changeOccured = reset; // Don't re-query if we don't need to!
-
 		float realMaxZ = Math.max(minZ, maxZ);
 		float realMinZ = Math.min(minZ, maxZ);
 		
-		if(Float.compare(sensorCost, this.sensorCost) != 0) {
-			this.sensorCost = sensorCost;
-			changeOccured = true;
-		}
-	
-		if(!this.color.equals(color)) {
-			this.color = color;
-			changeOccured = true;
-		}			
-
-		if(Float.compare(this.lowerThreshold, lowerThreshold) != 0) {
-			this.lowerThreshold = lowerThreshold;
-			changeOccured = true;
-		}
-		
-		if(Float.compare(this.upperThreshold, upperThreshold) != 0) {
-			this.upperThreshold = upperThreshold;
-			changeOccured = true;
-		}
-		
-		if(this.getTrigger() != trigger) {
-			this.trigger = trigger;
-			changeOccured = true;
-		}
-		
-		if(this.getDeltaType() != deltaType) {
-			this.deltaType = deltaType;
-			changeOccured = true;
-		}
-		
-		if(getThisMinZ() != minZ) {
-			this.minZ = realMinZ;
-			changeOccured = true;
-		}
-		
-		if(getThisMaxZ() != maxZ) {
-			this.maxZ = realMaxZ;
-			changeOccured = true;
-		}
-		
-		if(changeOccured) {
-			// Clear the vis window
-			this.nodesReady = false; // We will need to re-query the database
-			
-		}
+		this.sensorCost = sensorCost;
+		this.detectionThreshold = detectionThreshold;
+		this.trigger = trigger;
+		this.deltaType = deltaType;
+		this.minZ = realMinZ;
+		this.maxZ = realMaxZ;
+		this.specificType = getSpecificType();
 
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
 	}
 	
 	public void setValidNodes(HashSet<Integer> newSet){
-		if(this.validNodes == null) this.validNodes = new HashSet<Integer>();
-		else this.validNodes.clear();
-		this.validNodes.addAll(newSet);
-		nodesReady = true;
+		validNodes = new HashSet<Integer>();
+		validNodes.addAll(newSet);
 	}
 	
 	public void setFullCloudNodes(HashSet<Integer> newSet){
@@ -272,109 +219,56 @@ public class SensorSetting {
 		else this.fullCloudNodes.clear();
 		this.fullCloudNodes.addAll(newSet);
 	}
-
-	// Update the valid nodes based on current settings 
-	private void setValidNodes(IProgressMonitor monitor) {
-
+	
+	
+	public void setNodes(ScenarioSet set) {
+		
+		fullCloudNodes.clear();
 		validNodes.clear();
-
-		Constants.log(Level.INFO, "Sensor settings "+type+": setting valid nodes", null);
-
-		if(type.contains("Electrical Conductivity")) {
-			validNodes = E4DSensors.setValidNodesERT(monitor, lowerThreshold);
+		
+		if(type.contains("Electrical Conductivity"))
+			fullCloudNodes = validNodes = E4DSensors.setValidNodesERT(detectionThreshold);
+		else {
+			// From the paretoMap, we just need to get a list of nodes that exist across selected scenarios (fullCloudNodes)
+			for(String scenario: set.getScenarios()) {
+				for(Integer node: set.getParetoMap().get(specificType).get(scenario).keySet())
+					fullCloudNodes.add(node);
+			}
+			
+			// Remove nodes outside of Z range
+			trimZ();
+			
+			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
+			validNodes = fullCloudNodes;
+			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
+				paretoOptimal(set.getParetoMap(), set.getScenarios());
 		}
-		
-		else if(getTrigger() == Trigger.MAXIMUM_THRESHOLD || getTrigger() == Trigger.MINIMUM_THRESHOLD) {
-
-			Map<String, HashSet<Integer>> validNodesPerScenario = new HashMap<String, HashSet<Integer>>();
-			for(Scenario scenario: scenarios) {
-				// Query for valid nodes per scenario
-				HashSet<Integer> nodes = null;
-				try {
-					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
-					validNodesPerScenario.put(scenario.toString(), nodes);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				monitor.worked(600/scenarios.size());
-			}
-			if(!validNodesPerScenario.isEmpty()) {
-				HashSet<Integer> allNodes = null;
-				for(String scenario: validNodesPerScenario.keySet()) {
-					HashSet<Integer> nodes = validNodesPerScenario.get(scenario);
-				//	System.out.println(scenario + " " + type + " nodes: " + nodes);
-					if(allNodes==null)
-						allNodes = new HashSet<Integer>(nodes);
-					else
-						allNodes.addAll(nodes);
-				}
-				for(Integer node: allNodes) {
-					validNodes.add(node);
-				}
-			}			
-		} else {
-		
-			HashSet<Integer> allNodes = null;
-			for(Scenario scenario: scenarios) {
-				try {
-					HashSet<Integer> nodes = null;
-					nodes = HDF5Interface.queryNodes(nodeStructure, scenario.toString(), type, lowerThreshold, upperThreshold, trigger, deltaType, monitor);
-					if(allNodes==null)
-						allNodes = new HashSet<Integer>(nodes);
-					else
-						allNodes.addAll(nodes); 
-			//		System.out.println(scenario + " " + type + " nodes: " + nodes);			
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				monitor.worked(600/scenarios.size());
-			}
-			for(Integer nodeNumber: allNodes) {
-				validNodes.add(nodeNumber);
-			}
-		}
-		
-	//	System.out.println(type + " total nodes: " + validNodes);
-
-		nodesReady = true;
-		trimZ();
-		
-		fullCloudNodes = new HashSet<Integer>(validNodes);
-		
-		if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
-			paretoOptimal(monitor);
-		
-		Constants.log(Level.CONFIG, "Sensor settings: set valid nodes", this);
 	}
+	
 	
 	private void trimZ(){
 		//Find the nodes that fit this z restriction
-		HashSet<Integer> temp = new HashSet<Integer>();
-		for(Integer node: validNodes){
+		for(Integer node: fullCloudNodes) {
 			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
-			if (getThisMinZ() <= test.getZ() && test.getZ() <= getThisMaxZ()){
-				temp.add(node);
-			}
-			else{
-				//System.out.println(test.getZ() + "\t" + minZ + ":" + maxZ);
-			}
+			if(test.getZ() < minZ || test.getZ() > maxZ) //outside of bounds
+				fullCloudNodes.remove(node);
 		}
-		validNodes.clear();
-		validNodes.addAll(temp);
 	}
 	
-	private void paretoOptimal(IProgressMonitor monitor){
+	public int getNodeSize() {
+		return validNodes.size();
+	}
+	
+	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> paretoMap, List<String> scenarios) {
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		String specificType = getSpecificType();
 		
-		monitor.subTask("Reducing the size of triggering nodes for " + type + " using pareto optimal");
-		for(Integer nodeNumber: validNodes){
+		for(Integer nodeNumber: validNodes) {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
-			for(Scenario scenario: scenarios){
-				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(nodeStructure, this, specificType, scenario.getScenario(), nodeNumber);
-				if(timeToDegredation==null)
-					timeToDegredation = Float.MAX_VALUE;
+			for(String scenario: scenarios) {
+				Float timeToDegredation = Float.MAX_VALUE;
+				if(paretoMap.get(specificType).get(scenario).containsKey(nodeNumber))
+					timeToDegredation = paretoMap.get(specificType).get(scenario).get(nodeNumber);
 				ttds.add(timeToDegredation);
 			}
 			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
@@ -419,7 +313,6 @@ public class SensorSetting {
 				optimalSolutions.put(nodeNumber, ttds);
 			}
 		}
-		monitor.worked(400);
 		System.out.println("Pareto Optimal just pared down valid nodes for " + specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
 		validNodes.clear();
 		validNodes.addAll(optimalSolutions.keySet());
@@ -427,14 +320,14 @@ public class SensorSetting {
 	
 
 	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
-	public static HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<Scenario> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
+	public HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<String> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings, Map<String, Map<String, Map<Integer, Float>>> paretoMap){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
 		for(Integer nodeNumber: allNodes){
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
-			for(Scenario scenario: scenarios){
-				Float timeToDegredation = SimulatedAnnealing.getParetoTTD(ns, sensorSettings.get("all"), "all", scenario.getScenario(), nodeNumber);
+			for(String scenario: scenarios){
+				Float timeToDegredation = paretoMap.get(scenario).get("all").get(nodeNumber);
 				if(timeToDegredation!=null)
 					ttds.add(timeToDegredation);
 			}
@@ -503,32 +396,14 @@ public class SensorSetting {
 		this.sensorCost = sensorCost;
 	}
 	
-	public synchronized Set<Integer> getValidNodes(IProgressMonitor monitor) {
-		if(!nodesReady && monitor != null)
-			setValidNodes(monitor);
-		if(!nodesReady && monitor == null) {
-			System.err.println("Nodes are not ready and we didn't provide a progress monitor, fix this.");
-		}
+	public Set<Integer> getValidNodes(IProgressMonitor monitor) { //TODO: remove monitor
 		return validNodes;
 	}
 	
-	public synchronized Set<Integer> getCloudNodes(IProgressMonitor monitor) {
-		if(!areNodesReady() && monitor != null)
-			setValidNodes(monitor);
-		if(!areNodesReady() && monitor == null) {
-			System.err.println("Nodes are not ready and we didn't provide a progress monitor, fix this.");
-		}
+	public Set<Integer> getCloudNodes(IProgressMonitor monitor) { //TODO: remove monitor
 		return fullCloudNodes;
 	}
 	
-	public boolean areNodesReady() {
-		return nodesReady;
-	}
-	
-	public void setNodesReady(boolean nodesReady) {
-		this.nodesReady = nodesReady;
-	}
-
 	public void removeNode(Integer node) {
 		validNodes.remove(node);
 	}
@@ -537,12 +412,16 @@ public class SensorSetting {
 		return trigger;
 	}
 	
-	public float getLowerThreshold() {
-		return lowerThreshold;
+	public void setTrigger(Trigger trigger) {
+		this.trigger = trigger;
 	}
-
-	public float getUpperThreshold() {
-		return upperThreshold;
+	
+	public float getDetectionThreshold() {
+		return detectionThreshold;
+	}
+	
+	public void setDetectionThreshold(Float detection) {
+		detectionThreshold = detection;
 	}
 	
 	public DeltaType getDeltaType() {
@@ -578,20 +457,20 @@ public class SensorSetting {
 	}
 
 	public void clearNodes() {
+		fullCloudNodes.clear();
 		validNodes.clear();
-		nodesReady = false;
 	}
 	
 	public String getSpecificType() {
 		String specificType = "";
 		if(this.getTrigger() == Trigger.MAXIMUM_THRESHOLD)
-			specificType = this.getType() + "_max_" + this.getUpperThreshold();
+			specificType = type + "_max_" + detectionThreshold;
 		else if(this.getTrigger() == Trigger.MINIMUM_THRESHOLD)
-			specificType = this.getType() + "_min_" + this.getLowerThreshold();
+			specificType = type + "_min_" + detectionThreshold;
 		else if(this.getTrigger() == Trigger.RELATIVE_DELTA)
-			specificType = this.getType() + "_rel_" + this.getLowerThreshold();
+			specificType = type + "_rel_" + detectionThreshold;
 		else if(this.getTrigger() == Trigger.ABSOLUTE_DELTA)
-			specificType = this.getType() + "_abs_" + this.getLowerThreshold();
+			specificType = type + "_abs_" + detectionThreshold;
 		return specificType;
 	}
 }

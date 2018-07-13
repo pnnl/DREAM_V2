@@ -10,10 +10,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import objects.E4DSensors;
-import objects.Scenario;
 import objects.Sensor;
 import objects.SensorSetting;
-import objects.TimeStep;
 import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
@@ -41,11 +39,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
-import functions.*;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
 import utilities.Point3i;
-import utilities.Constants.ModelOption;
 import utilities.E4DDialog;
 import utilities.E4DRunDialog;
 import wizardPages.DREAMWizard.STORMData;
@@ -67,7 +63,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	protected Map<String, Integer> num_duplicates = new HashMap<String, Integer>();
 	private Map<String, SensorData> sensorData;
-	private boolean changeSinceFindingNodes = true;
 	private Button runE4DButton;
 	
 	private boolean isCurrentPage = false;
@@ -86,9 +81,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public float cost;
 		public Trigger trigger;
 		public DeltaType deltaType;
-		public float lowerThreshold;
-		public float upperThreshold;
-		private float detection;
+		public float detectionThreshold;
 		public float minZ;
 		public float maxZ;
 		
@@ -110,9 +103,25 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private Text maxZText;
 		
 		private Combo thresholdCombo;
+		public String specificType;
 		
+		// New class for storing the data about one particular sensor type (IAM)
+		public SensorData(String specificType, SensorSetting sensorSettings) {
+			String[] tokens = specificType.split("_");
+			sensorType = tokens[0];
+			sensorName = sensorType;
+			alias = sensorName;
+			detectionThreshold = Float.parseFloat(tokens[2]);
+			trigger = iamToTrigger(tokens[1]);
+			deltaType = sensorSettings.getDeltaType();
+			cost = sensorSettings.getSensorCost();
+			minZ = minZBound = sensorSettings.getGlobalMinZ();
+			maxZ = maxZBound = sensorSettings.getGlobalMaxZ();
+			this.specificType = specificType;
+			alias = tokens[0] + "_" + tokens[2];				
+		}
 		
-		//Class for storing the data about one particular sensor type.
+		//Class for storing the data about one particular sensor type (HDF5)
 		public SensorData(SensorSetting sensorSettings, String sensorName) {
 			
 			if(sensorSettings.getType().equals(sensorName)) isDuplicate = false;
@@ -126,34 +135,33 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZ = minZBound = sensorSettings.getGlobalMinZ();
 			maxZ = maxZBound = sensorSettings.getGlobalMaxZ();
 			
-			trigger = Trigger.MINIMUM_THRESHOLD;
 			deltaType = sensorSettings.getDeltaType();
+			detectionThreshold = sensorSettings.getDetectionThreshold();
+			trigger = Trigger.MINIMUM_THRESHOLD;
+			specificType = sensorName + "_min_" + detectionThreshold;
 			
 			// Trigger should be relative delta when pressure
-			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p") || sensorType.contains("Electrical Conductivity"))
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p") || sensorType.contains("Electrical Conductivity")) {
 				trigger = Trigger.RELATIVE_DELTA;
+				specificType = sensorName + "_rel_" + detectionThreshold;
+			}
 			
 			// Trigger should be maximum threshold when pH
-			if(sensorType.trim().toLowerCase().equals("ph"))
+			else if(sensorType.trim().toLowerCase().equals("ph")) {
 				trigger = Trigger.MAXIMUM_THRESHOLD;
-			
-			// Default thresholds
-			if(trigger == Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
-				lowerThreshold = Float.MIN_VALUE;
-				upperThreshold = sensorSettings.getUpperThreshold();
-			} else if(trigger == Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-				lowerThreshold = sensorSettings.getLowerThreshold();
-				upperThreshold = Float.MAX_VALUE;
-			} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
-				lowerThreshold = sensorSettings.getLowerThreshold();
-				upperThreshold = sensorSettings.getUpperThreshold();
+				specificType = sensorName + "_max_" + detectionThreshold;
 			}
+			
+			// Exceptions for "All_SENSORS"
+			if(sensorName.contains("all")) {
+				alias = "All Selected Sensors";
+			}
+			
 			// Exceptions for ERT
 			if(sensorName.contains("Electrical Conductivity")) {
-				alias = "ERT_" + sensorSettings.getLowerThreshold();
-				detection = sensorSettings.getLowerThreshold();
+				alias = "ERT_" + detectionThreshold;
 			}
-		}	
+		}
 		
 		public void buildUI(String type) {
 			//Add a button here
@@ -278,7 +286,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
 					errorFound(topError, "  Top is not a real number.");
 					errorFound(topBoundError, "  Top outside domain bounds.");
-					changeSinceFindingNodes = true;
 					
 					//Special handling of red text for duplicates
 					if (duplicateError==false)
@@ -326,7 +333,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(duplicateError, "  Duplicate alias.");
 					errorFound(commaError, "  Cannot use commas in alias.");
 					errorFound(emptyError, "  Need to enter an alias.");
-					changeSinceFindingNodes = true;
 				}
 			});
 			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -354,7 +360,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						}
 					}
 					errorFound(costError, "  Cost is not a real number.");
-					changeSinceFindingNodes = true;
 				}
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -380,33 +385,24 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					boolean isMinimumThreshold = ((Combo)e.getSource()).getText().equals(Trigger.MAXIMUM_THRESHOLD.toString());
-					boolean isMaximumThreshold = ((Combo)e.getSource()).getText().equals(Trigger.MINIMUM_THRESHOLD.toString());
-					boolean isRelativeDetla = ((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_DELTA.toString());
-					trigger = isMinimumThreshold ? Trigger.MAXIMUM_THRESHOLD : (isMaximumThreshold ? 
-							Trigger.MINIMUM_THRESHOLD : isRelativeDetla ? Trigger.RELATIVE_DELTA : Trigger.ABSOLUTE_DELTA);	
-					if(trigger == Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
-						lowerThreshold = Float.MIN_VALUE;
-						upperThreshold = detection;
-					} else if(trigger == Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-						lowerThreshold = detection;
-						upperThreshold = Float.MAX_VALUE;
-					} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
-						lowerThreshold = upperThreshold = detection;
+					if(((Combo)e.getSource()).getText().equals(Trigger.MINIMUM_THRESHOLD.toString())) {
+						trigger = Trigger.MINIMUM_THRESHOLD;
+						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
+					} else if(((Combo)e.getSource()).getText().equals(Trigger.MAXIMUM_THRESHOLD.toString())) {
+						trigger = Trigger.MAXIMUM_THRESHOLD;
+						thresholdCombo.setToolTipText("Leak when concentration is less than value");
+					} else if(((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_DELTA.toString())) {
+						trigger = Trigger.RELATIVE_DELTA;
+						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
+					} else { //(((Combo)e.getSource()).getText().equals(Trigger.ABSOLUTE_DELTA.toString()))
+						trigger = Trigger.ABSOLUTE_DELTA;
+						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
 					}
 					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-					if(trigger == Trigger.MAXIMUM_THRESHOLD)
-						thresholdCombo.setToolTipText("Leak when concentration is less than value");
-					else if(trigger == Trigger.MINIMUM_THRESHOLD)
-						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
-					else if(trigger == Trigger.RELATIVE_DELTA)
-						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
-					else if(trigger == Trigger.ABSOLUTE_DELTA)
-						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
-					changeSinceFindingNodes = true;
+					getSpecificType();
 				}
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -415,9 +411,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Detection Value
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			detectionText.setText(String.valueOf(sensorData.get(type).detection));
-			if(HDF5Interface.queryStatistic(type, 0)!=null)
-				detectionText.setToolTipText("Minimum = " + HDF5Interface.queryStatistic(type, 0) + "; Maximum = " + HDF5Interface.queryStatistic(type, 2));
+			detectionText.setText(String.valueOf(sensorData.get(type).detectionThreshold));
+			if(HDF5Interface.getStatistic(type, 0)!=null)
+				detectionText.setToolTipText("Minimum = " + HDF5Interface.getStatistic(type, 0) + "; Maximum = " + HDF5Interface.getStatistic(type, 2));
 			detectionText.setForeground(Constants.black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
@@ -428,16 +424,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
 						if(Constants.isValidFloat(temp.detectionText.getText())) { //Valid number
 							temp.detectionText.setForeground(Constants.black);
-							temp.detection = Float.valueOf(temp.detectionText.getText());
-							if(temp.trigger==Trigger.MAXIMUM_THRESHOLD) { //Anything less than the upper threshold constitutes a leak
-								temp.lowerThreshold = Float.MIN_VALUE;
-								temp.upperThreshold = temp.detection;
-							} else if(temp.trigger==Trigger.MINIMUM_THRESHOLD) { //Anything greater than the lower threshold constitutes a leak
-								temp.lowerThreshold = temp.detection;
-								temp.upperThreshold = Float.MAX_VALUE;
-							} else { //Deltas: Detection is based on change, which varies by node... just store this for now.
-								temp.lowerThreshold = temp.upperThreshold = temp.detection;
-							}
+							temp.detectionThreshold = Float.valueOf(temp.detectionText.getText());
 						} else { //Not a valid number
 							temp.detectionText.setForeground(Constants.red);
 							detectionError = true;
@@ -448,7 +435,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-					changeSinceFindingNodes = true;
+					getSpecificType();
 				}
 			});
 			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -484,7 +471,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					errorFound(botError, "  Bottom is not a real number.");
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
-					changeSinceFindingNodes = true;
 				}
 			});
 			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -520,7 +506,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					}
 					errorFound(topError, "  Top is not a real number.");
 					errorFound(topBoundError, "  Top outside domain bounds.");
-					changeSinceFindingNodes = true;
 				}
 			});
 			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -528,7 +513,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText.setLayoutData(maxZTextData);
 			
 			// Hide unused fields for ERT sensors
-			if (type.contains("Electrical Conductivity")) {
+			if(type.contains("Electrical Conductivity")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				thresholdCombo.setEnabled(false);
@@ -537,19 +522,36 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				maxZText.setEnabled(false);
 			}
 			
+			// Hide unused fields for IAM
+			if(data.fileType=="iam") {
+				addButton.setVisible(false);
+				aliasText.setEnabled(false);
+				thresholdCombo.setEnabled(false);
+				detectionText.setEnabled(false);
+			}
+			
+			// Hide unused fields for ALL_SENSORS
+			if(type.contains("all")) {
+				addButton.setVisible(false);
+				aliasText.setEnabled(false);
+				costText.setToolTipText("This sensor will detect as a combination of all selected sensors, but will move as one sensor during optimization.");
+				thresholdCombo.setVisible(false);
+				detectionText.setVisible(false);
+			}
+			
 			toggleEnabled();
 		}
 		
 		private void toggleEnabled() {
 			if(sensorTypeLabel != null && !sensorTypeLabel.isDisposed())
 				sensorTypeLabel.setEnabled(isIncluded);
-			if(aliasText != null && !aliasText.isDisposed() && !alias.contains("ERT"))
+			if(aliasText != null && !aliasText.isDisposed() && !alias.contains("ERT") && data.fileType!="iam")
 				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
-			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !alias.contains("ERT"))
+			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !sensorType.contains("all") && !alias.contains("ERT") && data.fileType!="iam")
 				thresholdCombo.setEnabled(isIncluded);					
-			if(detectionText != null && !detectionText.isDisposed() && !alias.contains("ERT"))
+			if(detectionText != null && !detectionText.isDisposed() && !sensorType.contains("all") && !alias.contains("ERT") && data.fileType!="iam")
 				detectionText.setEnabled(isIncluded);
 			if(detectionLabel != null && !detectionLabel.isDisposed())
 				detectionLabel.setEnabled(isIncluded);
@@ -561,53 +563,69 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				maxZLabel.setEnabled(isIncluded);
 			if(maxZText != null && !maxZText.isDisposed() && !alias.contains("ERT"))
 				maxZText.setEnabled(isIncluded);
-		}		
+		}
+		
+		private void getSpecificType() {
+			if(trigger == Trigger.MAXIMUM_THRESHOLD)
+				specificType = sensorType + "_max_" + detectionThreshold;
+			else if(trigger == Trigger.MINIMUM_THRESHOLD)
+				specificType = sensorType + "_min_" + detectionThreshold;
+			else if(trigger == Trigger.RELATIVE_DELTA)
+				specificType = sensorType + "_rel_" + detectionThreshold;
+			else // if(trigger == Trigger.ABSOLUTE_DELTA)
+				specificType = sensorType + "_abs_" + detectionThreshold;
+
+		}
 	}
 	
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		changeSinceFindingNodes = true;
 		if(!DREAMWizard.errorMessage.getText().contains("  No nodes were found for the provided parameters."))
 			DREAMWizard.errorMessage.setText("");
-		if(sensorData == null || data.needToResetMonitoringParameters) {
-			data.needToResetMonitoringParameters = false;
-			// New UI
-			sensorData = new TreeMap<String, SensorData>();
-			
-			//Only adds ERT sensor if a results matrix is detected in the correct location
-			if(new File(Constants.userDir, "e4d").exists())
-				E4DSensors.addERTSensor(data.getSet());
-			
-			for(String dataType: data.getSet().getAllPossibleDataTypes()) {
-				if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
-					sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
-				else // If the user went back after findings nodes, some sensors were removed and saved in another map
-					sensorData.put(dataType, new SensorData(data.getSet().getRemovedSensorSettings(dataType), dataType));
-			}
-			data.getSet().resetRemovedSensorSettings();
-		}
-		
 		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
+		
+		// Before we do anything, add E4D matrices to paretoMap
+		E4DSensors.addERTSensor(data.getSet());
+		
+		// If we need to reset sensors, this boolean will be set to true
+		if(data.needToResetMonitoringParameters) {
+			data.needToResetMonitoringParameters = false;
+			sensorData = new TreeMap<String, SensorData>(); // New UI
+			
+			// If we are dealing with H5 files, add all possible data types
+			if(data.fileType=="hdf5" && !E4DSensors.ertDetectionTimes.isEmpty()) {
+				for(String dataType: data.getSet().getAllPossibleDataTypes()) {
+					if(data.getSensorSettings(dataType) != null) // Adds all sensors from the list
+						sensorData.put(dataType, new SensorData(data.getSet().getSensorSettings(dataType), dataType));
+					else // If the user went back after findings nodes, some sensors were removed and saved in another map
+						sensorData.put(dataType, new SensorData(data.getSet().getRemovedSensorSettings(dataType), dataType));
+				}
+				data.getSet().resetRemovedSensorSettings();
+			}
+			
+			// IAM values are already stored in paretoMap, but E4D files might also be stored in paretoMap
+			else {
+				for(String specificType: data.getSet().getParetoMap().keySet()) {
+					String dataType = specificType.substring(0, specificType.indexOf("_"));
+					sensorData.put(dataType, new SensorData(specificType, data.getSet().getSensorSettings(dataType)));
+				}
+			}
+		}
 		
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		Font boldFontSmall = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
 		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Leakage Criteria");
-		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
-		infoGridData1.verticalSpan = 2;
-		infoLabel1.setLayoutData(infoGridData1);
+		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 7, 2));
 		infoLabel1.setFont(boldFont);
 		
-		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
-		infoLinkData.horizontalSpan = 1;
-		infoLinkData.verticalSpan = 2;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 		infoLink.setAlignment(SWT.RIGHT);
+		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
@@ -615,7 +633,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
 			}
 		});
-		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum and maximum values are read from the first realization read by DREAM. These are provided to give the user an idea of the values present.");
@@ -626,9 +643,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoLabel.setLayoutData(infoGridData);
 		
 		// Headers
-		Font boldFont1 = new Font(container.getDisplay(), new FontData("Helvetica", 10, SWT.BOLD));
-		
-		Label blankFiller = new Label(container, SWT.LEFT);	
+		new Label(container, SWT.NULL);	// Blank filler
 		Label monitorParams = new Label(container, SWT.LEFT);
 		Label aliasLabel = new Label(container, SWT.LEFT);
 		Label costPerSensor = new Label(container, SWT.LEFT);
@@ -636,8 +651,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Label detectionLabel = new Label(container, SWT.LEFT);
 		Label minZLabel = new Label(container, SWT.LEFT);
 		Label maxZLabel = new Label(container, SWT.LEFT);
-		
-		blankFiller.setText("");
 		monitorParams.setText("Monitoring Parameter");
 		aliasLabel.setText("Alias for Monitoring Technology");
 		costPerSensor.setText("Cost per Sensor");
@@ -645,17 +658,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		detectionLabel.setText("Detection Value");
 		minZLabel.setText("Zone Bottom");
 		maxZLabel.setText("Zone Top");
+		monitorParams.setFont(boldFontSmall);
+		aliasLabel.setFont(boldFontSmall);
+		costPerSensor.setFont(boldFontSmall);
+		detectionCriteria.setFont(boldFontSmall);
+		detectionLabel.setFont(boldFontSmall);
+		minZLabel.setFont(boldFontSmall);
+		maxZLabel.setFont(boldFontSmall);
 		
-		monitorParams.setFont(boldFont1);
-		aliasLabel.setFont(boldFont1);
-		costPerSensor.setFont(boldFont1);
-		detectionCriteria.setFont(boldFont1);
-		detectionLabel.setFont(boldFont1);
-		minZLabel.setFont(boldFont1);
-		maxZLabel.setFont(boldFont1);
-		
-		for(SensorData data: sensorData.values()) {
-			data.buildUI(data.sensorName);
+		for(SensorData sensor: sensorData.values()) {
+			sensor.buildUI(sensor.sensorName);
 		}
 		
 		Group parametersGroup = new Group(container, SWT.SHADOW_NONE);
@@ -666,50 +678,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		tempData.horizontalSpan = 10;
 		parametersGroup.setLayoutData(tempData);
 		
-		Button queryButton = new Button(parametersGroup, SWT.BALLOON);
-		queryButton.setText("Find triggering nodes");
-		queryButton.addListener(SWT.Selection, new Listener() {
+		Button findTriggeringNodes = new Button(parametersGroup, SWT.BALLOON);
+		findTriggeringNodes.setText("Find triggering nodes");
+		findTriggeringNodes.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
 				fixMacBug();
-				if(changeSinceFindingNodes==false)
-					return;
-				HDF5Interface.hdf5CloudData.clear();
-				int count = 0;
-				Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
 				
-				SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
-				Map<String, String> sensorAliases = new HashMap<String, String>();
-				if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
-				for(String label: sensorData.keySet()){
-					SensorData temp = sensorData.get(label);
-					sensorSettings.put(label, temp);
-					String alias = temp.alias;
-					sensorAliases.put(label, alias.equals("") ? label: alias);
-					SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
-					if(temp.isIncluded)
-						count++;
-				}
-				Sensor.sensorAliases = sensorAliases;
-				
-				try {
-					for(String dataType: data.getSet().getDataTypes())
-						data.getSet().getSensorSettings(dataType).setNodesReady(false);
-					
-					data.setupSensors(true, sensorSettings, count);
-					changeSinceFindingNodes = false;
-					
-					DREAMWizard.visLauncher.setEnabled(true);
-					for(String label: sensorData.keySet()){
-						SensorData temp = sensorData.get(label);
-						if(temp.isIncluded &&  data.getSet().getSensorSettings(label).areNodesReady())
-							temp.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size());
-						else
-							temp.nodeLabel.setText(label + ": Not set");
-					}
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
+				// Checks if there are any new sensor settings to be added to paretoMap
+				// Also saves sensorSetting information (i.e. cloudNodes, validNodes, sensorAliases, etc.)
+				findTriggeringNodes();
 			}	       
 		});
 		
@@ -720,8 +698,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			SensorData temp = sensorData.get(label);
 			temp.nodeLabel = new Label(parametersGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label) == null)
-				data.getSet().resetSensorSettings(label, temp.lowerThreshold, temp.upperThreshold);
-			if(data.getSet().getSensorSettings(label).areNodesReady())
+				data.getSet().resetSensorSettings(label);
+			if(data.getSet().getSensorSettings(label).getValidNodes(null).size() > 0)
 				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size() + "   ");
 			else
 				temp.nodeLabel.setText(label+ ": Not set   ");
@@ -861,7 +839,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		boolean enableVis  = false;
 		for(String label: sensorData.keySet()){
 			SensorData temp = sensorData.get(label);
-			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).areNodesReady())
+			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).getValidNodes(null).size() > 0)
 				enableVis = true;
 		}
 		
@@ -921,122 +899,141 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		Map<String, SensorData> sensorSettings = new HashMap<String, SensorData>();
-		Map<String, String> sensorAliases = new HashMap<String, String>();
-		ArrayList<String> sensors = new ArrayList<String>();
-		if(data.modelOption == ModelOption.ALL_SENSORS) sensorAliases.put("all", "all");
-		SensorSetting.sensorTypeToDataType = new HashMap<String, String>();
-		int count = 0;
-		for(String label: sensorData.keySet()) {
-			SensorData senData = sensorData.get(label);
-			if (senData.isIncluded) {
-				count += data.getSet().getInferenceTest().getMinimumForType(label);
-				sensors.add(label);
-			}
-			sensorSettings.put(label, senData);
-			sensorAliases.put(label, senData.alias);
-			SensorSetting.sensorTypeToDataType.put(label, sensorData.get(label).sensorType);
-		}
-		Sensor.sensorAliases = sensorAliases;
-		data.getSet().setSensors(sensors);
-		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
-			data.getSet().getInferenceTest().setOverallMinimum(count);
-		if(changeSinceFindingNodes) {//setupSensors is time intensive, only do if changes were made
-			data.setupSensors(false, sensorSettings, count);
-			changeSinceFindingNodes = false;
-		}
-		data.needToResetWells = true;
-		volumeOfAquiferDegraded();
-		DREAMWizard.visLauncher.setEnabled(true);
+		
+		// Checks if there are any new sensor settings to be added to paretoMap
+		// Also saves sensorSetting information (i.e. cloudNodes, validNodes, sensorAliases, etc.)
+		findTriggeringNodes();
+		
+		// Count the total nodes to verify that some valid nodes were found
+		HashSet<Integer> nodes = new HashSet<Integer>();
+		for(String label: data.getSet().getSensorSettings().keySet())
+			nodes.addAll(data.getSet().getSensorSettings().get(label).getValidNodes(null));
+		if(nodes.size()==0)
+			errorFound(true, "  No nodes were found for the provided parameters.");
+		
+		// Calculate the volume of aquifer degraded
+		volumeOfAquiferDegraded(nodes);
+		
+		// Write out some setup information
+		System.out.println("Number of sensors = " + data.getSet().getSensorSettings().size());
+		System.out.println("Number of time steps = " + SensorSetting.getYears().size());
+		Float firstTime = SensorSetting.getYears().get(0);
+		System.out.println("Average volume of aquifer degraded at first time step (" + firstTime.toString() + ") = " + SensorSetting.getAverageVolumeDegradedAtTimesteps().get(firstTime).toString());
+		Float lastTime = SensorSetting.getYears().get(SensorSetting.getYears().size()-1);
+		System.out.println("Average volume of aquifer degraded at last time step (" + lastTime.toString() + ") = " + SensorSetting.getAverageVolumeDegradedAtTimesteps().get(lastTime).toString());
 	}
 	
 	
-	private void addSensor(String dataType, String newName){
+	private void addSensor(String dataType, String newName) {
 		data.getSet().addSensorSetting(newName, dataType);
 		data.getSet().getInferenceTest().setMinimumForType(newName, 1);
 		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 	}
 	
 	
-	private void volumeOfAquiferDegraded(){
-		long current = System.currentTimeMillis();
+	// Calculates a list of timesteps and a map of volume degraded by year
+	private void volumeOfAquiferDegraded(HashSet<Integer> nodes) {
 		
-		HashSet<Integer> nodes = new HashSet<Integer>();
-		boolean foundNodes = false;
-		for(String sensorType: data.getSet().getSensorSettings().keySet()){
-			nodes.addAll(data.getSet().getSensorSettings().get(sensorType).getValidNodes(null));
-			System.out.println(sensorType + ": Number of nodes = " + nodes.size());
-			if(nodes.size()!=0) //At least one node was found for a type
-				foundNodes = true;
-		}
-		//If no nodes are found, we want to throw an error message to let them know why the page didn't advance
-		if (foundNodes==false)
-			errorFound(true, "  No nodes were found for the provided parameters.");
-		
-		Map<Scenario, HashMap<Integer, Float>> timeToDegradationPerNode = new HashMap<Scenario, HashMap<Integer, Float>>();
-		
-		if (!E4DSensors.ertDetectionTimes.isEmpty())
-			E4DSensors.ertNewPairing();
-		for(Scenario scenario: data.getSet().getScenarios()){
-			timeToDegradationPerNode.put(scenario, new HashMap<Integer, Float>());
-			for(Integer nodeNumber: nodes){	
-				Float timeToDegredation = null;
-				for (TimeStep timeStep: data.getSet().getNodeStructure().getTimeSteps()){
-					for(String sensorType: data.getSet().getSensorSettings().keySet()){
-						try {
-							if (sensorType.contains("Electrical Conductivity")) {
-								if(E4DSensors.ertSensorTriggered(timeStep, scenario, nodeNumber, data.getSet().getSensorSettings(sensorType).getLowerThreshold()))
-									timeToDegredation = timeStep.getRealTime();
-							} else {
-								if(SimulatedAnnealing.sensorTriggered(data.getSet().getSensorSettings(sensorType).getSpecificType(), scenario.getScenario(), nodeNumber, timeStep))
-									timeToDegredation = timeStep.getRealTime();
-							}
-						} catch (Exception e) {
-							System.out.println("Unable to get time to degradation");
-							e.printStackTrace();
-						}
-						if(timeToDegredation != null) break;
-					}
-					//Break after finding the earliest time where a detection occurred for any sensor
-					if(timeToDegredation != null) break;
-				}
-				//Add the time to degradation for each node
-				if(timeToDegredation != null) timeToDegradationPerNode.get(scenario).put(nodeNumber, timeToDegredation);
-			}
-		}
-		
-		System.out.println("Number of scenarios = " + timeToDegradationPerNode.size());
-		
-		Map<Scenario, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<Scenario, HashMap<Float, Float>>();
+		// Loop through scenarios and sensor types to get a list of all detection times or timesteps
+		// Also create a TTD map that combines all the selected sensors (for quicker VOD calculations)
+		Map<String, HashMap<Integer, Float>> earliestDetectionForAllSensors = new HashMap<String, HashMap<Integer, Float>>(); //Scenario <NodeNumber, Detection>
+		for(String scenario: data.getSet().getAllScenarios())
+			earliestDetectionForAllSensors.put(scenario, new HashMap<Integer, Float>()); //initialize scenarios
 		HashSet<Float> years = new HashSet<Float>();
-		for(Scenario scenario: timeToDegradationPerNode.keySet()){
-			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
-			for(Integer nodeNumber: timeToDegradationPerNode.get(scenario).keySet()){
-				Float year = timeToDegradationPerNode.get(scenario).get(nodeNumber);
-				years.add(year);
-				Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber);
-				if(!volumeDegradedByYear.get(scenario).containsKey(year))
-					volumeDegradedByYear.get(scenario).put(year, data.getSet().getNodeStructure().getVolumeOfNode(location));
-				else
-					volumeDegradedByYear.get(scenario).put(year, volumeDegradedByYear.get(scenario).get(year) + data.getSet().getNodeStructure().getVolumeOfNode(location));
+		for(SensorData sensor: sensorData.values()) {
+			if(!sensor.isIncluded) continue; //Only included sensors
+			if(!sensor.sensorType.contains("Electrical Conductivity")) {
+				for(String scenario: data.getSet().getParetoMap().get(sensor.specificType).keySet()) {
+					for(Integer nodeNumber: data.getSet().getParetoMap().get(sensor.specificType).get(scenario).keySet()) {
+						float ttd = data.getSet().getParetoMap().get(sensor.specificType).get(scenario).get(nodeNumber);
+						years.add(ttd); //TODO: If IAM has too many steps, round values to nearest year to reduce
+						if(!earliestDetectionForAllSensors.get(scenario).containsKey(nodeNumber))
+							earliestDetectionForAllSensors.get(scenario).put(nodeNumber, ttd);
+						else if (ttd < earliestDetectionForAllSensors.get(scenario).get(nodeNumber))
+							earliestDetectionForAllSensors.get(scenario).put(nodeNumber, ttd);
+					}
+				}
+			} else { // ERT is currently stored in a separate matrix, handle it differently
+				E4DSensors.ertNewPairing();
+				for(String scenario: E4DSensors.ertDetectionTimes.get(sensor.detectionThreshold).keySet()) {
+					for(Integer primaryNode: E4DSensors.ertDetectionTimes.get(sensor.detectionThreshold).get(scenario).keySet()) {
+						for(Float ttd: E4DSensors.ertDetectionTimes.get(sensor.detectionThreshold).get(scenario).get(primaryNode).values()) {
+							years.add(ttd);
+							if(!earliestDetectionForAllSensors.get(scenario).containsKey(primaryNode))
+								earliestDetectionForAllSensors.get(scenario).put(primaryNode, ttd);
+							else if (ttd < earliestDetectionForAllSensors.get(scenario).get(primaryNode))
+								earliestDetectionForAllSensors.get(scenario).put(primaryNode, ttd);
+						}
+					}
+				}
 			}
 		}
 		
-		System.out.println("Number of time steps = " + years.size());
-		
+		// Sort the timesteps
 		ArrayList<Float> sortedYears = new ArrayList<Float>(years);
 		java.util.Collections.sort(sortedYears);
-		for(Scenario scenario: volumeDegradedByYear.keySet()){
-			if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(0))) volumeDegradedByYear.get(scenario).put(sortedYears.get(0), 0f);
-			for(int i=1; i<sortedYears.size(); ++i){
-				if(!volumeDegradedByYear.get(scenario).containsKey(sortedYears.get(i))) volumeDegradedByYear.get(scenario).put(sortedYears.get(i), 0f);
-				volumeDegradedByYear.get(scenario).put(sortedYears.get(i), volumeDegradedByYear.get(scenario).get(sortedYears.get(i)) + volumeDegradedByYear.get(scenario).get(sortedYears.get(i-1)));
+		
+		// Determine the volume of aquifer degraded per scenario
+		Map<String, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<String, HashMap<Float, Float>>(); //Scenario <Year, VolumeDegraded>
+		float vod = 0;
+		for(String scenario: data.getSet().getScenarios()) {
+			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
+			for(Float time: sortedYears) {
+				for(Integer nodeNumber: earliestDetectionForAllSensors.get(scenario).keySet()) {
+					if(earliestDetectionForAllSensors.get(scenario).get(nodeNumber) <= time) {
+						Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber); //get location of node that detected at this time
+						vod =+ data.getSet().getNodeStructure().getVolumeOfNode(location); //convert the found node into a volume and add cumulatively
+					}
+				}
+				volumeDegradedByYear.get(scenario).put(time, vod);
 			}
 		}
+		
+		// Save the VOD information
 		SensorSetting.setVolumeDegradedByYear(volumeDegradedByYear, sortedYears);
-
-		long total = System.currentTimeMillis() - current;
-		System.out.println("New volume of aquifer degraded time:\t" + total/1000 + "." + total%1000);
+	}
+	
+	//We want to do the same process when the page is completed or the "find triggering nodes" is selected
+	private void findTriggeringNodes() {
+		
+		// sensorSettings needs to only have selected sensors now
+		// Also create a map of sensors where we need to find nodes
+		Sensor.sensorAliases = new HashMap<String, String>();
+		ArrayList<SensorData> newSensors = new ArrayList<SensorData>();
+		ArrayList<SensorData> activeSensors = new ArrayList<SensorData>();
+		int count = 0;
+		for(String label: sensorData.keySet()) {
+			SensorData sensor = sensorData.get(label);
+			if (!sensor.isIncluded)
+				data.getSet().removeSensorSettings(sensor.sensorName);
+			else {
+				count += data.getSet().getInferenceTest().getMinimumForType(label);
+				activeSensors.add(sensor);
+				if(!data.getSet().getParetoMap().containsKey(sensor.specificType) && !sensor.sensorType.contains("Electrical Conductivity"))
+					newSensors.add(sensor); //if these settings are new to the paretoMap, we need to add them
+			}
+			Sensor.sensorAliases.put(label, sensor.alias);
+		}
+		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
+			data.getSet().getInferenceTest().setOverallMinimum(count);
+		data.needToResetWells = true;
+		
+		// Based on the list of H5 sensors above, add results to paretoMap
+		// Calculate the sum of nodes that detect (cloudNodes)
+		// Run pareto optimization to get the final set of valid nodes (validNodes)
+		data.setupSensors(newSensors, activeSensors);
+		
+		// Write the number of valid nodes to the display
+		for(String label: sensorData.keySet()) {
+			SensorData sensor = sensorData.get(label);
+			if(sensor.isIncluded)
+				sensor.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getNodeSize());
+			else
+				sensor.nodeLabel.setText(label + ": Not set");
+		}
+		
+		// Now that we've found nodes, make vis available
+		DREAMWizard.visLauncher.setEnabled(true);	
 	}
 	
 	//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
@@ -1050,6 +1047,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			}
 		}
+	}
+		
+	private Trigger iamToTrigger(String trigger) {
+		Trigger temp = null;
+		if(trigger.contains("min"))
+			temp = Trigger.MINIMUM_THRESHOLD;
+		else if(trigger.contains("max"))
+			temp = Trigger.MAXIMUM_THRESHOLD;
+		else if(trigger.contains("rel"))
+			temp = Trigger.RELATIVE_DELTA;
+		else if(trigger.contains("abs"))
+			temp = Trigger.ABSOLUTE_DELTA;
+		return temp;
 	}
 	
 	@Override

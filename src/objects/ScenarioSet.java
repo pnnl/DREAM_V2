@@ -1,6 +1,5 @@
 package objects;
 
-import hdf5Tool.HDF5Interface;
 import objects.SensorSetting.Trigger;
 
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.logging.Level;
 
 import utilities.Constants;
 import utilities.Constants.ModelOption;
+import wizardPages.Page_LeakageCriteria.SensorData;
 import utilities.Point3f;
 import utilities.Point3i;
 
@@ -29,10 +29,14 @@ public class ScenarioSet {
 	 *  Scenarios must share common node structure
 	 */
 	private NodeStructure nodeStructure;
-	private List<Scenario> allScenarios;
-	private List<Scenario> scenarios;
-	private List<String> sensors;
+	private List<String> allScenarios;
+	private List<String> scenarios;
 	private List<Well> wells;
+	
+	// paretoMap stores values of TTD for all scenarios and specific sensors
+	// IAM files are immediately loaded into paretoMap
+	// H5 files are loaded to paretoMap at Page_LeakageCriteria based on user input settings, and saved as more are added
+	private Map<String, Map<String, Map<Integer, Float>>> paretoMap; //Specific Type <Scenario <Index, TTD>> //TODO: should probably rename this to "detectionMap"
 	
 	/**
 	 * User settings - 
@@ -49,7 +53,7 @@ public class ScenarioSet {
 	private boolean allowMultipleSensorsInWell;
 	private String scenarioEnsemble;
 	
-	private Map<Scenario, Float> scenarioWeights;
+	private Map<String, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
 	//Finding nodes removes some sensor settings, causing problems going back a page and then forward again
 	//When removing sensor settings, they are instead saved in this Hashmap
@@ -63,14 +67,15 @@ public class ScenarioSet {
 	public ScenarioSet() {
 		isReady = false;
 		
-		scenarios = new ArrayList<Scenario>();
-		allScenarios = new ArrayList<Scenario>();
-		scenarioWeights = new HashMap<Scenario, Float>();
-		sensorSettings = new HashMap<String, SensorSetting>();
-		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
-		sensors = new ArrayList<String>();
+		allScenarios = new ArrayList<String>();
+		scenarios = new ArrayList<String>();
 		wells = new ArrayList<Well>();
 		
+		paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
+		
+		scenarioWeights = new HashMap<String, Float>();
+		sensorSettings = new HashMap<String, SensorSetting>();
+		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
 		scenarioEnsemble = "";
 		addPoint = new Point3i(1,1,1);
 		maxWells = 10;
@@ -91,14 +96,15 @@ public class ScenarioSet {
 	public void clearRun() {
 		isReady = false;
 		
-		scenarios.clear();
 		allScenarios.clear();
+		scenarios.clear();
+		wells.clear();
+		
+		paretoMap.clear();
+		
 		scenarioWeights.clear();
 		sensorSettings.clear();
 		sensorSettingsRemoved.clear();
-		sensors.clear();
-		wells.clear();
-		
 		scenarioEnsemble = "";
 		addPoint = new Point3i(0,0,0);
 		maxWells = 10;
@@ -124,7 +130,7 @@ public class ScenarioSet {
 		// Details about the scenario set read from the file being used
 		builder.append("Scenario ensemble: " + scenarioEnsemble + "\r\n");
 		builder.append("Scenario weights:\r\n");
-		for(Scenario scenario: scenarios)
+		for(String scenario: scenarios)
 			builder.append("\t" + scenario + " = " + scenarioWeights.get(scenario) + "\r\n");
 		
 		// Leakage criteria
@@ -134,15 +140,13 @@ public class ScenarioSet {
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
 			builder.append("\t\tCost: " + sensorSettings.get(parameter).getSensorCost() + " per sensor\r\n");
 			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD)
-				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getUpperThreshold() + "\r\n");
-			else if(sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
-				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD || sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
+				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
 			else
-				builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getLowerThreshold() + "\r\n");
+				builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
 			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
 			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
-			if(sensorSettings.get(parameter).areNodesReady()) {
+			if(sensorSettings.get(parameter).getValidNodes(null).size()>0) {
 				int size = nodeStructure.getIJKDimensions().getI() * nodeStructure.getIJKDimensions().getJ() * nodeStructure.getIJKDimensions().getK();
 				builder.append("\t\tValid nodes: " + sensorSettings.get(parameter).getValidNodes(null).size() + " of " + size + "\r\n");
 			} else {
@@ -193,24 +197,47 @@ public class ScenarioSet {
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
 
-	public void setupScenarios(List<String> inputScenarios) {
+	public void setupScenarios(List<String> inputScenarios, ModelOption modelOption) {
 		// Convert string to scenario and add to lists
 		for(String scenario: inputScenarios) {
-			Scenario s = new Scenario(scenario);
-			scenarios.add(s);
-			allScenarios.add(s);
+			scenarios.add(scenario);
+			allScenarios.add(scenario);
 		}
 		
 		// Scenario weights should start at 1.0
-		for(Scenario scenario: scenarios)
+		for(String scenario: scenarios)
 			scenarioWeights.put(scenario, (float)1);
 		
 		// Setup the sensor settings array
 		for(final String type: nodeStructure.getDataTypes())
-			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));
+			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type));
+		
+		// If all sensors was selected, add to sensor settings array
+		if(modelOption == ModelOption.ALL_SENSORS) {
+			sensorSettings.put("all", new SensorSetting(nodeStructure, ScenarioSet.this, "all"));
+			nodeStructure.addDataType("all");
+		}
 		
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
+	}
+	
+	public void paretoMapForAllSensors(ArrayList<SensorData> activeSensors) {
+		String specificType = "all_min_0.0";
+		paretoMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
+		for(String scenario: this.getAllScenarios()) {
+			paretoMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
+			for(SensorData sensor: activeSensors) {
+				if(sensor.sensorType.contains("all")) continue; //Don't double add
+				for(Integer node: paretoMap.get(sensor.specificType).get(scenario).keySet()) {
+					Float ttd = paretoMap.get(sensor.specificType).get(scenario).get(node);
+					if(!paretoMap.get(specificType).get(scenario).containsKey(node)) //Add if it doesn't exist
+						paretoMap.get(specificType).get(scenario).put(node, ttd);
+					if(ttd<paretoMap.get(specificType).get(scenario).get(node)) //If less than current, add lowest TTD
+						paretoMap.get(specificType).get(scenario).put(node, ttd);
+				}
+			}
+		}
 	}
 	
 	
@@ -223,7 +250,7 @@ public class ScenarioSet {
 		return isReady;
 	}
 	
-	public List<Scenario> getScenarios() {
+	public List<String> getScenarios() {
 		return scenarios;
 	}
 	
@@ -235,15 +262,15 @@ public class ScenarioSet {
 		this.scenarioEnsemble = scenarioEnsemble;
 	}
 	
-	public List<Scenario> getAllScenarios() {
+	public List<String> getAllScenarios() {
 		return allScenarios;
 	}
 	
-	public float getGloballyNormalizedScenarioWeight(Scenario scenario) {
+	public float getGloballyNormalizedScenarioWeight(String scenario) {
 		return scenarioWeights.get(scenario) / getTotalScenarioWeight();
 	}
 	
-	public Map<Scenario, Float> getScenarioWeights() {
+	public Map<String, Float> getScenarioWeights() {
 		return scenarioWeights;
 	}
 	
@@ -571,15 +598,10 @@ public class ScenarioSet {
 		return nodeStructure.getDataTypes();
 	}
 
-	public void resetSensorSettings(String type, float min, float max) {
+	public void resetSensorSettings(String type) {
 		if(sensorSettings.containsKey(type))
 			return; // Keep those
-		for(Scenario scenario: scenarios) {
-			if(HDF5Interface.hdf5CloudData.containsKey(scenario) && HDF5Interface.hdf5CloudData.get(scenario).containsKey(type)) {
-				HDF5Interface.hdf5CloudData.get(scenario).get(type).clear();
-			}
-		}
-		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type, this.scenarios));	// User should adjust these settings
+		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type));	// User should adjust these settings
 	}
 
 	public SensorSetting getSensorSettings(String sensorType) {
@@ -591,7 +613,7 @@ public class ScenarioSet {
 	}
 	
 	public void addSensorSetting(String name, String type){
-		sensorSettings.put(name, new SensorSetting(nodeStructure, ScenarioSet.this, type, ScenarioSet.this.scenarios));	// User should adjust these settings
+		sensorSettings.put(name, new SensorSetting(nodeStructure, ScenarioSet.this, type));	// User should adjust these settings
 	}
 	
 	public void removeSensorSettings(String dataType) {
@@ -611,12 +633,16 @@ public class ScenarioSet {
 		return new ArrayList<String>(sensorSettings.keySet());
 	}	
 	
-	public void setSensors(List<String> sensors) {
-		this.sensors = sensors;
+	public Float getParetoTTD(String specificType, String scenario, Integer nodeNumber) {
+		return paretoMap.get(specificType).get(scenario).get(nodeNumber);
 	}
-
-	public List<String> getSensors() {
-		return sensors;
+	
+	public void setParetoMap(Map<String, Map<String, Map<Integer, Float>>> paretoMap) {
+		this.paretoMap = paretoMap;
+	}
+	
+	public Map<String, Map<String, Map<Integer, Float>>> getParetoMap() {
+		return paretoMap;
 	}
 	
 	public float getTotalScenarioWeight() {

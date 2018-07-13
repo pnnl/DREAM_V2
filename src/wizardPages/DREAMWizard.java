@@ -2,7 +2,6 @@ package wizardPages;
 
 import hdf5Tool.FileBrowser;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -19,7 +17,6 @@ import javax.swing.JOptionPane;
 
 import objects.E4DSensors;
 import objects.ExtendedConfiguration;
-import objects.Scenario;
 import objects.ScenarioSet;
 import objects.SensorSetting;
 
@@ -306,8 +303,7 @@ public class DREAMWizard extends Wizard {
 		
 		public Constants.ModelOption modelOption;
 		public String fileType;
-		public Map<String, Map<String, Map<Integer, Float>>> paretoMap;
-
+		
 		public STORMData(DREAMWizard wizard) {
 			this.wizard = wizard;
 			set = new ScenarioSet();
@@ -352,7 +348,7 @@ public class DREAMWizard extends Wizard {
 						monitor.worked(6);
 						
 						monitor.subTask("reading scenarios from all files");
-						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list));
+						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list), modelOption);
 						monitor.worked(3);
 						
 						monitor.subTask("initializing algorithm");
@@ -375,10 +371,9 @@ public class DREAMWizard extends Wizard {
 						monitor.worked(2);
 						
 						monitor.subTask("reading scenarios from all files");
-						IAMInterface.readIAMFiles(list, set.getNodeStructure());
-						STORMData.this.paretoMap = IAMInterface.getParetoMap(); // Set the pareto Map
+						IAMInterface.readIAMFiles(list, set);
 						set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
-						set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
+						set.setupScenarios(IAMInterface.getScenarios(), modelOption); // Set the scenarios
 						monitor.worked(list.length);
 						
 						monitor.subTask("initializing algorithm");
@@ -396,95 +391,67 @@ public class DREAMWizard extends Wizard {
 		}
 		
 		
-		public void setupSensors(final boolean reset, final Map<String, SensorData> sensorData, final int count) throws Exception {
+		public void setupSensors(final ArrayList<SensorData> newSensors, final ArrayList<SensorData> activeSensors) {
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							if(sensorData.containsKey("Electrical Conductivity"))
-								monitor.beginTask("Sensor settings", 1000*(count-1)+301); //e4d sensors are 300 each
-							else
-								monitor.beginTask("Sensor settings", 1000*count+1); //normal sensors are 1000 each
-							for(String sensorType: sensorData.keySet()) {
+							int monitorSize = 70*newSensors.size() + 30*activeSensors.size() + 1;
+							monitor.beginTask("Sensor settings", monitorSize);
+							
+							//First we need to save active sensors to SensorSettings
+							for(SensorData sensor: activeSensors) {
 								if(monitor.isCanceled()) break;
-								SensorData data = sensorData.get(sensorType);
-								if(data.isIncluded) {
-									monitor.subTask(sensorType.toLowerCase() + " - saving data " + sensorType);
-									if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-										set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
-									}
-									set.getSensorSettings().get(sensorType).setUserSettings(data.cost, Color.BLUE, data.lowerThreshold, data.upperThreshold,
-											data.trigger, reset, data.deltaType, data.maxZ, data.minZ);
-									if(!set.getSensorSettings().get(sensorType).areNodesReady()) {
-										monitor.subTask(sensorType.toLowerCase() + " - searching for valid nodes");
-										set.getSensorSettings(sensorType).getValidNodes(monitor); // This should re-query for the valid nodes
-										// Clear the vis window
-										DREAMWizard.this.closeViewer();
-									}
-								} else {
-									monitor.subTask(sensorType.toLowerCase() + " - removing");
-									set.removeSensorSettings(sensorType);
-									set.getInferenceTest().setMinimumForType(sensorType, 0);
-								}
+								monitor.subTask(sensor.sensorType + " - saving sensor settings");
+								set.getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
+										sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ);
+								monitor.worked(5);
 							}
-							if(modelOption == ModelOption.ALL_SENSORS){
-								HashSet<Integer> nodes = new HashSet<Integer>();
-								float cost = 0;
-								for(String setting: set.getSensorSettings().keySet()){
-									if(setting.equals("all")) continue;
-									nodes.addAll(set.getSensorSettings().get(setting).getCloudNodes(monitor));
-									cost += set.getSensorSettings().get(setting).getSensorCost();
-								}
-								set.addSensorSetting("all", "all");
-								set.getSensorSettings().get("all").setSensorCost(cost);
-								set.getSensorSettings().get("all").setFullCloudNodes(nodes);
-								set.getSensorSettings().get("all").setValidNodes(SensorSetting.paretoOptimalAll(set, nodes, set.getAllScenarios(), set.getNodeStructure(), set.getSensorSettings()));
+							
+							// Then we generate a TTD matrix based for new selected sensors settings //TODO: Could be sped up if it only reads files once
+							for(SensorData sensor: newSensors) { //Only do this for H5 variables, IAM is already in paretoMap
+								if(monitor.isCanceled()) break;
+								monitor.subTask(sensor.sensorType + " - generating detection matrix");
+								if(sensor.sensorType.contains("all"))
+									set.paretoMapForAllSensors(activeSensors); //Special handling - map should be lowest detection at each node
+								else
+									HDF5Interface.createParetoMap(set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
+								monitor.worked(70);
 							}
-
-							// If the user canceled, should we clear the data????
-							if(monitor.isCanceled()) {
-								for(String sensorType: sensorData.keySet()) {							
-									SensorData data = sensorData.get(sensorType);
-									if(data.isIncluded) {
-										if(!set.getSensorSettings().containsKey(sensorType)) { // Reset it, user  must have re selected it?
-											set.resetSensorSettings(sensorType, data.lowerThreshold, data.upperThreshold);
-											set.getSensorSettings().get(sensorType).setUserSettings(data.cost, Color.BLUE, data.lowerThreshold, data.upperThreshold,
-													data.trigger, reset, data.deltaType, data.maxZ, data.minZ);
-										}
-										set.getSensorSettings().get(sensorType).setNodesReady(false);
-									} else {
-										set.removeSensorSettings(sensorType);
-										set.getInferenceTest().setMinimumForType(sensorType, 0);							
-									}
-								}
+							
+							// Last we create a list of valid nodes from the new pareto map
+							for(SensorData sensor: activeSensors) {
+								if(monitor.isCanceled()) break;
+								monitor.subTask(sensor.sensorType + " - generating a list of valid nodes");
+								set.getSensorSettings(sensor.sensorType).setNodes(set);
+								monitor.worked(25);
 							}
 							monitor.worked(1);
+							
+							// If the user canceled, clear any added data
+							if(monitor.isCanceled()) {
+								for(String scenario: set.getAllScenarios()) {
+									for(SensorData sensor: newSensors) {
+										set.getParetoMap().get(scenario.toString()).remove(sensor.specificType);
+										set.getSensorSettings(sensor.sensorType).clearNodes();
+									}
+								}
+							}
+							
 						} catch (Exception e) {
 							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 							e.printStackTrace();
 						}
-
 					}
 				});
 			} catch (Exception e) {
-				float totalNodes = 0;
-				for(String sc : HDF5Interface.hdf5CloudData.keySet()) {
-					for(float ts: HDF5Interface.hdf5CloudData.get(sc).keySet()) {
-						for(String dt: HDF5Interface.hdf5CloudData.get(sc).get(ts).keySet()) {
-							totalNodes += HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size();
-							if(HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size() > 1000)
-								System.out.println(sc + ", " + ts + ", " + dt + " , " + HDF5Interface.hdf5CloudData.get(sc).get(ts).get(dt).keySet().size());
-						}
-					}
-				}
-				System.out.print("Cloud currently has: ");
-				System.out.println(totalNodes);
-				JOptionPane.showMessageDialog(null, "Dream is out of memory!  Please reduce your solution space, current space: " + totalNodes);
+				JOptionPane.showMessageDialog(null, "Dream is out of memory!  Please reduce your solution space.");
 				e.printStackTrace();
 			}
 		}
-
+		
+		
 		public void setupInferenceTest(final Map<String, Integer> requiredSensors, final int totalMinimum) throws Exception {
 			dialog.run(true, false, new IRunnableWithProgress() {
 				@Override
@@ -599,9 +566,9 @@ public class DREAMWizard extends Wizard {
 					String input7 = ""; //We want to add the detection threshold to the file name
 					
 					// Loop through all the scenarios - E4D needs to run once for each scenario
-					for(Scenario scenario: set.getScenarios()) {
+					for(String scenario: set.getScenarios()) {
 						if(monitor.isCanceled()) return;
-						monitor.subTask("Looping through the selected scenarios: " + scenario.getScenario());
+						monitor.subTask("Looping through the selected scenarios: " + scenario);
 						
 						// Run the Python script with the following input arguments
 						try {
@@ -633,7 +600,7 @@ public class DREAMWizard extends Wizard {
 							System.out.println("Install python3 and required libraries to run E4D");
 						}
 						monitor.worked(1000 / set.getScenarios().size() - 10);
-						monitor.subTask("Writing the scenario results: " + scenario.getScenario());
+						monitor.subTask("Writing the scenario results: " + scenario);
 						// Read the result matrix from each scenario into a master file
 						File detectionMatrix = new File(Constants.userDir, "e4d" + File.separator + "detection_matrix.csv");
 						String line = "";

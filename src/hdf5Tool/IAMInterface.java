@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import objects.NodeStructure;
+import objects.ScenarioSet;
 import objects.TimeStep;
 import utilities.Constants;
 import utilities.Point3i;
@@ -23,14 +24,13 @@ public class IAMInterface {
 	
 	private static List<String> scenarios = new ArrayList<String>();
 	private static List<String> dataTypes = new ArrayList<String>();
-	// Organized as: Specific Type<Scenario<Index, TTD>>
-	private static Map<String, Map<String, Map<Integer, Float>>> paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
 	
 	/*
 	 * IAM file structure goes:
 	 * IAM, Scenario, Parameter, Trigger, Threshold (5)
-	 * Timesteps (>5)
 	 * x, y, z, TTD (4)
+	 * x, y, z, TTD (4)
+	 * ...
 	 */
 	
 	// Read one file to extract the Node Structure information from H5 files
@@ -69,9 +69,8 @@ public class IAMInterface {
 	}
 	
 	// Loops though all the files and reads detections into the paretoMap
-	public static void readIAMFiles(File[] list, NodeStructure nodeStructure) {
-		Point3i structure = nodeStructure.getIJKDimensions();
-		Map<String, Map<String, Map<Integer, Float>>> paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>(); // Organized as: Specific Type<Scenario<Index, TTD>>
+	public static void readIAMFiles(File[] list, ScenarioSet set) {
+		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		String line;
 		try {
 			// Need to loop through all the files and read the files directly into the paretoMap
@@ -84,17 +83,17 @@ public class IAMInterface {
 					String[] lineList = line.split(","); //comma delimited
 					if(lineList.length==5) {//header
 						scenario = lineList[1];
-						if(!scenarios.contains(scenario)) scenarios.add(scenario); // Add unique scenarios
+						scenarios.add(scenario); // Add unique scenarios
 						if(!dataTypes.contains(lineList[2])) dataTypes.add(lineList[2]); // Add unique parameters
-						specificType = lineList[2] + "_" + lineList[3] + "_" + lineList[4];
-						if(!paretoMap.containsKey(specificType))
-							paretoMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
-						if(!paretoMap.get(specificType).containsKey(scenario)) //scenario
-							paretoMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
+						specificType = lineList[2] + "_" + lineList[3] + "_" + lineList[4]; // parameter_trigger_threshold (i.e. tds_rel_2)
+						if(!set.getParetoMap().containsKey(specificType))
+							set.getParetoMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
+						if(!set.getParetoMap().get(specificType).containsKey(scenario)) //scenario
+							set.getParetoMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
 					} else if(lineList.length==4) {//data
 						float time = Float.parseFloat(lineList[3]);
 						if(time < 1e25) // No detection is usually represented by 1e30, don't add those
-							paretoMap.get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
+							set.getParetoMap().get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
 						index++;
 					}
 				}
@@ -110,10 +109,6 @@ public class IAMInterface {
 	 * Getters & Setters *
 	 * 					 *
 	\*					 */
-	
-	public static Map<String, Map<String, Map<Integer, Float>>> getParetoMap() {
-		return paretoMap;
-	}
 	
 	public static List<String> getDataTypes() {
 		return dataTypes;

@@ -1,7 +1,5 @@
 package functions;
 
-import hdf5Tool.HDF5Interface;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,14 +9,9 @@ import java.util.logging.Level;
 import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
-import objects.NodeStructure;
 import objects.ScenarioSet;
-import objects.Scenario;
 import objects.ExtendedSensor;
-import objects.SensorSetting;
 import objects.TimeStep;
-import objects.SensorSetting.DeltaType;
-import objects.SensorSetting.Trigger;
 import utilities.Constants;
 
 /**
@@ -43,7 +36,7 @@ public class SimulatedAnnealing extends Function {
 	}
 
 	@Override
-	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, Scenario scenario) {
+	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
 
 		// Count how many of each type of sensor has triggered
 		Map<String, Integer> totalByType = new HashMap<String, Integer>();
@@ -95,7 +88,7 @@ public class SimulatedAnnealing extends Function {
 			sensor.clearScenariosUsed();
 		}
 		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
-		for (final Scenario scenario : set.getScenarios()) {
+		for (final String scenario : set.getScenarios()) {
 			if(runThreaded) {
 				Thread thread = new Thread(new Runnable() {
 					@Override
@@ -144,88 +137,56 @@ public class SimulatedAnnealing extends Function {
 	 * 					 *
 	\*					 */
 
-	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, Scenario scenario) throws Exception {
-		if (set.getScenarioWeights().get(scenario) > 0) {
-			TimeStep ts = null;
-			InferenceResult inferenceResult = null;
-			for (TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
-				ts = timeStep;
-				long startTime = System.currentTimeMillis();	
-				for(ExtendedSensor sensor: con.getExtendedSensors()) {
-					String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
-					Boolean triggered = null;
-					if(sensor.getSensorType().contains("Electrical Conductivity")) {
-						if(this.currentIteration==-3) //A hack to trigger the calculation of the best TTD for ERT (complicated because of well pairings)
-							triggered = E4DSensors.ertBestSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
-						else
-							triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getLowerThreshold());
-					} else
-						triggered = sensorTriggered(specificType, scenario.getScenario(), sensor.getNodeNumber(), timeStep);
-					sensor.setTriggered(triggered, scenario, timeStep, 0.0);
-				}
-				inferenceResult = inference(con, set, scenario);
-				Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
-				if (inferenceResult.isInferred())
-					break;
+	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, String scenario) throws Exception {
+		if(set.getScenarioWeights().get(scenario) <= 0) return; //Skip any scenarios with a weighting of 0
+		
+		TimeStep ts = null;
+		InferenceResult inferenceResult = null;
+		for(TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
+			ts = timeStep;
+			long startTime = System.currentTimeMillis();	
+			for(ExtendedSensor sensor: con.getExtendedSensors()) {
+				String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
+				Boolean triggered = null;
+				if(sensor.getSensorType().contains("Electrical Conductivity")) {
+					if(this.currentIteration==-3) //A hack to trigger the calculation of the best TTD for ERT (complicated because of well pairings)
+						triggered = E4DSensors.ertBestSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getDetectionThreshold());
+					else
+						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getDetectionThreshold());
+				} else
+					triggered = sensorTriggered(specificType, scenario, sensor.getNodeNumber(), timeStep, set);
+				sensor.setTriggered(triggered, scenario, timeStep, 0.0);
 			}
-			// maxTime is an index, we want the value there
-			float timeInYears = 1000000;			
-			if (ts != null && inferenceResult.isInferred()) {
-				timeInYears = ts.getRealTime();
-				// Only keep track if we've hit inference
-				con.addTimeToDetection(scenario, timeInYears);
-			} else {
-				con.getTimesToDetection().remove(scenario);
-			}
-			con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
-			con.addInferenceResult(scenario, inferenceResult);
+			inferenceResult = inference(con, set, scenario);
+			Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
+			if (inferenceResult.isInferred())
+				break;
 		}
+		// maxTime is an index, we want the value there
+		float timeInYears = 1000000;			
+		if (ts != null && inferenceResult.isInferred()) {
+			timeInYears = ts.getRealTime();
+			// Only keep track if we've hit inference
+			con.addTimeToDetection(scenario, timeInYears);
+		} else {
+			con.getTimesToDetection().remove(scenario);
+		}
+		con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
+		con.addInferenceResult(scenario, inferenceResult);
 	}
 	
 	
 	// This method tells the Simulated Annealing process whether sensors have been triggered
-	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep) throws Exception{
+	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep, ScenarioSet set) {
 		Boolean triggered = false;
-		
-		// Return as triggered only if the timestep exceeds the detection value for the well pairing
-		if(HDF5Interface.paretoMap.get(specificType).get(scenario).containsKey(nodeNumber)) {
-			float detection = HDF5Interface.paretoMap.get(specificType).get(scenario).get(nodeNumber);
-			if(detection!=0 && timestep.getTimeStep()>detection)
-				triggered = true;
-		}
-		
-		return triggered;
-	}
-	
-	
-	public static Float getParetoTTD(NodeStructure nodeStructure, SensorSetting setting, String specificType, String scenario, Integer nodeNumber) {
-		if(!HDF5Interface.paretoMap.containsKey(specificType)) {
-			HDF5Interface.createParetoMap(nodeStructure, setting, specificType);
-			System.out.println("You just created a pareto map for " + specificType + "! Awesome! So Fast!");
-		}
-		return HDF5Interface.paretoMap.get(specificType).get(scenario).get(nodeNumber);
-	}
-	
-	
-	public static Boolean paretoSensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
-		Boolean triggered = null;
-		
-		// See if we exceeded threshold
-		if(currentValue != null && (setting.getTrigger() == Trigger.MINIMUM_THRESHOLD || setting.getTrigger() == Trigger.MAXIMUM_THRESHOLD)) {
-			triggered = setting.getLowerThreshold() <= currentValue && currentValue <= setting.getUpperThreshold();
-		} else if(currentValue != null && setting.getTrigger() == Trigger.RELATIVE_DELTA) {
-			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);					
-		} else if(currentValue != null && setting.getTrigger() == Trigger.ABSOLUTE_DELTA) {
-			float change = currentValue - valueAtTime0;
-			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getLowerThreshold() <= change;
-			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getLowerThreshold() >= change;
-			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getLowerThreshold() <= Math.abs(change);		
-		} else {
+		if(!set.getParetoMap().get(specificType).containsKey(scenario))
 			triggered = false;
-		}
+		if(!set.getParetoMap().get(specificType).get(scenario).containsKey(nodeNumber))
+			triggered = false;
+		else
+			if(set.getParetoMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime())
+				triggered = true;
 		return triggered;
 	}
+	
 }
