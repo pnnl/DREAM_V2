@@ -699,8 +699,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			temp.nodeLabel = new Label(parametersGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label) == null)
 				data.getSet().resetSensorSettings(label);
-			if(data.getSet().getSensorSettings(label).getValidNodes(null).size() > 0)
-				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes(null).size() + "   ");
+			if(data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
+				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes().size() + "   ");
 			else
 				temp.nodeLabel.setText(label+ ": Not set   ");
 		}
@@ -839,7 +839,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		boolean enableVis  = false;
 		for(String label: sensorData.keySet()){
 			SensorData temp = sensorData.get(label);
-			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).getValidNodes(null).size() > 0)
+			if(temp.isIncluded &&  data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
 				enableVis = true;
 		}
 		
@@ -907,7 +907,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// Count the total nodes to verify that some valid nodes were found
 		HashSet<Integer> nodes = new HashSet<Integer>();
 		for(String label: data.getSet().getSensorSettings().keySet())
-			nodes.addAll(data.getSet().getSensorSettings().get(label).getValidNodes(null));
+			nodes.addAll(data.getSet().getSensorSettings().get(label).getValidNodes());
 		if(nodes.size()==0)
 			errorFound(true, "  No nodes were found for the provided parameters.");
 		

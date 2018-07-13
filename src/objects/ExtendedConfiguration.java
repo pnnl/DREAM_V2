@@ -535,7 +535,7 @@ public class ExtendedConfiguration extends Configuration {
 
 	}
 	
-	//specifically for when running in ALL_SENSORS mode
+	/*//specifically for when running in ALL_SENSORS mode
 	private Object addAllSensor(ScenarioSet scenarioSet) {
 
 		// We will try to add here first.
@@ -571,7 +571,7 @@ public class ExtendedConfiguration extends Configuration {
 
 		// System.out.println("Added sensor, time taken: " + (System.currentTimeMillis()-startTime));
 
-	}
+	}*/
 
 	private Object moveSensorInBounds(ScenarioSet scenarioSet) {
 
@@ -591,9 +591,9 @@ public class ExtendedConfiguration extends Configuration {
 		return moveSensor(sensors, scenarioSet);	// Otherwise just move a random one
 	}
 
-	private Object moveAllSensor(ScenarioSet scenarioSet) {
+	/*private Object moveAllSensor(ScenarioSet scenarioSet) {
 		return moveAllSensor(sensors, scenarioSet);	// Otherwise just move a random one
-	}
+	}*/
 	
 	private Object moveWell(ScenarioSet scenarioSet) {
 		if(wells.size() == 0)
@@ -644,7 +644,7 @@ public class ExtendedConfiguration extends Configuration {
 		return null;
 	}
 	
-	private Object moveAllSensor(List<Sensor> sensors, ScenarioSet scenarioSet) {
+	/*private Object moveAllSensor(List<Sensor> sensors, ScenarioSet scenarioSet) {
 		// Randomize the list
 		Collections.shuffle(sensors, Constants.random);
 		//Will break if not extended sensors
@@ -662,7 +662,7 @@ public class ExtendedConfiguration extends Configuration {
 			return new Object();
 		}
 		return null;
-	}
+	}*/
 
 	private Object moveRealizedWell(List<Well> wellsToMove, ScenarioSet scenarioSet) {
 		// Randomize the list

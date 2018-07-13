@@ -388,7 +388,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				for(List<String> sensors: sensorsToTest) {
 					ExtendedConfiguration configuration = new ExtendedConfiguration();
 					for(String sensorType: sensors) {	
-						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes(null)) {
+						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
 							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
 						}
 					}
@@ -685,7 +685,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
 						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(i, j, k);
-						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes(null).contains(nodeNumber) ? "1" : "0");		
+						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
 						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
 					}}}
 					//text.append("\n");
@@ -1011,7 +1011,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					Point3f xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
 					text.append("\n" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ());
 					for(String type: data.getSet().getSensorSettings().keySet()){
-						String var = ((data.getSet().getSensorSettings().get(type).getValidNodes(null).contains(nodeNumber)) ? "1" : "0");
+						String var = ((data.getSet().getSensorSettings().get(type).getValidNodes().contains(nodeNumber)) ? "1" : "0");
 						text.append(" " + var);
 					}
 				}

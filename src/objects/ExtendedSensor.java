@@ -122,7 +122,7 @@ public class ExtendedSensor extends Sensor {
 	}
 	
 	public boolean isInCloud(ScenarioSet scenarioSet) {		
-		return scenarioSet.getSensorSettings(getSensorType()).getValidNodes(null).contains(getNodeNumber());
+		return scenarioSet.getSensorSettings(getSensorType()).getValidNodes().contains(getNodeNumber());
 	}
 	
 	public synchronized boolean isTriggeredInScenario(String scenario) {

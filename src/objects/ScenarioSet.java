@@ -146,9 +146,9 @@ public class ScenarioSet {
 				builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
 			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
 			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
-			if(sensorSettings.get(parameter).getValidNodes(null).size()>0) {
+			if(sensorSettings.get(parameter).getValidNodes().size()>0) {
 				int size = nodeStructure.getIJKDimensions().getI() * nodeStructure.getIJKDimensions().getJ() * nodeStructure.getIJKDimensions().getK();
-				builder.append("\t\tValid nodes: " + sensorSettings.get(parameter).getValidNodes(null).size() + " of " + size + "\r\n");
+				builder.append("\t\tValid nodes: " + sensorSettings.get(parameter).getValidNodes().size() + " of " + size + "\r\n");
 			} else {
 				builder.append("\t\tValid nodes: not set\r\n");
 			}
@@ -434,12 +434,12 @@ public class ScenarioSet {
 		
 		if(modelOption != ModelOption.ALL_SENSORS){
 			for(String sensorType: this.getSensorSettings().keySet()) {
-				for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
+				for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
 					cloudNodes.add(node);
 			}
 		}
 		else{
-			for(Integer node: sensorSettings.get("all").getValidNodes(null)) cloudNodes.add(node);
+			for(Integer node: sensorSettings.get("all").getValidNodes()) cloudNodes.add(node);
 		}
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
 		for(Integer node: cloudNodes) {
@@ -479,7 +479,7 @@ public class ScenarioSet {
 		int tempMaxWells = maxWells;
 				
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-		for(Integer node: sensorSettings.get(sensorType).getValidNodes(null)) 
+		for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
 			cloudNodes.add(node);
 		
 		// Remove all but edges

@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import utilities.Constants;
 import utilities.Point3f;
 
@@ -396,11 +394,11 @@ public class SensorSetting {
 		this.sensorCost = sensorCost;
 	}
 	
-	public Set<Integer> getValidNodes(IProgressMonitor monitor) { //TODO: remove monitor
+	public Set<Integer> getValidNodes() {
 		return validNodes;
 	}
 	
-	public Set<Integer> getCloudNodes(IProgressMonitor monitor) { //TODO: remove monitor
+	public Set<Integer> getCloudNodes() {
 		return fullCloudNodes;
 	}
 	

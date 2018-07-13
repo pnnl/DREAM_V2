@@ -430,7 +430,7 @@ public class DomainVisualization {
 		List<Point3i> validNodes = new ArrayList<Point3i>();
 		Set<Integer> nodeNumbers = new HashSet<Integer>();
 		if(set.getSensorSettings().containsKey(sensor))
-			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getValidNodes(null));
+			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getValidNodes());
 		for(Integer nodeNumber: nodeNumbers) {
 			validNodes.add(set.getNodeStructure().getIJKFromNodeNumber(nodeNumber));
 		}
@@ -441,7 +441,7 @@ public class DomainVisualization {
 		List<Point3i> cloudNodes = new ArrayList<Point3i>();
 		Set<Integer> nodeNumbers = new HashSet<Integer>();
 		if(set.getSensorSettings().containsKey(sensor))
-			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getCloudNodes(null));
+			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getCloudNodes());
 		for(Integer nodeNumber: nodeNumbers) {
 			cloudNodes.add(set.getNodeStructure().getIJKFromNodeNumber(nodeNumber));
 		}

@@ -49,7 +49,7 @@ public class RealizedWell extends Well {
 		Set<Integer> validNodes = new HashSet<Integer>();
 		
 		for(String dataType: scenarioSet.getDataTypes()) {
-			validNodes.addAll(scenarioSet.getSensorSettings().get(dataType).getValidNodes(null));
+			validNodes.addAll(scenarioSet.getSensorSettings().get(dataType).getValidNodes());
 		}
 		
 		// Loop through all the i, j's looking for well spots

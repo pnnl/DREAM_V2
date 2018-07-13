@@ -9,7 +9,6 @@ import java.util.logging.Level;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
-import hdf5Tool.HDF5Interface;
 import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
@@ -315,7 +314,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public List<ExtendedSensor> getAllPossibleSensors(ScenarioSet set) {
 		List<ExtendedSensor> sensors = new ArrayList<ExtendedSensor>();
 		for (String type : set.getDataTypes()) {
-			for (Integer nodePosition : set.getSensorSettings(type).getValidNodes(null)) {
+			for (Integer nodePosition : set.getSensorSettings(type).getValidNodes()) {
 				sensors.add(new ExtendedSensor(nodePosition, type, set.getNodeStructure()));
 			}
 		}
