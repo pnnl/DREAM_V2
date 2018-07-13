@@ -227,9 +227,9 @@ public class SensorSetting {
 		if(type.contains("Electrical Conductivity"))
 			fullCloudNodes = validNodes = E4DSensors.setValidNodesERT(detectionThreshold);
 		else {
-			// From the paretoMap, we just need to get a list of nodes that exist across selected scenarios (fullCloudNodes)
+			// From the detectionMap, we just need to get a list of nodes that exist across selected scenarios (fullCloudNodes)
 			for(String scenario: set.getScenarios()) {
-				for(Integer node: set.getParetoMap().get(specificType).get(scenario).keySet())
+				for(Integer node: set.getDetectionMap().get(specificType).get(scenario).keySet())
 					fullCloudNodes.add(node);
 			}
 			
@@ -239,7 +239,7 @@ public class SensorSetting {
 			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
 			validNodes = fullCloudNodes;
 			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
-				paretoOptimal(set.getParetoMap(), set.getScenarios());
+				paretoOptimal(set.getDetectionMap(), set.getScenarios());
 		}
 	}
 	
@@ -257,7 +257,7 @@ public class SensorSetting {
 		return validNodes.size();
 	}
 	
-	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> paretoMap, List<String> scenarios) {
+	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
 		for(Integer nodeNumber: validNodes) {
@@ -265,8 +265,8 @@ public class SensorSetting {
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(String scenario: scenarios) {
 				Float timeToDegredation = Float.MAX_VALUE;
-				if(paretoMap.get(specificType).get(scenario).containsKey(nodeNumber))
-					timeToDegredation = paretoMap.get(specificType).get(scenario).get(nodeNumber);
+				if(detectionMap.get(specificType).get(scenario).containsKey(nodeNumber))
+					timeToDegredation = detectionMap.get(specificType).get(scenario).get(nodeNumber);
 				ttds.add(timeToDegredation);
 			}
 			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
@@ -318,14 +318,14 @@ public class SensorSetting {
 	
 
 	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
-	public HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<String> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings, Map<String, Map<String, Map<Integer, Float>>> paretoMap){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
+	public HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<String> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings, Map<String, Map<String, Map<Integer, Float>>> detectionMap){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
 		for(Integer nodeNumber: allNodes){
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(String scenario: scenarios){
-				Float timeToDegredation = paretoMap.get(scenario).get("all").get(nodeNumber);
+				Float timeToDegredation = detectionMap.get(scenario).get("all").get(nodeNumber);
 				if(timeToDegredation!=null)
 					ttds.add(timeToDegredation);
 			}

@@ -410,17 +410,17 @@ public class DREAMWizard extends Wizard {
 							}
 							
 							// Then we generate a TTD matrix based for new selected sensors settings //TODO: Could be sped up if it only reads files once
-							for(SensorData sensor: newSensors) { //Only do this for H5 variables, IAM is already in paretoMap
+							for(SensorData sensor: newSensors) { //Only do this for H5 variables, IAM is already in detectionMap
 								if(monitor.isCanceled()) break;
 								monitor.subTask(sensor.sensorType + " - generating detection matrix");
 								if(sensor.sensorType.contains("all"))
-									set.paretoMapForAllSensors(activeSensors); //Special handling - map should be lowest detection at each node
+									set.detectionMapForAllSensors(activeSensors); //Special handling - map should be lowest detection at each node
 								else
-									HDF5Interface.createParetoMap(set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
+									HDF5Interface.createDetectionMap(set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
 								monitor.worked(70);
 							}
 							
-							// Last we create a list of valid nodes from the new pareto map
+							// Last we create a list of valid nodes from the new detectionMap
 							for(SensorData sensor: activeSensors) {
 								if(monitor.isCanceled()) break;
 								monitor.subTask(sensor.sensorType + " - generating a list of valid nodes");
@@ -433,7 +433,7 @@ public class DREAMWizard extends Wizard {
 							if(monitor.isCanceled()) {
 								for(String scenario: set.getAllScenarios()) {
 									for(SensorData sensor: newSensors) {
-										set.getParetoMap().get(scenario.toString()).remove(sensor.specificType);
+										set.getDetectionMap().get(scenario.toString()).remove(sensor.specificType);
 										set.getSensorSettings(sensor.sensorType).clearNodes();
 									}
 								}

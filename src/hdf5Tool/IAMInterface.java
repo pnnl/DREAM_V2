@@ -68,12 +68,12 @@ public class IAMInterface {
 		return nodeStructure;
 	}
 	
-	// Loops though all the files and reads detections into the paretoMap
+	// Loops though all the files and reads detections into the detectionMap
 	public static void readIAMFiles(File[] list, ScenarioSet set) {
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		String line;
 		try {
-			// Need to loop through all the files and read the files directly into the paretoMap
+			// Need to loop through all the files and read the files directly into the detectionMap
 			for(File file: list) {
 				String specificType = "";
 				String scenario = "";
@@ -86,14 +86,14 @@ public class IAMInterface {
 						scenarios.add(scenario); // Add unique scenarios
 						if(!dataTypes.contains(lineList[2])) dataTypes.add(lineList[2]); // Add unique parameters
 						specificType = lineList[2] + "_" + lineList[3] + "_" + lineList[4]; // parameter_trigger_threshold (i.e. tds_rel_2)
-						if(!set.getParetoMap().containsKey(specificType))
-							set.getParetoMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
-						if(!set.getParetoMap().get(specificType).containsKey(scenario)) //scenario
-							set.getParetoMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
+						if(!set.getDetectionMap().containsKey(specificType))
+							set.getDetectionMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
+						if(!set.getDetectionMap().get(specificType).containsKey(scenario)) //scenario
+							set.getDetectionMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
 					} else if(lineList.length==4) {//data
 						float time = Float.parseFloat(lineList[3]);
 						if(time < 1e25) // No detection is usually represented by 1e30, don't add those
-							set.getParetoMap().get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
+							set.getDetectionMap().get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
 						index++;
 					}
 				}

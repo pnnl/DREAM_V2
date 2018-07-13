@@ -51,13 +51,13 @@ public class E4DSensors {
 			if(!data.getSet().getSensorSettings().containsKey(parameter)) { //Sensor Settings might be in the removed list...
 				data.getSet().getRemovedSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
 				data.getSet().getRemovedSensorSettings(parameter).setDetectionThreshold(threshold);
-				HDF5Interface.createParetoMap(data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
+				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
 			} else {
 				data.getSet().getSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
 				data.getSet().getSensorSettings(parameter).setDetectionThreshold(threshold);
-				HDF5Interface.createParetoMap(data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
+				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
 			}
-			for(Map<Integer, Float> detections: data.getSet().getParetoMap().get(specificType).values()) {
+			for(Map<Integer, Float> detections: data.getSet().getDetectionMap().get(specificType).values()) {
 				for(Integer node: detections.keySet())
 					allNodes.add(node);
 			}
@@ -84,9 +84,9 @@ public class E4DSensors {
 			// Find the average TTD for each node above (no detection has penalty)
 			for(Integer node: allNodes) {
 				float ttd = 0;
-				for(String scenario: data.getSet().getParetoMap().get(specificType).keySet()) {
-					if(data.getSet().getParetoMap().get(specificType).get(scenario).containsKey(node))
-						ttd += data.getSet().getParetoMap().get(specificType).get(scenario).get(node);
+				for(String scenario: data.getSet().getDetectionMap().get(specificType).keySet()) {
+					if(data.getSet().getDetectionMap().get(specificType).get(scenario).containsKey(node))
+						ttd += data.getSet().getDetectionMap().get(specificType).get(scenario).get(node);
 					else
 						ttd += 1000000;
 				}

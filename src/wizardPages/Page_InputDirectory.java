@@ -107,7 +107,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		isCurrentPage = false;
 		
 		// We want to essentially reset everything at this point
-		data.getSet().getParetoMap().clear();
+		data.getSet().getDetectionMap().clear();
 		HDF5Interface.statistics.clear();
 		
 		// Read in scenario and parameter information from the files

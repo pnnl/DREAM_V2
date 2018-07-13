@@ -208,14 +208,14 @@ public class HDF5Interface {
 	
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
-	public static void createParetoMap(ScenarioSet set, SensorSetting setting, String specificType) {
+	public static void createDetectionMap(ScenarioSet set, SensorSetting setting, String specificType) {
 		
 		long startTime = System.currentTimeMillis();
 		
 		Map<Integer, Float> baseline = new HashMap<Integer, Float>(); //stores values at the initial timestep
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
-			String scenario = null;  //Scenarios have an ID, and we want those used in paretoMap to match the list of scenarios in nodeStructure
+			String scenario = null;  //Scenarios have an ID, and we want those used in detectionMap to match the list of scenarios in nodeStructure
 			for(String scenarioCompare: set.getScenarios()) {
 				if(scenarioCompare.contains(hdf5File.getName().replaceAll("\\.h5" , ""))) {
 					scenario = scenarioCompare;
@@ -223,10 +223,10 @@ public class HDF5Interface {
 				}
 			}
 			try {
-				if(!set.getParetoMap().containsKey(specificType))
-					set.getParetoMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
-				if(!set.getParetoMap().get(specificType).containsKey(scenario))
-					set.getParetoMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
+				if(!set.getDetectionMap().containsKey(specificType))
+					set.getDetectionMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
+				if(!set.getDetectionMap().get(specificType).containsKey(scenario))
+					set.getDetectionMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
 				hdf5File.open();
 				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 				boolean plotsAreTimeIndices = plotFileHack(set.getNodeStructure(), root);
@@ -271,9 +271,9 @@ public class HDF5Interface {
 								for(int index=0; index<dataRead.length; index++) {
 									int nodeNumber = Constants.getNodeNumber(structure, index);
 									// If the node triggers, save the timestep
-									if(paretoSensorTriggered(setting, dataRead[index], baseline.get(nodeNumber))) {
-										if(set.getParetoMap().get(specificType).get(scenario).get(nodeNumber)==null || set.getParetoMap().get(specificType).get(scenario).get(nodeNumber) > timestep)
-											set.getParetoMap().get(specificType).get(scenario).put(nodeNumber, timestep);
+									if(sensorTriggered(setting, dataRead[index], baseline.get(nodeNumber))) {
+										if(set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber)==null || set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber) > timestep)
+											set.getDetectionMap().get(specificType).get(scenario).put(nodeNumber, timestep);
 									}
 								}
 							}
@@ -289,7 +289,7 @@ public class HDF5Interface {
 		System.out.println("You just created a detection map for " + specificType + " in " + elapsedTime + " seconds! Awesome! So Fast!");
 	}
 	
-	public static Boolean paretoSensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
+	public static Boolean sensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
 		Boolean triggered = false;
 		if(currentValue==null) return triggered;
 		

@@ -33,10 +33,10 @@ public class ScenarioSet {
 	private List<String> scenarios;
 	private List<Well> wells;
 	
-	// paretoMap stores values of TTD for all scenarios and specific sensors
-	// IAM files are immediately loaded into paretoMap
-	// H5 files are loaded to paretoMap at Page_LeakageCriteria based on user input settings, and saved as more are added
-	private Map<String, Map<String, Map<Integer, Float>>> paretoMap; //Specific Type <Scenario <Index, TTD>> //TODO: should probably rename this to "detectionMap"
+	// detectionMap stores values of TTD for all scenarios and specific sensors
+	// IAM files are immediately loaded into detectionMap
+	// H5 files are loaded to detectionMap at Page_LeakageCriteria based on user input settings, and saved as more are added
+	private Map<String, Map<String, Map<Integer, Float>>> detectionMap; //Specific Type <Scenario <Index, TTD>>
 	
 	/**
 	 * User settings - 
@@ -71,7 +71,7 @@ public class ScenarioSet {
 		scenarios = new ArrayList<String>();
 		wells = new ArrayList<Well>();
 		
-		paretoMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
+		detectionMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
 		
 		scenarioWeights = new HashMap<String, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
@@ -100,7 +100,7 @@ public class ScenarioSet {
 		scenarios.clear();
 		wells.clear();
 		
-		paretoMap.clear();
+		detectionMap.clear();
 		
 		scenarioWeights.clear();
 		sensorSettings.clear();
@@ -222,19 +222,19 @@ public class ScenarioSet {
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
 	}
 	
-	public void paretoMapForAllSensors(ArrayList<SensorData> activeSensors) {
+	public void detectionMapForAllSensors(ArrayList<SensorData> activeSensors) {
 		String specificType = "all_min_0.0";
-		paretoMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
+		detectionMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
 		for(String scenario: this.getAllScenarios()) {
-			paretoMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
+			detectionMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
 			for(SensorData sensor: activeSensors) {
 				if(sensor.sensorType.contains("all")) continue; //Don't double add
-				for(Integer node: paretoMap.get(sensor.specificType).get(scenario).keySet()) {
-					Float ttd = paretoMap.get(sensor.specificType).get(scenario).get(node);
-					if(!paretoMap.get(specificType).get(scenario).containsKey(node)) //Add if it doesn't exist
-						paretoMap.get(specificType).get(scenario).put(node, ttd);
-					if(ttd<paretoMap.get(specificType).get(scenario).get(node)) //If less than current, add lowest TTD
-						paretoMap.get(specificType).get(scenario).put(node, ttd);
+				for(Integer node: detectionMap.get(sensor.specificType).get(scenario).keySet()) {
+					Float ttd = detectionMap.get(sensor.specificType).get(scenario).get(node);
+					if(!detectionMap.get(specificType).get(scenario).containsKey(node)) //Add if it doesn't exist
+						detectionMap.get(specificType).get(scenario).put(node, ttd);
+					if(ttd<detectionMap.get(specificType).get(scenario).get(node)) //If less than current, add lowest TTD
+						detectionMap.get(specificType).get(scenario).put(node, ttd);
 				}
 			}
 		}
@@ -633,16 +633,16 @@ public class ScenarioSet {
 		return new ArrayList<String>(sensorSettings.keySet());
 	}	
 	
-	public Float getParetoTTD(String specificType, String scenario, Integer nodeNumber) {
-		return paretoMap.get(specificType).get(scenario).get(nodeNumber);
+	public Float getTTD(String specificType, String scenario, Integer nodeNumber) {
+		return detectionMap.get(specificType).get(scenario).get(nodeNumber);
 	}
 	
-	public void setParetoMap(Map<String, Map<String, Map<Integer, Float>>> paretoMap) {
-		this.paretoMap = paretoMap;
+	public void setDetectionMap(Map<String, Map<String, Map<Integer, Float>>> detectionMap) {
+		this.detectionMap = detectionMap;
 	}
 	
-	public Map<String, Map<String, Map<Integer, Float>>> getParetoMap() {
-		return paretoMap;
+	public Map<String, Map<String, Map<Integer, Float>>> getDetectionMap() {
+		return detectionMap;
 	}
 	
 	public float getTotalScenarioWeight() {

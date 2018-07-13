@@ -586,7 +586,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
 		
-		// Before we do anything, add E4D matrices to paretoMap
+		// Before we do anything, add E4D matrices to detectionMap
 		E4DSensors.addERTSensor(data.getSet());
 		
 		// If we need to reset sensors, this boolean will be set to true
@@ -605,9 +605,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				data.getSet().resetRemovedSensorSettings();
 			}
 			
-			// IAM values are already stored in paretoMap, but E4D files might also be stored in paretoMap
+			// IAM values are already stored in detectionMap, but E4D files might also be stored in detectionMap
 			else {
-				for(String specificType: data.getSet().getParetoMap().keySet()) {
+				for(String specificType: data.getSet().getDetectionMap().keySet()) {
 					String dataType = specificType.substring(0, specificType.indexOf("_"));
 					sensorData.put(dataType, new SensorData(specificType, data.getSet().getSensorSettings(dataType)));
 				}
@@ -685,7 +685,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			public void handleEvent(Event arg0) {
 				fixMacBug();
 				
-				// Checks if there are any new sensor settings to be added to paretoMap
+				// Checks if there are any new sensor settings to be added to detectionMap
 				// Also saves sensorSetting information (i.e. cloudNodes, validNodes, sensorAliases, etc.)
 				findTriggeringNodes();
 			}	       
@@ -900,7 +900,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 		
-		// Checks if there are any new sensor settings to be added to paretoMap
+		// Checks if there are any new sensor settings to be added to detectionMap
 		// Also saves sensorSetting information (i.e. cloudNodes, validNodes, sensorAliases, etc.)
 		findTriggeringNodes();
 		
@@ -943,9 +943,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(SensorData sensor: sensorData.values()) {
 			if(!sensor.isIncluded) continue; //Only included sensors
 			if(!sensor.sensorType.contains("Electrical Conductivity")) {
-				for(String scenario: data.getSet().getParetoMap().get(sensor.specificType).keySet()) {
-					for(Integer nodeNumber: data.getSet().getParetoMap().get(sensor.specificType).get(scenario).keySet()) {
-						float ttd = data.getSet().getParetoMap().get(sensor.specificType).get(scenario).get(nodeNumber);
+				for(String scenario: data.getSet().getDetectionMap().get(sensor.specificType).keySet()) {
+					for(Integer nodeNumber: data.getSet().getDetectionMap().get(sensor.specificType).get(scenario).keySet()) {
+						float ttd = data.getSet().getDetectionMap().get(sensor.specificType).get(scenario).get(nodeNumber);
 						years.add(ttd); //TODO: If IAM has too many steps, round values to nearest year to reduce
 						if(!earliestDetectionForAllSensors.get(scenario).containsKey(nodeNumber))
 							earliestDetectionForAllSensors.get(scenario).put(nodeNumber, ttd);
@@ -1009,8 +1009,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			else {
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
 				activeSensors.add(sensor);
-				if(!data.getSet().getParetoMap().containsKey(sensor.specificType) && !sensor.sensorType.contains("Electrical Conductivity"))
-					newSensors.add(sensor); //if these settings are new to the paretoMap, we need to add them
+				if(!data.getSet().getDetectionMap().containsKey(sensor.specificType) && !sensor.sensorType.contains("Electrical Conductivity"))
+					newSensors.add(sensor); //if these settings are new to the detectionMap, we need to add them
 			}
 			Sensor.sensorAliases.put(label, sensor.alias);
 		}
@@ -1018,7 +1018,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.needToResetWells = true;
 		
-		// Based on the list of H5 sensors above, add results to paretoMap
+		// Based on the list of H5 sensors above, add results to detectionMap
 		// Calculate the sum of nodes that detect (cloudNodes)
 		// Run pareto optimization to get the final set of valid nodes (validNodes)
 		data.setupSensors(newSensors, activeSensors);

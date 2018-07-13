@@ -179,12 +179,12 @@ public class SimulatedAnnealing extends Function {
 	// This method tells the Simulated Annealing process whether sensors have been triggered
 	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep, ScenarioSet set) {
 		Boolean triggered = false;
-		if(!set.getParetoMap().get(specificType).containsKey(scenario))
+		if(!set.getDetectionMap().get(specificType).containsKey(scenario))
 			triggered = false;
-		if(!set.getParetoMap().get(specificType).get(scenario).containsKey(nodeNumber))
+		if(!set.getDetectionMap().get(specificType).get(scenario).containsKey(nodeNumber))
 			triggered = false;
 		else
-			if(set.getParetoMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime())
+			if(set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime())
 				triggered = true;
 		return triggered;
 	}
