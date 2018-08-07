@@ -782,7 +782,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						FileUtils.writeStringToFile(e4dWellFile, ijStringBuilder.toString());
 						MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
 						dialog.setText("Write E4D File: Success");
-						dialog.setMessage("An E4D file was created that provides the 30 best well locations across all scenarios based on the selected pressure parameter. "
+						dialog.setMessage("An E4D file was created that provides the " + maximumWells + " best well locations across all scenarios based on the " + selectedParameter + " parameter. "
 								+ "E4D will use these well locations to reduce computatational time.\n\nDirectory: " + e4dWellFile.getAbsolutePath());
 						dialog.open();
 						// TODO: Catherine edit text here!

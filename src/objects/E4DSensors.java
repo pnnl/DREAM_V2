@@ -7,12 +7,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -34,7 +37,7 @@ public class E4DSensors {
 	// This method determines which wells should be passed along to E4D
 	public static ArrayList<Point3i> calculateE4DWells(STORMData data, String parameter, int maximumWells, IProgressMonitor monitor) throws Exception {
 				
-		float threshold = 0.01f; //Hard number determined by Catherine, first value to test
+		float threshold = 0.1f; //First value to test
 		NodeStructure nodeStructure = data.getSet().getNodeStructure();
 		
 		ArrayList<Point3i> wellList = new ArrayList<Point3i>();
@@ -61,7 +64,7 @@ public class E4DSensors {
 				for(Integer node: detections.keySet())
 					allNodes.add(node);
 			}
-			threshold /= 10;
+			threshold /= Math.sqrt(10);
 			monitor.worked(600/iteration); //This loop will be 60% of the progress bar
 			iteration++;
 		}
@@ -80,6 +83,7 @@ public class E4DSensors {
 		if(wellList.size() > maximumWells) {
 			wellList = new ArrayList<Point3i>(); //reset
 			TreeMap<Integer, Float> ttdPerNode = new TreeMap<Integer, Float>();
+			ArrayList<Float> ttds = new ArrayList<Float>();
 			
 			// Find the average TTD for each node above (no detection has penalty)
 			for(Integer node: allNodes) {
@@ -91,29 +95,52 @@ public class E4DSensors {
 						ttd += 1000000;
 				}
 				ttdPerNode.put(node, ttd);
+				if(!ttds.contains(ttd))
+					ttds.add(ttd);
 				monitor.worked(400/allNodes.size());
 			}
 			
 			// Sort the times to detection
-			ArrayList<Float> values = new ArrayList<Float>(ttdPerNode.values());
-			Collections.sort(values);
+			Collections.sort(ttds);
 			
-			// Reference the sorted values to the ttdPerNode to get the top wells
-			// Not the cleanest solution because TreeMaps can't be sorted by value, but it works
-			for(Float ttdMinimum: values) {
+			// Locate the best nodes by looping through sorted ttds
+			ArrayList<Point3i> tempWells = new ArrayList<Point3i>();
+			for(Float ttd: ttds) {
+				HashMap<Integer, Float> bestNodes = new HashMap<Integer, Float>();
+				//Add nodes with the lowest ttd
 				for(Integer node: ttdPerNode.keySet()) {
-					if(ttdPerNode.get(node).equals(ttdMinimum)) { //Match
+					if(ttdPerNode.get(node).equals(ttd))
+						bestNodes.put(node, ttd);
+				}
+				// Figure out how many wells these nodes represent
+				for(Integer node: bestNodes.keySet()) {
+					Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
+					Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
+					if(!tempWells.contains(well))
+						tempWells.add(well);
+				}
+				// Not enough wells, add these wells and move on to next ttd
+				if(tempWells.size() < maximumWells) continue;
+				//Exact number of wells we want, all done
+				else if (tempWells.size() == maximumWells) {
+					wellList.addAll(tempWells);
+					break;
+				//Too many wells, need to pare down based on absolute pressure change - back to HDF5 files
+				} else {
+					TreeMap<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, ttd, bestNodes.keySet());
+					entriesSortedByValues(absoluteChange);
+					for(Integer node: absoluteChange.keySet()) {
 						Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
 						Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
 						wellList.add(well);
-						if(wellList.size()==maximumWells)
+						if(wellList.size() == maximumWells)
 							break;
 					}
-				}
-				if(wellList.size()==maximumWells)
 					break;
+				}
 			}
 		}
+		System.out.println("The "+wellList.size()+" best wells were found for "+specificType);
 		Collections.sort(wellList, Point3i.IJ_COMPARATOR);
 		return wellList;
 	}
@@ -340,6 +367,21 @@ public class E4DSensors {
 			i++;
 		}
 		return newConfiguration;
+	}
+	
+	
+	static <K,V extends Comparable<? super V>>
+	SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
+	    SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
+	        new Comparator<Map.Entry<K,V>>() {
+	            @Override public int compare(Map.Entry<K,V> e1, Map.Entry<K,V> e2) {
+	                int res = e1.getValue().compareTo(e2.getValue());
+	                return res != 0 ? res : 1;
+	            }
+	        }
+	    );
+	    sortedEntries.addAll(map.entrySet());
+	    return sortedEntries;
 	}
 	
 }

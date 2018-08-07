@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import objects.NodeStructure;
 import objects.ScenarioSet;
@@ -215,13 +217,7 @@ public class HDF5Interface {
 		Map<Integer, Float> baseline = new HashMap<Integer, Float>(); //stores values at the initial timestep
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
-			String scenario = null;  //Scenarios have an ID, and we want those used in detectionMap to match the list of scenarios in nodeStructure
-			for(String scenarioCompare: set.getScenarios()) {
-				if(scenarioCompare.contains(hdf5File.getName().replaceAll("\\.h5" , ""))) {
-					scenario = scenarioCompare;
-					break;
-				}
-			}
+			String scenario = hdf5File.getName().replaceAll("\\.h5" , "");
 			try {
 				if(!set.getDetectionMap().containsKey(specificType))
 					set.getDetectionMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
@@ -288,6 +284,79 @@ public class HDF5Interface {
 		long elapsedTime = (System.currentTimeMillis() - startTime)/1000;
 		System.out.println("You just created a detection map for " + specificType + " in " + elapsedTime + " seconds! Awesome! So Fast!");
 	}
+	
+	
+	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
+	public static TreeMap<Integer, Float> goalSeek(ScenarioSet set, String parameter, Float time, Set<Integer> inputNodes) {
+		TreeMap<Integer, Float> absoluteChange = new TreeMap<Integer, Float>();
+		//Initialize
+		for(Integer node: inputNodes)
+			absoluteChange.put(node, (float)0);
+		Point3i structure = set.getNodeStructure().getIJKDimensions();
+		for(H5File hdf5File: hdf5Files.values()) { // Only checked scenarios
+			String scenario = hdf5File.getName().replaceAll("\\.h5" , "");
+			if(!set.getScenarios().contains(scenario)) continue; // Skip if scenario is not being looked at
+			Map<Integer, Float> baseline = new HashMap<Integer, Float>(); //stores values at the initial timestep
+			Map<Integer, Float> comparison = new HashMap<Integer, Float>(); //stores values at the specified timestep
+			try {
+				hdf5File.open();
+				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
+				for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+					
+					// Skip these
+					if(root.getMemberList().get(rootIndex).getName().contains("data") || root.getMemberList().get(rootIndex).getName().contains("statistics"))
+						continue;
+					
+					// First time step sets the baseline
+					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == 0) {
+						Object group =  root.getMemberList().get(rootIndex);
+						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
+							Object child = ((Group)group).getMemberList().get(groupIndex);
+							if(child instanceof Dataset && ((Dataset)child).getName().equals(parameter)) {
+								// Found the right data type
+								int dataset_id = ((Dataset)child).open();
+								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
+								((Dataset)child).close(dataset_id);
+								for(int index=0; index<dataRead.length; index++) {
+									baseline.put(Constants.getNodeNumber(structure, index), dataRead[index]);
+								}
+							}
+						}
+					}
+					
+					// The time step we are comparing against
+					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == time) {
+						Object group =  root.getMemberList().get(rootIndex);
+						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
+							Object child = ((Group)group).getMemberList().get(groupIndex);
+							if(child instanceof Dataset && ((Dataset)child).getName().equals(parameter)) {
+								// Found the right data type
+								int dataset_id = ((Dataset)child).open();
+								float[] dataRead = new float[set.getNodeStructure().getTotalNodes()];
+								H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, dataRead);	
+								((Dataset)child).close(dataset_id);
+								for(int index=0; index<dataRead.length; index++) {
+									comparison.put(Constants.getNodeNumber(structure, index), dataRead[index]);
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("Unable to read detection values from the hdf5 files...");
+				e.printStackTrace();
+			}
+			
+			// Calculate the absolute change since baseline, aggregated across all active scenarios
+			for(Integer node: inputNodes) {
+				Float aggregateChange = comparison.get(node) - baseline.get(node) + absoluteChange.get(node);
+				absoluteChange.put(node, aggregateChange);
+			}
+		}
+		return absoluteChange;
+	}
+	
 	
 	public static Boolean sensorTriggered(SensorSetting setting, Float currentValue, Float valueAtTime0) {
 		Boolean triggered = false;
