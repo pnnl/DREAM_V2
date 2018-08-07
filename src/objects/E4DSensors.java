@@ -104,7 +104,7 @@ public class E4DSensors {
 			Collections.sort(ttds);
 			
 			// Locate the best nodes by looping through sorted ttds
-			ArrayList<Point3i> tempWells = new ArrayList<Point3i>();
+			ArrayList<Point3i> tempWells = new ArrayList<Point3i>(wellList);
 			for(Float ttd: ttds) {
 				HashMap<Integer, Float> bestNodes = new HashMap<Integer, Float>();
 				//Add nodes with the lowest ttd
@@ -120,10 +120,11 @@ public class E4DSensors {
 						tempWells.add(well);
 				}
 				// Not enough wells, add these wells and move on to next ttd
-				if(tempWells.size() < maximumWells) continue;
+				if(tempWells.size() < maximumWells)
+					wellList = new ArrayList<Point3i>(tempWells);
 				//Exact number of wells we want, all done
 				else if (tempWells.size() == maximumWells) {
-					wellList.addAll(tempWells);
+					wellList = new ArrayList<Point3i>(tempWells);
 					break;
 				//Too many wells, need to pare down based on absolute pressure change - back to HDF5 files
 				} else {
@@ -132,7 +133,8 @@ public class E4DSensors {
 					for(Integer node: sortedMap.keySet()) {
 						Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
 						Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
-						wellList.add(well);
+						if(!wellList.contains(well))
+							wellList.add(well);
 						if(wellList.size() == maximumWells)
 							break;
 					}
