@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import objects.NodeStructure;
 import objects.ScenarioSet;
@@ -287,8 +286,8 @@ public class HDF5Interface {
 	
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
-	public static TreeMap<Integer, Float> goalSeek(ScenarioSet set, String parameter, Float time, Set<Integer> inputNodes) {
-		TreeMap<Integer, Float> absoluteChange = new TreeMap<Integer, Float>();
+	public static HashMap<Integer, Float> goalSeek(ScenarioSet set, String parameter, Float time, Set<Integer> inputNodes) {
+		HashMap<Integer, Float> absoluteChange = new HashMap<Integer, Float>();
 		//Initialize
 		for(Integer node: inputNodes)
 			absoluteChange.put(node, (float)0);

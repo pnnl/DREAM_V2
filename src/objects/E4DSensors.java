@@ -10,12 +10,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -127,9 +127,9 @@ public class E4DSensors {
 					break;
 				//Too many wells, need to pare down based on absolute pressure change - back to HDF5 files
 				} else {
-					TreeMap<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, ttd, bestNodes.keySet());
-					entriesSortedByValues(absoluteChange);
-					for(Integer node: absoluteChange.keySet()) {
+					Map<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, ttd, bestNodes.keySet());
+					Map<Integer, Float> sortedMap = sortByValue(absoluteChange);
+					for(Integer node: sortedMap.keySet()) {
 						Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
 						Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
 						wellList.add(well);
@@ -370,18 +370,27 @@ public class E4DSensors {
 	}
 	
 	
-	static <K,V extends Comparable<? super V>>
-	SortedSet<Map.Entry<K,V>> entriesSortedByValues(Map<K,V> map) {
-	    SortedSet<Map.Entry<K,V>> sortedEntries = new TreeSet<Map.Entry<K,V>>(
-	        new Comparator<Map.Entry<K,V>>() {
-	            @Override public int compare(Map.Entry<K,V> e1, Map.Entry<K,V> e2) {
-	                int res = e1.getValue().compareTo(e2.getValue());
-	                return res != 0 ? res : 1;
-	            }
-	        }
-	    );
-	    sortedEntries.addAll(map.entrySet());
-	    return sortedEntries;
-	}
+	private static Map<Integer, Float> sortByValue(Map<Integer, Float> unsorted) {
+		
+        // 1. Convert Map to List of Map
+        List<Map.Entry<Integer, Float>> list = new LinkedList<Map.Entry<Integer, Float>>(unsorted.entrySet());
+        
+        // 2. Sort list with Collections.sort(), provide a custom Comparator
+        //    Try switch the o1 o2 position for a different order
+        Collections.sort(list, new Comparator<Map.Entry<Integer, Float>>() {
+            public int compare(Map.Entry<Integer, Float> o1,
+                               Map.Entry<Integer, Float> o2) {
+                return (o2.getValue()).compareTo(o1.getValue());
+            }
+        });
+        
+        // 3. Loop the sorted list and put it into a new insertion order Map LinkedHashMap
+        Map<Integer, Float> sortedMap = new LinkedHashMap<Integer, Float>();
+        for (Map.Entry<Integer, Float> entry : list) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+        
+        return sortedMap;
+    }
 	
 }
