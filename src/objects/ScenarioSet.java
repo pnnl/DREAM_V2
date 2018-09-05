@@ -200,8 +200,10 @@ public class ScenarioSet {
 	public void setupScenarios(List<String> inputScenarios, ModelOption modelOption) {
 		// Convert string to scenario and add to lists
 		for(String scenario: inputScenarios) {
-			scenarios.add(scenario);
-			allScenarios.add(scenario);
+			if(!scenarios.contains(scenario))
+				scenarios.add(scenario);
+			if(!allScenarios.contains(scenario))
+				allScenarios.add(scenario);
 		}
 		
 		// Scenario weights should start at 1.0

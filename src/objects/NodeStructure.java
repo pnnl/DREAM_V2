@@ -251,6 +251,10 @@ public class NodeStructure {
 		return timeSteps;
 	}
 	
+	public void setTimeSteps(List<TimeStep> timeSteps) {
+		this.timeSteps = timeSteps;
+	}
+	
 	public int getTotalNodes() {
 		return ijkDimensions.getI() * ijkDimensions.getJ() * ijkDimensions.getK();	
 	}

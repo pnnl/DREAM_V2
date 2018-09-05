@@ -229,8 +229,10 @@ public class SensorSetting {
 		else {
 			// From the detectionMap, we just need to get a list of nodes that exist across selected scenarios (fullCloudNodes)
 			for(String scenario: set.getScenarios()) {
-				for(Integer node: set.getDetectionMap().get(specificType).get(scenario).keySet())
-					fullCloudNodes.add(node);
+				if(set.getDetectionMap().get(specificType).get(scenario).size() > 0) {
+					for(Integer node: set.getDetectionMap().get(specificType).get(scenario).keySet())
+						fullCloudNodes.add(node);
+				}
 			}
 			
 			// Remove nodes outside of Z range

@@ -52,11 +52,6 @@ public class IAMInterface {
 					if(!xValues.contains(x)) xValues.add(x);
 					if(!yValues.contains(y)) yValues.add(y);
 					if(!zValues.contains(z)) zValues.add(z);
-				} else if(lineList.length>5) { //timesteps
-					for(int i=0; i<lineList.length; i++) {
-						float timestep = Float.parseFloat(lineList[i]);
-						times.add(new TimeStep(i, timestep, Math.round(timestep)));
-					}
 				}
 			}
 			nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
@@ -71,6 +66,7 @@ public class IAMInterface {
 	// Loops though all the files and reads detections into the detectionMap
 	public static void readIAMFiles(File[] list, ScenarioSet set) {
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
+		List<Float> times = new ArrayList<Float>();
 		String line;
 		try {
 			// Need to loop through all the files and read the files directly into the detectionMap
@@ -84,6 +80,9 @@ public class IAMInterface {
 					if(lineList.length==5) {//header
 						scenario = lineList[1];
 						scenarios.add(scenario); // Add unique scenarios
+						lineList[2] = lineList[2].replaceAll("_", " ");
+						lineList[3] = consistentTrigger(lineList[3]);
+						lineList[4] = Float.toString(Float.parseFloat(lineList[4]));
 						if(!dataTypes.contains(lineList[2])) dataTypes.add(lineList[2]); // Add unique parameters
 						specificType = lineList[2] + "_" + lineList[3] + "_" + lineList[4]; // parameter_trigger_threshold (i.e. tds_rel_2)
 						if(!set.getDetectionMap().containsKey(specificType))
@@ -92,17 +91,37 @@ public class IAMInterface {
 							set.getDetectionMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
 					} else if(lineList.length==4) {//data
 						float time = Float.parseFloat(lineList[3]);
-						if(time < 1e25) // No detection is usually represented by 1e30, don't add those
+						if(time < 1e25) { // No detection is usually represented by 1e30, don't add those
 							set.getDetectionMap().get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
+							if(!times.contains(time)) times.add(time);
+						}
 						index++;
 					}
 				}
 				br.close();
 			}
+			
+			// Store all found time steps in node structure
+			java.util.Collections.sort(times);
+			List<TimeStep> timeSteps = new ArrayList<TimeStep>();
+			for(int i=0; i<times.size(); i++) {
+				TimeStep timeStep = new TimeStep(i, times.get(i), Math.round(times.get(i)));
+				timeSteps.add(timeStep);
+			}
+			set.getNodeStructure().setTimeSteps(timeSteps);
 		} catch (Exception e) {
 			System.out.println("Error loading scenarios");
 			e.printStackTrace();
 		}
+	}
+	
+	private static String consistentTrigger(String trigger) {
+		String temp = null;
+		if(trigger.contains("below")) temp = "min";
+		else if(trigger.contains("above")) temp = "max";
+		else if(trigger.contains("relative")) temp = "rel";
+		else if(trigger.contains("absolute")) temp = "abs";
+		return temp;
 	}
 	
 	/**					**\
