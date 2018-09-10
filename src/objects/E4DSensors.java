@@ -21,7 +21,6 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import hdf5Tool.HDF5Interface;
-import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 import utilities.Constants;
 import utilities.Point3i;
@@ -52,11 +51,11 @@ public class E4DSensors {
 			monitor.subTask("Scanning for valid nodes with threshold = " + threshold);
 			specificType = parameter + "_rel_" + threshold;
 			if(!data.getSet().getSensorSettings().containsKey(parameter)) { //Sensor Settings might be in the removed list...
-				data.getSet().getRemovedSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
+				data.getSet().getRemovedSensorSettings(parameter).setTrigger(Trigger.RELATIVE_CHANGE);
 				data.getSet().getRemovedSensorSettings(parameter).setDetectionThreshold(threshold);
 				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
 			} else {
-				data.getSet().getSensorSettings(parameter).setTrigger(Trigger.RELATIVE_DELTA);
+				data.getSet().getSensorSettings(parameter).setTrigger(Trigger.RELATIVE_CHANGE);
 				data.getSet().getSensorSettings(parameter).setDetectionThreshold(threshold);
 				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
 			}
@@ -170,8 +169,7 @@ public class E4DSensors {
 			ertDetectionTimes.put(threshold, new HashMap<String, Map<Integer, Map<Integer, Float>>>());
 			ertPotentialWellPairings.put(threshold, new HashMap<Integer, List<Integer>>());
 			
-			set.getSensorSettings().put("Electrical Conductivity_" + threshold, new SensorSetting(set.getNodeStructure(), set, "Electrical Conductivity_" + threshold));
-			set.getSensorSettings().get("Electrical Conductivity_" + threshold).setUserSettings(100, threshold, Trigger.RELATIVE_DELTA, DeltaType.BOTH, 0, 0);
+			set.addSensorSetting("Electrical Conductivity_" + threshold, "rel", Float.toString(threshold));
 			set.getNodeStructure().getDataTypes().add("Electrical Conductivity_" + threshold);
 			
 			// Here, we want to read sensor pairings and times from the matrix

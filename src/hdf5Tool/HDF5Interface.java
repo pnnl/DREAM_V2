@@ -362,16 +362,16 @@ public class HDF5Interface {
 		if(currentValue==null) return triggered;
 		
 		// See if we exceeded threshold
-		if(setting.getTrigger()==Trigger.MINIMUM_THRESHOLD) {
+		if(setting.getTrigger()==Trigger.ABOVE_THRESHOLD) {
 			triggered = setting.getDetectionThreshold() <= currentValue;
-		} else if(setting.getTrigger()==Trigger.MAXIMUM_THRESHOLD) {
+		} else if(setting.getTrigger()==Trigger.BELOW_THRESHOLD) {
 			triggered = setting.getDetectionThreshold() >= currentValue;
-		} else if(setting.getTrigger()==Trigger.RELATIVE_DELTA) {
+		} else if(setting.getTrigger()==Trigger.RELATIVE_CHANGE) {
 			float change = valueAtTime0 == 0 ? 0 : ((currentValue - valueAtTime0) / valueAtTime0);
 			if(setting.getDeltaType()==DeltaType.INCREASE) triggered = setting.getDetectionThreshold() <= change;
 			else if(setting.getDeltaType()==DeltaType.DECREASE) triggered = setting.getDetectionThreshold() >= change;
 			else if(setting.getDeltaType()==DeltaType.BOTH) triggered = setting.getDetectionThreshold() <= Math.abs(change);
-		} else { //if(setting.getTrigger()==Trigger.ABSOLUTE_DELTA)
+		} else { //if(setting.getTrigger()==Trigger.ABSOLUTE_CHANGE)
 			float change = currentValue - valueAtTime0;
 			if(setting.getDeltaType() == DeltaType.INCREASE) triggered = setting.getDetectionThreshold() <= change;
 			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getDetectionThreshold() >= change;

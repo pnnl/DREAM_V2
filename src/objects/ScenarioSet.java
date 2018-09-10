@@ -1,5 +1,6 @@
 package objects;
 
+import objects.SensorSetting.DeltaType;
 import objects.SensorSetting.Trigger;
 
 import java.util.ArrayList;
@@ -140,10 +141,16 @@ public class ScenarioSet {
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
 			builder.append("\t\tCost: " + sensorSettings.get(parameter).getSensorCost() + " per sensor\r\n");
 			builder.append("\t\tTriggering on: " + sensorSettings.get(parameter).getTrigger() + "\r\n");
-			if(sensorSettings.get(parameter).getTrigger() == Trigger.MAXIMUM_THRESHOLD || sensorSettings.get(parameter).getTrigger() == Trigger.MINIMUM_THRESHOLD)
+			if(sensorSettings.get(parameter).getTrigger() == Trigger.BELOW_THRESHOLD || sensorSettings.get(parameter).getTrigger() == Trigger.ABOVE_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
-			else
-				builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+			else {
+				if(sensorSettings.get(parameter).getDeltaType() == DeltaType.DECREASE)
+					builder.append("\t\tLeakage threshold: Negative change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+				else if (sensorSettings.get(parameter).getDeltaType() == DeltaType.INCREASE)
+					builder.append("\t\tLeakage threshold: Positive change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+				else
+					builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+			}
 			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
 			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
 			if(sensorSettings.get(parameter).getValidNodes().size()>0) {
@@ -197,7 +204,7 @@ public class ScenarioSet {
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
 	}
 
-	public void setupScenarios(List<String> inputScenarios, ModelOption modelOption) {
+	public void setupScenarios(List<String> inputScenarios) {
 		// Convert string to scenario and add to lists
 		for(String scenario: inputScenarios) {
 			if(!scenarios.contains(scenario))
@@ -209,17 +216,22 @@ public class ScenarioSet {
 		// Scenario weights should start at 1.0
 		for(String scenario: scenarios)
 			scenarioWeights.put(scenario, (float)1);
+	}
+	
+	public void setupSensorSettings(ModelOption modelOption) {
 		
 		// Setup the sensor settings array
 		for(final String type: nodeStructure.getDataTypes())
-			sensorSettings.put(type, new SensorSetting(nodeStructure, ScenarioSet.this, type));
+			sensorSettings.put(type, new SensorSetting(nodeStructure, type));
 		
 		// If all sensors was selected, add to sensor settings array
 		if(modelOption == ModelOption.ALL_SENSORS) {
-			sensorSettings.put("all", new SensorSetting(nodeStructure, ScenarioSet.this, "all"));
+			sensorSettings.put("all", new SensorSetting(nodeStructure, "all"));
 			nodeStructure.addDataType("all");
 		}
-		
+	}
+	
+	public void setupInferenceTest() {
 		// Setup the inference test
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
 	}
@@ -603,7 +615,7 @@ public class ScenarioSet {
 	public void resetSensorSettings(String type) {
 		if(sensorSettings.containsKey(type))
 			return; // Keep those
-		sensorSettings.put(type, new SensorSetting(nodeStructure, this, type));	// User should adjust these settings
+		sensorSettings.put(type, new SensorSetting(nodeStructure, type));	// User should adjust these settings
 	}
 
 	public SensorSetting getSensorSettings(String sensorType) {
@@ -614,8 +626,12 @@ public class ScenarioSet {
 		return sensorSettings;
 	}
 	
-	public void addSensorSetting(String name, String type){
-		sensorSettings.put(name, new SensorSetting(nodeStructure, ScenarioSet.this, type));	// User should adjust these settings
+	public void addSensorSetting(String name, String type) {
+		sensorSettings.put(name, new SensorSetting(nodeStructure, type));	// User should adjust these settings
+	}
+	
+	public void addSensorSetting(String type, String trigger, String threshold) {
+		sensorSettings.put(type, new SensorSetting(nodeStructure, type, trigger, threshold));	// User should adjust these settings
 	}
 	
 	public void removeSensorSettings(String dataType) {

@@ -79,16 +79,23 @@ public class IAMInterface {
 					String[] lineList = line.split(","); //comma delimited
 					if(lineList.length==5) {//header
 						scenario = lineList[1];
-						scenarios.add(scenario); // Add unique scenarios
-						lineList[2] = lineList[2].replaceAll("_", " ");
+						if(!scenarios.contains(scenario)) scenarios.add(scenario); // Add unique scenarios
+						lineList[2] = lineList[2].replaceAll("_", " "); // Underscores cause problems for specificType
 						lineList[3] = consistentTrigger(lineList[3]);
-						lineList[4] = Float.toString(Float.parseFloat(lineList[4]));
+						// Convert the threshold to a float and back to string so it matches later
+						if(lineList[4].contains("+"))
+							lineList[4] = "+" + Float.toString(Float.parseFloat(lineList[4])); // Needed to maintain plus sign
+						else
+							lineList[4] = Float.toString(Float.parseFloat(lineList[4]));
 						if(!dataTypes.contains(lineList[2])) dataTypes.add(lineList[2]); // Add unique parameters
 						specificType = lineList[2] + "_" + lineList[3] + "_" + lineList[4]; // parameter_trigger_threshold (i.e. tds_rel_2)
 						if(!set.getDetectionMap().containsKey(specificType))
 							set.getDetectionMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
 						if(!set.getDetectionMap().get(specificType).containsKey(scenario)) //scenario
 							set.getDetectionMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
+						// Add the sensorSettings now, since we have all the information
+						if(!set.getSensorSettings().containsKey(lineList[2]))
+							set.addSensorSetting(lineList[2], lineList[3], lineList[4]);
 					} else if(lineList.length==4) {//data
 						float time = Float.parseFloat(lineList[3]);
 						if(time < 1e25) { // No detection is usually represented by 1e30, don't add those
@@ -115,10 +122,11 @@ public class IAMInterface {
 		}
 	}
 	
+	// This can be used to map to alternative entries for IAM files
 	private static String consistentTrigger(String trigger) {
 		String temp = null;
-		if(trigger.contains("below")) temp = "min";
-		else if(trigger.contains("above")) temp = "max";
+		if(trigger.contains("below")) temp = "below";
+		else if(trigger.contains("above")) temp = "above";
 		else if(trigger.contains("relative")) temp = "rel";
 		else if(trigger.contains("absolute")) temp = "abs";
 		return temp;

@@ -23,8 +23,8 @@ public class SensorSetting {
 		
 	public enum Trigger {
 		
-		MAXIMUM_THRESHOLD("Maximum threshold"), MINIMUM_THRESHOLD("Minimum threshold"), 
-		RELATIVE_DELTA("Relative delta"), ABSOLUTE_DELTA("Absolute delta");
+		ABOVE_THRESHOLD("Above threshold"), BELOW_THRESHOLD("Below threshold"), 
+		RELATIVE_CHANGE("Relative change"), ABSOLUTE_CHANGE("Absolute change");
 		
 		private String trigger;
 		
@@ -73,32 +73,51 @@ public class SensorSetting {
 	private static List<Float> years;
 	public static float globalMinZ;
 	public static float globalMaxZ;
-	private String specificType;
+	public String specificType;
 	
 	private NodeStructure nodeStructure;
-		
-	public SensorSetting(NodeStructure nodeStructure, ScenarioSet scenarioSet, String type) {
+	
+	// Sensor Settings for H5 Files
+	public SensorSetting(NodeStructure nodeStructure, String type) {
 
 		this.nodeStructure = nodeStructure;
 		this.type = type;
 		sensorCost = 100;
-
-		trigger = Trigger.MAXIMUM_THRESHOLD;
-		setDeltaType(DeltaType.BOTH);
+		
+		getTriggerFromText("below", "0"); //Sets the trigger and delta type
 		detectionThreshold = 0; //Based on the trigger, this represents the range for valid nodes
-		setGlobalMaxZ(Collections.max(this.nodeStructure.getZ()));
-		setGlobalMinZ(Collections.min(this.nodeStructure.getZ()));
+		setGlobalMaxZ(Collections.max(nodeStructure.getZ()));
+		setGlobalMinZ(Collections.min(nodeStructure.getZ()));
 		
-		fullCloudNodes = new HashSet<Integer>(); //Added later
-		validNodes = new HashSet<Integer>(); //Added later
+		fullCloudNodes = new HashSet<Integer>(); //Added later, initialize here
+		validNodes = new HashSet<Integer>(); //Added later, initialize here
 		
-		specificType = getSpecificType();
+		// specificType can be set after inputting parameters in Page_LeakageCriteria for H5 files
 		
 		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
-
 	}
 	
+	// Sensor Settings for IAM files
+	public SensorSetting(NodeStructure nodeStructure, String type, String trigger, String threshold) {
+		
+		this.nodeStructure = nodeStructure;
+		this.type = type;
+		sensorCost = 100;
+		
+		getTriggerFromText(trigger, threshold); //Sets the trigger and delta type
+		detectionThreshold = Float.parseFloat(threshold); //Based on the trigger, this represents the range for valid nodes
+		setGlobalMaxZ(Collections.max(nodeStructure.getZ()));
+		setGlobalMinZ(Collections.min(nodeStructure.getZ()));
+		
+		fullCloudNodes = new HashSet<Integer>(); //Added later, initialize here
+		validNodes = new HashSet<Integer>(); //Added later, initialize here
+		
+		specificType = getSpecificType(); //Needs to be set now before the detection map is created
+		
+		Constants.log(Level.INFO, "Sensor settings "+type+": initialized ", null);
+		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
+	}
 	
 	public static void setVolumeDegradedByYear(Map<String, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
 		years = yearList;
@@ -461,16 +480,38 @@ public class SensorSetting {
 		validNodes.clear();
 	}
 	
+	public void getTriggerFromText(String trigger, String threshold) {
+		if(trigger.contains("below"))
+			this.trigger = Trigger.BELOW_THRESHOLD;
+		else if(trigger.contains("above"))
+			this.trigger = Trigger.ABOVE_THRESHOLD;
+		else if(trigger.contains("rel"))
+			this.trigger = Trigger.RELATIVE_CHANGE;
+		else if(trigger.contains("abs"))
+			this.trigger = Trigger.ABSOLUTE_CHANGE;
+		if(threshold.contains("-") && (trigger.contains("abs") || trigger.contains("rel")))
+			deltaType = DeltaType.DECREASE;
+		else if(threshold.contains("+") && (trigger.contains("abs") || trigger.contains("rel")))
+			deltaType = DeltaType.INCREASE;
+		else
+			deltaType = DeltaType.BOTH;
+	}
+	
 	public String getSpecificType() {
 		String specificType = "";
-		if(this.getTrigger() == Trigger.MAXIMUM_THRESHOLD)
-			specificType = type + "_max_" + detectionThreshold;
-		else if(this.getTrigger() == Trigger.MINIMUM_THRESHOLD)
-			specificType = type + "_min_" + detectionThreshold;
-		else if(this.getTrigger() == Trigger.RELATIVE_DELTA)
+		if(getTrigger() == Trigger.BELOW_THRESHOLD)
+			specificType = type + "_below_" + detectionThreshold;
+		else if(getTrigger() == Trigger.ABOVE_THRESHOLD)
+			specificType = type + "_above_" + detectionThreshold;
+		else if(getTrigger() == Trigger.RELATIVE_CHANGE) {
 			specificType = type + "_rel_" + detectionThreshold;
-		else if(this.getTrigger() == Trigger.ABSOLUTE_DELTA)
+			if(getDeltaType() == DeltaType.INCREASE) // Needed to maintain plus sign
+				specificType = type + "_rel_+" + detectionThreshold;
+		} else if(getTrigger() == Trigger.ABSOLUTE_CHANGE) {
 			specificType = type + "_abs_" + detectionThreshold;
+			if(getDeltaType() == DeltaType.INCREASE) // Needed to maintain plus sign
+				specificType = type + "_abs_+" + detectionThreshold;
+		}
 		return specificType;
 	}
 }

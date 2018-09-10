@@ -112,7 +112,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorName = sensorType;
 			alias = sensorName;
 			detectionThreshold = Float.parseFloat(tokens[2]);
-			trigger = iamToTrigger(tokens[1]);
+			trigger = sensorSettings.getTrigger();
 			deltaType = sensorSettings.getDeltaType();
 			cost = sensorSettings.getSensorCost();
 			minZ = minZBound = sensorSettings.getGlobalMinZ();
@@ -137,31 +137,26 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			deltaType = sensorSettings.getDeltaType();
 			detectionThreshold = sensorSettings.getDetectionThreshold();
-			trigger = Trigger.MINIMUM_THRESHOLD;
-			specificType = sensorName + "_min_" + detectionThreshold;
+			trigger = Trigger.ABOVE_THRESHOLD;
 			
 			// Trigger should be relative delta when pressure
-			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p") || sensorType.contains("Electrical Conductivity")) {
-				trigger = Trigger.RELATIVE_DELTA;
-				specificType = sensorName + "_rel_" + detectionThreshold;
-			}
+			if(sensorType.toLowerCase().contains("pressure") || sensorType.trim().toLowerCase().equals("p") || sensorType.contains("Electrical Conductivity"))
+				trigger = Trigger.RELATIVE_CHANGE;
 			
 			// Trigger should be maximum threshold when pH
-			else if(sensorType.trim().toLowerCase().equals("ph")) {
-				trigger = Trigger.MAXIMUM_THRESHOLD;
-				specificType = sensorName + "_max_" + detectionThreshold;
-			}
+			else if(sensorType.trim().toLowerCase().equals("ph"))
+				trigger = Trigger.BELOW_THRESHOLD;
 			
 			// Exceptions for "All_SENSORS"
-			if(sensorName.contains("all")) {
+			if(sensorName.contains("all"))
 				alias = "All Selected Sensors";
-			}
 			
 			// Exceptions for ERT
-			if(sensorName.contains("Electrical Conductivity")) {
+			if(sensorName.contains("Electrical Conductivity"))
 				alias = "ERT_" + detectionThreshold;
-			}
 		}
+		
+		
 		
 		public void buildUI(String type) {
 			//Add a button here
@@ -369,40 +364,39 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Detection Criteria
 			thresholdCombo = new Combo(container, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			thresholdCombo.add(Trigger.MAXIMUM_THRESHOLD.toString());
-			thresholdCombo.add(Trigger.MINIMUM_THRESHOLD.toString());
-			thresholdCombo.add(Trigger.RELATIVE_DELTA.toString());
-			thresholdCombo.add(Trigger.ABSOLUTE_DELTA.toString());
+			thresholdCombo.add(Trigger.BELOW_THRESHOLD.toString());
+			thresholdCombo.add(Trigger.ABOVE_THRESHOLD.toString());
+			thresholdCombo.add(Trigger.RELATIVE_CHANGE.toString());
+			thresholdCombo.add(Trigger.ABSOLUTE_CHANGE.toString());
 			thresholdCombo.setText(trigger.toString());
-			if(trigger == Trigger.MAXIMUM_THRESHOLD) //TODO: Catherine, please review this text to verify that the tooltips are using the correct terminology
-				thresholdCombo.setToolTipText("Leak when concentration is less than value");
-			else if(trigger == Trigger.MINIMUM_THRESHOLD)
-				thresholdCombo.setToolTipText("Leak when concentration is greater than value");
-			else if(trigger == Trigger.RELATIVE_DELTA)
+			if(trigger == Trigger.BELOW_THRESHOLD)
+				thresholdCombo.setToolTipText("Leak when concentration is below value");
+			else if(trigger == Trigger.ABOVE_THRESHOLD)
+				thresholdCombo.setToolTipText("Leak when concentration is above value");
+			else if(trigger == Trigger.RELATIVE_CHANGE)
 				thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
-			else if(trigger == Trigger.ABSOLUTE_DELTA)
+			else if(trigger == Trigger.ABSOLUTE_CHANGE)
 				thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
 			thresholdCombo.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					if(((Combo)e.getSource()).getText().equals(Trigger.MINIMUM_THRESHOLD.toString())) {
-						trigger = Trigger.MINIMUM_THRESHOLD;
-						thresholdCombo.setToolTipText("Leak when concentration is greater than value");
-					} else if(((Combo)e.getSource()).getText().equals(Trigger.MAXIMUM_THRESHOLD.toString())) {
-						trigger = Trigger.MAXIMUM_THRESHOLD;
-						thresholdCombo.setToolTipText("Leak when concentration is less than value");
-					} else if(((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_DELTA.toString())) {
-						trigger = Trigger.RELATIVE_DELTA;
+					if(((Combo)e.getSource()).getText().equals(Trigger.ABOVE_THRESHOLD.toString())) {
+						trigger = Trigger.ABOVE_THRESHOLD;
+						thresholdCombo.setToolTipText("Leak when concentration is above value");
+					} else if(((Combo)e.getSource()).getText().equals(Trigger.BELOW_THRESHOLD.toString())) {
+						trigger = Trigger.BELOW_THRESHOLD;
+						thresholdCombo.setToolTipText("Leak when concentration is below value");
+					} else if(((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_CHANGE.toString())) {
+						trigger = Trigger.RELATIVE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
 					} else { //(((Combo)e.getSource()).getText().equals(Trigger.ABSOLUTE_DELTA.toString()))
-						trigger = Trigger.ABSOLUTE_DELTA;
+						trigger = Trigger.ABSOLUTE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
 					}
 					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-					getSpecificType();
 				}
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -412,6 +406,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			//Detection Value
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			detectionText.setText(String.valueOf(sensorData.get(type).detectionThreshold));
+			if(sensorData.get(type).deltaType==DeltaType.INCREASE) // Needed to maintain plus sign
+				detectionText.setText("+" + String.valueOf(sensorData.get(type).detectionThreshold));
 			if(HDF5Interface.getStatistic(type, 0)!=null)
 				detectionText.setToolTipText("Minimum = " + HDF5Interface.getStatistic(type, 0) + "; Maximum = " + HDF5Interface.getStatistic(type, 2));
 			detectionText.setForeground(Constants.black);
@@ -435,7 +431,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;
 					else deltaType = DeltaType.BOTH;
-					getSpecificType();
 				}
 			});
 			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
@@ -447,6 +442,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			minZText.setText(String.valueOf(sensorData.get(type).minZ));
 			minZText.setForeground(Constants.black);
+			minZText.setToolTipText("Global zone bottom = " + minZBound);
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -482,6 +478,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			maxZText.setText(String.valueOf(sensorData.get(type).maxZ));
 			maxZText.setForeground(Constants.black);
+			maxZText.setToolTipText("Global zone top = " + maxZBound);
 			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -563,18 +560,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				maxZLabel.setEnabled(isIncluded);
 			if(maxZText != null && !maxZText.isDisposed() && !alias.contains("ERT"))
 				maxZText.setEnabled(isIncluded);
-		}
-		
-		private void getSpecificType() {
-			if(trigger == Trigger.MAXIMUM_THRESHOLD)
-				specificType = sensorType + "_max_" + detectionThreshold;
-			else if(trigger == Trigger.MINIMUM_THRESHOLD)
-				specificType = sensorType + "_min_" + detectionThreshold;
-			else if(trigger == Trigger.RELATIVE_DELTA)
-				specificType = sensorType + "_rel_" + detectionThreshold;
-			else // if(trigger == Trigger.ABSOLUTE_DELTA)
-				specificType = sensorType + "_abs_" + detectionThreshold;
-
 		}
 	}
 	
@@ -1002,11 +987,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		ArrayList<SensorData> newSensors = new ArrayList<SensorData>();
 		ArrayList<SensorData> activeSensors = new ArrayList<SensorData>();
 		int count = 0;
+		
+		// Loop through the input sensor data
 		for(String label: sensorData.keySet()) {
 			SensorData sensor = sensorData.get(label);
+			
 			if (!sensor.isIncluded)
 				data.getSet().removeSensorSettings(sensor.sensorName);
-			else {
+			else { // Only included sensors
+				// Save to sensor settings and get specificType
+				data.getSet().getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
+						sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ);
+				sensorData.get(label).specificType = data.getSet().getSensorSettings(label).specificType;
+				// Count active sensors to populate the next page
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
 				activeSensors.add(sensor);
 				if(!data.getSet().getDetectionMap().containsKey(sensor.specificType) && !sensor.sensorType.contains("Electrical Conductivity"))
@@ -1014,6 +1007,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 			Sensor.sensorAliases.put(label, sensor.alias);
 		}
+		
 		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
 			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.needToResetWells = true;
@@ -1047,19 +1041,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			}
 		}
-	}
-		
-	private Trigger iamToTrigger(String trigger) {
-		Trigger temp = null;
-		if(trigger.contains("min"))
-			temp = Trigger.MINIMUM_THRESHOLD;
-		else if(trigger.contains("max"))
-			temp = Trigger.MAXIMUM_THRESHOLD;
-		else if(trigger.contains("rel"))
-			temp = Trigger.RELATIVE_DELTA;
-		else if(trigger.contains("abs"))
-			temp = Trigger.ABSOLUTE_DELTA;
-		return temp;
 	}
 	
 	@Override

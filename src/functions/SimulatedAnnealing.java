@@ -146,7 +146,7 @@ public class SimulatedAnnealing extends Function {
 			ts = timeStep;
 			long startTime = System.currentTimeMillis();	
 			for(ExtendedSensor sensor: con.getExtendedSensors()) {
-				String specificType = set.getSensorSettings(sensor.getSensorType()).getSpecificType();
+				String specificType = set.getSensorSettings(sensor.getSensorType()).specificType;
 				Boolean triggered = null;
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
 					if(this.currentIteration==-3) //A hack to trigger the calculation of the best TTD for ERT (complicated because of well pairings)

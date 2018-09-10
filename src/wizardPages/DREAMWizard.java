@@ -348,7 +348,9 @@ public class DREAMWizard extends Wizard {
 						monitor.worked(6);
 						
 						monitor.subTask("reading scenarios from all files");
-						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list), modelOption);
+						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list)); // Set the scenarios
+						set.setupSensorSettings(modelOption);
+						set.setupInferenceTest();
 						monitor.worked(3);
 						
 						monitor.subTask("initializing algorithm");
@@ -373,7 +375,8 @@ public class DREAMWizard extends Wizard {
 						monitor.subTask("reading scenarios from all files");
 						IAMInterface.readIAMFiles(list, set);
 						set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
-						set.setupScenarios(IAMInterface.getScenarios(), modelOption); // Set the scenarios
+						set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
+						set.setupInferenceTest();
 						monitor.worked(list.length);
 						
 						monitor.subTask("initializing algorithm");
@@ -397,19 +400,10 @@ public class DREAMWizard extends Wizard {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							int monitorSize = 70*newSensors.size() + 30*activeSensors.size() + 1;
+							int monitorSize = 75*newSensors.size() + 25*activeSensors.size() + 1;
 							monitor.beginTask("Sensor settings", monitorSize);
 							
-							//First we need to save active sensors to SensorSettings
-							for(SensorData sensor: activeSensors) {
-								if(monitor.isCanceled()) break;
-								monitor.subTask(sensor.sensorType + " - saving sensor settings");
-								set.getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
-										sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ);
-								monitor.worked(5);
-							}
-							
-							// Then we generate a TTD matrix based for new selected sensors settings //TODO: Could be sped up if it only reads files once
+							// First we generate a TTD matrix based for new selected sensors settings //TODO: Could be sped up if it only reads files once
 							for(SensorData sensor: newSensors) { //Only do this for H5 variables, IAM is already in detectionMap
 								if(monitor.isCanceled()) break;
 								monitor.subTask(sensor.sensorType + " - generating detection matrix");
@@ -417,7 +411,7 @@ public class DREAMWizard extends Wizard {
 									set.detectionMapForAllSensors(activeSensors); //Special handling - map should be lowest detection at each node
 								else
 									HDF5Interface.createDetectionMap(set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
-								monitor.worked(70);
+								monitor.worked(75);
 							}
 							
 							// Last we create a list of valid nodes from the new detectionMap
