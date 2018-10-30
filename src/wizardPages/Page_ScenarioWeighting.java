@@ -256,6 +256,10 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);
+		
+		// If there is only one scenario, skip the weighting page
+		if(scenarios.size()==1)
+			DREAMWizard.nextButton.notifyListeners(SWT.Selection, new Event());
 	}
 
 	@Override
