@@ -652,7 +652,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		maxZLabel.setFont(boldFontSmall);
 		
 		for(SensorData sensor: sensorData.values()) {
-			sensor.buildUI(sensor.sensorName);
+			sensor.buildUI(sensor.sensorType);
 		}
 		
 		Group parametersGroup = new Group(container, SWT.SHADOW_NONE);
