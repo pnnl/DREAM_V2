@@ -90,7 +90,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public boolean isIncluded;
 		private boolean isDuplicate;
 		
-		private Label nodeLabel;
+		private Label fullCloudNodeLabel;
+		private Label paretoNodeLabel;
 		private Label sensorTypeLabel;
 		private Label detectionLabel;
 		private Label minZLabel;
@@ -615,12 +616,19 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, "
+						+ "DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. "
+						+ "The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor "
+						+ "each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is "
+						+ "known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, "
+						+ "absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, "
+						+ "the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
 			}
 		});
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum and maximum values are read from the first realization read by DREAM. These are provided to give the user an idea of the values present.");
+		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum "
+				+ "and maximum values are read from the first realization read by DREAM. These are provided to give the user an idea of the values present.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 2;
@@ -651,20 +659,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		minZLabel.setFont(boldFontSmall);
 		maxZLabel.setFont(boldFontSmall);
 		
+		// This loops through each sensor and creates a row with input values
 		for(SensorData sensor: sensorData.values()) {
 			sensor.buildUI(sensor.sensorName);
 		}
 		
-		Group parametersGroup = new Group(container, SWT.SHADOW_NONE);
-		parametersGroup.setText("Nodes Found for Each Parameter");
-		parametersGroup.setFont(boldFontSmall);
-		parametersGroup.setLayout(new GridLayout(4,true));
-		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		tempData.horizontalSpan = 10;
-		parametersGroup.setLayoutData(tempData);
-		
-		Button findTriggeringNodes = new Button(parametersGroup, SWT.BALLOON);
+		// Find Triggering Nodes Button
+		Button findTriggeringNodes = new Button(container, SWT.BALLOON);
 		findTriggeringNodes.setText("Find triggering nodes");
+		GridData triggeringNodesData = new GridData(SWT.BEGINNING, SWT.END, false, false, 3, 1);
+		findTriggeringNodes.setLayoutData(triggeringNodesData);
 		findTriggeringNodes.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
@@ -676,18 +680,38 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}	       
 		});
 		
-		for (int i=0; i<3; i++)
-			new Label(parametersGroup, SWT.NULL);
-		
+		// Resulting nodes for full solution space (unique nodes that trigger on any scenario)
+		Group fullSolutionGroup = new Group(container, SWT.SHADOW_NONE);
+		fullSolutionGroup.setText("Full Solution Nodes for Each Parameter");
+		fullSolutionGroup.setFont(boldFontSmall);
+		fullSolutionGroup.setLayout(new GridLayout(4,true));
+		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		tempData.horizontalSpan = 10;
+		fullSolutionGroup.setLayoutData(tempData);
 		for(String label: sensorData.keySet()){
-			SensorData temp = sensorData.get(label);
-			temp.nodeLabel = new Label(parametersGroup, SWT.WRAP);
+			SensorData sensor = sensorData.get(label);
+			sensor.fullCloudNodeLabel = new Label(fullSolutionGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label) == null)
 				data.getSet().resetSensorSettings(label);
-			if(data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
-				temp.nodeLabel.setText(label+ ": " + data.getSet().getSensorSettings(label).getValidNodes().size() + "   ");
+			if(data.getSet().getSensorSettings(label).getCloudNodes().size() > 0)
+				sensor.fullCloudNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getCloudNodes().size());
 			else
-				temp.nodeLabel.setText(label+ ": Not set   ");
+				sensor.fullCloudNodeLabel.setText(label+": Not set");
+		}
+		
+		// Resulting nodes from pareto optimal (unique nodes that trigger on the most scenarios)
+		Group paretoGroup = new Group(container, SWT.SHADOW_NONE);
+		paretoGroup.setText("Pareto Nodes for Each Parameter");
+		paretoGroup.setFont(boldFontSmall);
+		paretoGroup.setLayout(new GridLayout(4,true));
+		paretoGroup.setLayoutData(tempData);
+		for(String label: sensorData.keySet()){
+			SensorData sensor = sensorData.get(label);
+			sensor.paretoNodeLabel = new Label(paretoGroup, SWT.WRAP);
+			if(data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
+				sensor.paretoNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
+			else
+				sensor.paretoNodeLabel.setText(label+": Not set");
 		}
 		
 		// If the user has the E4D module installed, allow the E4D buttons to show up
@@ -993,12 +1017,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			SensorData sensor = sensorData.get(label);
 			
 			if (!sensor.isIncluded)
+				// Remove from sensorSettings if the sensor is not included
 				data.getSet().removeSensorSettings(sensor.sensorName);
-			else { // Only included sensors
-				// Save to sensor settings and get specificType
+			else {
+				// Add the sensor to sensorSettings
+				data.getSet().addSensorSetting(sensor.sensorName, sensor.sensorType);
+				// Set values in sensorSettings from sensorData
 				data.getSet().getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
 						sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ);
-				sensorData.get(label).specificType = data.getSet().getSensorSettings(label).specificType;
+				// Set the specificType
+				sensor.specificType = data.getSet().getSensorSettings(label).specificType;
 				// Count active sensors to populate the next page
 				count += data.getSet().getInferenceTest().getMinimumForType(label);
 				activeSensors.add(sensor);
@@ -1020,22 +1048,25 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// Write the number of valid nodes to the display
 		for(String label: sensorData.keySet()) {
 			SensorData sensor = sensorData.get(label);
-			if(sensor.isIncluded)
-				sensor.nodeLabel.setText(label + ": " + data.getSet().getSensorSettings(label).getNodeSize());
-			else
-				sensor.nodeLabel.setText(label + ": Not set");
+			if(sensor.isIncluded) {
+				sensor.fullCloudNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getCloudNodes().size());
+				sensor.paretoNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
+			} else {
+				sensor.fullCloudNodeLabel.setText(label+": Not set");
+				sensor.paretoNodeLabel.setText(label+": Not set");
+			}
 		}
 		
 		// Now that we've found nodes, make vis available
-		DREAMWizard.visLauncher.setEnabled(true);	
+		DREAMWizard.visLauncher.setEnabled(true);
 	}
 	
 	//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
 	//This gets around the problem by selecting that alias field so that it replaces itself - not a real fix to the problem.
 	public void fixMacBug() {
-		if(System.getProperty("os.name").contains("Mac")){
-			for(String sensor : sensorData.keySet()){
-				if(sensorData.get(sensor).isIncluded){
+		if(System.getProperty("os.name").contains("Mac")) {
+			for(String sensor : sensorData.keySet()) {
+				if(sensorData.get(sensor).isIncluded) {
 					sensorData.get(sensor).aliasText.setFocus();
 					break;
 				}

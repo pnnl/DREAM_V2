@@ -231,12 +231,6 @@ public class SensorSetting {
 		validNodes.addAll(newSet);
 	}
 	
-	public void setFullCloudNodes(HashSet<Integer> newSet){
-		if(this.fullCloudNodes == null) this.fullCloudNodes = new HashSet<Integer>();
-		else this.fullCloudNodes.clear();
-		this.fullCloudNodes.addAll(newSet);
-	}
-	
 	
 	public void setNodes(ScenarioSet set) {
 		
@@ -258,7 +252,7 @@ public class SensorSetting {
 			trimZ();
 			
 			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
-			validNodes = fullCloudNodes;
+			validNodes.addAll(fullCloudNodes);
 			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
 				paretoOptimal(set.getDetectionMap(), set.getScenarios());
 		}
