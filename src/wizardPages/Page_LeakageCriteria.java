@@ -661,7 +661,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// This loops through each sensor and creates a row with input values
 		for(SensorData sensor: sensorData.values()) {
-			sensor.buildUI(sensor.sensorName);
+			sensor.buildUI(sensor.sensorType);
 		}
 		
 		// Find Triggering Nodes Button
