@@ -53,11 +53,11 @@ public class E4DSensors {
 			if(!data.getSet().getSensorSettings().containsKey(parameter)) { //Sensor Settings might be in the removed list...
 				data.getSet().getRemovedSensorSettings(parameter).setTrigger(Trigger.RELATIVE_CHANGE);
 				data.getSet().getRemovedSensorSettings(parameter).setDetectionThreshold(threshold);
-				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
+				HDF5Interface.createDetectionMap(monitor, data.getSet(), data.getSet().getRemovedSensorSettings(parameter), specificType);
 			} else {
 				data.getSet().getSensorSettings(parameter).setTrigger(Trigger.RELATIVE_CHANGE);
 				data.getSet().getSensorSettings(parameter).setDetectionThreshold(threshold);
-				HDF5Interface.createDetectionMap(data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
+				HDF5Interface.createDetectionMap(monitor, data.getSet(), data.getSet().getSensorSettings(parameter), specificType);
 			}
 			for(Map<Integer, Float> detections: data.getSet().getDetectionMap().get(specificType).values()) {
 				for(Integer node: detections.keySet())

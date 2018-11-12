@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import utilities.Constants;
 import utilities.Constants.ModelOption;
 import wizardPages.Page_LeakageCriteria.SensorData;
@@ -236,10 +238,15 @@ public class ScenarioSet {
 		inferenceTest = new InferenceTest(sensorSettings.keySet());
 	}
 	
-	public void detectionMapForAllSensors(ArrayList<SensorData> activeSensors) {
+	public void detectionMapForAllSensors(IProgressMonitor monitor, ArrayList<SensorData> activeSensors) {
 		String specificType = "all_min_0.0";
 		detectionMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
-		for(String scenario: this.getAllScenarios()) {
+		for(String scenario: allScenarios) {
+			if(monitor.isCanceled()) {
+				detectionMap.remove(specificType);
+				return;
+			}
+			monitor.subTask("generating detection matrix: All Sensors - " + scenario);
 			detectionMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
 			for(SensorData sensor: activeSensors) {
 				if(sensor.sensorType.contains("all")) continue; //Don't double add
@@ -251,6 +258,7 @@ public class ScenarioSet {
 						detectionMap.get(specificType).get(scenario).put(node, ttd);
 				}
 			}
+			monitor.worked(900/allScenarios.size());
 		}
 	}
 	

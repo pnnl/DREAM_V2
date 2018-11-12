@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import objects.NodeStructure;
 import objects.ScenarioSet;
 import objects.SensorSetting;
@@ -209,7 +211,7 @@ public class HDF5Interface {
 	
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
-	public static void createDetectionMap(ScenarioSet set, SensorSetting setting, String specificType) {
+	public static void createDetectionMap(IProgressMonitor monitor, ScenarioSet set, SensorSetting setting, String specificType) {
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -217,6 +219,11 @@ public class HDF5Interface {
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		for(H5File hdf5File: hdf5Files.values()) { // For every scenario
 			String scenario = hdf5File.getName().replaceAll("\\.h5" , "");
+			if(monitor.isCanceled()) {
+				set.getDetectionMap().remove(specificType);
+				return;
+			}
+			monitor.subTask("generating detection matrix: " + setting.getType() + " - " + scenario);
 			try {
 				if(!set.getDetectionMap().containsKey(specificType))
 					set.getDetectionMap().put(specificType, new HashMap<String, Map<Integer, Float>>());
@@ -279,6 +286,7 @@ public class HDF5Interface {
 				System.out.println("Unable to read detection values from the hdf5 files...");
 				e.printStackTrace();
 			}
+			monitor.worked(900/hdf5Files.size());
 		}
 		long elapsedTime = (System.currentTimeMillis() - startTime)/1000;
 		System.out.println("You just created a detection map for " + specificType + " in " + elapsedTime + " seconds! Awesome! So Fast!");

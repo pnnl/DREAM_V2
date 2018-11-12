@@ -400,28 +400,27 @@ public class DREAMWizard extends Wizard {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							int monitorSize = 75*newSensors.size() + 25*activeSensors.size() + 1;
+							int monitorSize = 900*newSensors.size() + 100*activeSensors.size();
 							monitor.beginTask("Sensor settings", monitorSize);
 							
-							// First we generate a TTD matrix based for new selected sensors settings //TODO: Could be sped up if it only reads files once
-							for(SensorData sensor: newSensors) { //Only do this for H5 variables, IAM is already in detectionMap
+							// First we generate a TTD matrix based on new selected sensors settings
+							// Only do this for H5 variables, IAM is already in detectionMap
+							for(SensorData sensor: newSensors) {
 								if(monitor.isCanceled()) break;
-								monitor.subTask(sensor.sensorType + " - generating detection matrix");
 								if(sensor.sensorType.contains("all"))
-									set.detectionMapForAllSensors(activeSensors); //Special handling - map should be lowest detection at each node
+									set.detectionMapForAllSensors(monitor, activeSensors); //Special handling - map should be lowest detection at each node
 								else
-									HDF5Interface.createDetectionMap(set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
-								monitor.worked(75);
+									HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
 							}
 							
 							// Last we create a list of valid nodes from the new detectionMap
 							for(SensorData sensor: activeSensors) {
 								if(monitor.isCanceled()) break;
+								monitor.subTask("calculating valid nodes: " + sensor.sensorType);
 								monitor.subTask(sensor.sensorType + " - generating a list of valid nodes");
 								set.getSensorSettings(sensor.sensorType).setNodes(set);
-								monitor.worked(25);
+								monitor.worked(100);
 							}
-							monitor.worked(1);
 							
 							// If the user canceled, clear any added data
 							if(monitor.isCanceled()) {
@@ -435,7 +434,6 @@ public class DREAMWizard extends Wizard {
 							
 						} catch (Exception e) {
 							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
-							e.printStackTrace();
 						}
 					}
 				});
