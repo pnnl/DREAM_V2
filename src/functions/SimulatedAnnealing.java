@@ -34,7 +34,9 @@ public class SimulatedAnnealing extends Function {
 	public String toString() {
 		return "SimulatedAnnealing";
 	}
-
+	
+	// Inference is basically testing that enough sensors detected their threshold to count as a leak
+	// The criteria for inference is set from Page_DetectionCriteria
 	@Override
 	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
 
@@ -76,10 +78,12 @@ public class SimulatedAnnealing extends Function {
 		return result;
 
 	}
-
+	
+	// This calculates an value describing how well the sensors detected for this configuration
+	// A large penalty is given to sensors that do not detect
 	@Override
 	public Float objective(final ExtendedConfiguration configuration, final ScenarioSet set, boolean runThreaded) {
-
+		
 		// Start a timer	
 		long startTime = System.currentTimeMillis();		
 		List<Thread> threads = new ArrayList<Thread>();
@@ -88,7 +92,8 @@ public class SimulatedAnnealing extends Function {
 			sensor.clearScenariosUsed();
 		}
 		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
-		for (final String scenario : set.getScenarios()) {
+		for (final String scenario: set.getScenarios()) {
+			if(set.getScenarioWeights().get(scenario) <= 0) continue; //Skip any scenarios with a weighting of 0
 			if(runThreaded) {
 				Thread thread = new Thread(new Runnable() {
 					@Override
@@ -106,13 +111,13 @@ public class SimulatedAnnealing extends Function {
 				thread.start();
 				threads.add(thread);
 			} else {
-				startTime = System.currentTimeMillis();	
 				try {
+					startTime = System.currentTimeMillis();	
 					innerLoopParallel(configuration, set, scenario);
+					Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
 			}
 		}
 
@@ -137,15 +142,39 @@ public class SimulatedAnnealing extends Function {
 	 * 					 *
 	\*					 */
 
-	public void innerLoopParallel(ExtendedConfiguration con, ScenarioSet set, String scenario) throws Exception {
-		if(set.getScenarioWeights().get(scenario) <= 0) return; //Skip any scenarios with a weighting of 0
-		
+	public void innerLoopParallel(ExtendedConfiguration configuration, ScenarioSet set, String scenario) throws Exception {
+		/*
+		// Jonathan's attempt at simplifying the objective code without looping through time steps
+		InferenceResult inferenceResult = null;
+		for(ExtendedSensor sensor: configuration.getExtendedSensors()) { //Loop through sensors in configuration
+			String specificType = set.getSensorSettings(sensor.getSensorType()).specificType;
+			float sensorTTD = 1000000; // Default penalty for a scenario with no detection
+			
+			// ERT needs to be looking at a different detection map with well pairings
+			if(specificType.contains("Electrical Conductivity"))
+				sensorTTD = E4DSensors.ertDetectionValue(sensor, scenario);
+			
+			// Check to make sure the detection map has a result for this node number
+			else if(set.getDetectionMap().get(specificType).get(scenario).containsKey(sensor.getNodeNumber()))
+				sensorTTD = set.getDetectionMap().get(specificType).get(scenario).get(sensor.getNodeNumber());
+			
+			// Store each sensor TTD in configuration
+			if(sensorTTD < 1000000)
+				sensor.setTriggered(scenario, sensorTTD);
+		}
+		inferenceResult = inference(configuration, set, scenario);
+		if(inferenceResult.isInferred())
+			configuration.addTimeToDetection(scenario, ttd);
+		else 
+			configuration.getTimesToDetection().remove(scenario);
+		configuration.addObjectiveValue(scenario, ttd * set.getGloballyNormalizedScenarioWeight(scenario));
+		configuration.addInferenceResult(scenario, inferenceResult);
+		*/
 		TimeStep ts = null;
 		InferenceResult inferenceResult = null;
 		for(TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
 			ts = timeStep;
-			long startTime = System.currentTimeMillis();	
-			for(ExtendedSensor sensor: con.getExtendedSensors()) {
+			for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
 				String specificType = set.getSensorSettings(sensor.getSensorType()).specificType;
 				Boolean triggered = null;
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
@@ -154,39 +183,34 @@ public class SimulatedAnnealing extends Function {
 					else
 						triggered = E4DSensors.ertSensorTriggered(timeStep, scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getDetectionThreshold());
 				} else
-					triggered = sensorTriggered(specificType, scenario, sensor.getNodeNumber(), timeStep, set);
-				sensor.setTriggered(triggered, scenario, timeStep, 0.0);
+					triggered = sensorTriggered(set, specificType, scenario, sensor.getNodeNumber(), timeStep);
+				sensor.setTriggered(triggered, scenario, timeStep.getRealTime(), 0.0);
 			}
-			inferenceResult = inference(con, set, scenario);
-			Constants.timer.addPerTime(System.currentTimeMillis() - startTime);
+			inferenceResult = inference(configuration, set, scenario);
 			if (inferenceResult.isInferred())
-				break;
+				break; // Stop once we've met the inference test - use this detection time
 		}
-		// maxTime is an index, we want the value there
-		float timeInYears = 1000000;			
-		if (ts != null && inferenceResult.isInferred()) {
+		// Now store objective and inference results in the configuration
+		float timeInYears = 1000000; // Default penalty for a scenario with no detection
+		if (ts != null && inferenceResult.isInferred()) { // Store value if we have hit inference
 			timeInYears = ts.getRealTime();
-			// Only keep track if we've hit inference
-			con.addTimeToDetection(scenario, timeInYears);
-		} else {
-			con.getTimesToDetection().remove(scenario);
+			configuration.addTimeToDetection(scenario, timeInYears);
+		} else { // If no inference, no leak was detected for this scenario
+			configuration.getTimesToDetection().remove(scenario);
 		}
-		con.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
-		con.addInferenceResult(scenario, inferenceResult);
+		configuration.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
+		configuration.addInferenceResult(scenario, inferenceResult);
 	}
 	
 	
 	// This method tells the Simulated Annealing process whether sensors have been triggered
-	public static Boolean sensorTriggered(String specificType, String scenario, Integer nodeNumber, TimeStep timestep, ScenarioSet set) {
-		Boolean triggered = false;
-		if(!set.getDetectionMap().get(specificType).containsKey(scenario))
-			triggered = false;
-		if(!set.getDetectionMap().get(specificType).get(scenario).containsKey(nodeNumber))
-			triggered = false;
-		else
-			if(set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime())
-				triggered = true;
-		return triggered;
+	public static Boolean sensorTriggered(ScenarioSet set, String specificType, String scenario, Integer nodeNumber, TimeStep timestep) {
+		if(set.getDetectionMap().get(specificType).get(scenario).containsKey(nodeNumber)) {
+			if(set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime()) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }

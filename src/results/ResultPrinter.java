@@ -17,7 +17,6 @@ import objects.ExtendedSensor;
 import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
-import objects.TimeStep;
 import results.Results.ObjectiveResult;
 import results.Results.Type;
 import utilities.Constants;
@@ -200,12 +199,12 @@ public class ResultPrinter {
 						if(scenariosThatDidNotDetect.contains(scenario)) {
 							continue;
 						}
-						TreeMap<TimeStep, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
-						for(TimeStep ts: ttds.keySet()) {
-							if(ts.getRealTime() < minYear)
-								minYear = ts.getRealTime();
-							if(ts.getRealTime() > maxYear) {
-								maxYear = ts.getRealTime();
+						TreeMap<Float, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
+						for(Float ts: ttds.keySet()) {
+							if(ts < minYear)
+								minYear = ts;
+							if(ts > maxYear) {
+								maxYear = ts;
 							}
 						}
 					}

@@ -161,7 +161,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy(set);
 		ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy(set);
 		ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy(set);
-		float currentValue = objective(currentConfiguration, set, true);
+		float currentValue = objective(currentConfiguration, set, Constants.runThreaded);
 		float newValue = currentValue;
 		float bestValue = currentValue;
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
@@ -171,11 +171,11 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		
 		Constants.log(Level.FINER, "Function: running - new configuration", newConfiguration);
 		currentIteration = -2;
-		currentValue = objective(currentConfiguration, set, true);
+		currentValue = objective(currentConfiguration, set, Constants.runThreaded);
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 		
 		currentIteration = -1;
-		newValue = objective(newConfiguration, set, true);
+		newValue = objective(newConfiguration, set, Constants.runThreaded);
 		bestValue = currentValue;
 		double temperature = 100;
 		
@@ -274,7 +274,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			// Get the new value
 			ttmStart = System.currentTimeMillis();
 			
-			newValue = objective(newConfiguration, set, true);
+			newValue = objective(newConfiguration, set, Constants.runThreaded);
 			
 			float tto = System.currentTimeMillis()-ttmStart;
 			Constants.log(Level.FINE, "Function: running - time taken to run objective", (tto) + " ms");

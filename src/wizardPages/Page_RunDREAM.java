@@ -393,7 +393,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						}
 					}
 					
-					data.runObjective(configuration, Constants.runThreaded);
+					data.runObjective(configuration);
 					
 					float totalTimeToDetection = 0.0f;
 					int detectedScenarios = 0;
@@ -877,7 +877,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						for(ExtendedConfiguration config: ResultPrinter.results.bestConfigSumList){
 							List<ExtendedConfiguration> innerSet = new ArrayList<ExtendedConfiguration>();
 							//For each config, let's run through the iterations of replacing the sensors with our original ones.
-							data.runObjective(config, true);
+							data.runObjective(config);
 							innerSet.add(config);
 							int numSensors = config.getExtendedSensors().size();
 							for(int i=1; i<=numSensors; i++){
@@ -901,7 +901,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 										}
 										else newConfig.addSensor(data.getSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
 									}
-									data.runObjective(newConfig, true);
+									data.runObjective(newConfig);
 									float objective = newConfig.getObjectiveValue();
 									if(objective < bestValue){
 										bestValue = objective;

@@ -26,7 +26,7 @@ public class ExtendedSensor extends Sensor {
     private boolean triggering;
     
     // Which scenarios it was used to determine inference
-    private Map<String, TreeMap<TimeStep, Double>> scenariosUsed;
+    private Map<String, TreeMap<Float, Double>> scenariosUsed;
     
     // Well pairing for E4D
     private int nodePairNumber;
@@ -35,7 +35,7 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(int i, int j, int k, String type, NodeStructure domain) {
     	super(i, j, k, type, domain);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<Float, Double>>());
     	history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
     	
     	triggering = false;
@@ -45,7 +45,7 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(int nodeNumber, String type, NodeStructure domain) {
     	super(nodeNumber, type, domain);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<Float, Double>>());
 
     	triggering = false;
     	well = null;
@@ -54,7 +54,7 @@ public class ExtendedSensor extends Sensor {
     public ExtendedSensor(ExtendedSensor toCopy) {
     	super(toCopy);
     	
-    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<TimeStep, Double>>());
+    	scenariosUsed = Collections.synchronizedMap(new HashMap<String, TreeMap<Float, Double>>());
     	history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
     	scenariosUsed = toCopy.getScenariosUsed();
     	
@@ -76,8 +76,8 @@ public class ExtendedSensor extends Sensor {
     	StringBuilder str = new StringBuilder();
     	for(String scenario: scenariosUsed.keySet()) {
     		str.append("\t" + scenario + ": ");
-    		for(TimeStep ts:scenariosUsed.get(scenario).keySet()) {
-    			str.append("[" + ts.getTimeStep() + ": " + Constants.decimalFormat.format(scenariosUsed.get(scenario).get(ts)) + "], ");
+    		for(Float ts:scenariosUsed.get(scenario).keySet()) {
+    			str.append("[" + ts + ": " + Constants.decimalFormat.format(scenariosUsed.get(scenario).get(ts)) + "], ");
     		}
     	}
     	str.append("\n");
@@ -129,8 +129,8 @@ public class ExtendedSensor extends Sensor {
 		return scenariosUsed.containsKey(scenario);
 	}
 	
-	public synchronized Map<String, TreeMap<TimeStep, Double>> getScenariosUsed() {
-		return new HashMap<String, TreeMap<TimeStep, Double>>(scenariosUsed);
+	public synchronized Map<String, TreeMap<Float, Double>> getScenariosUsed() {
+		return new HashMap<String, TreeMap<Float, Double>>(scenariosUsed);
 	}
 	
 	public synchronized void clearScenariosUsed() {
@@ -282,13 +282,12 @@ public class ExtendedSensor extends Sensor {
     	
 	}
 
-	public synchronized void setTriggered(boolean triggered, String scenario, TimeStep time, Double value) {
-		if(triggered && !this.triggering) {
-			this.triggering = true;
-		}
+	public synchronized void setTriggered(boolean triggered, String scenario, Float time, Double value) {
+		if(triggered)
+			triggering = true;
 		if(triggered) {
 			if(!scenariosUsed.containsKey(scenario))
-				scenariosUsed.put(scenario, new TreeMap<TimeStep, Double>());
+				scenariosUsed.put(scenario, new TreeMap<Float, Double>());
 			scenariosUsed.get(scenario).put(time, value);	
 		}
 	}

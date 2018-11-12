@@ -30,7 +30,7 @@ public class InferenceTest {
 
 		for(String dataType: dataTypes) {
 			this.dataTypes.add(dataType);
-			minimumRequiredPerType.put(dataType, 1);
+			minimumRequiredPerType.put(dataType, 0);
 		}
 		
 		
