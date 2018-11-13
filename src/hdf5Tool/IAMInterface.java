@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import objects.NodeStructure;
 import objects.ScenarioSet;
 import objects.TimeStep;
@@ -66,16 +68,18 @@ public class IAMInterface {
 	}
 	
 	// Loops though all the files and reads detections into the detectionMap
-	public static void readIAMFiles(File[] list, ScenarioSet set) {
+	public static void readIAMFiles(IProgressMonitor monitor, File[] list, ScenarioSet set) {
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
 		List<Float> times = new ArrayList<Float>();
 		String line;
-		try {
-			// Need to loop through all the files and read the files directly into the detectionMap
-			for(File file: list) {
-				String specificType = "";
-				String scenario = "";
-				int index = 0;
+		// Need to loop through all the files and read the files directly into the detectionMap
+		for(File file: list) {
+			monitor.subTask("reading data from " + file);
+			if(monitor.isCanceled()) return;
+			String specificType = "";
+			String scenario = "";
+			int index = 0;
+			try {
 				BufferedReader br = new BufferedReader(new FileReader(file));
 				while ((line = br.readLine()) != null) {
 					String[] lineList = line.split(","); //comma delimited
@@ -108,20 +112,21 @@ public class IAMInterface {
 					}
 				}
 				br.close();
+				monitor.worked(1);
+			} catch (Exception e) {
+				System.out.println("Unable to read detection values from the IAM files...");
+				e.printStackTrace();
 			}
-			
-			// Store all found time steps in node structure
-			java.util.Collections.sort(times);
-			List<TimeStep> timeSteps = new ArrayList<TimeStep>();
-			for(int i=0; i<times.size(); i++) {
-				TimeStep timeStep = new TimeStep(i, times.get(i), Math.round(times.get(i)));
-				timeSteps.add(timeStep);
-			}
-			set.getNodeStructure().setTimeSteps(timeSteps);
-		} catch (Exception e) {
-			System.out.println("Error loading scenarios");
-			e.printStackTrace();
 		}
+		
+		// Store all found time steps in node structure
+		java.util.Collections.sort(times);
+		List<TimeStep> timeSteps = new ArrayList<TimeStep>();
+		for(int i=0; i<times.size(); i++) {
+			TimeStep timeStep = new TimeStep(i, times.get(i), Math.round(times.get(i)));
+			timeSteps.add(timeStep);
+		}
+		set.getNodeStructure().setTimeSteps(timeSteps);
 	}
 	
 	// This can be used to map to alternative entries for IAM files

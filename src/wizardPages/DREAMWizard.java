@@ -321,76 +321,88 @@ public class DREAMWizard extends Wizard {
 		}
 		
 		
-		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String input) throws Exception {	
-			dialog.run(true, false, new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					
-					// Create a list of files in the directory, excluding any that aren't .h5 or .iam files
-					File inputFolder = new File(input); // We are already assured that the directory exists and contains .h5 or .iam files from previous constraints
-					FilenameFilter fileNameFilter = new FilenameFilter() {
-						@Override
-						public boolean accept(File dir, String name) {
-							if(name.endsWith(".h5") || name.endsWith(".iam"))
-								return true;
-							return false;
+		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String input) {	
+			try {
+				dialog.run(true, true, new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						try {
+							// Create a list of files in the directory, excluding any that aren't .h5 or .iam files
+							File inputFolder = new File(input); // We are already assured that the directory exists and contains .h5 or .iam files from previous constraints
+							FilenameFilter fileNameFilter = new FilenameFilter() {
+								@Override
+								public boolean accept(File dir, String name) {
+									if(name.endsWith(".h5") || name.endsWith(".iam"))
+										return true;
+									return false;
+								}
+							};
+							File[] list = inputFolder.listFiles(fileNameFilter);
+							
+							// If the directory has H5 files, handle it this way...
+							if(list[0].getPath().endsWith(".h5")) {
+								monitor.beginTask("Loading H5 scenario set", 10);
+								
+								monitor.subTask("reading Node Structure from first file");
+								set.setNodeStructure(HDF5Interface.readNodeStructureH5(list[0])); //Load the H5 files into the constants
+								monitor.worked(6);
+								
+								monitor.subTask("reading scenarios from all files");
+								set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list)); // Set the scenarios
+								set.setupSensorSettings(modelOption);
+								set.setupInferenceTest();
+								monitor.worked(3);
+								
+								monitor.subTask("initializing algorithm");
+								STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
+								STORMData.this.modelOption = modelOption;
+								if(function.endsWith("SimulatedAnnealing"))
+									runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
+								STORMData.this.fileType = "hdf5";
+								monitor.worked(1);
+								
+								monitor.subTask("done");
+							}
+							
+							// If the directory has IAM files, handle it this way...
+							else if(list[0].getPath().endsWith(".iam")) {
+								monitor.beginTask("Loading IAM scenario set", list.length + 2);
+								
+								monitor.subTask("reading Node Structure from first file");
+								set.setNodeStructure(IAMInterface.readNodeStructureIAM(list[0])); //Load the H5 files into the constants
+								monitor.worked(1);
+								
+								monitor.subTask("reading scenarios from all files");
+								IAMInterface.readIAMFiles(monitor, list, set);
+								set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
+								set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
+								set.setupInferenceTest();
+								monitor.worked(list.length);
+								
+								monitor.subTask("initializing algorithm");
+								STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
+								STORMData.this.modelOption = modelOption;
+								if(function.endsWith("SimulatedAnnealing"))
+									runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
+								STORMData.this.fileType = "iam";
+								monitor.worked(1);
+								
+								monitor.subTask("done");
+							}
+							if(monitor.isCanceled()) {
+								set.getSensorSettings().clear();
+								set.getDetectionMap().clear();
+								set.getNodeStructure().clear();
+							}
+						} catch (Exception e) {
+							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 						}
-					};
-					File[] list = inputFolder.listFiles(fileNameFilter);
-					set.clearRun();	// Important - clear any old run data before starting
-					
-					// If the directory has H5 files, handle it this way...
-					if(list[0].getPath().endsWith(".h5")) {
-						monitor.beginTask("Loading scenario set", 10);
-						
-						monitor.subTask("reading Node Structure from first file");
-						set.setNodeStructure(HDF5Interface.readNodeStructureH5(list[0])); //Load the H5 files into the constants
-						monitor.worked(6);
-						
-						monitor.subTask("reading scenarios from all files");
-						set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list)); // Set the scenarios
-						set.setupSensorSettings(modelOption);
-						set.setupInferenceTest();
-						monitor.worked(3);
-						
-						monitor.subTask("initializing algorithm");
-						STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
-						STORMData.this.modelOption = modelOption;
-						if(function.endsWith("SimulatedAnnealing"))
-							runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
-						STORMData.this.fileType = "hdf5";
-						monitor.worked(1);
-						
-						monitor.subTask("done");
-					}
-					
-					// If the directory has IAM files, handle it this way...
-					else if(list[0].getPath().endsWith(".iam")) {
-						monitor.beginTask("Loading scenario set", list.length + 3);
-						
-						monitor.subTask("reading Node Structure from first file");
-						set.setNodeStructure(IAMInterface.readNodeStructureIAM(list[0])); //Load the H5 files into the constants
-						monitor.worked(2);
-						
-						monitor.subTask("reading scenarios from all files");
-						IAMInterface.readIAMFiles(list, set);
-						set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
-						set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
-						set.setupInferenceTest();
-						monitor.worked(list.length);
-						
-						monitor.subTask("initializing algorithm");
-						STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
-						STORMData.this.modelOption = modelOption;
-						if(function.endsWith("SimulatedAnnealing"))
-							runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
-						STORMData.this.fileType = "iam";
-						monitor.worked(1);
-						
-						monitor.subTask("done");
-					}
-				}					
-			});
+					}					
+				});
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(null, "Loading files was canceled by the user.");
+				e.printStackTrace();
+			}
 		}
 		
 		
@@ -400,7 +412,7 @@ public class DREAMWizard extends Wizard {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							int monitorSize = 900*newSensors.size() + 100*activeSensors.size();
+							int monitorSize = 900*newSensors.size() + 50*activeSensors.size();
 							monitor.beginTask("Sensor settings", monitorSize);
 							
 							// First we generate a TTD matrix based on new selected sensors settings
@@ -419,7 +431,7 @@ public class DREAMWizard extends Wizard {
 								monitor.subTask("calculating valid nodes: " + sensor.sensorType);
 								monitor.subTask(sensor.sensorType + " - generating a list of valid nodes");
 								set.getSensorSettings(sensor.sensorType).setNodes(set);
-								monitor.worked(100);
+								monitor.worked(50);
 							}
 							
 							// If the user canceled, clear any added data

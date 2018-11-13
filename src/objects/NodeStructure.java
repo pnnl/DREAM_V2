@@ -410,4 +410,17 @@ public class NodeStructure {
 		System.out.println("Point: " + point.toString());
 		System.out.println("\tFrom startNode: " + structure.getXYZEdgeFromIJK(startNode));
 	}
+	
+	public void clear() {
+		x = null;
+		y = null;
+		z = null;
+		edgex = null;
+		edgey = null;
+		edgez = null;
+		timeSteps = null;
+		dataTypes = null;
+		ijkDimensions = null;
+		porosityOfNode = null;
+	}
 }
