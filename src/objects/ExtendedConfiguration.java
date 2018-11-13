@@ -686,7 +686,7 @@ public class ExtendedConfiguration extends Configuration {
 		if(configuration1.sensors.size() != configuration2.sensors.size())
 			return false;
 		for(int i=0; i<configuration1.sensors.size(); i++) {
-			if(configuration1.sensors.get(i).getNodeNumber().intValue() != configuration1.sensors.get(i).getNodeNumber().intValue())
+			if(configuration1.sensors.get(i).getNodeNumber().intValue() != configuration2.sensors.get(i).getNodeNumber().intValue())
 				return false;
 			if(configuration1.getExtendedSensors().get(i).getNodePairNumber() != configuration2.getExtendedSensors().get(i).getNodePairNumber())
 				return false;
