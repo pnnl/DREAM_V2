@@ -91,8 +91,8 @@ public class SimulatedAnnealing extends Function {
 		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {
 			sensor.clearScenariosUsed();
 		}
-		// int processors = Runtime.getRuntime().availableProcessors(); (Scale by this?)
-		for (final String scenario: set.getScenarios()) {
+		final int cores = Runtime.getRuntime().availableProcessors() - 1; //Use all but one core
+		for(final String scenario: set.getScenarios()) {
 			if(set.getScenarioWeights().get(scenario) <= 0) continue; //Skip any scenarios with a weighting of 0
 			if(runThreaded) {
 				Thread thread = new Thread(new Runnable() {
@@ -107,9 +107,10 @@ public class SimulatedAnnealing extends Function {
 						}
 					}
 				});
-				
-				thread.start();
-				threads.add(thread);
+				if(threads.size() < cores) {
+					thread.start();
+					threads.add(thread);
+				}
 			} else {
 				try {
 					startTime = System.currentTimeMillis();	
