@@ -344,7 +344,7 @@ public class DREAMWizard extends Wizard {
 								monitor.beginTask("Loading H5 scenario set", 10);
 								
 								monitor.subTask("reading Node Structure from first file");
-								set.setNodeStructure(HDF5Interface.readNodeStructureH5(list[0])); //Load the H5 files into the constants
+								set.setNodeStructure(HDF5Interface.readNodeStructureH5(list[0])); //Load the node structure from the first H5 file
 								monitor.worked(6);
 								
 								monitor.subTask("reading scenarios from all files");
@@ -369,7 +369,11 @@ public class DREAMWizard extends Wizard {
 								monitor.beginTask("Loading IAM scenario set", list.length + 2);
 								
 								monitor.subTask("reading Node Structure from first file");
-								set.setNodeStructure(IAMInterface.readNodeStructureIAM(list[0])); //Load the H5 files into the constants
+								File file = new File(inputFolder.getPath(),"iam.grid");
+								if(file.exists())
+									set.setNodeStructure(IAMInterface.readNodeStructureIAM(file)); //Load the node structure from the iam.grid file
+								else
+									set.setNodeStructure(IAMInterface.readNodeStructureIAM_Uncompressed(list[0])); //Load the node structure from the first IAM file
 								monitor.worked(1);
 								
 								monitor.subTask("reading scenarios from all files");

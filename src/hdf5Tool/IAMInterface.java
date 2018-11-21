@@ -38,7 +38,8 @@ public class IAMInterface {
 	 */
 	
 	// Read one file to extract the Node Structure information from H5 files
-	public static NodeStructure readNodeStructureIAM (File file) {
+	// TODO: Remove when done support uncompressed files
+	public static NodeStructure readNodeStructureIAM_Uncompressed (File file) {
 		NodeStructure nodeStructure = null;
 		List<TimeStep> times = new ArrayList<TimeStep>();
 		List<Float> xValues = new ArrayList<Float>();
@@ -67,6 +68,37 @@ public class IAMInterface {
 		return nodeStructure;
 	}
 	
+	// Read iam.grid file to extract the Node Structure information
+	public static NodeStructure readNodeStructureIAM(File file) {
+		NodeStructure nodeStructure = null;
+		List<TimeStep> times = new ArrayList<TimeStep>();
+		List<Float> xValues = new ArrayList<Float>();
+		List<Float> yValues = new ArrayList<Float>();
+		List<Float> zValues = new ArrayList<Float>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			for(int i=0; i<3; i++) {
+				String line = br.readLine();
+				String[] lineList = line.split(","); //comma delimited
+				for(String value: lineList) {
+					float dimension = Float.parseFloat(value);
+					if(i==0) xValues.add(dimension);
+					if(i==1) yValues.add(dimension);
+					if(i==2) zValues.add(dimension);
+				}
+			}
+			java.util.Collections.sort(xValues);
+			java.util.Collections.sort(yValues);
+			java.util.Collections.sort(zValues);
+			nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
+			br.close();
+		} catch (Exception e) {
+			System.out.println("Error loading Node Structure from " + file.getName());
+			e.printStackTrace();
+		}
+		return nodeStructure;
+	}
+	
 	// Loops though all the files and reads detections into the detectionMap
 	public static void readIAMFiles(IProgressMonitor monitor, File[] list, ScenarioSet set) {
 		Point3i structure = set.getNodeStructure().getIJKDimensions();
@@ -78,7 +110,6 @@ public class IAMInterface {
 			if(monitor.isCanceled()) return;
 			String specificType = "";
 			String scenario = "";
-			int index = 0;
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(file));
 				while ((line = br.readLine()) != null) {
@@ -103,12 +134,17 @@ public class IAMInterface {
 						if(!set.getSensorSettings().containsKey(lineList[2]))
 							set.addSensorSetting(lineList[2], lineList[3], lineList[4]);
 					} else if(lineList.length==4) {//data
+						// Since IAM files only list detections, we need to determine the index from the NodeStructure
+						int i = set.getNodeStructure().getX().indexOf(Float.parseFloat(lineList[0]));
+						int j = set.getNodeStructure().getY().indexOf(Float.parseFloat(lineList[1]));
+						int k = set.getNodeStructure().getZ().indexOf(Float.parseFloat(lineList[2]));
+						int index = k + j*structure.getK() + i*structure.getJ()*structure.getK();
+						// Now determine the node number and add the detection time to the DetectionMap
 						float time = Float.parseFloat(lineList[3]);
 						if(time < 1e25) { // No detection is usually represented by 1e30, don't add those
 							set.getDetectionMap().get(specificType).get(scenario).put(Constants.getNodeNumber(structure, index), time);
 							if(!times.contains(time)) times.add(time);
 						}
-						index++;
 					}
 				}
 				br.close();
