@@ -682,13 +682,15 @@ public class ExtendedConfiguration extends Configuration {
 		wells.add(realizedWell);
 	}
 	
-	public boolean checkForMatch(ExtendedConfiguration configuration1, ExtendedConfiguration configuration2) {
-		if(configuration1.sensors.size() != configuration2.sensors.size())
+	public boolean checkForMatch(ExtendedConfiguration configuration2) {
+		if(this.sensors.size() != configuration2.sensors.size())
 			return false;
-		for(int i=0; i<configuration1.sensors.size(); i++) {
-			if(configuration1.sensors.get(i).getNodeNumber().intValue() != configuration2.sensors.get(i).getNodeNumber().intValue())
+		for(int i=0; i<this.sensors.size(); i++) {
+			if(this.sensors.get(i).getSensorType() != configuration2.sensors.get(i).getSensorType())
 				return false;
-			if(configuration1.getExtendedSensors().get(i).getNodePairNumber() != configuration2.getExtendedSensors().get(i).getNodePairNumber())
+			if(this.sensors.get(i).getNodeNumber().intValue() != configuration2.sensors.get(i).getNodeNumber().intValue())
+				return false;
+			if(this.getExtendedSensors().get(i).getNodePairNumber() != configuration2.getExtendedSensors().get(i).getNodePairNumber())
 				return false;
 		}
 		return true;

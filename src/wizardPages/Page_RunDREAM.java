@@ -288,7 +288,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					
 					//create the dialog box
 					MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
-					dialog.setText("Completed the Dream Run");//TODO: Catherine edit text here if you want.
+					dialog.setText("Completed the Dream Run");
 					if(time>18000)
 						dialog.setMessage("Dream just completed " + ittr + " iterations in " + time/3600 + " hours. Results can be found at: " + outputFolder.getText());
 					else if(time>300)

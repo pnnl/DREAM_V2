@@ -112,7 +112,7 @@ public class Results {
 			if(Float.compare(global_ttd, bestObjValue) == 0) {
 				// Check if the configuration already exists in the best configuration list
 				for(ExtendedConfiguration configurationCheck: bestConfigSumList) {
-					if(configuration.checkForMatch(configuration, configurationCheck)) {
+					if(configuration.checkForMatch(configurationCheck)) {
 						newConfiguration = false;
 						break;
 					}
