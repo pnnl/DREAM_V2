@@ -217,8 +217,8 @@ public class Vortex extends Function {
 		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {
 			sensor.clearScenariosUsed();
 		}
-		for (final String scenario: set.getScenarios())
-		{
+		final int cores = Runtime.getRuntime().availableProcessors() - 1; //Use all but one core
+		for (final String scenario: set.getScenarios()) {
 			Thread thread = new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -229,9 +229,10 @@ public class Vortex extends Function {
 					}
 				}
 			});
-
-			thread.start();
-			threads.add(thread);
+			if(threads.size() < cores) {
+				thread.start();
+				threads.add(thread);
+			}
 		}
 		for (Thread thread: threads)
 		{
