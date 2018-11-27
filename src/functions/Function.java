@@ -218,7 +218,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			// If new configuration is worse than current, evaluate temp function to decide whether to swap
 			else if (newValue >= currentValue) {
-				float calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature);
+				float calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature); //TODO: Do we need this? What about comparing directly with temp?
 				if (calculatedValue > randomValue) {
 					currentConfiguration.matchConfiguration(set, newConfiguration);
 					currentValue = newValue;
@@ -242,6 +242,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			// Mutate the new configuration
 			long start = System.currentTimeMillis();
 			mutate(newConfiguration, set);
+			newConfiguration.orderSensors(); //Order the sensors so we can avoid saving duplicate configurations
 			newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration); // Hack to add a well pairing for ERT technology
 			float ttm = System.currentTimeMillis()-start;
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");

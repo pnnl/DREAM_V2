@@ -2,6 +2,7 @@ package objects;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -694,5 +695,25 @@ public class ExtendedConfiguration extends Configuration {
 				return false;
 		}
 		return true;
+	}
+	
+	public void orderSensors() {
+		
+	    Collections.sort(sensors, new Comparator<Sensor>() {
+	    	
+	        public int compare(Sensor sensor1, Sensor sensor2) {
+	        	
+	        	String s1 = sensor1.getSensorType();
+				String s2 = sensor2.getSensorType();
+				int sensorNameComp = s1.compareTo(s2);
+				
+				if(sensorNameComp != 0)
+					return sensorNameComp;
+				
+				Integer i1 = sensor1.getNodeNumber();
+				Integer i2 = sensor2.getNodeNumber();
+				return i1.compareTo(i2);
+	        }
+	    });
 	}
 }
