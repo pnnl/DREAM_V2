@@ -399,7 +399,9 @@ public class ScenarioSet {
 		for(ExtendedSensor sensor: sensors){
 			addLocation = true;
 			Point3i point = sensor.getIJK();
-			for(Point3i location: locations){
+			List<Point3i> originalLocations = new ArrayList<Point3i>();
+			originalLocations.addAll(locations); // Avoids concurrent modification error (edit array within a loop of array)
+			for(Point3i location: originalLocations){
 				if(location.getI()==point.getI() && location.getJ()==point.getJ()) { //Same well location
 					if(point.getK() < location.getK()) {
 						locations.remove(location);
@@ -413,7 +415,9 @@ public class ScenarioSet {
 			if(sensor.getSensorType().contains("Electrical Conductivity")) { //ERT will have a second paired well that also needs to be factored into cost
 				addPairLocation = true;
 				Point3i pointPair = this.getNodeStructure().getIJKFromNodeNumber(sensor.getNodePairNumber()); //Paired point from ERT technology
-				for(Point3i location: locations){
+				originalLocations = new ArrayList<Point3i>();
+				originalLocations.addAll(locations); // Avoids concurrent modification error (edit array within a loop of array)
+				for(Point3i location: originalLocations){
 					if(location.getI()==pointPair.getI() && location.getJ()==pointPair.getJ()) { //Same well location
 						if(pointPair.getK() < location.getK()) {
 							locations.remove(location);
