@@ -586,7 +586,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
 		// Open a folder
 		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>(sortScenarios);
-		statisticsByDataField = new TreeMap<String, float[]>();
+		statisticsByDataField = new TreeMap<String, float[]>(sortScenarios);
 
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(saveCurrentDirectory);
