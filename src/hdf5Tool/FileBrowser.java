@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +105,20 @@ public class FileBrowser extends javax.swing.JFrame {
 	public FileBrowser() {
 		initComponents();
 	}
+	
+	// Sort the scenarios by a custom comparator that combines string and integer
+	Comparator<String> sortScenarios = new Comparator<String>(){
+		public int compare(String o1, String o2) {
+	        return extractInt(o1) - extractInt(o2);
+	    }
 
+	    int extractInt(String s) {
+	        String num = s.replaceAll("\\D", "");
+	        // return 0 if no digits found
+	        return num.isEmpty() ? 0 : Integer.parseInt(num);
+	    }
+	};
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initComponents() {
 
@@ -571,7 +585,7 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
 		// Open a folder
-		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>();
+		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>(sortScenarios);
 		statisticsByDataField = new TreeMap<String, float[]>();
 
 		JFileChooser chooser = new JFileChooser();
