@@ -2,6 +2,7 @@ package visualization;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -911,27 +912,41 @@ public class DomainVisualization {
 						weightedAverageTTD += configuration.getTimesToDetection().get(detectingScenario) * (scenarioWeight/totalWeightsForDetectedScenarios);
 						globallyWeightedPercentage += set.getGloballyNormalizedScenarioWeight(detectingScenario)*100;
 					}
-
+					
 					// weighted or not?
 					float ttd = weightedAverageTTD; // otherwise [unweightedAverageTTD]
 					float percent = globallyWeightedPercentage; // otherwise [globallyWeightedPercentage]
-
-					if(!configurations.containsKey(percent)) {
-						configurations.put(percent, new TreeDetectingPercentItem(percent));
-					}		
-					if(!configurations.get(percent).children.containsKey(ttd)) {
-						configurations.get(percent).children.put(ttd, new TreeTTDItem(ttd));
-					}
-
 					TreeConfigItem treeItem = new TreeConfigItem(configuration);
-					configurations.get(percent).children.get(ttd).addChild(treeItem);
+					
+					// Add the percent detected category
+					if(!configurations.containsKey(percent))
+						configurations.put(percent, new TreeDetectingPercentItem(percent));
+					
+					// Add the ttd category
+					if(!configurations.get(percent).children.containsKey(ttd))
+						configurations.get(percent).children.put(ttd, new TreeTTDItem(ttd));
+					
+					// Loop through existing configurations to make sure you aren't adding a duplicate
+					Boolean duplicate = false;
+					for(TreeConfigItem configItem: configurations.get(percent).children.get(ttd).children) {
+						if(configItem.name.equals(treeItem.name)) {
+							duplicate = true;
+							break;
+						}
+					}
+					
+					// Only add unique configurations
+					if(!duplicate) {
+						// Add the new configuration to the list
+						configurations.get(percent).children.get(ttd).addChild(treeItem);
 
-					if(rebuildTree) {
-						rebuildTree();
-						treeItem.getTreeItem(null).setChecked(true);							
-					} else {
-						resetTreeRequired = true;
-						//System.out.println("Do not rebuild tree");
+						if(rebuildTree) {
+							rebuildTree();
+							treeItem.getTreeItem(null).setChecked(true);							
+						} else {
+							resetTreeRequired = true;
+							//System.out.println("Do not rebuild tree");
+						}
 					}
 				}
 			});
@@ -1056,6 +1071,15 @@ public class DomainVisualization {
 		}
 		public void addChild(TreeConfigItem child) {
 			children.add(child);
+		}
+		
+		public void orderConfigs() {
+		    Collections.sort(children, new Comparator<TreeConfigItem>() {
+		        public int compare(TreeConfigItem Config1, TreeConfigItem Config2) {
+		        	int comp = Config1.name.compareTo(Config2.name);
+		        	return comp;
+		        }
+		    });
 		}
 	}
 
@@ -1292,19 +1316,11 @@ public class DomainVisualization {
 	}
 	
 	
-	public void removeDuplicates() {
+	// Within each percent and ttd, sort by smallest number of wells
+	public void sortConfigurations() {
 		for(Float percent: configurations.keySet()) {
 			for(Float ttd: configurations.get(percent).children.keySet()) {
-				List<String> toKeep = new ArrayList<String>();
-				List<TreeConfigItem> toRemove = new ArrayList<TreeConfigItem>();
-				for(TreeConfigItem configItem: configurations.get(percent).children.get(ttd).children) {
-					String name = configItem.name;
-					if(toKeep.contains(name))
-						toRemove.add(configItem);
-					else
-						toKeep.add(name);
-				}
-				configurations.get(percent).children.get(ttd).children.removeAll(toRemove);
+				configurations.get(percent).children.get(ttd).orderConfigs();
 			}
 		}
 	}
