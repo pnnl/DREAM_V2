@@ -153,7 +153,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 					((Text)e.getSource()).setForeground(Constants.red);
 				else {
 					((Text)e.getSource()).setForeground(Constants.black);
-					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getMinCost()) {
+					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getSensorCostConstraint()) {
 						minError = true;
 						((Text)e.getSource()).setForeground(Constants.red);
 					} else

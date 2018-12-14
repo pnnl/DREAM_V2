@@ -120,7 +120,7 @@ public class Results {
 				if(newConfiguration) {
 					ExtendedConfiguration newExtendedConfiguration = new ExtendedConfiguration();
 					for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
-						if(sensor.isInferred())
+						if(sensor.isTriggering())
 							newExtendedConfiguration.addSensor(sensor.makeCopy());
 					}
 					newExtendedConfiguration.setTimesToDetection(configuration.getTimesToDetection());

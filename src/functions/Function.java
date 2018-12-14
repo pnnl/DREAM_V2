@@ -310,8 +310,8 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		
 		// Every configuration will go through here so long as there is at least
 		// enough sensors of each kind to trigger inference
-		String result = isDone(sensors, set);
-		if (!result.isEmpty()) {
+		boolean result = isDone(sensors, set);
+		if (result) {
 			// Create a configuration
 			ExtendedConfiguration configuration = new ExtendedConfiguration();
 			for (ExtendedSensor sensor : sensors)
@@ -350,84 +350,48 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				generateConfigurations(copy, subSensors, set);
 		}
 	}
-
-	public boolean canAffordSensors(List<ExtendedSensor> sensors, ScenarioSet set) {
-		float totalCost = 0;
-		for (ExtendedSensor sensor : sensors) {
-			totalCost += set.getSensorSettings(sensor.getSensorType()).getSensorCost();
-		}
-		boolean canAffordConfiguration = totalCost <= set.getSensorCostConstraint();
-		return canAffordConfiguration;
-	}
-
+	
+	
+	// This checks that the configuration meets constraints
 	private boolean isValidConfiguration(List<ExtendedSensor> sensors, ScenarioSet set) {
 		Map<String, Integer> sensorsPerType = new HashMap<String, Integer>();
 		List<String> ijs = new ArrayList<String>();
 		float totalCost = 0;
-		for (ExtendedSensor sensor : sensors) {
+		
+		// Loop through sensors in configuration and count sensors per type and well locations
+		for(ExtendedSensor sensor: sensors) {
 			totalCost += set.getSensorSettings(sensor.getSensorType()).getSensorCost();
 			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
-			if (!ijs.contains(IJ))
+			if(!ijs.contains(IJ))
 				ijs.add(IJ);
-			if (!sensorsPerType.containsKey(sensor.getSensorType()))
+			if(!sensorsPerType.containsKey(sensor.getSensorType()))
 				sensorsPerType.put(sensor.getSensorType(), 0);
-			sensorsPerType.put(sensor.getSensorType(),
-					sensorsPerType.get(sensor.getSensorType()) + 1);
+			sensorsPerType.put(sensor.getSensorType(), sensorsPerType.get(sensor.getSensorType()) + 1);
 		}
-		for (String type : set.getDataTypes()) {
-			int required = set.getInferenceTest().getMinimumForType(type);
-			int difference = required
-					- (sensorsPerType.containsKey(type) ? sensorsPerType
-							.get(type) : 0);
-			if (difference > 0) {
-				totalCost += set.getSensorSettings(type).getSensorCost() * difference;// We need to
-				// consider the cost
-				// of adding those
-				// sensors
-			}
-		}
-		float sensorCostConstraint = set.getSensorCostConstraint();
-		int wellConstraint = set.getMaxWells();
-		// If we can afford it and the well constraint is satisfied
-		boolean canAffordConfiguration = totalCost <= sensorCostConstraint;
-		boolean canDrillWells = ijs.size() <= wellConstraint;
-		boolean isValid = canAffordConfiguration && canDrillWells;
-		// System.out.println("\t\t" + (isValid ? "Valid" : "Not valid: ") +
-		// (canAffordConfiguration ? "\t\t\t\t" : "\tToo expensive:  " +
-		// totalCost + " > " + costConstraint) +
-		// (canDrillWells ? "" : "\tToo many wells:  " + ijs.size() + " > " +
-		// wellConstraint));
-		return isValid;
+		
+		// Verify that the configuration can pass at least one inference test
+		boolean inference = set.getInferenceTest().reachedInference(sensorsPerType);
+		// Verify that the cost of the configuration is less than the constraint
+		boolean canAffordConfiguration = totalCost <= set.getSensorCostConstraint();
+		// Verify that the number of wells is not more than the total
+		boolean canDrillWells = ijs.size() <= set.getMaxWells();
+		
+		return inference && canAffordConfiguration && canDrillWells;
 	}
-
-	private String isDone(List<ExtendedSensor> sensors, ScenarioSet set) {
+	
+	
+	private boolean isDone(List<ExtendedSensor> sensors, ScenarioSet set) {
 		// return !sensors.isEmpty(); <- for testing this will give all sets
 		Map<String, Integer> sensorsPerType = new HashMap<String, Integer>();
 		// Count the number of sensors per type
-		for (ExtendedSensor sensor : sensors) {
-			if (!sensorsPerType.containsKey(sensor.getSensorType()))
+		for(ExtendedSensor sensor: sensors) {
+			if(!sensorsPerType.containsKey(sensor.getSensorType()))
 				sensorsPerType.put(sensor.getSensorType(), 0);
-			sensorsPerType.put(sensor.getSensorType(),
-					sensorsPerType.get(sensor.getSensorType()) + 1);
+			sensorsPerType.put(sensor.getSensorType(), sensorsPerType.get(sensor.getSensorType()) + 1);
 
 		}
-		// System.out.println("Testing:\t"+sensorsPerType.toString());
-		for (String type : set.getDataTypes()) {
-			int required = set.getInferenceTest().getMinimumForType(type);
-			// If we require some, but none exist return false
-			if (required > 0 && !sensorsPerType.containsKey(type)) {
-				return "";
-			} 
-			if(required == 0 && !sensorsPerType.containsKey(type)) {
-				continue; // We don't require any of this type, that is fine...
-			}
-			// If we require more then exist, return false
-			if (sensorsPerType.get(type) < required) {
-				return "";
-			}
-
-		}
-		return (sensorsPerType.toString()); // We have enough of each type of sensor
+		// Check that we have enough of each type of sensor
+		return set.getInferenceTest().reachedInference(sensorsPerType);
 	}
 
 

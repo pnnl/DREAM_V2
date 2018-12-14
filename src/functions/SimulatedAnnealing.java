@@ -44,27 +44,28 @@ public class SimulatedAnnealing extends Function {
 		Map<String, Integer> totalByType = new HashMap<String, Integer>();
 		Map<String, Integer> triggeredByType = new HashMap<String, Integer>();
 
-		// Increment counters
+		// Loop through sensors in the configuration
 		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
+			
+			// Add sensor types to lists
 			if(!totalByType.containsKey(sensor.getSensorType())) {
 				totalByType.put(sensor.getSensorType(), 0);
-			}
-			if(!triggeredByType.containsKey(sensor.getSensorType())) {
 				triggeredByType.put(sensor.getSensorType(), 0);
 			}
-
+			
 			// Only increment triggered totals if the current sensor is triggered
-			if(sensor.isInferred() && sensor.isTriggeredInScenario(scenario)) {
+			if(sensor.isTriggering() && sensor.isTriggeredInScenario(scenario)) {
 				int triggered = triggeredByType.get(sensor.getSensorType())+1;
 				triggeredByType.put(sensor.getSensorType(), triggered);
 			}
-
+			
+			//Count all sensors
 			int count = totalByType.get(sensor.getSensorType())+1;
 			totalByType.put(sensor.getSensorType(), count);
 		}
 
 		for(String type: totalByType.keySet()) {
-			Constants.log(Level.FINEST, "CCS9_1 - inference", type + " total: " + totalByType.get(type) + "\ttriggering: " + triggeredByType.get(type));
+			Constants.log(Level.FINEST, "Simulated Annealing - inference", type + " total: " + totalByType.get(type) + "\ttriggering: " + triggeredByType.get(type));
 		}
 
 		Boolean inference = set.getInferenceTest().reachedInference(triggeredByType);
@@ -73,7 +74,7 @@ public class SimulatedAnnealing extends Function {
 		if(inference)
 			result = new InferenceResult(inference, set.getInferenceTest().calculateGoodness(totalByType, triggeredByType));
 
-		Constants.log(Level.FINEST, "CCS9_1 - inference", inference.toString());
+		Constants.log(Level.FINEST, "Simulated Annealing - inference", inference.toString());
 
 		return result;
 

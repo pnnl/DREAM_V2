@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -350,7 +349,6 @@ public class DREAMWizard extends Wizard {
 								monitor.subTask("reading scenarios from all files");
 								set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list)); // Set the scenarios
 								set.setupSensorSettings(modelOption);
-								set.setupInferenceTest();
 								monitor.worked(3);
 								
 								monitor.subTask("initializing algorithm");
@@ -380,7 +378,6 @@ public class DREAMWizard extends Wizard {
 								IAMInterface.readIAMFiles(monitor, list, set);
 								set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
 								set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
-								set.setupInferenceTest();
 								monitor.worked(list.length);
 								
 								monitor.subTask("initializing algorithm");
@@ -459,22 +456,6 @@ public class DREAMWizard extends Wizard {
 			}
 		}
 		
-		
-		public void setupInferenceTest(final Map<String, Integer> requiredSensors, final int totalMinimum) throws Exception {
-			dialog.run(true, false, new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					monitor.beginTask("Inference test ", requiredSensors.size());	
-					for(String sensorType: requiredSensors.keySet()) {
-						monitor.subTask("setting sensors required for " + sensorType.toLowerCase());
-						set.getInferenceTest().setMinimumForType(sensorType, requiredSensors.get(sensorType));
-						monitor.worked(1);
-					}
-					set.getInferenceTest().setOverallMinimum(totalMinimum);
-				}
-			});			
-		}
-
 		public ScenarioSet getSet() {
 			return set;
 		}

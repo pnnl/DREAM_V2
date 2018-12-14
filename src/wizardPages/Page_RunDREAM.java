@@ -427,7 +427,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 								
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					
-					if(sensorType.equals("Any") || data.getSet().getInferenceTest().getOverallMinimum() > 0){
+					if(sensorType.equals("Any")){
 						text.append(sensorType + ",");
 						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
 						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();

@@ -57,6 +57,7 @@ public class SensorSetting {
 	}
 	
 	private String type;
+	private String alias;
 	private float sensorCost;
 
 	private float minZ;
@@ -208,13 +209,14 @@ public class SensorSetting {
 		return minVADMap;
 	}
 
-	public void setUserSettings(float sensorCost, float detectionThreshold, Trigger trigger, DeltaType deltaType, float minZ, float maxZ) {
+	public void setUserSettings(float sensorCost, float detectionThreshold, Trigger trigger, DeltaType deltaType, float minZ, float maxZ, String alias) {
 
 		Constants.log(Level.INFO, "Sensor settings "+type+": setting user settings", null);
 		
 		float realMaxZ = Math.max(minZ, maxZ);
 		float realMinZ = Math.min(minZ, maxZ);
 		
+		this.alias = alias;
 		this.sensorCost = sensorCost;
 		this.detectionThreshold = detectionThreshold;
 		this.trigger = trigger;
@@ -399,6 +401,10 @@ public class SensorSetting {
 	
 	public String getType() {
 		return type;
+	}
+	
+	public String getAlias() {
+		return alias;
 	}
 	
 	public float getSensorCost() {

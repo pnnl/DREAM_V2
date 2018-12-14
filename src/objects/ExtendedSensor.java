@@ -58,7 +58,7 @@ public class ExtendedSensor extends Sensor {
     	history = Collections.synchronizedMap(new HashMap<String, Map<Integer, Double>>());
     	scenariosUsed = toCopy.getScenariosUsed();
     	
-    	triggering = toCopy.isInferred();
+    	triggering = toCopy.isTriggering();
     	well = null;    
     	nodePairNumber = toCopy.getNodePairNumber();
     }
@@ -106,7 +106,7 @@ public class ExtendedSensor extends Sensor {
 		return well;
 	}
 	
-	public synchronized boolean isInferred() {
+	public synchronized boolean isTriggering() {
 		return triggering;
 	}
 	

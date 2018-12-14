@@ -4,36 +4,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 
 import utilities.Constants;
-
+import wizardPages.Page_DetectionCriteria.DetectionCriteria;
 /**
  * Class to store the criteria for what constitutes a detection.
  * @author port091
  * @author rodr144
+ * @author whit162
  */
 
 public class InferenceTest {
-
-	List<String> dataTypes;	
-	Map<String, Integer> minimumRequiredPerType;
-	int minimumRequired;
 	
-	public InferenceTest(Set<String> dataTypes) {
-		
-		this.dataTypes = new ArrayList<String>();
-		
-		minimumRequiredPerType = new HashMap<String, Integer>();
-		minimumRequired = -1;
-
-		for(String dataType: dataTypes) {
-			this.dataTypes.add(dataType);
-			minimumRequiredPerType.put(dataType, 0);
-		}
-		
-		
+	private List<HashMap<String, Integer>> activeTests;
+	
+	//Create a test, starting with only one sensor
+	public InferenceTest(String sensorName, int min) {
+		activeTests = new ArrayList<HashMap<String, Integer>>();
+		HashMap<String, Integer> test = new HashMap<String, Integer>();
+		test.put(sensorName, min);
+		activeTests.add(test);
 		Constants.log(Level.INFO, "Inference test: initialized", null);
 		Constants.log(Level.CONFIG, "Inference test: configuration", this);
 	}
@@ -42,46 +33,35 @@ public class InferenceTest {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append("Required Sensors:\r\n");
-		for(String dataType: minimumRequiredPerType.keySet()) {
-			if(minimumRequiredPerType.get(dataType) != 0) builder.append("\t" + dataType + ": " + minimumRequiredPerType.get(dataType) + "\r\n");
+		builder.append("Detection Criteria:\r\n");
+		for(int i=0; i<activeTests.size(); i++) {
+			builder.append("\tTest " + i+1 + "\r\n");
+			for(String sensor: activeTests.get(i).keySet()) {
+				builder.append("\t\t" + sensor + ": " + activeTests.get(i).get(sensor) + "\r\n");
+			}
 		}
-		builder.append("\tOverall minimum: " + minimumRequired + "\r\n");
-		
 		return builder.toString();
 	}
-	 
-	/**
-	 * if the user wants some custom settings!
-	 * @param dataType
-	 * @param minimumRequired
-	 */
+	
 	// Default inference test 
 	public Boolean reachedInference(Map<String, Integer> triggeredByType) {
-		boolean inferred = true;
-		int totalTriggering = 0;
-		for(String dataType: minimumRequiredPerType.keySet()) {
-			
-			int required = minimumRequiredPerType.get(dataType);
-			if(required <= 0)
-				continue; // None required, continue on
-			
-			if(!triggeredByType.containsKey(dataType)) {
-				inferred = false; // Some were required, but the type wasn't found in the counts
-				continue;
+		
+		// Loop through the active tests to compare with configuration
+		for(HashMap<String, Integer> test: activeTests) {
+			boolean checkTest = true;
+			for(String sensor: test.keySet()) {
+				// If the configuration doesn't match any part of the test, failure!
+				if(!triggeredByType.containsKey(sensor) || test.get(sensor) > triggeredByType.get(sensor)) {
+					checkTest = false;
+					break;
+				}
 			}
-			
-			if(triggeredByType.get(dataType) < required)
-				inferred = false; // Not enough triggering
-			
-			totalTriggering += triggeredByType.get(dataType);
+			// By now, we checked each part of the test, success!
+			if(checkTest)
+				return true;
 		}
-		
-		// Additional check
-		if(minimumRequired > 0 && totalTriggering >= minimumRequired)
-			inferred = true;
-		
-		return inferred;		
+		// All tests failed, bummer...
+		return false;		
 	}
 	
 	// TODO:
@@ -106,26 +86,22 @@ public class InferenceTest {
             }
 		 */
 		float goodness =  0;
-		for(String dataType: totalByType.keySet()) {
-			minimumRequiredPerType.get(dataType);
-		}
 		return goodness;
 	}
-
-	public int getMinimumForType(String dataType) {
-		return minimumRequiredPerType.get(dataType);
+	
+	public void addActiveTest(HashMap<String, Integer> test) {
+		activeTests.add(test);
 	}
 	
-	public void setMinimumForType(String dataType, int minimum) {
-		minimumRequiredPerType.put(dataType, minimum);
-		Constants.log(Level.CONFIG, "Inference test: configuration", this);
+	public List<HashMap<String, Integer>> getActiveTests() {
+		return activeTests;
 	}
 	
-	public int getOverallMinimum() {
-		return minimumRequired;
+	// Reset active tests and replace with new list from Page_DetectionCriteria
+	public void copyInferenceTest(List<DetectionCriteria> testList) {
+		activeTests.clear();
+		for(DetectionCriteria test: testList) {
+			activeTests.add(test.activeTests);
+		}
 	}
-	
-	public void setOverallMinimum(int minimum) {
-		this.minimumRequired = minimum;
-	}	
 }

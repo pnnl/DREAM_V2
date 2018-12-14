@@ -180,14 +180,18 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					@Override
 					public void handleEvent(Event arg0) {
 						if(!num_duplicates.containsKey(sensorType)) num_duplicates.put(sensorType, 1);
-						addSensor(sensorType, sensorType + "_" + num_duplicates.get(sensorType));
+						String newName = sensorType + "_" + num_duplicates.get(sensorType);
+						data.getSet().addSensorSetting(newName, sensorType);
+						sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
 						num_duplicates.put(sensorType, num_duplicates.get(sensorType)+1);
 						loadPage();
 						fixMacBug();
-						if(num_duplicates.get(sensorType)==100) //rare, but prevent more than 99 duplicates so statistics doesn't throw an error
-							for(SensorData temp: sensorData.values())
+						if(num_duplicates.get(sensorType)==100) { //rare, but prevent more than 99 duplicates so statistics doesn't throw an error
+							for(SensorData temp: sensorData.values()) {
 								if(temp.sensorName==sensorType)
 									temp.addButton.setEnabled(false);
+							}
+						}
 					}
 			    });
 			    addButton.setText("+");
@@ -213,10 +217,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					isIncluded = ((Button)e.getSource()).getSelection();
-					if(isIncluded==true)
-						data.getSet().getInferenceTest().setMinimumForType(((Button)e.getSource()).getText(), 1);
-					else
-						data.getSet().getInferenceTest().setMinimumForType(((Button)e.getSource()).getText(), 0);
 					toggleEnabled();
 					
 					//Special handling if errors are negated when parameters are unchecked...
@@ -933,13 +933,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	}
 	
 	
-	private void addSensor(String dataType, String newName) {
-		data.getSet().addSensorSetting(newName, dataType);
-		data.getSet().getInferenceTest().setMinimumForType(newName, 1);
-		sensorData.put(newName, new SensorData(data.getSet().getSensorSettings(newName), newName));
-	}
-	
-	
 	// Calculates a list of timesteps and a map of volume degraded by year
 	private void volumeOfAquiferDegraded(HashSet<Integer> nodes) {
 		
@@ -1010,7 +1003,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Sensor.sensorAliases = new HashMap<String, String>();
 		ArrayList<SensorData> newSensors = new ArrayList<SensorData>();
 		ArrayList<SensorData> activeSensors = new ArrayList<SensorData>();
-		int count = 0;
 		
 		// Loop through the input sensor data
 		for(String label: sensorData.keySet()) {
@@ -1024,11 +1016,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				data.getSet().addSensorSetting(sensor.sensorName, sensor.sensorType);
 				// Set values in sensorSettings from sensorData
 				data.getSet().getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
-						sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ);
+						sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ, sensor.alias);
 				// Set the specificType
 				sensor.specificType = data.getSet().getSensorSettings(label).specificType;
-				// Count active sensors to populate the next page
-				count += data.getSet().getInferenceTest().getMinimumForType(label);
 				activeSensors.add(sensor);
 				if(!data.getSet().getDetectionMap().containsKey(sensor.specificType) && !sensor.sensorType.contains("Electrical Conductivity"))
 					newSensors.add(sensor); //if these settings are new to the detectionMap, we need to add them
@@ -1036,8 +1026,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			Sensor.sensorAliases.put(label, sensor.alias);
 		}
 		
-		if(count>data.getSet().getInferenceTest().getOverallMinimum()) //Initially set this at the sum of sensors
-			data.getSet().getInferenceTest().setOverallMinimum(count);
 		data.needToResetWells = true;
 		
 		// Based on the list of H5 sensors above, add results to detectionMap

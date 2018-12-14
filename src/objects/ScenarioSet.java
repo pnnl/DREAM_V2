@@ -233,9 +233,9 @@ public class ScenarioSet {
 		}
 	}
 	
+	// Setup the inference test
 	public void setupInferenceTest() {
-		// Setup the inference test
-		inferenceTest = new InferenceTest(sensorSettings.keySet());
+		inferenceTest = new InferenceTest("Any Sensor", 1);
 	}
 	
 	public void detectionMapForAllSensors(IProgressMonitor monitor, ArrayList<SensorData> activeSensors) {
@@ -679,19 +679,5 @@ public class ScenarioSet {
 		float totalScenarioWeight = 0;
 		for(float value: scenarioWeights.values()) totalScenarioWeight += value;
 		return totalScenarioWeight;
-	}
-
-	public float getMinCost() {
-		float countMinCost = 0;
-		float minSensorCost = Integer.MAX_VALUE;
-		for(String sensor: sensorSettings.keySet()) {
-			countMinCost += inferenceTest.getMinimumForType(sensor) * sensorSettings.get(sensor).getSensorCost();
-			if(sensorSettings.get(sensor).getSensorCost() < minSensorCost) //Find the cheapest sensor Cost
-				minSensorCost = sensorSettings.get(sensor).getSensorCost();
-		}
-		float overallMinCost = inferenceTest.getOverallMinimum() * minSensorCost;
-		if(overallMinCost < countMinCost)
-			return overallMinCost;
-		return countMinCost;
 	}
 }
