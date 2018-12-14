@@ -226,11 +226,11 @@ public class ResultPrinter {
 			line.append("," + volumeDegraded);
 			
 			for(Sensor sensor: configuration.getSensors()) {		
-				Point3f xyz = results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+				Point3f xyz = results.set.getNodeStructure().getXYZCenterFromIJK(sensor.getIJK());
 				// Special exception for ERT where no z is needed
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
 					Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
-					Point3f xyzPair = results.set.getNodeStructure().getXYZEdgeFromIJK(ijkPair);
+					Point3f xyzPair = results.set.getNodeStructure().getXYZCenterFromIJK(ijkPair);
 					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");
 				} else {
 					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
