@@ -174,6 +174,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			directory = directory + "\\Desktop\\BCO_new";
 		if(!System.getProperty("os.name").contains("Mac") && directory.contains("xuwe421") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = "C:\\Users\\xuwe421\\eclipse-workspace\\BCO_new";
+		if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+			directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
 		//// End of hack ////
 		
 		fileDirectoryText = new Text(container, SWT.BORDER | SWT.SINGLE);
