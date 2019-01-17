@@ -923,6 +923,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// Calculate the volume of aquifer degraded
 		volumeOfAquiferDegraded(nodes);
 		
+		// Initialize the active tests for the next page
+		data.getSet().setupInferenceTest();
+		
 		// Write out some setup information
 		System.out.println("Number of sensors = " + data.getSet().getSensorSettings().size());
 		System.out.println("Number of time steps = " + SensorSetting.getYears().size());
