@@ -162,6 +162,7 @@ public class E4DSensors {
 		set.getNodeStructure().getDataTypes().removeAll(toRemove);
 		
 		File dir = new File(Constants.userDir, "e4d");
+		if(!dir.exists()) return; // Skip if the e4d module isn't installed
 		FileFilter fileFilter = new WildcardFileFilter("ertResultMatrix_" + set.getScenarioEnsemble() + "_" + set.getScenarios().size() + "*.csv");
 		File[] files = dir.listFiles(fileFilter);
 		for(File ertInput: files) {
