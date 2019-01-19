@@ -1,17 +1,16 @@
 package functions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import objects.E4DSensors;
 import objects.ExtendedConfiguration;
 import objects.InferenceResult;
 import objects.ScenarioSet;
 import objects.ExtendedSensor;
-import objects.TimeStep;
 import utilities.Constants;
 
 /**
@@ -35,11 +34,11 @@ public class SimulatedAnnealing extends Function {
 		return "SimulatedAnnealing";
 	}
 	
-	// Inference is basically testing that enough sensors detected their threshold to count as a leak
+	/*// Inference is basically testing that enough sensors detected their threshold to count as a leak
 	// The criteria for inference is set from Page_DetectionCriteria
 	@Override
 	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
-
+		
 		// Count how many of each type of sensor has triggered
 		Map<String, Integer> totalByType = new HashMap<String, Integer>();
 		Map<String, Integer> triggeredByType = new HashMap<String, Integer>();
@@ -78,7 +77,7 @@ public class SimulatedAnnealing extends Function {
 
 		return result;
 
-	}
+	}*/
 	
 	// This calculates an value describing how well the sensors detected for this configuration
 	// A large penalty is given to sensors that do not detect
@@ -139,39 +138,77 @@ public class SimulatedAnnealing extends Function {
 	}
 	
 	
-	/**					**\
-	 * Helper Methods	 *
-	 * 					 *
-	\*					 */
-
+	// This basically tests that enough sensors detected their threshold to count as a leak
+	// The testing criteria is set from Page_DetectionCriteria
 	public void innerLoopParallel(ExtendedConfiguration configuration, ScenarioSet set, String scenario) throws Exception {
-		/*
-		// Jonathan's attempt at simplifying the objective code without looping through time steps
-		InferenceResult inferenceResult = null;
-		for(ExtendedSensor sensor: configuration.getExtendedSensors()) { //Loop through sensors in configuration
-			String specificType = set.getSensorSettings(sensor.getSensorType()).specificType;
-			float sensorTTD = 1000000; // Default penalty for a scenario with no detection
+		
+		boolean inferencePass = false;
+		float inferenceValue = 1000000; //Default penalty for no detection
+		List<HashMap<String, Integer>> activeTests = set.getInferenceTest().getActiveTests();
+		List<ExtendedSensor> sensors = configuration.getExtendedSensors();
+		
+		// Loop through active tests to calculate the best inference time, if any
+		for(Map<String, Integer> test: activeTests) { //Loop through tests
+			if(sensors.size() < test.size()) continue; //Not enough sensors to complete test
+			boolean testPass = true;
+			float testValue = 0;
+			for(String testKey: test.keySet()) { //Loop through sensors in a test
+				
+				// We already checked that there were enough sensors, so we don't need to do anything more here
+				if(testKey.equals("Any Sensor")) continue;
+				
+				// Create a list of ttds for the given sensor from the test
+				List<Float> ttds = listOfValidTTDs(sensors, set, scenario, testKey);
+				
+				// If there are not enough of this sensor, the test fails
+				if(ttds.size() < test.get(testKey)) {
+					testPass = false;
+					break;
+				}
+				
+				// Save the largest TTD at the minimum test requirement
+				if(ttds.get(test.get(testKey)-1) > testValue)
+					testValue = ttds.get(test.get(testKey)-1);
+			}
 			
-			// ERT needs to be looking at a different detection map with well pairings
-			if(specificType.contains("Electrical Conductivity"))
-				sensorTTD = E4DSensors.ertDetectionValue(sensor, scenario);
-			
-			// Check to make sure the detection map has a result for this node number
-			else if(set.getDetectionMap().get(specificType).get(scenario).containsKey(sensor.getNodeNumber()))
-				sensorTTD = set.getDetectionMap().get(specificType).get(scenario).get(sensor.getNodeNumber());
-			
-			// Store each sensor TTD in configuration
-			if(sensorTTD < 1000000)
-				sensor.setTriggered(scenario, sensorTTD);
+			// The configuration passed this test
+			if(testPass) {
+				
+				// Do a final check to confirm that the "any sensor" requirement doesn't increase the inferenceValue
+				List<Float> allTTDs = listOfValidTTDs(sensors, set, scenario, "");
+				if(allTTDs.size() < test.size()) continue; //Not enough detecting sensors to complete test
+				if(allTTDs.get(test.size()-1) > testValue) //Save the largest TTD at the minimum "All Sensor" test requirement
+					testValue = allTTDs.get(test.size()-1);
+				
+				// Store values globally
+				inferencePass = true;
+				if(testValue < inferenceValue)
+					inferenceValue = testValue;
+			}
 		}
-		inferenceResult = inference(configuration, set, scenario);
-		if(inferenceResult.isInferred())
-			configuration.addTimeToDetection(scenario, ttd);
-		else 
+		
+		// Store results in configuration
+		if(inferencePass) {
+			configuration.addTimeToDetection(scenario, inferenceValue);
+			// Store triggering information for the sensors
+			for(ExtendedSensor sensor: sensors) {
+				String specificType = set.getSensorSettings(sensor.getSensorType()).specificType;
+				Float ttd = null;
+				if(sensor.getSensorType().contains("Electrical Conductivity")) //Exception because ERT comes from a different matrix
+					ttd = E4DSensors.ertGetDetection(scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getDetectionThreshold());
+				else
+					ttd = set.getDetectionMap().get(specificType).get(scenario).get(sensor.getNodeNumber());
+				if(ttd!= null && ttd <= inferenceValue)
+					sensor.setTriggered(true, scenario, ttd, 0.0);
+			}
+		} else
 			configuration.getTimesToDetection().remove(scenario);
-		configuration.addObjectiveValue(scenario, ttd * set.getGloballyNormalizedScenarioWeight(scenario));
-		configuration.addInferenceResult(scenario, inferenceResult);
-		*/
+		configuration.addObjectiveValue(scenario, inferenceValue*set.getGloballyNormalizedScenarioWeight(scenario));
+		configuration.addInferenceResult(scenario, new InferenceResult(inferencePass, inferenceValue));
+		
+		/*
+		InferenceResult inferenceResult = null;
+		
 		TimeStep ts = null;
 		InferenceResult inferenceResult = null;
 		for(TimeStep timeStep: set.getNodeStructure().getTimeSteps()) {
@@ -202,10 +239,28 @@ public class SimulatedAnnealing extends Function {
 		}
 		configuration.addObjectiveValue(scenario, timeInYears * set.getGloballyNormalizedScenarioWeight(scenario));
 		configuration.addInferenceResult(scenario, inferenceResult);
+		*/
 	}
 	
+	private List<Float> listOfValidTTDs(List<ExtendedSensor> sensors, ScenarioSet set, String scenario, String testType) {
+		List<Float> ttds = new ArrayList<Float>();
+		for(ExtendedSensor sensor: sensors) { //Loop through sensors in configuration
+			Float ttd = null;
+			if(sensor.getSensorType().contains("Electrical Conductivity")) //Exception because ERT comes from a different matrix
+				ttd = E4DSensors.ertGetDetection(scenario, sensor.getNodeNumber(), set.getSensorSettings(sensor.getSensorType()).getDetectionThreshold());
+			else {
+				String specificType = set.getSensorSettings(sensor.getSensorType()).specificType; //Specific Type of the sensor
+				ttd = set.getDetectionMap().get(specificType).get(scenario).get(sensor.getNodeNumber());
+			}
+			// We only want to keep detections (not null) for a given sensor that is being tested
+			if(ttd!=null && sensor.getSensorType().contains(testType)) //TODO: Doesn't work with dupliate sensors, need to key to alias or specificType
+				ttds.add(ttd);
+		}
+		Collections.sort(ttds); //Sort the TTDs, smallest to largest
+		return ttds;
+	}
 	
-	// This method tells the Simulated Annealing process whether sensors have been triggered
+	/*// This method tells the Simulated Annealing process whether sensors have been triggered
 	public static Boolean sensorTriggered(ScenarioSet set, String specificType, String scenario, Integer nodeNumber, TimeStep timestep) {
 		if(set.getDetectionMap().get(specificType).get(scenario).containsKey(nodeNumber)) {
 			if(set.getDetectionMap().get(specificType).get(scenario).get(nodeNumber) < timestep.getRealTime()) {
@@ -213,6 +268,6 @@ public class SimulatedAnnealing extends Function {
 			}
 		}
 		return false;
-	}
+	}*/
 	
 }

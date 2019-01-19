@@ -12,11 +12,6 @@ public class InferenceResult {
 	private boolean inferred;
 	private float goodness;
 	
-	public InferenceResult(boolean inferred) {
-		this.inferred = inferred;
-		this.goodness = 0;
-	}
-	
 	public InferenceResult(boolean inferred, float goodness) {
 		this.inferred = inferred;
 		this.goodness = goodness;

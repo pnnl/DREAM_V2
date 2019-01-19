@@ -292,7 +292,7 @@ public class E4DSensors {
 	}
 	
 	
-	// This method tells the Simulated Annealing process whether sensors have been triggered by ERT (reads matrix)
+	/*// This method tells the Simulated Annealing process whether sensors have been triggered by ERT (reads matrix)
 	public static Boolean ertSensorTriggered(TimeStep timestep, String scenario, Integer nodeNumber, float threshold) throws Exception{
 		Boolean triggered = false;
 		
@@ -305,10 +305,19 @@ public class E4DSensors {
 		}
 		
 		return triggered;
+	}*/
+	
+	public static Float ertGetDetection(String scenario, int nodeNumber, Float threshold) {
+		Float detection = null;
+		if(ertWellPairings.get(threshold).containsKey(nodeNumber)) {
+			Integer wellPair = ertWellPairings.get(threshold).get(nodeNumber);
+			detection = ertDetectionTimes.get(threshold).get(scenario).get(nodeNumber).get(wellPair);
+		}
+		return detection;
 	}
 	
 	
-	// Emulates the above function, but forces the selection of the best well pairing
+	/*// Emulates the above function, but forces the selection of the best well pairing
 	public static Boolean ertBestSensorTriggered(TimeStep timestep, String scenario, Integer nodeNumber, float threshold) throws Exception{
 		Boolean triggered = false;
 		
@@ -324,7 +333,7 @@ public class E4DSensors {
 				triggered = true;
 		}
 		return triggered;
-	}
+	}*/
 	
 	
 	public static void ertNewPairing() {
