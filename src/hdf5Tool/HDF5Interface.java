@@ -205,7 +205,8 @@ public class HDF5Interface {
 		// 1 = average
 		// 2 = maximum
 		if (!statistics.isEmpty() && !dataType.contains("all") && !dataType.contains("Electrical Conductivity"))
-			return statistics.get(dataType)[index];
+			if(statistics.containsKey(dataType)) //TODO: This is just a temporary fix - I need to fix the converter to get statistics for all parameters, then this line can be removed.
+				return statistics.get(dataType)[index];
 		return null;
 	}
 	
