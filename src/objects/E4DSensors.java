@@ -179,22 +179,23 @@ public class E4DSensors {
 			List<Integer> validNodes = new ArrayList<Integer>();
 			Map<Integer, Map<Integer, Float>> detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
 			try (BufferedReader br = new BufferedReader(new FileReader(ertInput))) {
-				// Iterate through all the scenarios
-				int scenarioIteration = 0;
+				// Track the current scenario that we are reading
+				String currentScenario = "";
 				// Read each line, comma delimited
 				while ((line = br.readLine()) != null) {
 					String[] lineList = line.split(",");
-
-					// The first line lists the valid nodes per scenario (duplicates SensorSettings --> setValidNodes())
-					if (lineList.length!=0 && lineList[0].toLowerCase().equals(scenarios.get(scenarioIteration)) && !lineList[0].equals("")) {
+					
+					// 1 - From the first line we need the current scenario and a list of valid nodes
+					if(line.length() - line.replace(":", "").length() > 2) {//Looks for a line with more than two colons (:)
+						currentScenario = lineList[0];
 						validNodes.clear();
 						for (int j=1; j<lineList.length; j++) {
 							String[] ijList = lineList[j].split(":");
 							validNodes.add(set.getNodeStructure().getNodeNumber(Integer.parseInt(ijList[0]), Integer.parseInt(ijList[1]), 1));
 						}
 					}
-
-					// The following lines list ERT detection times for valid nodes per scenario
+					
+					// 2 - The following lines list ERT detection times for valid nodes
 					else if (lineList.length>1) {
 						Map<Integer, Float> timePerPairedWell = new HashMap<Integer, Float>();
 						Integer key = null;
@@ -213,17 +214,28 @@ public class E4DSensors {
 						detectionTimesPerWell.put(key, timePerPairedWell);
 					}
 					
-					// The following blank line triggers the saving of detection times for the scenario
+					// 3 - The following blank line triggers the saving of detection times for the scenario
 					else {
-						ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);
+						ertDetectionTimes.get(threshold).put(currentScenario, detectionTimesPerWell);
 						detectionTimesPerWell = new HashMap<Integer, Map<Integer, Float>>();
-						scenarioIteration++;
 					}
 				}
+				// Saves the last scenario
 				if(detectionTimesPerWell.size()!=0)
-					ertDetectionTimes.get(threshold).put(scenarios.get(scenarioIteration), detectionTimesPerWell);//saves the last scenario
+					ertDetectionTimes.get(threshold).put(currentScenario, detectionTimesPerWell);
 				
-				//Final check if any potential wells had no detections across all scenarios and delete
+				// Check that we just read detection values for the expected number of scenarios
+				for(String scenario: set.getScenarios()) {
+					if(!ertDetectionTimes.get(threshold).containsKey(scenario)) {
+						int count = ertDetectionTimes.get(threshold).size();
+						System.out.println("The ERT Matrix had scenarios("+count+") not matching what DREAM expects("+scenarios.size()+")");
+						set.removeSensorSettings("Electrical Conductivity_" + threshold);
+						set.getNodeStructure().getDataTypes().remove("Electrical Conductivity_" + threshold);
+						return;
+					}
+				}
+				
+				//Final check if any potential wells had no detections across all scenarios and delete the wells
 				Map<Integer, Float> zeroDetectionWells = new HashMap<Integer, Float>();
 				for(String scenario: ertDetectionTimes.get(threshold).keySet()) {
 					for(Integer primaryWell: ertDetectionTimes.get(threshold).get(scenario).keySet()) {
@@ -238,12 +250,12 @@ public class E4DSensors {
 				for(Integer primaryWell: zeroDetectionWells.keySet()) {
 					if(zeroDetectionWells.get(primaryWell)==0) {
 						for(String scenario: ertDetectionTimes.get(threshold).keySet()) {
-							ertDetectionTimes.get(threshold).get(scenario).remove(primaryWell);//TODO: Do I also need to remove from secondary well lists?
+							ertDetectionTimes.get(threshold).get(scenario).remove(primaryWell);
 						}
 					}
 				}
 			} catch (IOException ex) {
-				System.out.println("Something went wrong trying to read the ERT matrix");
+				System.out.println("Something went wrong trying to read the ERT Matrix");
 				ex.printStackTrace();
 			}
 			// Add top well pairings
