@@ -35,6 +35,9 @@ public class DataGrid {
 
 	/// Contains the data for the nodes hashed by the field names
 	private HashMap<String, FieldValues> fieldValueMap;
+	
+	/// Contains the data for the nodes hashed by the field names
+	private HashMap<String, String> fieldUnitMap;
 
 	// Contains a list of inactive nodes
 	// private List<Integer> inactiveNodes; 
@@ -65,12 +68,14 @@ public class DataGrid {
 	 */
 	public DataGrid(Point3i size) {
 		fieldValueMap = new HashMap<String, FieldValues>();
+		fieldUnitMap = new HashMap<String, String>();
 		gridder = new Gridder(size);
 		setAxis(size);
 	}
 
 	public DataGrid(Point3i size, Vector3f origin) {		
 		fieldValueMap = new HashMap<String, FieldValues>();
+		fieldUnitMap = new HashMap<String, String>();
 		this.origin = new Vector3f(origin);
 		gridder = new Gridder(size);
 		setAxis(size);
@@ -142,8 +147,18 @@ public class DataGrid {
 		}
 		return fieldValueMap.get(fieldKey);
 	}
-
-
+	
+	public void setFieldUnit(String fieldKey, String units) {
+		if(units.equals("null"))
+			units = "";
+		fieldUnitMap.put(fieldKey, units);
+	}
+	
+	public String getFieldUnit(String fieldKey) {
+		return fieldUnitMap.get(fieldKey.trim());
+	}
+	
+	
 	/**
 	 * Fetches two points representing the extents of the grid
 	 * @param lo The point at the low extreme of all axes

@@ -49,7 +49,10 @@ import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
+import ncsa.hdf.object.h5.H5Datatype;
 import ncsa.hdf.object.h5.H5File;
+import ncsa.hdf.object.Attribute;
+import ncsa.hdf.object.Dataset;
 
 /*
  * To change this template, choose Tools | Templates
@@ -586,7 +589,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
 		// Open a folder
 		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>(sortScenarios);
-		statisticsByDataField = new TreeMap<String, float[]>(sortScenarios);
+		statisticsByDataField = new TreeMap<String, float[]>();
 
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(saveCurrentDirectory);
@@ -966,6 +969,10 @@ public class FileBrowser extends javax.swing.JFrame {
 		int kMax = new Long(dims3D[2]).intValue();
 		JCheckBox[] dataFields = checkList_dataFields.getListData();
 		
+		// Initialize the attribute dimension
+		long[] attrDims = { 1 }; //1D of size one
+		Datatype attrType = new H5Datatype(Datatype.CLASS_STRING, 10, -1, -1);
+		
 		//Data group is filled from the first file only
 		if(firstFile) {
 			
@@ -983,7 +990,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					timeStepsInYears.add(tsf);
 					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
 				} catch (Exception e) {
-					// Nothing to do...
+					System.out.println("Error reading timesteps");
 				}
 				timeStep++;
 			}
@@ -998,15 +1005,35 @@ public class FileBrowser extends javax.swing.JFrame {
 			
 			// Create the data group in the H5 File, contains header information
 			Group dataGroup = hdf5File.createGroup("data", root);
-			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{iMax}, null, null, 0, grid.getFieldValues("x").getValues());
-			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{jMax}, null, null, 0, grid.getFieldValues("y").getValues());
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{kMax}, null, null, 0, grid.getFieldValues("z").getValues());
-			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{iMax+1}, null, null, 0, grid.getFieldValues("x").getVertices());
-			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{jMax+1}, null, null, 0, grid.getFieldValues("y").getVertices());
-			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{kMax+1}, null, null, 0, grid.getFieldValues("z").getVertices());
-			
-			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);	
-			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
+			Dataset d = hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{iMax}, null, null, 0, grid.getFieldValues("x").getValues());
+			String[] classValue = { grid.getFieldUnit("x") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{jMax}, null, null, 0, grid.getFieldValues("y").getValues());
+			classValue[0] = grid.getFieldUnit("y");
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{kMax}, null, null, 0, grid.getFieldValues("z").getValues());
+			classValue[0] = grid.getFieldUnit("z");
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{iMax+1}, null, null, 0, grid.getFieldValues("x").getVertices());
+			classValue[0] = grid.getFieldUnit("x");
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{jMax+1}, null, null, 0, grid.getFieldValues("y").getVertices());
+			classValue[0] = grid.getFieldUnit("y");
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{kMax+1}, null, null, 0, grid.getFieldValues("z").getVertices());
+			classValue[0] = grid.getFieldUnit("z");
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
+			classValue[0] = "years";
+			attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
+			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);
 		}
 		
 		// Create a group for each time in the set
@@ -1045,6 +1072,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				}
 				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
 					if(firstFile) { // Only need to do this once
+						// Porosity doesn't have units, don't need at add attribute
 						hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
 						porosityAdded = true;
 					}
@@ -1061,7 +1089,12 @@ public class FileBrowser extends javax.swing.JFrame {
 					}
 					statisticsByDataField.put(fieldClean, stats);
 					
-					hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
+					Dataset d = hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
+					if(!grid.getFieldUnit(field).equals("")) {
+						String[] classValue = { grid.getFieldUnit(field) };
+						Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+						d.writeMetadata(attr); //Add the units as an attribute
+					}
 				}
 				System.out.print("SUCCESS. ");
 			} catch(Exception e) {

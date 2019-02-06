@@ -256,8 +256,9 @@ public class GridParser {
 				
 				// Reads in the grid data from the plot file
 				else if ((line.contains(",") || emptyLine) && grid!=null) {
-					emptyLine = false;
+					emptyLine = false; // Reset
 					nodal = false; // Reset
+					String[] lineList = line.split(",");
 					// Need to be specific here on what makes up the grid
 					if(line.startsWith("X or R-Direction Node Positions") ||
 							line.startsWith("Radial-Direction Node Positions") ||
@@ -276,8 +277,14 @@ public class GridParser {
 							line.startsWith("Z-Direction Nodal Vertices")) {
 						fieldKey = "z";
 					} else
-						fieldKey = line; // Otherwise the key will stay as it is
-					if(line.contains("Nodal"))
+						fieldKey = lineList[0]; // Otherwise the key will stay as  is (strip out units)
+					// Now set the units if it is designated - should follow the comma on this line
+					if(lineList.length > 1)
+						grid.setFieldUnit(fieldKey.trim(), lineList[1].trim());
+					else
+						grid.setFieldUnit(fieldKey.trim(), "");
+					// If it has Nodal/Node in the name, it is giving values for edges.
+					if(line.contains("Nodal") || line.contains("Node"))
 						nodal = true;
 					values = grid.getFieldValues(fieldKey.trim()); // Fetch the value set for the given field
 					linearIndex = 0; // Start the linear index at 0
@@ -288,18 +295,18 @@ public class GridParser {
 					
 					// Store each value from the line into the value list
 					if(nodal) {
-						if (fieldKey=="x") {
+						if(fieldKey=="x") {
 							if (linearIndex<grid.getSize().x) {
 								values.addNodalValue(linearIndex, items);
 								values.addVertex(linearIndex, items, 1);
 							}
-						} else if (fieldKey=="y") {
+						} else if(fieldKey=="y") {
 							if (linearIndex % grid.getSize().x == 0 && linearIndex<grid.getSize().x * grid.getSize().y) {
 								int altIndex = linearIndex/grid.getSize().x;
 								values.addNodalValue(altIndex, items);
 								values.addVertex(altIndex, items, 2);
 							}
-						} else if (fieldKey=="z") {
+						} else if(fieldKey=="z") {
 							if (linearIndex % (grid.getSize().x * grid.getSize().y) == 0) {
 								int altIndex = linearIndex/(grid.getSize().x*grid.getSize().y);
 								values.addNodalValue(altIndex, items);
