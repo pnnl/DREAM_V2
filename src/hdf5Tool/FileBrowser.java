@@ -11,16 +11,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -51,6 +47,7 @@ import ncsa.hdf.object.FileFormat;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.H5Datatype;
 import ncsa.hdf.object.h5.H5File;
+import utilities.Constants;
 import ncsa.hdf.object.Attribute;
 import ncsa.hdf.object.Dataset;
 
@@ -94,7 +91,7 @@ public class FileBrowser extends javax.swing.JFrame {
 	private CheckList checkList_scenarios;
 	private CheckList checkList_dataFields;	
 	
-	private Map<String, Map<Integer, GridParser>> gridsByTimeAndScenario;
+	private Map<String, Map<Float, GridParser>> gridsByTimeAndScenario;
 	private Map<String, float[]> statisticsByDataField;
 	private ProgressMonitor monitor;
 	private int processedTasks;
@@ -104,8 +101,13 @@ public class FileBrowser extends javax.swing.JFrame {
 	private int times;
 
 	private JLabel statusLabel;
+	private DecimalFormat df = new DecimalFormat("#.###");
 
 	public FileBrowser() {
+		// Hack that allows my directory to start where I want it
+		if(Constants.homeDirectory.contains("whit162"))
+			saveCurrentDirectory = new File("C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\FileConversionTests");
+		// End hack
 		initComponents();
 	}
 	
@@ -215,8 +217,8 @@ public class FileBrowser extends javax.swing.JFrame {
 				.addComponent(checkList_scenarios, 0, 184, Short.MAX_VALUE)
 				);
 		
-		// Time steps:
-		jLabel_timesteps.setText("Time steps");
+		// Timesteps:
+		jLabel_timesteps.setText("Time steps (years)");
 		javax.swing.GroupLayout jPanel_timestepsLayout = new javax.swing.GroupLayout(jPanel_timesteps);
 		jPanel_timesteps.setLayout(jPanel_timestepsLayout);
 		jPanel_timestepsLayout.setHorizontalGroup(
@@ -509,7 +511,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				System.out.println("Writing to File: " + hdf5File);
 				hdf5File.open();
 				
-				// We will use the first file to read all the time steps...
+				// We will use the first file to read all the timesteps...
 				boolean firstFile = true;
 				
 				//NTAB
@@ -517,48 +519,52 @@ public class FileBrowser extends javax.swing.JFrame {
 					DataStructure ntabData = gridsByTimeAndScenario.get(scenario).values().iterator().next().extractNTABData();
 					int timeStepIndex = 0;
 					for(JCheckBox timeStep: timeSteps) {
-						if(!timeStep.isSelected()) continue;
+						if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
 						addDataFromFiles(ntabData, hdf5File, "plot" + timeStep.getText(), firstFile, timeStepIndex);
 						dims3D = new long[]{ntabData.i, ntabData.j, ntabData.k};
 						timeStepIndex++;
 						firstFile = false;
 					}
-					computeStatistics(hdf5File, timeSteps.length);
+					addStatistics(hdf5File, timeSteps.length);
 					if(porosityAdded==false)
 						addPorosity(hdf5File, dims3D);
 				
 				//STOMP
 				} else if(jComboBox_fileType.getSelectedItem().toString().equals(STOMP)) {
+					int index = 0;
 					for(JCheckBox timeStep: timeSteps) {
-						if(!timeStep.isSelected()) continue;
-						GridParser parser = gridsByTimeAndScenario.get(scenario).get(Integer.parseInt(timeStep.getText()));
-						DataGrid grid = addDataFromFolders(parser, hdf5File, "plot" + timeStep.getText(), firstFile);
+						if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
+						GridParser parser = gridsByTimeAndScenario.get(scenario).get(Float.parseFloat(timeStep.getText()));
+						DataGrid grid = addDataFromFolders(parser, hdf5File, "plot" + index, firstFile);
 						dims3D = new long[]{grid.getFieldValues("x").getValues().length, grid.getFieldValues("y").getValues().length, grid.getFieldValues("z").getValues().length};
 						firstFile = false;
+						index++;
 					}
-					computeStatistics(hdf5File, timeSteps.length);
+					addStatistics(hdf5File, timeSteps.length);
 					if(porosityAdded==false)
 						addPorosity(hdf5File, dims3D);
 					
-				//TECPLOT //TODO: I haven't updated the converter for TecPlot files under the new logic (add vertex, porosity handling, statistics)
 				} else if(jComboBox_fileType.getSelectedItem().toString().equals(TECPLOT)) {
+					DataStructure tecplotData = gridsByTimeAndScenario.get(scenario).values().iterator().next().extractTecplotData();
+					int timeStepIndex = 0;
+					
 					// Only file type with the option to be a single folder or multiple folders
 					if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FILE)) {
-						DataStructure ntabData = gridsByTimeAndScenario.get(scenario).values().iterator().next().extractTecplotData();
-						int timeStepIndex = 0;
 						for(JCheckBox timeStep: timeSteps) {
-							if(!timeStep.isSelected()) continue;
-							addDataFromFiles(ntabData, hdf5File, "plot" + timeStep.getText(), firstFile, timeStepIndex);
+							if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
+							addDataFromFiles(tecplotData, hdf5File, "plot" + timeStepIndex, firstFile, timeStepIndex);
+							dims3D = new long[] {tecplotData.i, tecplotData.j, tecplotData.k};
 							timeStepIndex++;
 							firstFile = false;
 						}
-					} else if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FOLDER)) {
-						for(JCheckBox timeStep: timeSteps) {
-							if(!timeStep.isSelected()) continue;
-							GridParser parser = gridsByTimeAndScenario.get(scenario).get(Integer.parseInt(timeStep.getText()));
-							addDataFromFolders(parser, hdf5File, "plot" + timeStep.getText(), firstFile);
-							firstFile = false;
-						}
+						addStatistics(hdf5File, timeSteps.length);
+						if(porosityAdded==false)
+							addPorosity(hdf5File, dims3D);
+					}
+					
+					//TODO: I don't have an example of what this file structure looks like, so it hasn't yet been tested
+					else if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FOLDER)) {
+						//Do nothing yet
 					}
 				}
 				System.out.println("Writing the file to disk:");
@@ -587,35 +593,34 @@ public class FileBrowser extends javax.swing.JFrame {
 	}
 
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
-		// Open a folder
-		gridsByTimeAndScenario = new TreeMap<String, Map<Integer, GridParser>>(sortScenarios);
+		
+		gridsByTimeAndScenario = new TreeMap<String, Map<Float, GridParser>>(sortScenarios);
 		statisticsByDataField = new TreeMap<String, float[]>();
-
+		
+		// Open a folder
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(saveCurrentDirectory);
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		int returnValue = chooser.showOpenDialog(null);
-
+		
 		if(returnValue == JFileChooser.APPROVE_OPTION) {
 			
 			saveCurrentDirectory = chooser.getSelectedFile();
-			
 			file_inputDir = chooser.getSelectedFile();
-
 			file_outputDir = new File(file_inputDir.getAbsolutePath() + "_hdf5");
-
+			
 			if(file_inputDir != null && file_inputDir.isDirectory()) {
-
+				
 				statusLabel.setText("Loading directory: " + file_inputDir);
 				statusLabel.setForeground(Color.BLACK);
 				FileBrowser.this.validate();
 				FileBrowser.this.repaint();
-
+				
 				setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));	
 				getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
+				
 				Thread readThread = new Thread(new Runnable() {
-
+					
 					@Override
 					public void run() {						
 						// Figure out what we're reading
@@ -636,9 +641,9 @@ public class FileBrowser extends javax.swing.JFrame {
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>Make sure you select the correct folder structure.</html>");
 							statusLabel.setForeground(Color.RED);
 						} else {
-							// Sanity check on the number of time steps matching in each scenario...
-							// Bin by time steps found, ntab files seem to have scenarios that stop short of the max number of time steps...
-							final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>();
+							// Sanity check on the number of timesteps matching in each scenario...
+							// Bin by timesteps found, ntab files seem to have scenarios that stop short of the max number of timesteps...
+							final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>(); //Timesteps per scenario
 							for(String scenario: gridsByTimeAndScenario.keySet()) {
 								if(!temp.containsKey(gridsByTimeAndScenario.get(scenario).keySet().size()))
 									temp.put(gridsByTimeAndScenario.get(scenario).keySet().size(), new ArrayList<String>());
@@ -653,7 +658,7 @@ public class FileBrowser extends javax.swing.JFrame {
 								TimestepSelectionSlider slider = new TimestepSelectionSlider(variableSteps, temp);
 								JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
 								int indexToUse = slider.getValue();
-								String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " time steps. " +
+								String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " timesteps. " +
 										"The following scenarios contained a smaller number and will be removed:\n";
 								scenarioToUse = temp.get(variableSteps[indexToUse]).get(0);
 								for(int i=0; i < indexToUse; i++){
@@ -677,7 +682,7 @@ public class FileBrowser extends javax.swing.JFrame {
 							}
 							Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
 							
-							// Assumes 1 scenario and 1 time step actually exists
+							// Assumes 1 scenario and 1 timestep actually exists
 							Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
 							Object[] data;
 							try {
@@ -724,27 +729,29 @@ public class FileBrowser extends javax.swing.JFrame {
 	}
 		
 	private void parseFolderStucture(File parentDirectory) {
-		for(File subFile: file_inputDir.listFiles()) {
-			if(subFile.isDirectory()) {
-				if(!gridsByTimeAndScenario.containsKey(subFile.getName()))
-					gridsByTimeAndScenario.put(subFile.getName(), new TreeMap<Integer, GridParser>());
-				// We are parsing a new set
-				// Look for the plot files
-				List<Integer> sortedSteps = new ArrayList<Integer>();
-				Map<Integer, File> files = new HashMap<Integer, File>();
-				for(File file: subFile.listFiles()) {
-					if(file.getName().startsWith("plot.")) {
-						int timeStep = Integer.parseInt(file.getName().replaceAll("plot.", ""));
-						sortedSteps.add(timeStep);
-						files.put(timeStep, file);
-					}
+		String fileType = jComboBox_fileType.getSelectedItem().toString();
+		for(File subFolder: file_inputDir.listFiles()) {
+			if(!subFolder.isDirectory()) continue; //We only want folders - skip files
+			// The folder name becomes the scenario name
+			if(!gridsByTimeAndScenario.containsKey(subFolder.getName()))
+				gridsByTimeAndScenario.put(subFolder.getName(), new TreeMap<Float, GridParser>());
+			
+			// Start looping through the files within the folder
+			System.out.println("Pulling time information from files...");
+			Map<Float, File> files = new TreeMap<Float, File>();
+			for(File subFile: subFolder.listFiles()) {
+				Float timeStep = null;
+				
+				// STOMP should iterate with the timestep in the file name
+				if(fileType.equals(STOMP) && subFile.getName().startsWith("plot")) {
+					timeStep = GridParser.extractStompTime(subFile);
+					files.put(timeStep, subFile); //Map the timestep to a file	
 				}
-				Collections.sort(sortedSteps);
-				int timeStep = 0;
-				for(int sortedStep: sortedSteps) {
-					gridsByTimeAndScenario.get(subFile.getName()).put(timeStep, new GridParser(files.get(sortedStep).getAbsolutePath()));
-					timeStep++;
-				}
+			}
+			
+			//Now insert the timesteps into gridsByTimeAndScenario
+			for(float timestep: files.keySet()) {
+				gridsByTimeAndScenario.get(subFolder.getName()).put(timestep, new GridParser(files.get(timestep).getAbsolutePath()));
 			}
 		}
 	}
@@ -752,86 +759,31 @@ public class FileBrowser extends javax.swing.JFrame {
 	private void parseSingleFolder(File directory) {
 		String fileType = jComboBox_fileType.getSelectedItem().toString();
 		for(File subFile: file_inputDir.listFiles()) {
-			// Filter on ntab files
-			if(fileType.equals(NTAB) && subFile.getName().endsWith(".ntab")) {
-				// File the grid
-				String name = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
-				if(!gridsByTimeAndScenario.containsKey(name))
-					gridsByTimeAndScenario.put(name, new TreeMap<Integer, GridParser>());
-				parseNtabFile(subFile);
-				// No extension for tecplot?
-			} else if(fileType.equals(TECPLOT)) {
-				String name = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
-				if(!gridsByTimeAndScenario.containsKey(name))
-					gridsByTimeAndScenario.put(name, new TreeMap<Integer, GridParser>());
-				try {
-					List<Integer> years = GridParser.getTecplotTimestep(subFile);
-					for(int year: years) {
-						GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), year);
-						if(gridsByTimeAndScenario.get(name).containsKey(year)) {
-							// In this case we really want to merge the two files...
-							gridsByTimeAndScenario.get(name).get(year).mergeFile(subFile);
-						} else {
-							gridsByTimeAndScenario.get(name).put(year, thisTimeStep);
-						}
-					}
-				} catch (NumberFormatException e) {
-					e.printStackTrace();
-				} catch (Exception e) {
-					System.out.println("Error parsing the files.");
-					e.printStackTrace();
-				}
+			
+			// Get the scenario name based on numbers in the file name
+			String scenarioName = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
+			if(!gridsByTimeAndScenario.containsKey(scenarioName))
+				gridsByTimeAndScenario.put(scenarioName, new TreeMap<Float, GridParser>());
+			List<Float> timesteps = new ArrayList<Float>();
+			
+			// Ntab lists all timesteps in the file header
+			if(fileType.equals(NTAB) && subFile.getName().endsWith(".ntab"))
+				timesteps = GridParser.extractNtabTimes(subFile);
+			
+			// Tecplot lists all timesteps spread throughout the file... sadly inefficient to read...
+			if(fileType.equals(TECPLOT) && subFile.getName().endsWith(".dat"))
+				timesteps = GridParser.extractTecplotTimes(subFile);
+			
+			//Now insert the timesteps into gridsByTimeAndScenario
+			for(float timestep: timesteps) {
+				if(!gridsByTimeAndScenario.get(scenarioName).containsKey(timestep))
+					gridsByTimeAndScenario.get(scenarioName).put(timestep, new GridParser(subFile.getAbsolutePath(), timestep));
+				gridsByTimeAndScenario.get(scenarioName).get(timestep).mergeFile(subFile); //In this case we really want to merge the two files...
 			}
 		}
-	}	
-	
-
-	private void parseNtabFile(File subFile) {
-		try (BufferedReader fileReader = new BufferedReader(new FileReader(subFile))) {
-			String firstLine = "";			
-			while(!(firstLine = fileReader.readLine()).startsWith("index") && firstLine != null);
-			fileReader.close();
-	
-			// We just need the first line
-			// First line should start with index, header we can ignore it
-			if(firstLine.startsWith("index")) {
-				// Everything else will be nodes
-				String[] tokens = firstLine.split("\\s+");
-				// skip these 
-				// index i j k element_ref nuft_ind x y z dx dy dz
-				boolean read = false;
-				for(String token: tokens) {
-					if(read) {
-						if(token.contains("."))
-							token = token.split("\\.")[0];
-						String years = token.replaceAll("\\D+", "");
-						try {
-							int yrs = Integer.parseInt(years);
-							GridParser thisTimeStep = new GridParser(subFile.getAbsolutePath(), yrs); 
-							String name = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
-							if(gridsByTimeAndScenario.get(name).containsKey(yrs)) {
-								gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile); // In this case we really want to merge the two files...
-								//	System.out.println("Merging time step = " + yrs + " to map at " + name);
-							} else {
-								gridsByTimeAndScenario.get(name).put(yrs, thisTimeStep);
-								//gridsByTimeAndScenario.get(name).get(yrs).mergeFile(subFile);
-								//	System.out.println("Adding time step = " + yrs + " to map at " + name);
-							}
-						} catch (NumberFormatException e) {
-							e.printStackTrace();
-						}
-					}
-					if(token.equalsIgnoreCase("volume")) {
-						read = true;
-					}
-				}
-			} 
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
-
+	
+	
 	private void jButton_outputDirActionPerformed(ActionEvent evt) {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new File(file_outputDir.getAbsolutePath()));
@@ -846,7 +798,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		jTextField_outputDir.setText(file_outputDir.getAbsolutePath());
 	}
 	
-	private void addDataFromFiles(DataStructure ntabData, H5File hdf5File, String plotFileName, boolean firstFile, int timeStepIndex) throws Exception {
+	private void addDataFromFiles(DataStructure data, H5File hdf5File, String plotFileName, boolean firstFile, int timeStepIndex) throws Exception {
 		
 		// Get the root
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
@@ -855,22 +807,26 @@ public class FileBrowser extends javax.swing.JFrame {
 		long startTime = System.currentTimeMillis();
 		
 		// Get the dimensions of the grid
-		long[] dims3D = {ntabData.i, ntabData.j, ntabData.k};
+		long[] dims3D = {data.i, data.j, data.k};
 		int iMax = new Long(dims3D[0]).intValue();
 		int jMax = new Long(dims3D[1]).intValue();
 		int kMax = new Long(dims3D[2]).intValue();
 		JCheckBox[] dataFields = checkList_dataFields.getListData();
 		
+		// Initialize the attribute dimension
+		long[] attrDims = { 1 }; //1D of size one
+		Datatype attrType = new H5Datatype(Datatype.CLASS_STRING, 10, -1, -1);
+		
 		//Data group is filled from the first file only
 		if(firstFile) {
-			statisticsByDataField = ntabData.statistics;
+			statisticsByDataField = data.statistics;
 			
 			int timeStep = 0;
 			List<Float> timeStepsAsFloats = new ArrayList<Float>();
 			List<Float> timeStepsInYears = new ArrayList<Float>();
 			JCheckBox[] timeSteps = checkList_timesteps.getListData();
 			
-			// Time steps are already in years
+			// Timesteps are already in years
 			for(JCheckBox cb: timeSteps) {
 				if(!cb.isSelected()) continue;
 				try {
@@ -893,15 +849,18 @@ public class FileBrowser extends javax.swing.JFrame {
 			
 			// Create the data group in the H5 File, contains header information
 			Group dataGroup = hdf5File.createGroup("data", root);
-			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{ntabData.x.length}, null, null, 0, ntabData.x);
-			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{ntabData.y.length}, null, null, 0, ntabData.y);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{ntabData.z.length}, null, null, 0, ntabData.z);
-			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{ntabData.vertexX.length}, null, null, 0, ntabData.vertexX);
-			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{ntabData.vertexY.length}, null, null, 0, ntabData.vertexY);
-			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{ntabData.vertexZ.length}, null, null, 0, ntabData.vertexZ);
+			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{data.x.length}, null, null, 0, data.x);
+			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{data.y.length}, null, null, 0, data.y);
+			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{data.z.length}, null, null, 0, data.z);
+			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{data.vertexX.length}, null, null, 0, data.vertexX);
+			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{data.vertexY.length}, null, null, 0, data.vertexY);
+			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{data.vertexZ.length}, null, null, 0, data.vertexZ);
 			
+			Dataset d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
+			String[] classValue = { "years" };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr); //Add the units as an attribute
 			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);
-			hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
 		}
 		
 		// Create a group for each time in the set
@@ -918,7 +877,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			System.out.print("\tAdding " + fieldClean + "...");
 			try {
 				
-				float[] dataAsFloats = ntabData.data.get(field)[timeStepIndex];
+				float[] dataAsFloats = data.data.get(field)[timeStepIndex];
 				float[] temp = new float[dataAsFloats.length];
 				
 				int counter = 0;
@@ -951,7 +910,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		System.out.println("Done loading plot file: " + plotFileName);
 	}
 	
-	//This function is called during a loop through time steps (each file)
+	//This function is called during a loop through timesteps (each file)
 	private DataGrid addDataFromFolders(GridParser parser, H5File hdf5File, String plotFileName, boolean firstFile) throws Exception {
 		
 		DataGrid grid = parser.extractStompData();
@@ -981,13 +940,12 @@ public class FileBrowser extends javax.swing.JFrame {
 			List<Float> timeStepsInYears = new ArrayList<Float>();
 			JCheckBox[] timeSteps = checkList_timesteps.getListData();
 			
-			// Time steps are already in years
+			// Timesteps are already in years
 			for(JCheckBox cb: timeSteps) {
 				if(!cb.isSelected()) continue;
 				try {
-					Integer ts = Integer.parseInt(cb.getText());
-					float tsf = ts.floatValue();
-					timeStepsInYears.add(tsf);
+					float ts = Float.parseFloat(cb.getText());
+					timeStepsInYears.add(ts);
 					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
 				} catch (Exception e) {
 					System.out.println("Error reading timesteps");
@@ -1107,7 +1065,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		return grid;
 	}
 	
-	private void computeStatistics(H5File hdf5File, int timeSteps) throws Exception {
+	private void addStatistics(H5File hdf5File, int timeSteps) throws Exception {
 		// Get the root
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);

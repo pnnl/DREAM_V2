@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -32,8 +32,7 @@ public class GridParser {
 	
 	/// Describes the data file from which this parser will extract data
 	private File dataFile;
-	
-	private int timeStep = 0;
+	private float timeStep = 0;
 	private static List<Float> timesAsFloats = new ArrayList<Float>();
 	
 	private static enum Tecplot {
@@ -123,8 +122,10 @@ public class GridParser {
 		public float[] vertexY;
 		public float[] vertexZ;
 		
+		public float[] times;
 		public Map<String, float[][]> data;
 		public Map<String, float[]> statistics;
+		public Map<String, String> units;
 	}
 
 	/**
@@ -135,7 +136,7 @@ public class GridParser {
 		dataFile = new File(fileName);
 	}
 
-	public GridParser(String fileName, int timeStep) {
+	public GridParser(String fileName, float timeStep) {
 		dataFile = new File(fileName);
 		fileType = FileType.NTAB;	
 		this.timeStep = timeStep;
@@ -151,34 +152,39 @@ public class GridParser {
 		filesToMerge.add(file);
 	}
 	
-	public int getTimeStep() {
+	public float getTimeStep() {
 		return timeStep;
 	}
 	
-	public void extractStompTimes(Collection<GridParser> files) throws GridError, FileNotFoundException {
-		System.out.println("Pulling time information from files...");
-		for(GridParser file: files) {
-			try (Scanner dataScanner = new Scanner(new FileReader(file.dataFile))) {
-				while (dataScanner.hasNextLine()) {
-					String line = dataScanner.nextLine().trim();
-					
-					if(line.startsWith("Time") && line.contains(",yr")) {
-						int startIndex = line.indexOf(",wk") + 3;
-						int endIndex = line.indexOf(",yr");
-						String sub = line.substring(startIndex,endIndex).trim();
-						try {
-							float timestep = Float.parseFloat(sub);
-							if (!timesAsFloats.contains(timestep))
-								timesAsFloats.add(timestep);
-						} catch (Exception e) {
-							System.out.println("Years Error: " + sub);
-						}
-						break;
+	
+	public static Float extractStompTime(File subFile) {
+		Float timeStep = null;
+		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
+			String line;
+			while ((line = br.readLine()) != null) { //The timestep is in the header
+				if(line.startsWith("Time") & line.contains(",yr")) {
+					int startIndex = line.indexOf(",wk") + 3;
+					int endIndex = line.indexOf(",yr");
+					String sub = line.substring(startIndex,endIndex).trim();
+					try {
+						timeStep = Math.round(Float.parseFloat(sub) * 1000f) / 1000f;
+						if (!timesAsFloats.contains(timeStep))
+							timesAsFloats.add(timeStep);
+					} catch (Exception e) {
+						System.out.println("Years Error: " + sub);
 					}
+					break; //No need to read the rest of the file
 				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		return timeStep;
 	}
+	
+	
+	
+	
 	
 	public DataGrid extractStompData() throws GridError {
 		DataGrid grid = null; // will contain all the extracted data from the file
@@ -250,7 +256,7 @@ public class GridParser {
 						else
 							grid = new DataGrid(size);
 						
-						grid.setTimestep(timesAsFloats.get(timeStep));
+						grid.setTimestep(timesAsFloats.get(timesAsFloats.indexOf(timeStep)));
 					}
 				}
 				
@@ -350,247 +356,158 @@ public class GridParser {
 	}
 	
 	
+	//TODO: Actively working on writing this
 	public DataStructure extractTecplotData() throws Exception {
-
+		
 		DataStructure structure = new DataStructure();
-		Map<Integer, Tecplot> indexOf = new HashMap<Integer, Tecplot>();
-		Map<Integer, String> dataTypes = new HashMap<Integer, String>();
-
-		Map<Float, Map<String, List<Float>>> data = new HashMap<Float, Map<String, List<Float>>>();
-
-		// Need unique xyz's only
-		HashSet<Float> uniqueXs = new HashSet<Float>();
-		HashSet<Float> uniqueYs = new HashSet<Float>();
-		HashSet<Float> uniqueZs = new HashSet<Float>();
-
-		if(!filesToMerge.contains(dataFile)) {
-			filesToMerge.add(dataFile);
-		}
-
-		for(File file: filesToMerge) {
-
-			// Open the file
-			Scanner sc = new Scanner(file);
-			String firstLine = "";			
-
-			int nodes = 0;
-			int elements = 0;
-			float timestep = 0;
-
-			// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
-			boolean first = true;
-			while(sc.hasNextLine()) {
-
-				indexOf.clear(); // We won't have xyz second time around probably
-
-				// Read until we find the variables
-				while(sc.hasNextLine()) {
-					firstLine = sc.nextLine();
-					if(firstLine.startsWith(Tecplot.VARIABLES.key)) break;
-					if(firstLine.startsWith(Tecplot.ZONE.key)) break;
-					if(sc.hasNextFloat()) break; // Or we hit a numeric value
-				}
-
-				int index = 0;
-				if(firstLine.startsWith(Tecplot.VARIABLES.key)) {
-					for(String variable: firstLine.split("\"")) {
-						variable = variable.split(",")[0].trim(); // Remove commas
-						if(variable.isEmpty())
-							continue;
-
-						if(variable.startsWith(Tecplot.VARIABLES.key)) {
-
-						} else if(variable.equalsIgnoreCase(Tecplot.X.key)) {
-							indexOf.put(index, Tecplot.X);
-							index++;
-						} else if(variable.equalsIgnoreCase(Tecplot.Y.key)) {
-							indexOf.put(index, Tecplot.Y);
-							index++;
-						} else if(variable.equalsIgnoreCase(Tecplot.Z.key)) {
-							indexOf.put(index, Tecplot.Z);
-							index++;
-						} else {
-							dataTypes.put(index, variable.replaceAll(" ", "_"));
-							index++;
-						}
-					}
-				}
-
-				System.out.println("Index: " + indexOf);
-				System.out.println("Variables: " + dataTypes);
-
-				// Read until we find the zone 
-				while(sc.hasNextLine()) {
-					if(firstLine.startsWith(Tecplot.ZONE.key)) break;
-					if(sc.hasNextFloat()) break;
-					firstLine = sc.nextLine();
-				}
-
-				if(firstLine.startsWith(Tecplot.ZONE.key)) {
-					for(String variable: firstLine.split(",")) {
-						variable = variable.trim();
-						if(variable.startsWith(Tecplot.NODES.key)) {
-							nodes = Integer.parseInt(variable.split("=")[1].trim());
-						} else if(variable.startsWith(Tecplot.ELEMENTS.key)) {
-							elements = Integer.parseInt(variable.split("=")[1].trim());
-						} else if(variable.startsWith(Tecplot.SOLUTION_TIME.key)) {
-							timestep = Float.parseFloat(variable.split("=")[1].trim());
-						}
-					}
-				}
-
-				System.out.println("Nodes: " + nodes);
-				System.out.println("Elements: " + elements);
-				System.out.println("Timestep: " + timestep);
-
-				// Read until we find a float
-				while(sc.hasNextLine() && !sc.hasNextFloat()) { sc.nextLine(); }
-
-				/*
-				if(!firstLine.contains(Tecplot.NODAL.key)) {
-					sc.close();
-					throw new Exception("Only nodal format supported");
-				} */
-
-				if(sc.hasNextFloat()) {
-					for(int i = 0; i < dataTypes.size()+indexOf.size(); i++) {
-
-						// Reading x y or z: will have 1 per node
-						if(indexOf.containsKey(i)) {
-
-							for(int j = 0; j < nodes; j++) {
-								if(indexOf.get(i).equals(Tecplot.X)) {
-									uniqueXs.add(sc.nextFloat());
-								} else if(indexOf.get(i).equals(Tecplot.Y)) {
-									uniqueYs.add(sc.nextFloat());
-								} else if(indexOf.get(i).equals(Tecplot.Z)) {
-									uniqueZs.add(sc.nextFloat());
-								}
-							}
-
-
-							// Reading data, will have 1 per element
-						} else {
-
-							String variable = dataTypes.get(first ? i : i + 3);
-
-							if(!data.containsKey(timestep)) {
-								data.put(timestep, new HashMap<String, List<Float>>());
-							}
-							if(!data.get(timestep).containsKey(variable)) {
-								data.get(timestep).put(variable, new ArrayList<Float>());
-							}
-							for(int j = 0; j < elements; j++) {
-								if(Float.compare(timestep, 40) == 0 && j == 5045) {
-									System.out.println("HERE2");
-								}
-								data.get(timestep).get(variable).add(sc.nextFloat());
-							}						
-						}
-					}
-				}
-				
-				first = false;
-			}
-
-			// Read the file?
-			sc.close();
-		}
-
-		// Build the structure
-		ArrayList<Float> xs = new ArrayList<Float>(uniqueXs);
-		ArrayList<Float> ys = new ArrayList<Float>(uniqueYs);
-		ArrayList<Float> zs = new ArrayList<Float>(uniqueZs);
-
-		Collections.sort(xs);
-		Collections.sort(ys);
-		Collections.sort(zs);
-
-		/*
-		float[] x = new float[xs.size()];
-		for(int i = 0; i < xs.size(); i++) {
-			x[i] = xs.get(i);
-		}
-		float[] y = new float[ys.size()];
-		for(int i = 0; i < ys.size(); i++) {
-			y[i] = ys.get(i);
-		}
-		float[] z = new float[zs.size()];
-		for(int i = 0; i < zs.size(); i++) {
-			z[i] = zs.get(i);
-		}*/		
-		
-		float[] x = new float[xs.size() - 1];
-		for(int i = 0; i < xs.size() - 1; i++) {
-			x[i] = (xs.get(i+1) - xs.get(i))/2 + xs.get(i);
-		}
-		float[] y = new float[ys.size() - 1];
-		for(int i = 0; i < ys.size() - 1; i++) {
-			y[i] = (ys.get(i+1) - ys.get(i))/2 + ys.get(i);
-		}
-		float[] z = new float[zs.size() - 1];
-		for(int i = 0; i < zs.size() - 1; i++) {
-			z[i] = (zs.get(i+1) - zs.get(i))/2 + zs.get(i);
-		}
-		
-
-		structure.x = x;
-		structure.y = y;
-		structure.z = z;
-		structure.i = x.length; // Or is it plus 1?
-		structure.j = y.length;
-		structure.k = z.length;
 		structure.data = new HashMap<String, float[][]>();
-
-		List<String> sortedDataTypes = new ArrayList<String>(dataTypes.values());
-		Collections.sort(sortedDataTypes);
-
-		List<Float> sortedTimes = new ArrayList<Float>(data.keySet());
-		Collections.sort(sortedTimes);
-
+		structure.statistics = new HashMap<String, float[]>();
+		structure.units = new HashMap<String, String>();
+		ArrayList<String> indexMap = new ArrayList<String>();
+		ArrayList<Float> years = new ArrayList<Float>();
+		String line;
+		int nodes = 0;
 		
-		for(int t = 0; t < sortedTimes.size(); t++) {
-			for(String variable: sortedDataTypes) {
-				List<Float> vars = data.get(sortedTimes.get(t)).get(variable);
-				float[][] dataDoubleArray = new float[sortedTimes.size()][vars.size()];
-				if(structure.data.containsKey(variable))
-						dataDoubleArray = structure.data.get(variable);
-				for(int i = 0; i < vars.size(); i++)
-					dataDoubleArray[t][i] = vars.get(i);	
-				structure.data.put(variable, dataDoubleArray);
+		//////////////////////////////////////////////////////////////////////////////
+		//// Read the first file to get the file structure and header information ////
+		//////////////////////////////////////////////////////////////////////////////
+		try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+			ArrayList<Float> uniqueXs = new ArrayList<Float>();
+			ArrayList<Float> uniqueYs = new ArrayList<Float>();
+			ArrayList<Float> uniqueZs = new ArrayList<Float>();
+			int index = 0;
+			int countNodes = 0;
+			while ((line = br.readLine()) != null) { // Read each line
+				
+				//// This is the header - we want to map out the variables and units and get the number of nodes ////
+				if(line.contains("=")) {
+					if(line.contains("VARIABLES")) {//This lists the data types and their units
+						String[] lineList = line.split("\""); //Split by quotes to isolate parameter and unit
+						for(String subString: lineList) {
+							if(subString.contains("=") || subString.trim().equals("")) continue; //Skip everything but the parameters
+							String[] split = subString.split(",");
+							indexMap.add(split[0].trim().toLowerCase());
+							structure.statistics.put(split[0].trim().toLowerCase(), new float[3]);
+							if(split.length>1 && !split[1].trim().contains("null")) //If there were units, store them
+								structure.units.put(split[0].trim().toLowerCase(), split[1].trim());
+						}
+					} else if(line.contains("ZONE")) {//This lists the number of nodes
+						String[] lineList = line.split(","); //Comma delimited
+						for(String subString:lineList) {
+							String[] split = subString.split("=");
+							if(split[0].contains("NODES")) {
+								try {
+									nodes = Integer.parseInt(split[1].trim());
+									break;
+								} catch(Exception e) {
+									System.out.println("Nodes Error: " + split[1].trim());
+								}
+							}
+						}
+						String[] tokens = line.split("\""); //Zone name is wrapped in quotes
+						float timestep = Float.parseFloat(tokens[1].replaceAll("\\D+", "").replaceAll("\\.", ""));
+						years.add(timestep);
+					}
+				} 
+				
+				//// This is the data - we want to extract the X, Y, Z dimensions ////
+				else {
+					String key = indexMap.get(index);
+					String[] lineList = line.split("\\s+"); //Space delimited
+					for(String subString: lineList) {
+						countNodes++;
+						float value = Float.parseFloat(subString);
+						if(key.equals("x") & !uniqueXs.contains(value))
+							uniqueXs.add(value);
+						else if(key.equals("y") & !uniqueYs.contains(value))
+							uniqueYs.add(value);
+						else if(key.equals("z") & !uniqueZs.contains(value))
+							uniqueZs.add(value);
+					}
+					// When the counter is high enough, we have finished with the parameter
+					if(countNodes >= nodes) {
+						index++; //On to the next parameter
+						countNodes = 0; //Reset the counter
+					}
+					// Once we finish x, y, and z we want to exit and store results
+					if(!indexMap.get(index).equals("x") && !indexMap.get(index).equals("y") && !indexMap.get(index).equals("z")) {
+						structure.i = uniqueXs.size();
+						structure.j = uniqueYs.size();
+						structure.k = uniqueZs.size();
+						structure.x = Constants.listToArray(uniqueXs);
+						structure.y = Constants.listToArray(uniqueYs);
+						structure.z = Constants.listToArray(uniqueZs);
+						structure.vertexX = Constants.listToArray(NodeStructure.setEdge(uniqueXs));
+						structure.vertexY = Constants.listToArray(NodeStructure.setEdge(uniqueYs));
+						structure.vertexZ = Constants.listToArray(NodeStructure.setEdge(uniqueZs));
+						break;
+					}
+				}
 			}
-		}		
-
+		}
+		
+		///////////////////////////////////////////////////////
+		//// Loop through files to read and merge the data ////
+		///////////////////////////////////////////////////////
+		for(File dataFile: filesToMerge) {
+			float[][] dataMap = new float[1][nodes];
+			float max = Float.MIN_VALUE;
+			float min = Float.MAX_VALUE;
+			float sum = 0;
+			int index = 3;
+			int countNodes = 0;
+			try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+				while ((line = br.readLine()) != null) { // Read each line
+					
+					//// This is the data - we want all values ////
+					if(!line.contains("=") && !line.trim().isEmpty()) {
+						String[] lineList = line.trim().split(" "); //space delimited
+						for(String subString: lineList) {
+							float value = Float.parseFloat(subString);
+							dataMap[0][countNodes] = value; //Save the value
+							if(value<min) min = value;
+							if(value>max) max = value;
+							sum += value;
+							countNodes++;
+						}
+						//When the counter is high enough, we have finished with the parameter for this timestep
+						if(countNodes >= nodes) {
+							String fieldKey = indexMap.get(index); //The parameter that these values belong to
+							float average = sum / (structure.i * structure.j * structure.k); //Calculate the average
+							if(!structure.data.containsKey(fieldKey)) { //If data doesn't yet exist for the parameter
+								structure.data.put(fieldKey, dataMap); //Store values
+								float[] statistics = new float[]{min, average, max};
+								structure.statistics.put(fieldKey, statistics); //Store statistics
+							} else { //Some data already exists for the timestep
+								float[][] combined = new float[structure.data.get(fieldKey).length + 1][];
+								System.arraycopy(structure.data.get(fieldKey), 0, combined, 0, structure.data.get(fieldKey).length);
+								System.arraycopy(dataMap, 0, combined, structure.data.get(fieldKey).length, dataMap.length);
+								structure.data.put(fieldKey, combined); //Store values
+								float[] statistics = new float[3];
+								statistics[0] = Math.min(structure.statistics.get(fieldKey)[0], min);
+								statistics[1] = average + structure.statistics.get(fieldKey)[1]; //Need to divide by timesteps later
+								statistics[2] = Math.max(structure.statistics.get(fieldKey)[2], max);
+								structure.statistics.put(fieldKey, statistics); //Store statistics
+							}
+							index++; //On to the next parameter
+							countNodes = 0; //Reset the counter
+						}
+					}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Last step - just need to divide the average by the number of timesteps for statistics
+		// This is because at the time of storing, we don't know how many timesteps are in the file
+		for(String key: structure.statistics.keySet())
+			structure.statistics.get(key)[1] = structure.statistics.get(key)[1] / years.size();
+		
 		return structure;
 	}
-
-	public static List<Integer> getTecplotTimestep(File file) throws Exception {
-
-		// Open the file
-		Scanner sc = new Scanner(file);
-		String firstLine = "";			
-		List<Integer> timesteps = new ArrayList<Integer>();
-
-		// Read the header, we may have multiple headers, not sure if all the info will be duplicated?
-		while(sc.hasNextLine()) {
-
-			// Read until we find the zone 
-			while(!(firstLine = sc.nextLine()).startsWith(Tecplot.ZONE.key) && sc.hasNextLine());
-
-			for(String variable: firstLine.split(",")) {
-				variable = variable.trim();
-				if(variable.startsWith(Tecplot.SOLUTION_TIME.key)) {
-					timesteps.add(Integer.parseInt(variable.split("=")[1].split(",")[0].replaceAll("\"", "").trim()));
-				}
-			}	
-		}
-
-		// didn't find it
-		sc.close();
-		return timesteps;
-	}
-
-
+	
+	
 	public static List<String> getTecplotVariables(File file) throws Exception {
 
 		// Open the file
@@ -621,7 +538,129 @@ public class GridParser {
 		sc.close();
 		return dataTypes;
 	}
-
+	
+	
+	// Extract all timesteps from a file
+	public static List<Float> extractTecplotTimes(File subFile) {
+		System.out.println("Pulling time information from files...");
+		List<Float> timesteps = new ArrayList<Float>();
+		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
+			String line;
+			while ((line = br.readLine()) != null) { //We actually have to read the whole file... timesteps are scattered throughout
+				if(line.contains("ZONE")) { //This lists the zone name, which includes the timestep
+					String[] tokens = line.split("\""); //Zone name is wrapped in quotes
+					String sub = tokens[1].replaceAll("\\D+", "").replaceAll("\\.", "");
+					try {
+						float timestep = Float.parseFloat(sub);
+						timesteps.add(timestep);
+					} catch(Exception e) {
+						System.out.println("Years Error: " + sub);
+					}
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return timesteps;
+	}
+	
+	
+	// Extract timesteps from the first file
+	public static List<Float> extractNtabTimes(File subFile) {
+		System.out.println("Pulling time information from files...");
+		List<Float> timesteps = new ArrayList<Float>();
+		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
+			String line;
+			while ((line = br.readLine()) != null) { //This loop would go through whole file, but after header we break
+				if(line.startsWith("index")) { //The header lists all the timesteps
+					String[] tokens = line.split("\\s+"); //The line is space delimited
+					// skip these 
+					// index i j k element_ref nuft_ind x y z dx dy dz volume [times]
+					int start = Arrays.asList(tokens).indexOf("volume"); //Last index before times
+					for(int i=start+1; i<tokens.length; i++) {
+						if(tokens[i].contains(".")) //Remove any decimals if they exist
+							tokens[i] = tokens[i].split("\\.")[0];
+						String sub = tokens[i].replaceAll("\\D+", "");
+						try {
+							float years = Float.parseFloat(sub);
+							timesteps.add(years);
+						} catch(Exception e) {
+							System.out.println("Years Error: " + sub);
+						}
+					}
+				}
+				else //Break when we finish reading the header
+					break;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return timesteps;
+	}
+	
+	
+	/*// Extract data structure from the first file
+	public DataStructure extractNtabStructure(File subFile) throws Exception {
+		DataStructure structure = new DataStructure();
+		ArrayList<String> indexMap = new ArrayList<String>();
+		System.out.println("Pulling data structure from files...");
+		
+		// Start reading the file
+		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
+			ArrayList<Float> uniqueXs = new ArrayList<Float>();
+			ArrayList<Float> uniqueYs = new ArrayList<Float>();
+			ArrayList<Float> uniqueZs = new ArrayList<Float>();
+			String line;
+			while ((line = br.readLine()) != null) {
+				String[] tokens = line.split("\\s+"); //The line is space delimited
+				
+				// This is the header from which we extract: timeSteps
+				// index i j k element_ref nuft_ind x y z dx dy dz volume [times]
+				if(line.startsWith("index")) {
+					int start = Arrays.asList(tokens).indexOf("volume") + 1; //Last index before times
+					for(int i=0; i<tokens.length; i++) {
+						if(i<start) {
+							indexMap.add(tokens[i]);
+						} else {
+							String sub = tokens[i].replaceAll("\\D+", ""); //Remove any letters
+							try {
+								float years = Float.parseFloat(sub);
+								structure.times[i-start] = years;
+							} catch(Exception e) {
+								System.out.println("Years Error: " + sub);
+							}
+						}
+					}
+					break;
+				}
+				
+				// This is the data from which we extract: x, y, z
+				else {
+					float x = Float.parseFloat(tokens[indexMap.indexOf("x")]);
+					float y = Float.parseFloat(tokens[indexMap.indexOf("y")]);
+					float z = Float.parseFloat(tokens[indexMap.indexOf("z")]);
+					if(!uniqueXs.contains(x)) uniqueXs.add(x);
+					if(!uniqueYs.contains(y)) uniqueYs.add(y);
+					if(!uniqueZs.contains(z)) uniqueZs.add(z);
+				}
+			}
+			structure.x = Constants.listToArray(uniqueXs);
+			structure.y = Constants.listToArray(uniqueYs);
+			structure.z = Constants.listToArray(uniqueZs);
+			structure.vertexX = Constants.listToArray(NodeStructure.setEdge(uniqueXs));
+			structure.vertexY = Constants.listToArray(NodeStructure.setEdge(uniqueYs));
+			structure.vertexZ = Constants.listToArray(NodeStructure.setEdge(uniqueZs));
+			structure.i = uniqueXs.size();
+			structure.j = uniqueYs.size();
+			structure.k = uniqueZs.size();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return structure;
+	}*/
+	
+	
+	// TODO: Copy this Code for TecPlot...
 	public DataStructure extractNTABData() throws Exception {
 		DataStructure structure = new DataStructure();
 		structure.data = new HashMap<String, float[][]>();
@@ -638,8 +677,8 @@ public class GridParser {
 			ArrayList<Float> uniqueXs = new ArrayList<Float>();
 			ArrayList<Float> uniqueYs = new ArrayList<Float>();
 			ArrayList<Float> uniqueZs = new ArrayList<Float>();
-			while ((line = br.readLine()) != null) { // Read each line
-				String[] lineList = line.split(" "); //space delimited
+			while ((line = br.readLine()) != null) { //Read each line
+				String[] lineList = line.split("\\s+"); //Space delimited
 				
 				// Read the header information to map the desired variables
 				if(lineList[0].equalsIgnoreCase("index")) {
@@ -683,15 +722,9 @@ public class GridParser {
 			structure.x = Constants.listToArray(uniqueXs);
 			structure.y = Constants.listToArray(uniqueYs);
 			structure.z = Constants.listToArray(uniqueZs);
-			
-			List<Float> uniqueVertexX = NodeStructure.setEdge(uniqueXs);
-			List<Float> uniqueVertexY = NodeStructure.setEdge(uniqueYs);
-			List<Float> uniqueVertexZ = NodeStructure.setEdge(uniqueZs);
-			structure.vertexX = Constants.listToArray(uniqueVertexX);
-			structure.vertexY = Constants.listToArray(uniqueVertexY);
-			structure.vertexZ = Constants.listToArray(uniqueVertexZ);
-			
-			filesToMerge.add(dataFile); // Not initially added to the list, need to include for the following loop
+			structure.vertexX = Constants.listToArray(NodeStructure.setEdge(uniqueXs));
+			structure.vertexY = Constants.listToArray(NodeStructure.setEdge(uniqueYs));
+			structure.vertexZ = Constants.listToArray(NodeStructure.setEdge(uniqueZs));
 			
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -730,7 +763,7 @@ public class GridParser {
 				if(structure.statistics.containsKey(fieldKey)) {
 					statistics = new float[3];
 					statistics[0] = Math.min(structure.statistics.get(fieldKey)[0], min);
-					statistics[0] = average + structure.statistics.get(fieldKey)[1];
+					statistics[1] = average + structure.statistics.get(fieldKey)[1];
 					statistics[2] = Math.max(structure.statistics.get(fieldKey)[2], max);
 				} else {
 					statistics = new float[]{min, average, max};
@@ -746,7 +779,6 @@ public class GridParser {
 
 	public Object[] getDataTypes(String fileType, Collection<GridParser> files) throws GridError, FileNotFoundException {
 		if(fileType.equals(FileBrowser.STOMP)) {
-			extractStompTimes(files);
 			return extractStompData().getFieldNames().toArray();
 		} else if(fileType.equals(FileBrowser.NTAB)) {
 			List<String> fieldNames = new ArrayList<String>();			
