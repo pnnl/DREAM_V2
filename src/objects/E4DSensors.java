@@ -127,7 +127,7 @@ public class E4DSensors {
 					break;
 				//Too many wells, need to pare down based on absolute pressure change - back to HDF5 files
 				} else {
-					Map<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, ttd, bestNodes.keySet());
+					Map<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, bestNodes.keySet());
 					Map<Integer, Float> sortedMap = sortByValue(absoluteChange);
 					for(Integer node: sortedMap.keySet()) {
 						Point3i temp = nodeStructure.getIJKFromNodeNumber(node);

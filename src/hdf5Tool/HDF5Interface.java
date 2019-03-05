@@ -45,17 +45,39 @@ public class HDF5Interface {
 	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
 	 *  _________________________    _________________________    _________________________    
 	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
-	 * 	| 1     | 4     | 7     |    | 10    | 13    | 16    |    | 19    | 22    | 25    |
+	 * 	| 1     | 5     | 9     |    | 13    | 17    | 21    |    | 25    | 29    | 33    |
 	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
 	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
 	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
-	 * 	| 2     | 5     | 8     |    | 11    | 14    | 17    |    | 20    | 23    | 26    |
+	 * 	| 2     | 6     | 10    |    | 14    | 18    | 22    |    | 26    | 30    | 34    |
 	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
 	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
 	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
-	 * 	| 3     | 6     | 9     |    | 12    | 15    | 18    |    | 21    | 24    | 27    |
+	 * 	| 3     | 7     | 11    |    | 15    | 19    | 23    |    | 27    | 31    | 35    |
 	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
+	 * 	| 4,1,1 | 4,2,1 | 4,3,1 |    | 4,1,2 | 4,2,2 | 4,3,2 |    | 4,1,3 | 4,2,3 | 4,3,3 |
+	 * 	| 4     | 8     | 12    |    | 16    | 20    | 24    |    | 28    | 32    | 36    |
+	 * 	| 27    | 30    | 33    |    | 28    | 31    | 34    |    | 29    | 32    | 35    |
 	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
+	 * 
+	 *  _________________________    _________________________
+	 *  | 1,1,1 | 2,1,1 | 3,1,1 |    | 1,1,2 | 2,1,2 | 3,1,2 |
+	 * 	| 1     | 2     | 3     |    | 13    | 14    | 15    |
+	 * 	| 0     | 8     | 16    |    | 1     | 9     | 17    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|  
+	 * 	| 1,2,1 | 2,2,1 | 3,2,1 |    | 1,2,2 | 2,2,2 | 3,2,2 |
+	 * 	| 4     | 5     | 6     |    | 16    | 17    | 18    |
+	 * 	| 2     | 10    | 18    |    | 3     | 11    | 19    |
+	 * 	|_______|_______|_______|    |_______|_______|_______| 
+	 * 	| 1,3,1 | 2,3,1 | 3,3,1 |    | 1,3,2 | 2,3,2 | 3,3,2 |
+	 * 	| 7     | 8     | 9     |    | 19    | 20    | 21    |
+	 * 	| 4     | 12    | 20    |    | 5     | 13    | 21    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|  
+	 * 	| 1,4,1 | 2,4,1 | 3,4,1 |    | 1,4,2 | 2,4,2 | 3,4,2 |
+	 * 	| 10    | 11    | 12    |    | 21    | 22    | 23    |
+	 * 	| 6     | 14    | 22    |    | 7     | 15    | 23    |
+	 * 	|_______|_______|_______|    |_______|_______|_______|
 	 * 
 	 */
 	
@@ -295,7 +317,7 @@ public class HDF5Interface {
 	
 	
 	// Instead of querying files for each value, generate a map with TTD at each node number for specific sensor settings
-	public static HashMap<Integer, Float> goalSeek(ScenarioSet set, String parameter, Float time, Set<Integer> inputNodes) {
+	public static HashMap<Integer, Float> goalSeek(ScenarioSet set, String parameter, Set<Integer> inputNodes) {
 		HashMap<Integer, Float> absoluteChange = new HashMap<Integer, Float>();
 		//Initialize
 		for(Integer node: inputNodes)
@@ -334,7 +356,7 @@ public class HDF5Interface {
 					}
 					
 					// The time step we are comparing against
-					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == time) {
+					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == set.getNodeStructure().getTimeSteps().size()-1) {
 						Object group =  root.getMemberList().get(rootIndex);
 						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 							Object child = ((Group)group).getMemberList().get(groupIndex);
