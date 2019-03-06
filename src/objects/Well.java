@@ -130,7 +130,9 @@ public class Well
 			}
 			if(initial)
 				initial = false;
-			validNodes.remove(toRemove);
+			for(String key: validNodes.keySet())
+				if(validNodes.get(key).equals(toRemove))
+					validNodes.remove(key);
 		}
 		List<Well> validWells = new ArrayList<Well>();
 		
