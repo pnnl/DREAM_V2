@@ -46,7 +46,7 @@ public class E4DSensors {
 		int iteration = 1;
 		String specificType = "";
 		while (allNodes.size()==0) {
-			if(iteration>1) monitor.worked(-600/iteration);
+			if(iteration>1) monitor.worked(-70000/iteration);
 			// Loop through scenarios and add all nodes that trigger
 			monitor.subTask("Scanning for valid nodes with threshold = " + threshold);
 			specificType = parameter + "_rel_" + threshold;
@@ -64,7 +64,7 @@ public class E4DSensors {
 					allNodes.add(node);
 			}
 			threshold /= Math.sqrt(10);
-			monitor.worked(600/iteration); //This loop will be 60% of the progress bar
+			monitor.worked(70000/iteration); //This loop will be 60% of the progress bar
 			iteration++;
 		}
 		
@@ -96,7 +96,7 @@ public class E4DSensors {
 				ttdPerNode.put(node, ttd);
 				if(!ttds.contains(ttd))
 					ttds.add(ttd);
-				monitor.worked(400/allNodes.size());
+				monitor.worked(30000/allNodes.size());
 			}
 			
 			// Sort the times to detection

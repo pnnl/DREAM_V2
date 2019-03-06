@@ -533,7 +533,7 @@ public class DREAMWizard extends Wizard {
 			dialog.run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					monitor.beginTask("Calculating E4D Wells for " + selectedParameter, 1000);
+					monitor.beginTask("Calculating E4D Wells for " + selectedParameter, 100000);
 					try {
 						wells = E4DSensors.calculateE4DWells(data, selectedParameter, maximumWells, monitor);
 					} catch (Exception e) {
