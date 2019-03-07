@@ -1,9 +1,6 @@
 package hdf5Tool;
 
-import gridviz.DataGrid;
 import gridviz.GridError;
-import gridviz.GridParser;
-import gridviz.GridParser.DataStructure;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -12,20 +9,14 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -89,40 +80,24 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	private CheckList checkList_timesteps;
 	private CheckList checkList_scenarios;
-	private CheckList checkList_dataFields;	
+	private CheckList checkList_parameters;	
 	
-	private Map<String, Map<Float, GridParser>> gridsByTimeAndScenario;
-	private Map<String, float[]> statisticsByDataField;
 	private ProgressMonitor monitor;
 	private int processedTasks;
 	
-	private boolean porosityAdded;
-	private Float porosity;
-	private int times;
+	private float[] porosity;
+	private ParseRawFiles gp;
 
 	private JLabel statusLabel;
-	private DecimalFormat df = new DecimalFormat("#.###");
 
 	public FileBrowser() {
 		// Hack that allows my directory to start where I want it
 		if(Constants.homeDirectory.contains("whit162"))
 			saveCurrentDirectory = new File("C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\FileConversionTests");
 		// End hack
+		gp = new ParseRawFiles();
 		initComponents();
 	}
-	
-	// Sort the scenarios by a custom comparator that combines string and integer
-	Comparator<String> sortScenarios = new Comparator<String>(){
-		public int compare(String o1, String o2) {
-	        return extractInt(o1) - extractInt(o2);
-	    }
-
-	    int extractInt(String s) {
-	        String num = s.replaceAll("\\D", "");
-	        // return 0 if no digits found
-	        return num.isEmpty() ? 0 : Integer.parseInt(num);
-	    }
-	};
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initComponents() {
@@ -150,8 +125,9 @@ public class FileBrowser extends javax.swing.JFrame {
 		setJMenuBar(menuBar);
 		
 		JPanel jPanel_fileType = new JPanel();
-		jComboBox_fileType = new JComboBox(new String[]{NTAB, STOMP, TECPLOT});
-		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FILE, SCENARIO_PER_FOLDER});
+		jComboBox_fileType = new JComboBox(new String[]{STOMP, NTAB, TECPLOT});
+		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FOLDER, SCENARIO_PER_FILE});
+		jComboBox_folderStructure.setEnabled(false);
 		jComboBox_fileType.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -177,18 +153,18 @@ public class FileBrowser extends javax.swing.JFrame {
 		jPanel_fileType.add(jComboBox_folderStructure);
 		jPanel_fileType.add(Box.createRigidArea(new Dimension(15,0)));
 		
-		checkList_dataFields = new CheckList();
+		checkList_parameters = new CheckList();
 		checkList_timesteps = new CheckList();
 		checkList_scenarios = new CheckList();
-		checkList_dataFields.setEnabled(false);
+		checkList_parameters.setEnabled(false);
 		checkList_timesteps.setEnabled(false);
 		checkList_scenarios.setEnabled(false);
 		
-		JPanel jPanel_data = new JPanel();
+		JPanel jPanel_parameters = new JPanel();
 		JLabel jLabel_scenarios = new JLabel();
 		JPanel jPanel_timesteps = new JPanel();
 		JLabel jLabel_timesteps = new JLabel();
-		JLabel jLabel_data = new JLabel();
+		JLabel jLabel_parameters = new JLabel();
 		JPanel jPanel_scenarios = new JPanel();
 		JButton jButton_done = new JButton("Run...");
 		JLabel jLabel_outputDir = new JLabel("Output directory:");
@@ -200,7 +176,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		JButton jButton_inputDir = new JButton("Select");
 		
 		// Blue border
-		jPanel_data.setBackground(new java.awt.Color(33,57,156));
+		jPanel_parameters.setBackground(new java.awt.Color(33,57,156));
 		jPanel_timesteps.setBackground(new java.awt.Color(33,57,156));
 		jPanel_scenarios.setBackground(new java.awt.Color(33,57,156));
 		
@@ -230,17 +206,17 @@ public class FileBrowser extends javax.swing.JFrame {
 				.addComponent(checkList_timesteps, 0, 184, Short.MAX_VALUE)
 				);
 		
-		// Data:
-		jLabel_data.setText("Data");
-		javax.swing.GroupLayout jPanel_dataLayout = new javax.swing.GroupLayout(jPanel_data);
-		jPanel_data.setLayout(jPanel_dataLayout);
-		jPanel_dataLayout.setHorizontalGroup(
-				jPanel_dataLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addComponent(checkList_dataFields, 0, 245, Short.MAX_VALUE)
+		// Parameters:
+		jLabel_parameters.setText("Parameters");
+		javax.swing.GroupLayout jPanel_parametersLayout = new javax.swing.GroupLayout(jPanel_parameters);
+		jPanel_parameters.setLayout(jPanel_parametersLayout);
+		jPanel_parametersLayout.setHorizontalGroup(
+				jPanel_parametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addComponent(checkList_parameters, 0, 245, Short.MAX_VALUE)
 				);
-		jPanel_dataLayout.setVerticalGroup(
-				jPanel_dataLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addComponent(checkList_dataFields, 0, 394, Short.MAX_VALUE)
+		jPanel_parametersLayout.setVerticalGroup(
+				jPanel_parametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addComponent(checkList_parameters, 0, 394, Short.MAX_VALUE)
 				);
 		
 		// Buttons
@@ -309,8 +285,8 @@ public class FileBrowser extends javax.swing.JFrame {
 																		.addComponent(jLabel_timesteps))
 																		.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 																		.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-																				.addComponent(jLabel_data)
-																				.addComponent(jPanel_data, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))																																				
+																				.addComponent(jLabel_parameters)
+																				.addComponent(jPanel_parameters, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))																																				
 																				.addComponent(statusLabel, javax.swing.GroupLayout.Alignment.LEADING)			
 																				.addComponent(jButton_done, javax.swing.GroupLayout.Alignment.TRAILING))
 																				.addContainerGap())
@@ -334,7 +310,7 @@ public class FileBrowser extends javax.swing.JFrame {
 										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 														.addComponent(jLabel_scenarios)
-														.addComponent(jLabel_data))
+														.addComponent(jLabel_parameters))
 														.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 														.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 																.addGroup(layout.createSequentialGroup()
@@ -343,7 +319,7 @@ public class FileBrowser extends javax.swing.JFrame {
 																		.addComponent(jLabel_timesteps)
 																		.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 																		.addComponent(jPanel_timesteps, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-																		.addComponent(jPanel_data, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+																		.addComponent(jPanel_parameters, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 																		.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
 																		.addComponent(statusLabel)
 																		.addComponent(jButton_done)
@@ -355,46 +331,49 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	private void jButton_doneActionPerformed(ActionEvent evt) throws Exception {
 		
+		// Save selected scenarios, timesteps, and parameters
+		gp.setSelected(checkList_scenarios.getListData(), checkList_timesteps.getListData(), checkList_parameters.getListData());
+		
 		// Initialize global variables
 		processedTasks = 0;
-		porosityAdded = false;
-		porosity = Float.MIN_VALUE;
-		times = 0;
+		porosity = null;
 		
-		// Create the HDF5 Files
+		// Create the HDF5 output directory if it doesn't exist
 		if(!file_outputDir.exists())
 			file_outputDir.mkdir();
-
-		if(gridsByTimeAndScenario == null) {
-			System.out.println("Error: Grid is Empty");
-			return;
-		}
-
-		JCheckBox[] scenarios = checkList_scenarios.getListData();
-		JCheckBox[] timeSteps = checkList_timesteps.getListData();
-
+		
 		// Use them all.. well okay, all but one :)
-		final int cores = Runtime.getRuntime().availableProcessors() - 1;
+		// We are assigning each thread a scenario, so no need to start more threads than scenarios selected
+		//final int cores = Math.min(Runtime.getRuntime().availableProcessors()-1, gp.getSelectedScenarios().size());
+		// System.out.println("Using " + (cores) + " cores for " + gp.getSelectedScenarios().size() + " selected scenarios");
+		final int cores = Runtime.getRuntime().availableProcessors()-1;
 		//ExecutorService service = Executors.newFixedThreadPool(cores);
 		System.out.println("Using " + (cores) + " cores...");
-
+		if(gp.getSelectedScenarios().size()==gp.getScenarios().length)
+			System.out.println("Selected Scenarios: All");
+		else
+			System.out.println("Selected Scenarios: " + gp.getSelectedScenarios().toString());
+		if(gp.getSelectedTimes().size()==gp.getTimes().length)
+			System.out.println("Selected Times: All");
+		else
+			System.out.println("Selected Times: " + gp.getSelectedTimes().toString());
+		if(gp.getSelectedParameters().size()==gp.getParameters().length)
+			System.out.println("Selected Parameter: All");
+		else
+			System.out.println("Selected Parameters: " + gp.getSelectedParameters().toString());
+		
 		final List<Thread> runningThreads = new ArrayList<Thread>();
 		final List<Thread> threadsToRun = new ArrayList<Thread>();
 		
-		int totalScenarios = 0;
-		for(JCheckBox scenario: scenarios) {
-			if(!scenario.isSelected())
-				continue;
-			FileConverterThread runnable = new FileConverterThread(scenario.getText(), timeSteps);
+		for(String scenario: gp.getSelectedScenarios()) {
+			FileConverterThread runnable = new FileConverterThread(scenario);
 			Thread thread = new Thread(runnable);
 			threadsToRun.add(thread);
-			//service.execute(new FileConverterThread(scenario.getText(), timeSteps));
-			totalScenarios++;
 		}
 		
-		MonitorRunnable monitorRunnable = new MonitorRunnable(null, (cores), totalScenarios);
+		MonitorRunnable monitorRunnable = new MonitorRunnable(null, (cores), gp.getSelectedScenarios().size());
 		new Thread(monitorRunnable).start();
-
+		
 		Thread runningAllStuffThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -419,43 +398,39 @@ public class FileBrowser extends javax.swing.JFrame {
 						// Listening for a cancel
 						if(monitor.isCanceled()) {
 							// Kill everything
-							for(Thread killable: runningThreads) {
+							for(Thread killable: runningThreads)
 								killable.interrupt();
-							}
 							runningThreads.clear();
-							threadsToRun.clear(); // maybe  java can collect these???
+							threadsToRun.clear(); // maybe java can collect these???
 							return;
 						}
 					} catch (Exception e) {
-						
+						e.printStackTrace();
 					}
 				}
 				
 				while(!runningThreads.isEmpty()) {
 					List<Thread> deadThreads = new ArrayList<Thread>();
 					for(Thread thread: runningThreads) {
-						if(!thread.isAlive()) {
+						if(!thread.isAlive())
 							deadThreads.add(thread);
-						}
 					}
 					for(Thread dead: deadThreads) {
 						runningThreads.remove(dead); // remove the dead...!
 					}
-					
 					try {
 						Thread.sleep(1000); // mmmm maybe?
 						// Listening for a cancel
 						if(monitor.isCanceled()) {
 							// kill everything
-							for(Thread killable: runningThreads) {
+							for(Thread killable: runningThreads)
 								killable.interrupt();
-							}
 							runningThreads.clear();
-							threadsToRun.clear(); // maybe  java can collect these???
+							threadsToRun.clear(); // maybe java can collect these???
 							return;
 						}
 					} catch (Exception e) {
-						
+						e.printStackTrace();
 					}
 				}
 			}
@@ -490,88 +465,52 @@ public class FileBrowser extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success, h5 files are located here: " + file_outputDir.getAbsolutePath() : "Canceled File Conversion"));
 		}
 	}
-
+	
+	
+	// Each thread is assigned a scenario to both to read in the data and write the file
+	// At this point, we've already filtered down to only selected scenarios
 	private class FileConverterThread implements Runnable {
 
 		private String scenario;
-		private JCheckBox[] timeSteps;
-		public FileConverterThread(String scenario, JCheckBox[] timeSteps) {
+		public FileConverterThread(String scenario) {
 			this.scenario = scenario;
-			this.timeSteps = timeSteps;
 		}
 		
 		@Override
 		public void run() {
+			long startTime = System.currentTimeMillis();
+			
+			// Figure out what we're reading
+			String folderStructure = FileBrowser.this.jComboBox_folderStructure.getSelectedItem().toString();
+			String fileType = jComboBox_fileType.getSelectedItem().toString();
+			
+			// Extract the data and statistics from the selected directory
+			if(fileType.equals(STOMP)) {
+				File scenarioFolder = new File(file_inputDir, scenario);
+				gp.extractStompData(scenarioFolder);
+				gp.orderStomp(scenario);
+			} else if(fileType.equals(NTAB)) {
+				gp.extractNtabData(file_inputDir, scenario);
+				gp.orderNtab(scenario);
+			} else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) { //TODO: This assumes files per folder, need to add folders per folder option when I get an example
+				File scenarioFile = new File(file_inputDir, scenario + ".dat");
+				gp.extractTecplotData(scenarioFile);
+			}
+				 
+			
 			H5File hdf5File = null;
 			try {
-				long[] dims3D = null;
 				FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
-				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");	
+				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");
 				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
-				System.out.println("Writing to File: " + hdf5File);
 				hdf5File.open();
 				
-				// We will use the first file to read all the timesteps...
-				boolean firstFile = true;
+				writeH5Files(gp, hdf5File, scenario);
 				
-				//NTAB
-				if(jComboBox_fileType.getSelectedItem().toString().equals(NTAB)) {
-					DataStructure ntabData = gridsByTimeAndScenario.get(scenario).values().iterator().next().extractNTABData();
-					int timeStepIndex = 0;
-					for(JCheckBox timeStep: timeSteps) {
-						if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
-						addDataFromFiles(ntabData, hdf5File, "plot" + timeStep.getText(), firstFile, timeStepIndex);
-						dims3D = new long[]{ntabData.i, ntabData.j, ntabData.k};
-						timeStepIndex++;
-						firstFile = false;
-					}
-					addStatistics(hdf5File, timeSteps.length);
-					if(porosityAdded==false)
-						addPorosity(hdf5File, dims3D);
-				
-				//STOMP
-				} else if(jComboBox_fileType.getSelectedItem().toString().equals(STOMP)) {
-					int index = 0;
-					for(JCheckBox timeStep: timeSteps) {
-						if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
-						GridParser parser = gridsByTimeAndScenario.get(scenario).get(Float.parseFloat(timeStep.getText()));
-						DataGrid grid = addDataFromFolders(parser, hdf5File, "plot" + index, firstFile);
-						dims3D = new long[]{grid.getFieldValues("x").getValues().length, grid.getFieldValues("y").getValues().length, grid.getFieldValues("z").getValues().length};
-						firstFile = false;
-						index++;
-					}
-					addStatistics(hdf5File, timeSteps.length);
-					if(porosityAdded==false)
-						addPorosity(hdf5File, dims3D);
-					
-				} else if(jComboBox_fileType.getSelectedItem().toString().equals(TECPLOT)) {
-					DataStructure tecplotData = gridsByTimeAndScenario.get(scenario).values().iterator().next().extractTecplotData();
-					int timeStepIndex = 0;
-					
-					// Only file type with the option to be a single folder or multiple folders
-					if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FILE)) {
-						for(JCheckBox timeStep: timeSteps) {
-							if(!timeStep.isSelected()) continue; //Skip unchecked timesteps
-							addDataFromFiles(tecplotData, hdf5File, "plot" + timeStepIndex, firstFile, timeStepIndex);
-							dims3D = new long[] {tecplotData.i, tecplotData.j, tecplotData.k};
-							timeStepIndex++;
-							firstFile = false;
-						}
-						addStatistics(hdf5File, timeSteps.length);
-						if(porosityAdded==false)
-							addPorosity(hdf5File, dims3D);
-					}
-					
-					//TODO: I don't have an example of what this file structure looks like, so it hasn't yet been tested
-					else if(jComboBox_folderStructure.getSelectedItem().equals(SCENARIO_PER_FOLDER)) {
-						//Do nothing yet
-					}
-				}
-				System.out.println("Writing the file to disk:");
 				FileUtils.copyFile(hdf5File, hdf5FileLocation);
-				System.out.println("Done");
-				statusLabel.setText("The " + jComboBox_fileType.getSelectedItem().toString() + " files were successfully converted to H5 files.");
+				statusLabel.setText("The " + fileType + " files were successfully converted to H5 files.");
 				statusLabel.setForeground(new java.awt.Color(5, 70, 5));
+				System.out.println("Finished reading "+scenario+", writing to "+hdf5File+"... took "+(System.currentTimeMillis()-startTime)/1000+" s");
 			} catch (Exception e) {
 				e.printStackTrace();
 				statusLabel.setText("Error converting the files.");
@@ -591,12 +530,10 @@ public class FileBrowser extends javax.swing.JFrame {
 			}
 		}
 	}
-
+	
+	
 	private void jButton_inputDirActionPerformed(ActionEvent evt) throws GridError {
-		
-		gridsByTimeAndScenario = new TreeMap<String, Map<Float, GridParser>>(sortScenarios);
-		statisticsByDataField = new TreeMap<String, float[]>();
-		
+				
 		// Open a folder
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(saveCurrentDirectory);
@@ -622,89 +559,47 @@ public class FileBrowser extends javax.swing.JFrame {
 				Thread readThread = new Thread(new Runnable() {
 					
 					@Override
-					public void run() {						
+					public void run() {
 						// Figure out what we're reading
 						String folderStructure = FileBrowser.this.jComboBox_folderStructure.getSelectedItem().toString();
+						String fileType = jComboBox_fileType.getSelectedItem().toString();
 						
-						if(folderStructure.equals(SCENARIO_PER_FOLDER)) {
-							parseFolderStucture(file_inputDir);
-						} else if(folderStructure.equals(SCENARIO_PER_FILE)) {
-							parseSingleFolder(file_inputDir);
-						}
+						// Extract the scenarios, timeSteps, and parameters from the selected directory
+						if(fileType.equals(STOMP))
+							gp.extractStompStructure(file_inputDir);
+						else if(fileType.equals(NTAB))
+							gp.extractNtabStructure(file_inputDir);
+						else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) //TODO: This assumes files per folder, need to add folders per folder option when I get an example
+							gp.extractTecplotStructure(file_inputDir);
+						
 						// If no scenarios were detected, throw an error and bypass the rest of the method
-						if (gridsByTimeAndScenario.isEmpty()) {
-							if(jComboBox_fileType.getSelectedItem().toString().equals(STOMP))
+						if(gp.getScenarios().length==0 || gp.getTimes().length==0 || gp.getParameters().length==0) {
+							if(fileType.equals(STOMP))
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>STOMP requires that you select a folder containing a folder for each scenario.</html>");
-							else if(jComboBox_fileType.getSelectedItem().toString().equals(NTAB))
+							else if(fileType.equals(NTAB))
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>NTAB requires that you select a folder containing a file for each scenario.</html>");
 							else
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>Make sure you select the correct folder structure.</html>");
 							statusLabel.setForeground(Color.RED);
 						} else {
-							// Sanity check on the number of timesteps matching in each scenario...
-							// Bin by timesteps found, ntab files seem to have scenarios that stop short of the max number of timesteps...
-							final Map<Integer, List<String>> temp = new TreeMap<Integer, List<String>>(); //Timesteps per scenario
-							for(String scenario: gridsByTimeAndScenario.keySet()) {
-								if(!temp.containsKey(gridsByTimeAndScenario.get(scenario).keySet().size()))
-									temp.put(gridsByTimeAndScenario.get(scenario).keySet().size(), new ArrayList<String>());
-								temp.get(gridsByTimeAndScenario.get(scenario).keySet().size()).add(scenario);
-							}
-							
-							final Integer[] variableSteps =  temp.keySet().toArray(new Integer[]{});
-							
-							//Exclude everything that doesn't have the max number of timesteps
-							Object scenarioToUse;
-							if(temp.keySet().size() > 1) {
-								TimestepSelectionSlider slider = new TimestepSelectionSlider(variableSteps, temp);
-								JOptionPane.showConfirmDialog(null, slider, "Timestep Selection", JOptionPane.DEFAULT_OPTION);
-								int indexToUse = slider.getValue();
-								String tossedScenarios = "You have selected to include " + variableSteps[indexToUse] + " timesteps. " +
-										"The following scenarios contained a smaller number and will be removed:\n";
-								scenarioToUse = temp.get(variableSteps[indexToUse]).get(0);
-								for(int i=0; i < indexToUse; i++){
-									tossedScenarios+= "[" + variableSteps[i] + "] " +  temp.get(variableSteps[i]) + "\n";
-									for(String scenario: temp.get(variableSteps[i])){
-										gridsByTimeAndScenario.remove(scenario);
-									}
-								}
-								if(indexToUse != 0){
-									final String finalMessage = tossedScenarios;
-									SwingUtilities.invokeLater(new Runnable() {
-										@Override
-										public void run() {
-											JOptionPane.showMessageDialog(FileBrowser.this, finalMessage);
-										}
-									});
-								}
-							}
-							else{
-								scenarioToUse = gridsByTimeAndScenario.keySet().toArray()[0];
-							}
-							Object[] scenarios = gridsByTimeAndScenario.keySet().toArray();
-							
-							// Assumes 1 scenario and 1 timestep actually exists
-							Object[] timeSteps = gridsByTimeAndScenario.get(scenarioToUse).keySet().toArray();
-							Object[] data;
-							try {
-								data = gridsByTimeAndScenario.get(scenarioToUse).get(timeSteps[0]).getDataTypes(jComboBox_fileType.getSelectedItem().toString(), gridsByTimeAndScenario.get(scenarioToUse).values());
-							} catch (GridError | FileNotFoundException e) {
-								e.printStackTrace(); // Can't continue
-								return;
-							}
+							Object[] scenarios = gp.getScenarios();
+							Object[] timeSteps = gp.getTimes();
+							Object[] parameters = gp.getParameters();
 							
 							System.out.println("Scenarios: " + Arrays.toString(scenarios));
 							System.out.println("Times: " + Arrays.toString(timeSteps));
-							System.out.println("Data: " + Arrays.toString(data));
+							System.out.println("Data: " + Arrays.toString(parameters));
 							
 							checkList_timesteps.setListData(timeSteps, true);
 							checkList_scenarios.setListData(scenarios, true);
-							checkList_dataFields.setListData(data, false);
+							checkList_parameters.setListData(parameters, false);
 							
-							checkList_dataFields.setEnabled(true);
+							checkList_parameters.setEnabled(true);
 							checkList_timesteps.setEnabled(true);
 							checkList_scenarios.setEnabled(true);
 							
 							statusLabel.setText("");
+							statusLabel.setForeground(Color.BLACK);
 							jTextField_outputDir.setText(file_outputDir.getAbsolutePath());
 						}
 						SwingUtilities.invokeLater(new Runnable() {
@@ -725,62 +620,6 @@ public class FileBrowser extends javax.swing.JFrame {
 		} else {
 			return;
 		}
-
-	}
-		
-	private void parseFolderStucture(File parentDirectory) {
-		String fileType = jComboBox_fileType.getSelectedItem().toString();
-		for(File subFolder: file_inputDir.listFiles()) {
-			if(!subFolder.isDirectory()) continue; //We only want folders - skip files
-			// The folder name becomes the scenario name
-			if(!gridsByTimeAndScenario.containsKey(subFolder.getName()))
-				gridsByTimeAndScenario.put(subFolder.getName(), new TreeMap<Float, GridParser>());
-			
-			// Start looping through the files within the folder
-			System.out.println("Pulling time information from files...");
-			Map<Float, File> files = new TreeMap<Float, File>();
-			for(File subFile: subFolder.listFiles()) {
-				Float timeStep = null;
-				
-				// STOMP should iterate with the timestep in the file name
-				if(fileType.equals(STOMP) && subFile.getName().startsWith("plot")) {
-					timeStep = GridParser.extractStompTime(subFile);
-					files.put(timeStep, subFile); //Map the timestep to a file	
-				}
-			}
-			
-			//Now insert the timesteps into gridsByTimeAndScenario
-			for(float timestep: files.keySet()) {
-				gridsByTimeAndScenario.get(subFolder.getName()).put(timestep, new GridParser(files.get(timestep).getAbsolutePath()));
-			}
-		}
-	}
-	
-	private void parseSingleFolder(File directory) {
-		String fileType = jComboBox_fileType.getSelectedItem().toString();
-		for(File subFile: file_inputDir.listFiles()) {
-			
-			// Get the scenario name based on numbers in the file name
-			String scenarioName = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
-			if(!gridsByTimeAndScenario.containsKey(scenarioName))
-				gridsByTimeAndScenario.put(scenarioName, new TreeMap<Float, GridParser>());
-			List<Float> timesteps = new ArrayList<Float>();
-			
-			// Ntab lists all timesteps in the file header
-			if(fileType.equals(NTAB) && subFile.getName().endsWith(".ntab"))
-				timesteps = GridParser.extractNtabTimes(subFile);
-			
-			// Tecplot lists all timesteps spread throughout the file... sadly inefficient to read...
-			if(fileType.equals(TECPLOT) && subFile.getName().endsWith(".dat"))
-				timesteps = GridParser.extractTecplotTimes(subFile);
-			
-			//Now insert the timesteps into gridsByTimeAndScenario
-			for(float timestep: timesteps) {
-				if(!gridsByTimeAndScenario.get(scenarioName).containsKey(timestep))
-					gridsByTimeAndScenario.get(scenarioName).put(timestep, new GridParser(subFile.getAbsolutePath(), timestep));
-				gridsByTimeAndScenario.get(scenarioName).get(timestep).mergeFile(subFile); //In this case we really want to merge the two files...
-			}
-		}
 	}
 	
 	
@@ -798,300 +637,125 @@ public class FileBrowser extends javax.swing.JFrame {
 		jTextField_outputDir.setText(file_outputDir.getAbsolutePath());
 	}
 	
-	private void addDataFromFiles(DataStructure data, H5File hdf5File, String plotFileName, boolean firstFile, int timeStepIndex) throws Exception {
-		
+	
+	private void writeH5Files(ParseRawFiles gp, H5File hdf5File, String scenario) throws Exception {
 		// Get the root
 		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
-		
-		long startTime = System.currentTimeMillis();
-		
-		// Get the dimensions of the grid
-		long[] dims3D = {data.i, data.j, data.k};
-		int iMax = new Long(dims3D[0]).intValue();
-		int jMax = new Long(dims3D[1]).intValue();
-		int kMax = new Long(dims3D[2]).intValue();
-		JCheckBox[] dataFields = checkList_dataFields.getListData();
 		
 		// Initialize the attribute dimension
 		long[] attrDims = { 1 }; //1D of size one
 		Datatype attrType = new H5Datatype(Datatype.CLASS_STRING, 10, -1, -1);
 		
-		//Data group is filled from the first file only
-		if(firstFile) {
-			statisticsByDataField = data.statistics;
-			
-			int timeStep = 0;
-			List<Float> timeStepsAsFloats = new ArrayList<Float>();
-			List<Float> timeStepsInYears = new ArrayList<Float>();
-			JCheckBox[] timeSteps = checkList_timesteps.getListData();
-			
-			// Timesteps are already in years
-			for(JCheckBox cb: timeSteps) {
-				if(!cb.isSelected()) continue;
-				try {
-					Integer ts = Integer.parseInt(cb.getText());
-					float tsf = ts.floatValue();
-					timeStepsInYears.add(tsf);
-					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
-				} catch (Exception e) {
-					// Nothing to do...
-				}
-				timeStep++;
-			}
-			
-			float[] timeStepArray = new float[timeStepsAsFloats.size()];
-			float[] timesArray = new float[timeStepsAsFloats.size()]; 
-			for(int i = 0; i < timesArray.length; i++) {
-				timeStepArray[i] = timeStepsAsFloats.get(i);
-				timesArray[i] = timeStepsInYears.get(i);
-			}
-			
-			// Create the data group in the H5 File, contains header information
-			Group dataGroup = hdf5File.createGroup("data", root);
-			hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{data.x.length}, null, null, 0, data.x);
-			hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{data.y.length}, null, null, 0, data.y);
-			hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{data.z.length}, null, null, 0, data.z);
-			hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{data.vertexX.length}, null, null, 0, data.vertexX);
-			hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{data.vertexY.length}, null, null, 0, data.vertexY);
-			hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{data.vertexZ.length}, null, null, 0, data.vertexZ);
-			
-			Dataset d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
-			String[] classValue = { "years" };
-			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);
-		}
-		
-		// Create a group for each time in the set
-		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
-		
-		for(JCheckBox dataField: dataFields) {
-			startTime = System.currentTimeMillis();
-			if(!dataField.isSelected()) continue; 
-			String field = dataField.getText();    		
-			if(field.equals("x") || field.equals("y") || field.equals("z")) continue;
-			// Replacing strange characters in the field name
-			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-			
-			System.out.print("\tAdding " + fieldClean + "...");
-			try {
-				
-				float[] dataAsFloats = data.data.get(field)[timeStepIndex];
-				float[] temp = new float[dataAsFloats.length];
-				
-				int counter = 0;
-				// Ordering is different for ntab, i's, j's, then k's?
-				for(int i = 1; i <= iMax; i++) {
-					for(int j = 1; j <= jMax; j++) {
-						for(int k = 1; k <= kMax; k++) {
-							int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
-							temp[counter] = Math.abs(dataAsFloats[nodeNumber-1]);
-							
-							counter++;
-						}
-					}
-				}
-				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
-					if(firstFile) { // Only need to do this once
-						hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
-						porosityAdded = true;
-					}
-				} else {
-					hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
-				}
-				System.out.print("SUCCESS. ");
-			} catch(Exception e) {
-				System.out.print("FAILED. ");
-				throw e;
-			}
-			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
-		}
-		System.out.println("Done loading plot file: " + plotFileName);
-	}
-	
-	//This function is called during a loop through timesteps (each file)
-	private DataGrid addDataFromFolders(GridParser parser, H5File hdf5File, String plotFileName, boolean firstFile) throws Exception {
-		
-		DataGrid grid = parser.extractStompData();
-		
-		// Get the root
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
-		
-		long startTime = System.currentTimeMillis();
-		
 		// Get the dimensions of the grid
-		long[] dims3D = {grid.getSize().getX(), grid.getSize().getY(), grid.getSize().getZ()};
-		int iMax = new Long(dims3D[0]).intValue();
-		int jMax = new Long(dims3D[1]).intValue();
-		int kMax = new Long(dims3D[2]).intValue();
-		JCheckBox[] dataFields = checkList_dataFields.getListData();
+		long[] dims3D = {gp.getX().length, gp.getY().length, gp.getZ().length};
 		
-		// Initialize the attribute dimension
-		long[] attrDims = { 1 }; //1D of size one
-		Datatype attrType = new H5Datatype(Datatype.CLASS_STRING, 10, -1, -1);
-		
-		//Data group is filled from the first file only
-		if(firstFile) {
-			
-			int timeStep = 0;
-			List<Float> timeStepsAsFloats = new ArrayList<Float>();
-			List<Float> timeStepsInYears = new ArrayList<Float>();
-			JCheckBox[] timeSteps = checkList_timesteps.getListData();
-			
-			// Timesteps are already in years
-			for(JCheckBox cb: timeSteps) {
-				if(!cb.isSelected()) continue;
-				try {
-					float ts = Float.parseFloat(cb.getText());
-					timeStepsInYears.add(ts);
-					timeStepsAsFloats.add(new Integer(timeStep).floatValue());
-				} catch (Exception e) {
-					System.out.println("Error reading timesteps");
-				}
-				timeStep++;
-			}
-			times = timeStepsAsFloats.size();
-
-			float[] timeStepArray = new float[timeStepsAsFloats.size()];
-			float[] timesArray = new float[timeStepsAsFloats.size()]; 
-			for(int i = 0; i < timesArray.length; i++) {
-				timeStepArray[i] = timeStepsAsFloats.get(i);
-				timesArray[i] = timeStepsInYears.get(i);
-			}
-			
-			// Create the data group in the H5 File, contains header information
-			Group dataGroup = hdf5File.createGroup("data", root);
-			Dataset d = hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{iMax}, null, null, 0, grid.getFieldValues("x").getValues());
-			String[] classValue = { grid.getFieldUnit("x") };
+		/////////////////////////////////////////////////////////
+		// Data Group: porosity, steps, times, vertex-xyz, xyz //
+		/////////////////////////////////////////////////////////
+		Group dataGroup = hdf5File.createGroup("data", root);
+		// Writing x variable with units
+		Dataset d = hdf5File.createScalarDS("x", dataGroup, dtype, new long[]{gp.getX().length}, null, null, 0, gp.getX());
+		if(!gp.getUnit("x").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("x") };
 			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{jMax}, null, null, 0, grid.getFieldValues("y").getValues());
-			classValue[0] = grid.getFieldUnit("y");
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{kMax}, null, null, 0, grid.getFieldValues("z").getValues());
-			classValue[0] = grid.getFieldUnit("z");
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{iMax+1}, null, null, 0, grid.getFieldValues("x").getVertices());
-			classValue[0] = grid.getFieldUnit("x");
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{jMax+1}, null, null, 0, grid.getFieldValues("y").getVertices());
-			classValue[0] = grid.getFieldUnit("y");
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{kMax+1}, null, null, 0, grid.getFieldValues("z").getVertices());
-			classValue[0] = grid.getFieldUnit("z");
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{timesArray.length}, null, null, 0, timesArray);
-			classValue[0] = "years";
-			attr = new Attribute("units", attrType, attrDims, classValue);
-			d.writeMetadata(attr); //Add the units as an attribute
-			hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{timeStepArray.length}, null, null, 0, timeStepArray);
+			d.writeMetadata(attr);
 		}
+		// Writing y variable with units
+		d = hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{gp.getY().length}, null, null, 0, gp.getY());
+		if(!gp.getUnit("y").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("y") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
+		}
+		// Writing z variable with units
+		d = hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{gp.getZ().length}, null, null, 0, gp.getZ());
+		if(!gp.getUnit("z").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("z") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
+		}
+		// Writing x vertex variable with units
+		d = hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{gp.getVertexX().length}, null, null, 0, gp.getVertexX());
+		if(!gp.getUnit("x").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("x") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
+		}
+		// Writing y vertex variable with units
+		d = hdf5File.createScalarDS("vertex-y", dataGroup, dtype, new long[]{gp.getVertexY().length}, null, null, 0, gp.getVertexY());
+		if(!gp.getUnit("y").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("y") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
+		}
+		// Writing z vertex variable with units
+		d = hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{gp.getVertexZ().length}, null, null, 0, gp.getVertexZ());
+		if(!gp.getUnit("z").equals("")) { //Add units as an attribute if they exist
+			String[] classValue = { gp.getUnit("z") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
+		}
+		// Writing time variable with units
+		d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{gp.getSelectedTimesArray().length}, null, null, 0, gp.getSelectedTimesArray());
+		String[] classValue = { "years" };
+		Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+		d.writeMetadata(attr); //Add the units as an attribute
+		// Writing step variable
+		float[] steps = new float[gp.getSelectedTimesArray().length];
+		for(int i=0; i<gp.getSelectedTimesArray().length; i++)
+			steps[i] = i;
+		hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{steps.length}, null, null, 0, steps);
+		// Writing porosity variable
+		if(gp.getPorosity()==null) { //If no porosity was found in parameters
+			float[] porosity = addPorosity(dims3D); //Need to query the user for a constant porosity across the domain
+			gp.setPorosity(porosity);
+		}
+		hdf5File.createScalarDS("porosity", dataGroup, dtype, dims3D, null, null, 0, gp.getPorosity()); //Porosity is a fraction (no units)
 		
-		// Create a group for each time in the set
-		Group timeStepGroup = hdf5File.createGroup(plotFileName, root);
-		
-		for(JCheckBox dataField: dataFields) {
-			startTime = System.currentTimeMillis();
-			if(!dataField.isSelected()) continue;
-			String field = dataField.getText();
-			if(field.equals("x") || field.equals("y") || field.equals("z")) continue;
-			// Replacing strange characters in the field name
-			String fieldClean = field.split(",")[0].replaceAll("\\+", "p").replaceAll("\\-", "n").replaceAll("\\(", "_").replaceAll("\\)", "");
-			
-			System.out.print("\tAdding " + fieldClean + "...");
-			try {
-				
-				float[] dataAsFloats = grid.getFieldValues(field).getValues();
-				float[] temp = new float[dataAsFloats.length];
-				float[] stats = new float[3];
-				
-				int counter = 0;
-				float sum = 0;
-				float min = Float.MAX_VALUE;
-				float max = Float.MIN_VALUE;
-				for(int i = 1; i <= iMax; i++) {
-					for(int j = 1; j <= jMax; j++) {	
-						for(int k = 1; k <= kMax; k++) {				
-							int nodeNumber = (k-1) * iMax * jMax + (j-1) * iMax + (i);
-							temp[counter] = Math.abs(dataAsFloats[nodeNumber-1]);
-							sum = sum + temp[counter];
-							if(temp[counter] < min) min = temp[counter];
-							if(temp[counter] > max) max = temp[counter];
-							counter++;
-						}
-					}	
+		///////////////////////////////////////////////////////
+		// Plot groups per step with data for all parameters //
+		///////////////////////////////////////////////////////
+		for(float time: gp.getSelectedTimesArray()) {
+			int index = gp.getSelectedTimeIndex(time);
+			Group timeStepGroup = hdf5File.createGroup("plot" + index, root);
+			for(String parameter: gp.getSelectedParameters()) {
+				d = hdf5File.createScalarDS(parameter, timeStepGroup, dtype, dims3D, null, null, 0, gp.getData(scenario, parameter)[index]);
+				if(!gp.getUnit(parameter).equals("")) { //Add units as an attribute if they exist
+					classValue[0] = gp.getUnit(parameter);
+					attr = new Attribute("units", attrType, attrDims, classValue);
+					d.writeMetadata(attr);
 				}
-				if(fieldClean.toLowerCase().contains("porosity")) { // If porosity is in the H5 file, read into dataGroup
-					if(firstFile) { // Only need to do this once
-						// Porosity doesn't have units, don't need at add attribute
-						hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
-						porosityAdded = true;
-					}
-				} else {
-					float average = sum / (counter * times);
-					if(statisticsByDataField.containsKey(fieldClean)) {
-						stats[0] = Math.min(statisticsByDataField.get(fieldClean)[0], min);
-						stats[1] = average + statisticsByDataField.get(fieldClean)[1];
-						stats[2] = Math.max(statisticsByDataField.get(fieldClean)[2], max);
-					} else {
-						stats[0] = min;
-						stats[1] = average;
-						stats[2] = max;
-					}
-					statisticsByDataField.put(fieldClean, stats);
-					
-					Dataset d = hdf5File.createScalarDS(fieldClean, timeStepGroup, dtype, dims3D, null, null, 0, temp);
-					if(!grid.getFieldUnit(field).equals("")) {
-						String[] classValue = { grid.getFieldUnit(field) };
-						Attribute attr = new Attribute("units", attrType, attrDims, classValue);
-						d.writeMetadata(attr); //Add the units as an attribute
-					}
-				}
-				System.out.print("SUCCESS. ");
-			} catch(Exception e) {
-				System.out.print("FAILED. ");
-				throw e;
 			}
-			System.out.println("Time to add: " + (System.currentTimeMillis() - startTime) + " ms");
 		}
-		System.out.println("Done loading plot file: " + plotFileName);
-		return grid;
-	}
-	
-	private void addStatistics(H5File hdf5File, int timeSteps) throws Exception {
-		// Get the root
-		Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-		Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
+		
+		////////////////////////////////////////////////////////
+		// Statistics Group: min, avg, max for all parameters //
+		////////////////////////////////////////////////////////
 		Group statisticsGroup = hdf5File.createGroup("statistics", root);
-		for(String dataField: statisticsByDataField.keySet())
-			hdf5File.createScalarDS(dataField, statisticsGroup, dtype, new long[]{statisticsByDataField.get(dataField).length}, null, null, 0, statisticsByDataField.get(dataField));
+		for(String parameter: gp.getSelectedParameters()) {
+			hdf5File.createScalarDS(parameter, statisticsGroup, dtype, new long[]{3}, null, null, 0, gp.getStatistics(scenario, parameter));
+		}
+		
+		hdf5File.close();
 	}
 	
-	private synchronized void addPorosity(H5File hdf5File, long[] dims3D) {
-		while(porosity.equals(Float.MIN_VALUE)) { // Loop until a real float value is entered
+	
+	private synchronized float[] addPorosity(long[] dims3D) {
+		if(porosity==null) { //Only ask for input once across all scenarios
+			porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
 			try {
-				porosity = Float.parseFloat(JOptionPane.showInputDialog(FileBrowser.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+				float input = 999;
+				while(input>1 || input < 0)
+					input = Float.parseFloat(JOptionPane.showInputDialog(FileBrowser.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+				Arrays.fill(porosity, input);
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 		    }
 		}
-		try { // Write porosity to the H5 file
-			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-			Datatype dtype = hdf5File.createDatatype(Datatype.CLASS_FLOAT, 4, Datatype.NATIVE, -1);
-			float[] temp = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
-			Arrays.fill(temp, porosity);
-			hdf5File.createScalarDS("porosity", (Group)root.getMemberList().get(0), dtype, dims3D, null, null, 0, temp);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+		return porosity;
 	}
+	
 	
 	public static void main(String args[]) {
 		try {
@@ -1101,7 +765,6 @@ public class FileBrowser extends javax.swing.JFrame {
 			e.printStackTrace();
 		}
 		java.awt.EventQueue.invokeLater(new Runnable() {
-
 			public void run() {
 				new FileBrowser().setVisible(true);
 			}
