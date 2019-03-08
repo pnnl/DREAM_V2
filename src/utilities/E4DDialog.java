@@ -140,6 +140,14 @@ public class E4DDialog extends TitleAreaDialog {
 					ok.setEnabled(false);
 					wellText.setForeground(Constants.red);
 				}
+				// Need to make sure they ask for 2 or more wells or else E4D won't run
+				if(maximumWells < 2) {
+					ok.setEnabled(false);
+					wellText.setForeground(Constants.red);
+				} else {
+					ok.setEnabled(true);
+					wellText.setForeground(Constants.black);
+				}
 			}
 		});
 	}
