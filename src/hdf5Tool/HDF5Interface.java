@@ -183,29 +183,6 @@ public class HDF5Interface {
 	 * 					 *
 	\*					 */
 	
-	public static boolean plotFileHack(NodeStructure nodeStructure, Group root) {
-		// plotxyz is inconsitent between h5 files, it will either be plot[timeIndex] or plot[realTime]
-		// For backwards compatibility, we're putting in a hack here to handle both cases... it will probably work...
-		// most of the time...
-		List<Integer> realTimeOrTimeIndex = new ArrayList<Integer>();
-		for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) { // For every time step
-			Object group =  root.getMemberList().get(rootIndex);
-			String name = ((Group)group).getName().replaceAll("plot", "");
-			if(name.contains("data") || name.contains("statistics"))
-				continue;
-			realTimeOrTimeIndex.add(Integer.parseInt(name));
-		}
-		
-		boolean plotsAreTimeIndices = false;
-		for(TimeStep timeStep: nodeStructure.getTimeSteps()) {
-			if(!realTimeOrTimeIndex.contains((int)timeStep.getRealTime())) {
-				plotsAreTimeIndices = true;
-				break;
-			}
-		}
-		return plotsAreTimeIndices;
-	}
-	
 	public static Float getStatistic(String dataType, int index) {
 		// 0 = minimum
 		// 1 = average
@@ -238,15 +215,16 @@ public class HDF5Interface {
 					set.getDetectionMap().get(specificType).put(scenario, new HashMap<Integer, Float>());
 				hdf5File.open();
 				Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
-				boolean plotsAreTimeIndices = plotFileHack(set.getNodeStructure(), root);
 				for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
 					
 					// Skip these
 					if(root.getMemberList().get(rootIndex).getName().contains("data") || root.getMemberList().get(rootIndex).getName().contains("statistics"))
 						continue;
 					
+					int timeIndex = Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", ""));
+					
 					// First time step sets the baseline
-					else if(Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", "")) == 0) {
+					if(timeIndex == 0) {
 						Object group =  root.getMemberList().get(rootIndex);
 						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 							Object child = ((Group)group).getMemberList().get(groupIndex);
@@ -264,10 +242,7 @@ public class HDF5Interface {
 					
 					// When looping through other timesteps, compare with the baseline
 					} else {
-						int timeIndex = Integer.parseInt(root.getMemberList().get(rootIndex).getName().replaceAll("plot", ""));
-						float timestep = (float)timeIndex;
-						if(plotsAreTimeIndices)
-							System.out.println("The timestep isn't a time index... check to make sure this isn't causing problems.");
+						float timestep = set.getNodeStructure().getTimeAt(timeIndex);
 						Object group =  root.getMemberList().get(rootIndex);
 						for(int groupIndex = 0; groupIndex < ((Group)group).getMemberList().size(); groupIndex++) {
 							Object child = ((Group)group).getMemberList().get(groupIndex);
