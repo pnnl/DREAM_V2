@@ -175,13 +175,6 @@ public class DREAMWizard extends Wizard {
 
 	public static void main(String[] args) {
 
-		try {
-			//			UIManager.setLookAndFeel(
-			//					UIManager.getCrossPlatformLookAndFeelClassName());
-		} catch (Exception e) {
-			e.printStackTrace();
-		} 
-
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display);
 
@@ -559,11 +552,19 @@ public class DREAMWizard extends Wizard {
 						if(monitor.isCanceled()) return;
 						monitor.subTask("Looping through the selected scenarios: " + scenario);
 						
+						// Before we run, do a quick check that the timesteps align between the storage and leakage files
+						String storage = e4dDialog.getStorage(); //Storage File Location
+						String leakage = Constants.homeDirectory + File.separator + scenario.toString() + ".h5"; //Leakage File Location
+						if(!HDF5Interface.checkTimeSync(monitor, storage, leakage, data.getSet().getNodeStructure().getTimeSteps().size())) {
+							System.out.println("Error: The time steps don't match between the storage and leakage files.");
+							continue;
+						}
+						
 						// Run the Python script with the following input arguments
 						try {
 							File e4dScript = new File(Constants.userDir, "e4d" + File.separator + "run_dream2e4d_windows.py");
-							String input1 = e4dDialog.getStorage(); //Storage File Location
-							String input2 = Constants.homeDirectory + File.separator + scenario.toString() + ".h5"; //Leakage File Location
+							String input1 = storage;
+							String input2 = leakage;
 							String input3 = e4dWellList.getPath(); //Well List Location
 							String input4 = e4dDialog.getBrineSaturation(); //Brine Saturation Mapping
 							String input5 = e4dDialog.getGasSaturation(); //Gas Saturation Mapping

@@ -43,23 +43,6 @@ public class HDF5Interface {
 	 *  1) i,j,k			- each of the three dimensions are 1 <= dim <= dimMax
 	 *  2) node number		- 1-indexed, used by DREAM to store which nodes are triggered and to query from nodes
 	 *  3) index			- 0-indexed, used in reading values from the hdf5 files.
-	 *  _________________________    _________________________    _________________________    
-	 * 	| 1,1,1 | 1,2,1 | 1,3,1 |    | 1,1,2 | 1,2,2 | 1,3,2 |    | 1,1,3 | 1,2,3 | 1,3,3 |
-	 * 	| 1     | 5     | 9     |    | 13    | 17    | 21    |    | 25    | 29    | 33    |
-	 * 	| 0     | 3     | 6     |    | 1     | 4     | 7     |    | 2     | 5     | 8     |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 2,1,1 | 2,2,1 | 2,3,1 |    | 2,1,2 | 2,2,2 | 2,3,2 |    | 2,1,3 | 2,2,3 | 2,3,3 |
-	 * 	| 2     | 6     | 10    |    | 14    | 18    | 22    |    | 26    | 30    | 34    |
-	 * 	| 9     | 12    | 15    |    | 10    | 13    | 16    |    | 11    | 14    | 17    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 3,1,1 | 3,2,1 | 3,3,1 |    | 3,1,2 | 3,2,2 | 3,3,2 |    | 3,1,3 | 3,2,3 | 3,3,3 |
-	 * 	| 3     | 7     | 11    |    | 15    | 19    | 23    |    | 27    | 31    | 35    |
-	 * 	| 18    | 21    | 24    |    | 19    | 22    | 25    |    | 20    | 23    | 26    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|    
-	 * 	| 4,1,1 | 4,2,1 | 4,3,1 |    | 4,1,2 | 4,2,2 | 4,3,2 |    | 4,1,3 | 4,2,3 | 4,3,3 |
-	 * 	| 4     | 8     | 12    |    | 16    | 20    | 24    |    | 28    | 32    | 36    |
-	 * 	| 27    | 30    | 33    |    | 28    | 31    | 34    |    | 29    | 32    | 35    |
-	 * 	|_______|_______|_______|    |_______|_______|_______|    |_______|_______|_______|
 	 * 
 	 *  _________________________    _________________________
 	 *  | 1,1,1 | 2,1,1 | 3,1,1 |    | 1,1,2 | 2,1,2 | 3,1,2 |
@@ -162,6 +145,7 @@ public class HDF5Interface {
 					}
 				}
 			}
+			hdf5File.close();
 		} catch (Exception e) {
 			System.out.println("Error loading Node Struture from " + file.getName());
 			e.printStackTrace();
@@ -305,6 +289,7 @@ public class HDF5Interface {
 						}
 					}
 				}
+				hdf5File.close();
 			} catch (Exception e) {
 				System.out.println("Unable to read detection values from the hdf5 files...");
 				e.printStackTrace();
@@ -373,6 +358,7 @@ public class HDF5Interface {
 						}
 					}
 				}
+				hdf5File.close();
 			} catch (Exception e) {
 				System.out.println("Unable to read detection values from the hdf5 files...");
 				e.printStackTrace();
@@ -411,6 +397,69 @@ public class HDF5Interface {
 		if(triggered==true)
 			triggered = true;
 		return triggered;
+	}
+	
+	
+	// E4D asks for a storage file to accompany the leakage files, we need to verify that the timesteps align
+	public static Boolean checkTimeSync(IProgressMonitor monitor, String location1, String location2, int size) {
+		float[] times1 = new float[size];
+		float[] times2 = new float[size];
+		// Read times from the storage file
+		try {
+			H5File storageH5  = new H5File(location1, HDF5Constants.H5F_ACC_RDONLY);
+			storageH5.open();
+			
+			// Get the root node
+			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)storageH5.getRootNode()).getUserObject();
+			// Get to the "data" group
+			for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+				String name = root.getMemberList().get(rootIndex).getName();
+				if(!name.startsWith("data")) continue; //We only want the data group, skip all others
+				// Get to the "times" variable and read in values
+				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+					Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+					int dataset_id = dataset.open();
+					if(!dataset.getName().equals("times")) continue; //We only want the times variable, skip all others
+					times1 = (float[])dataset.read();
+					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, times1);
+				}
+			}
+			storageH5.close();
+		} catch (Exception e) {
+			System.out.println("Unable to read time values from the hdf5 storage file...");
+			e.printStackTrace();
+		}
+		// Read times from the leakage file
+		try {
+			H5File leakageH5  = new H5File(location1, HDF5Constants.H5F_ACC_RDONLY);
+			leakageH5.open();
+			
+			// Get the root node
+			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)leakageH5.getRootNode()).getUserObject();
+			// Get to the "data" group
+			for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
+				String name = root.getMemberList().get(rootIndex).getName();
+				if(!name.startsWith("data")) continue; //We only want the data group, skip all others
+				// Get to the "times" variable and read in values
+				for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
+					Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
+					int dataset_id = dataset.open();
+					if(!dataset.getName().equals("times")) continue; //We only want the times variable, skip all others
+					times2 = (float[])dataset.read();
+					H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, times2);
+				}
+			}
+			leakageH5.close();
+		} catch (Exception e) {
+			System.out.println("Unable to read time values from the hdf5 leakage file...");
+			e.printStackTrace();
+		}
+		// Now compare the times and return a result
+		for(int i=0; i<times1.length; i++) {
+			if(times1[i]!=times2[i])
+				return false;
+		}
+		return true;
 	}
 	
 }
