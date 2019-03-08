@@ -63,9 +63,13 @@ public class E4DSensors {
 				for(Integer node: detections.keySet())
 					allNodes.add(node);
 			}
-			threshold /= Math.sqrt(10);
-			monitor.worked(70000/iteration); //This loop will be 60% of the progress bar
+			threshold = Math.round(threshold / Math.sqrt(10) * 100000f) / 100000f; //Rounds the value to the fifth decimal
+			monitor.worked(70000/iteration); //This loop will be 70% of the progress bar
 			iteration++;
+			if(threshold==0 || threshold==0.00001) {
+				System.out.println("Stop trying to find triggering nodes, the threshold "+threshold+" is too small.");
+				return null; //Either of these conditions would mean that we're not finding any nodes, stop trying
+			}
 		}
 		
 		// Count how many unique wells locations were found in the above nodes
@@ -118,15 +122,12 @@ public class E4DSensors {
 					if(!tempWells.contains(well))
 						tempWells.add(well);
 				}
-				// Not enough wells, add these wells and move on to next ttd
-				if(tempWells.size() < maximumWells)
-					wellList = new ArrayList<Point3i>(tempWells);
 				//Exact number of wells we want, all done
-				else if (tempWells.size() == maximumWells) {
+				if (tempWells.size() == maximumWells) {
 					wellList = new ArrayList<Point3i>(tempWells);
 					break;
 				//Too many wells, need to pare down based on absolute pressure change - back to HDF5 files
-				} else {
+				} else if(tempWells.size() > maximumWells) {
 					Map<Integer, Float> absoluteChange = HDF5Interface.goalSeek(data.getSet(), parameter, bestNodes.keySet());
 					Map<Integer, Float> sortedMap = sortByValue(absoluteChange);
 					for(Integer node: sortedMap.keySet()) {
