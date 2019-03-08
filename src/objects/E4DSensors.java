@@ -42,10 +42,14 @@ public class E4DSensors {
 		ArrayList<Point3i> wellList = new ArrayList<Point3i>();
 		HashSet<Integer> allNodes = new HashSet<Integer>(); //All nodes that meet the above threshold
 		
-		// Successively remove a level of magnitude to the search threshold until nodes are found
+		//// Using the selected pressure parameter with a threshold of 0.01, find detection map
+		//// Successively remove a level of magnitude to the search threshold until nodes are found
+		//// Then convert the nodes to wells and make sure we have enough based on user input
 		int iteration = 1;
 		String specificType = "";
-		while (allNodes.size()==0) {
+		while (wellList.size() < maximumWells) {
+			wellList.clear();
+			allNodes.clear();
 			if(iteration>1) monitor.worked(-70000/iteration);
 			// Loop through scenarios and add all nodes that trigger
 			monitor.subTask("Scanning for valid nodes with threshold = " + threshold);
@@ -70,18 +74,23 @@ public class E4DSensors {
 				System.out.println("Stop trying to find triggering nodes, the threshold "+threshold+" is too small.");
 				return null; //Either of these conditions would mean that we're not finding any nodes, stop trying
 			}
+			
+			// Count how many unique wells locations were found in the above nodes
+			for(Integer node: allNodes) {
+				Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
+				Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
+				if(!wellList.contains(well))
+					wellList.add(well);
+			}
 		}
 		
-		// Count how many unique wells locations were found in the above nodes
-		for(Integer node: allNodes) {
-			Point3i temp = nodeStructure.getIJKFromNodeNumber(node);
-			Point3i well = new Point3i(temp.getI(), temp.getJ(), 1); //set k to 1 to get the single well location
-			if(!wellList.contains(well))
-				wellList.add(well);
-		}
-		
-		// If a reasonable number of wells is found, sort and return
+		//// If we have the exact amount of wells, return that set
+		//// If we have more wells than the desired amount, use a goal seek algorithm to identify the best wells
+		//// Start by looking at TTD from the detection map that was just created
+		//// If we find more wells than the desired amount, open the H5 file and find which of those nodes have the greatest change at last timestep
 		monitor.subTask("Valid wells = " + wellList.size() + "; starting goal seek.");
+		System.out.println("Found "+wellList.size()+" valid wells with a detection threshold of "+threshold+"; Starting goal seek.");
+		
 		// If too many wells are found, goal seek to the desired number
 		if(wellList.size() > maximumWells) {
 			wellList = new ArrayList<Point3i>(); //reset
@@ -107,9 +116,9 @@ public class E4DSensors {
 			Collections.sort(ttds);
 			
 			// Locate the best nodes by looping through sorted ttds
-			ArrayList<Point3i> tempWells = new ArrayList<Point3i>(wellList);
+			ArrayList<Point3i> tempWells = new ArrayList<Point3i>(wellList); //List of ijk wells
+			HashMap<Integer, Float> bestNodes = new HashMap<Integer, Float>(); //NodeNumber, TTD
 			for(Float ttd: ttds) {
-				HashMap<Integer, Float> bestNodes = new HashMap<Integer, Float>();
 				//Add nodes with the lowest ttd
 				for(Integer node: ttdPerNode.keySet()) {
 					if(ttdPerNode.get(node).equals(ttd))
