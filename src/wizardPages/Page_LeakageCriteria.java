@@ -159,7 +159,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		
 		
-		public void buildUI(String type) {
+		public void buildUI(String sensorKey) {
 			//Add a button here
 			if(isDuplicate){
 				addButton = new Button(container, SWT.PUSH);
@@ -294,7 +294,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Alias Input
 			aliasText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			aliasText.setText(sensorData.get(type).alias);
+			aliasText.setText(sensorData.get(sensorKey).alias);
 			aliasText.setForeground(Constants.black);
 			aliasText.addModifyListener(new ModifyListener(){
 				@Override
@@ -338,7 +338,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Cost Input
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			costText.setText(String.valueOf(sensorData.get(type).cost));
+			costText.setText(String.valueOf(sensorData.get(sensorKey).cost));
 			costText.setForeground(Constants.black);
 			costText.addModifyListener(new ModifyListener() {
 				@Override
@@ -406,11 +406,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Detection Value
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			detectionText.setText(String.valueOf(sensorData.get(type).detectionThreshold));
-			if(sensorData.get(type).deltaType==DeltaType.INCREASE) // Needed to maintain plus sign
-				detectionText.setText("+" + String.valueOf(sensorData.get(type).detectionThreshold));
-			if(HDF5Interface.getStatistic(type, 0)!=null)
-				detectionText.setToolTipText("Minimum = " + HDF5Interface.getStatistic(type, 0) + "; Maximum = " + HDF5Interface.getStatistic(type, 2));
+			detectionText.setText(String.valueOf(sensorData.get(sensorKey).detectionThreshold));
+			if(sensorData.get(sensorKey).deltaType==DeltaType.INCREASE) // Needed to maintain plus sign
+				detectionText.setText("+" + String.valueOf(sensorData.get(sensorKey).detectionThreshold));
+			if(HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0)!=null) {
+				float min = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0);
+				float avg = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 1);
+				float max = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 2);
+				detectionText.setToolTipText("Minimum = " + min + "; Average = " + avg + "; Maximum = " + max);
+			}
 			detectionText.setForeground(Constants.black);
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
@@ -441,7 +445,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			// Set minimum z
 			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			minZText.setText(String.valueOf(sensorData.get(type).minZ));
+			minZText.setText(String.valueOf(sensorData.get(sensorKey).minZ));
 			minZText.setForeground(Constants.black);
 			minZText.setToolTipText("Global zone bottom = " + minZBound);
 			minZText.addModifyListener(new ModifyListener() {
@@ -477,7 +481,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			// Set maximum z
 			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			maxZText.setText(String.valueOf(sensorData.get(type).maxZ));
+			maxZText.setText(String.valueOf(sensorData.get(sensorKey).maxZ));
 			maxZText.setForeground(Constants.black);
 			maxZText.setToolTipText("Global zone top = " + maxZBound);
 			maxZText.addModifyListener(new ModifyListener() {
@@ -511,7 +515,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText.setLayoutData(maxZTextData);
 			
 			// Hide unused fields for ERT sensors
-			if(type.contains("Electrical Conductivity")) {
+			if(sensorKey.contains("Electrical Conductivity")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				thresholdCombo.setEnabled(false);
@@ -529,7 +533,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 			
 			// Hide unused fields for ALL_SENSORS
-			if(type.contains("allSensors")) {
+			if(sensorKey.contains("allSensors")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				costText.setToolTipText("This sensor will detect as a combination of all selected sensors, but will move as one sensor during optimization.");
@@ -660,8 +664,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		maxZLabel.setFont(boldFontSmall);
 		
 		// This loops through each sensor and creates a row with input values
-		for(SensorData sensor: sensorData.values()) {
-			sensor.buildUI(sensor.sensorType);
+		for(String sensorKey: sensorData.keySet()) {
+			sensorData.get(sensorKey).buildUI(sensorKey);
 		}
 		
 		// Find Triggering Nodes Button
