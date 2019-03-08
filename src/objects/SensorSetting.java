@@ -334,7 +334,7 @@ public class SensorSetting {
 	}
 	
 
-	//This is a duplication of the pareto optimal code specifically for the "all" sensor.
+	//This is a duplication of the pareto optimal code specifically for the "allSensors".
 	public HashSet<Integer> paretoOptimalAll(ScenarioSet set, HashSet<Integer> allNodes, List<String> scenarios, NodeStructure ns, Map<String, SensorSetting> sensorSettings, Map<String, Map<String, Map<Integer, Float>>> detectionMap){ //THIS SHOULD JUST BE A TEMPORARY FUNCTION!!
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
@@ -342,7 +342,7 @@ public class SensorSetting {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 			for(String scenario: scenarios){
-				Float timeToDegredation = detectionMap.get(scenario).get("all").get(nodeNumber);
+				Float timeToDegredation = detectionMap.get(scenario).get("allSensors").get(nodeNumber);
 				if(timeToDegredation!=null)
 					ttds.add(timeToDegredation);
 			}

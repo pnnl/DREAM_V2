@@ -544,9 +544,9 @@ public class ExtendedConfiguration extends Configuration {
 		Map<String, List<Integer>> affordableSensors = new HashMap<String, List<Integer>>();
 		//List<String> types = new ArrayList<String>();
 		boolean atAddPoint = false;
-		List<Integer> validNodes = scenarioSet.getValidNodes("all", this, true, true, true);
+		List<Integer> validNodes = scenarioSet.getValidNodes("allSensors", this, true, true, true);
 		if(!validNodes.isEmpty()) {
-			affordableSensors.put("all", validNodes);
+			affordableSensors.put("allSensors", validNodes);
 			if(validNodes.contains(addPoint)) {
 				atAddPoint = true; // We can add a sensor at the add point
 			}
@@ -556,14 +556,14 @@ public class ExtendedConfiguration extends Configuration {
 			return null;
 		}
 		if(atAddPoint) {
-			ExtendedSensor toAdd = new ExtendedSensor(addPoint, "all", scenarioSet.getNodeStructure());
+			ExtendedSensor toAdd = new ExtendedSensor(addPoint, "allSensors", scenarioSet.getNodeStructure());
 			addSensor(scenarioSet, toAdd);
 			return toAdd;
 		} else {
-			int index = Constants.random.nextInt(affordableSensors.get("all").size());
+			int index = Constants.random.nextInt(affordableSensors.get("allSensors").size());
 			for(String type: scenarioSet.getSensorSettings().keySet()){
-				if(type != "all"){
-					ExtendedSensor toAdd = new ExtendedSensor(affordableSensors.get("all").get(index), type, scenarioSet.getNodeStructure());
+				if(type != "allSensors"){
+					ExtendedSensor toAdd = new ExtendedSensor(affordableSensors.get("allSensors").get(index), type, scenarioSet.getNodeStructure());
 					addSensor(scenarioSet, toAdd);
 				}
 			}

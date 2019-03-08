@@ -279,11 +279,11 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			}
 		}
 		
-		System.out.println("Number of scenarios = " + data.getSet().getScenarios().size() + " (" + data.getSet().getAllScenarios().size() + " availble)");
+		System.out.println("Number of scenarios = " + data.getSet().getScenarios().size() + " (" + data.getSet().getAllScenarios().size() + " available)");
 		
-		//In case the user finds nodes on the next page, then goes back, we don't want nodes to remain
-		for(String sensor: data.getSet().getSensorSettings().keySet())
-			data.getSet().getSensorSettings().get(sensor).clearNodes();
+		// Initialize the sensorSettings at the end of this page - resets LeakageCriteria page
+		data.getSet().setupSensorSettings(data.modelOption);
+		data.needToResetMonitoringParameters = true;
 	}
 	
 	@Override

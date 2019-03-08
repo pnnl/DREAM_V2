@@ -115,7 +115,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		data.setupScenarioSet(modelOption, MUTATE.SENSOR, simulation, fileDirectoryText.getText());
 		data.getSet().setScenarioEnsemble(fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator)+1));
 		// Ask for porosity input if it doesn't exist yet
-		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()){
+		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
 		}
@@ -172,8 +172,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			directory = directory + "\\Desktop\\BCO_new";
 		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "\\Desktop\\BCO_new";
-		if(!System.getProperty("os.name").contains("Mac") && directory.contains("xuwe421") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = "C:\\Users\\xuwe421\\eclipse-workspace\\BCO_new";
 		if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
 		

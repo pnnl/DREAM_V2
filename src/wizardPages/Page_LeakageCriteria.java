@@ -119,7 +119,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			minZ = minZBound = sensorSettings.getGlobalMinZ();
 			maxZ = maxZBound = sensorSettings.getGlobalMaxZ();
 			this.specificType = specificType;
-			alias = tokens[0] + "_" + tokens[2];				
+			alias = tokens[0] + "_" + tokens[2];
 		}
 		
 		//Class for storing the data about one particular sensor type (HDF5)
@@ -149,7 +149,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				trigger = Trigger.BELOW_THRESHOLD;
 			
 			// Exceptions for "All_SENSORS"
-			if(sensorName.contains("all"))
+			if(sensorName.contains("allSensors"))
 				alias = "All Selected Sensors";
 			
 			// Exceptions for ERT
@@ -529,7 +529,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 			
 			// Hide unused fields for ALL_SENSORS
-			if(type.contains("all")) {
+			if(type.contains("allSensors")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				costText.setToolTipText("This sensor will detect as a combination of all selected sensors, but will move as one sensor during optimization.");
@@ -547,9 +547,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
-			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !sensorType.contains("all") && !alias.contains("ERT") && data.fileType!="iam")
+			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
 				thresholdCombo.setEnabled(isIncluded);					
-			if(detectionText != null && !detectionText.isDisposed() && !sensorType.contains("all") && !alias.contains("ERT") && data.fileType!="iam")
+			if(detectionText != null && !detectionText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
 				detectionText.setEnabled(isIncluded);
 			if(detectionLabel != null && !detectionLabel.isDisposed())
 				detectionLabel.setEnabled(isIncluded);
@@ -572,13 +572,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
 		
-		// Before we do anything, add E4D matrices to detectionMap
-		E4DSensors.addERTSensor(data.getSet());
-		
 		// If we need to reset sensors, this boolean will be set to true
 		if(data.needToResetMonitoringParameters) {
 			data.needToResetMonitoringParameters = false;
 			sensorData = new TreeMap<String, SensorData>(); // New UI
+			
+			// Before we do anything, add E4D matrices to detectionMap
+			E4DSensors.addERTSensor(data.getSet());
 			
 			// If we are dealing with H5 files, add all possible data types
 			if(data.fileType=="hdf5") {

@@ -183,7 +183,7 @@ public class ExtendedSensor extends Sensor {
 		ExtendedSensor sensor = sensors.get(0);
 		
 		// Get all the nodes we can afford to move to that are in the cloud and unoccupied
-		List<Integer> validMoves = set.getValidNodes("all", configuration, false, false, false);
+		List<Integer> validMoves = set.getValidNodes("allSensors", configuration, false, false, false);
 		
 		// Remove our current location
 		if(validMoves.contains(sensor.getNodeNumber()))

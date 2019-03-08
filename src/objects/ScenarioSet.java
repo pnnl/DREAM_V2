@@ -228,8 +228,8 @@ public class ScenarioSet {
 		
 		// If all sensors was selected, add to sensor settings array
 		if(modelOption == ModelOption.ALL_SENSORS) {
-			sensorSettings.put("all", new SensorSetting(nodeStructure, "all"));
-			nodeStructure.addDataType("all");
+			sensorSettings.put("allSensors", new SensorSetting(nodeStructure, "allSensors"));
+			nodeStructure.addDataType("allSensors");
 		}
 	}
 	
@@ -249,7 +249,7 @@ public class ScenarioSet {
 			monitor.subTask("generating detection matrix: All Sensors - " + scenario);
 			detectionMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
 			for(SensorData sensor: activeSensors) {
-				if(sensor.sensorType.contains("all")) continue; //Don't double add
+				if(sensor.sensorType.contains("allSensors")) continue; //Don't double add
 				for(Integer node: detectionMap.get(sensor.specificType).get(scenario).keySet()) {
 					Float ttd = detectionMap.get(sensor.specificType).get(scenario).get(node);
 					if(!detectionMap.get(specificType).get(scenario).containsKey(node)) //Add if it doesn't exist
@@ -465,7 +465,7 @@ public class ScenarioSet {
 			}
 		}
 		else{
-			for(Integer node: sensorSettings.get("all").getValidNodes()) cloudNodes.add(node);
+			for(Integer node: sensorSettings.get("allSensors").getValidNodes()) cloudNodes.add(node);
 		}
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
 		for(Integer node: cloudNodes) {

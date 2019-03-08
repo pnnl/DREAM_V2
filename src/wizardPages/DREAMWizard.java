@@ -341,14 +341,13 @@ public class DREAMWizard extends Wizard {
 								
 								monitor.subTask("reading scenarios from all files");
 								set.setupScenarios(HDF5Interface.queryScenarioNamesFromFiles(list)); // Set the scenarios
-								set.setupSensorSettings(modelOption);
 								monitor.worked(3);
 								
 								monitor.subTask("initializing algorithm");
-								STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
-								STORMData.this.modelOption = modelOption;
+								STORMData.this.mutate = mutate;	//Mutate option should always be sensor... used to have other options
+								STORMData.this.modelOption = modelOption; //Save the modelOption
 								if(function.endsWith("SimulatedAnnealing"))
-									runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
+									runner = new SimulatedAnnealing(mutate); //Set the function (this will always be Simulated Annealing in this release)
 								STORMData.this.fileType = "hdf5";
 								monitor.worked(1);
 								
@@ -413,7 +412,7 @@ public class DREAMWizard extends Wizard {
 							// Only do this for H5 variables, IAM is already in detectionMap
 							for(SensorData sensor: newSensors) {
 								if(monitor.isCanceled()) break;
-								if(sensor.sensorType.contains("all"))
+								if(sensor.sensorType.contains("allSensors"))
 									set.detectionMapForAllSensors(monitor, activeSensors); //Special handling - map should be lowest detection at each node
 								else
 									HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
