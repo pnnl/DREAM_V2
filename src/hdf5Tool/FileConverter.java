@@ -57,7 +57,7 @@ import ncsa.hdf.object.Dataset;
  * @author port091
  * @author whit162
  */
-public class FileBrowser extends javax.swing.JFrame {
+public class FileConverter extends javax.swing.JFrame {
 
 	private static final long serialVersionUID = 8513730341976192873L;
 
@@ -90,7 +90,7 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	private JLabel statusLabel;
 
-	public FileBrowser() {
+	public FileConverter() {
 		// Hack that allows my directory to start where I want it
 		if(Constants.homeDirectory.contains("whit162"))
 			saveCurrentDirectory = new File("C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\FileConversionTests");
@@ -444,7 +444,7 @@ public class FileBrowser extends javax.swing.JFrame {
 
 		MonitorRunnable(ExecutorService service, int cores, int totalTasks) {
 			this.totalTasks = totalTasks;
-			monitor = new ProgressMonitor(FileBrowser.this, "Converting files on " + cores + " cores", "0/" + totalTasks, 0, totalTasks);
+			monitor = new ProgressMonitor(FileConverter.this, "Converting files on " + cores + " cores", "0/" + totalTasks, 0, totalTasks);
 			processedTasks = 0;
 		}
 
@@ -458,11 +458,11 @@ public class FileBrowser extends javax.swing.JFrame {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace(); // Ignore and continue
-					JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(FileConverter.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
 				}
 			}
 			monitor.setProgress(processedTasks);
-			JOptionPane.showMessageDialog(FileBrowser.this, (!monitor.isCanceled() ? "Success, h5 files are located here: " + file_outputDir.getAbsolutePath() : "Canceled File Conversion"));
+			JOptionPane.showMessageDialog(FileConverter.this, (!monitor.isCanceled() ? "Success, h5 files are located here: " + file_outputDir.getAbsolutePath() : "Canceled File Conversion"));
 		}
 	}
 	
@@ -481,7 +481,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			long startTime = System.currentTimeMillis();
 			
 			// Figure out what we're reading
-			String folderStructure = FileBrowser.this.jComboBox_folderStructure.getSelectedItem().toString();
+			String folderStructure = FileConverter.this.jComboBox_folderStructure.getSelectedItem().toString();
 			String fileType = jComboBox_fileType.getSelectedItem().toString();
 			
 			// Extract the data and statistics from the selected directory
@@ -513,7 +513,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				e.printStackTrace();
 				statusLabel.setText("Error converting the files.");
 				statusLabel.setForeground(Color.RED);
-				JOptionPane.showMessageDialog(FileBrowser.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(FileConverter.this, Arrays.toString(e.getStackTrace()), e.getMessage(), JOptionPane.ERROR_MESSAGE);
 				hdf5File.delete(); // Remove the file
 			} finally {
 				if(hdf5File != null)  {
@@ -548,8 +548,8 @@ public class FileBrowser extends javax.swing.JFrame {
 				
 				statusLabel.setText("Loading directory: " + file_inputDir);
 				statusLabel.setForeground(Color.BLACK);
-				FileBrowser.this.validate();
-				FileBrowser.this.repaint();
+				FileConverter.this.validate();
+				FileConverter.this.repaint();
 				
 				setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));	
 				getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -559,7 +559,7 @@ public class FileBrowser extends javax.swing.JFrame {
 					@Override
 					public void run() {
 						// Figure out what we're reading
-						String folderStructure = FileBrowser.this.jComboBox_folderStructure.getSelectedItem().toString();
+						String folderStructure = FileConverter.this.jComboBox_folderStructure.getSelectedItem().toString();
 						String fileType = jComboBox_fileType.getSelectedItem().toString();
 						
 						// Extract the scenarios, timeSteps, and parameters from the selected directory
@@ -608,7 +608,7 @@ public class FileBrowser extends javax.swing.JFrame {
 								setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 								getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 								
-								FileBrowser.this.repaint();
+								FileConverter.this.repaint();
 							}
 						});
 					}
@@ -745,7 +745,7 @@ public class FileBrowser extends javax.swing.JFrame {
 			try {
 				float input = 999;
 				while(input>1 || input < 0)
-					input = Float.parseFloat(JOptionPane.showInputDialog(FileBrowser.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
 				Arrays.fill(porosity, input);
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
@@ -764,7 +764,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		}
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				new FileBrowser().setVisible(true);
+				new FileConverter().setVisible(true);
 			}
 		});
 	}

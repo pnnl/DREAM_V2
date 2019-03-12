@@ -16,7 +16,7 @@ import java.util.Scanner;
 import javax.vecmath.Point3i;
 import javax.vecmath.Vector3f;
 
-import hdf5Tool.FileBrowser;
+import hdf5Tool.FileConverter;
 import objects.NodeStructure;
 import utilities.Constants;
 
@@ -778,9 +778,9 @@ public class GridParser {
 	}
 
 	public Object[] getDataTypes(String fileType, Collection<GridParser> files) throws GridError, FileNotFoundException {
-		if(fileType.equals(FileBrowser.STOMP)) {
+		if(fileType.equals(FileConverter.STOMP)) {
 			return extractStompData().getFieldNames().toArray();
-		} else if(fileType.equals(FileBrowser.NUFT)) {
+		} else if(fileType.equals(FileConverter.NUFT)) {
 			List<String> fieldNames = new ArrayList<String>();			
 			List<File> allFiles = new ArrayList<File>(filesToMerge);
 			allFiles.add(dataFile);
@@ -790,7 +790,7 @@ public class GridParser {
 			}
 			// Use the file names
 			return fieldNames.toArray();
-		} else if(fileType.equals(FileBrowser.TECPLOT)){
+		} else if(fileType.equals(FileConverter.TECPLOT)){
 			try {
 				return getTecplotVariables(dataFile).toArray();
 			} catch (Exception e) {

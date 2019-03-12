@@ -1,6 +1,6 @@
 package wizardPages;
 
-import hdf5Tool.FileBrowser;
+import hdf5Tool.FileConverter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -220,14 +220,14 @@ public class DREAMWizard extends Wizard {
 				{ 
 					@Override 
 					public void widgetSelected(SelectionEvent e) { 
-						FileBrowser browser = new FileBrowser();
+						FileConverter browser = new FileConverter();
 						browser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 						browser.setVisible(true); 
 					} 
 
 					@Override 
 					public void widgetDefaultSelected(SelectionEvent e) { 
-						FileBrowser browser = new FileBrowser();
+						FileConverter browser = new FileConverter();
 						browser.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 						browser.setVisible(true); 
 					} 
