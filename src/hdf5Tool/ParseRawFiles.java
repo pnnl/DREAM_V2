@@ -45,7 +45,7 @@ public class ParseRawFiles {
 	
 	// Only used by STOMP
 	private boolean nodal; //Determine whether parameters are given for nodes or vertices
-	// Only used by Ntab and Tecplot
+	// Only used by NUFT and Tecplot
 	private ArrayList<String> indexMap; //Maps parameters to columns or blocks
 	
 	// Initialize variables
@@ -320,12 +320,12 @@ public class ParseRawFiles {
 	}
 	
 	
-	// Extracting scenarios, times, parameters, and xyz from the first NTAB file
-	public void extractNtabStructure(File directory) {
-		FileFilter fileFilter = new WildcardFileFilter("*.ntab"); //Ignore any files in the directory that aren't NTAB files
-		// A quick check that we actually have NTAB files in the directory
+	// Extracting scenarios, times, parameters, and xyz from the first NUFT file
+	public void extractNuftStructure(File directory) {
+		FileFilter fileFilter = new WildcardFileFilter("*.ntab"); //Ignore any files in the directory that aren't NUFT files
+		// A quick check that we actually have NUFT files in the directory
 		if(directory.listFiles(fileFilter).length==0) {
-			System.out.println("No Ntab files were found in the selected directory.");
+			System.out.println("No NUFT files were found in the selected directory.");
 			return;
 		}
 		// Add all the scenarios and parameters from file names
@@ -376,9 +376,9 @@ public class ParseRawFiles {
 	}
 	
 	
-	// Extracting data, statistics, and porosity from a list of NTAB files
-	public void extractNtabData(File directory, String scenarioThread) {
-		FileFilter fileFilter = new WildcardFileFilter("*.ntab"); //Ignore any files in the directory that aren't NTAB files
+	// Extracting data, statistics, and porosity from a list of NUFT files
+	public void extractNuftData(File directory, String scenarioThread) {
+		FileFilter fileFilter = new WildcardFileFilter("*.ntab"); //Ignore any files in the directory that aren't NUFT files
 		for(File subFile: directory.listFiles(fileFilter)) {
 			String scenario = "Scenario" + subFile.getName().split("\\.")[0].replaceAll("\\D+", "");
 			if(!scenarioThread.equals(scenario)) continue; //Skip all but the scenario assigned to this thread
@@ -397,7 +397,7 @@ public class ParseRawFiles {
 					// index i j k element_ref nuft_ind x y z dx dy dz volume [times]
 					String[] tokens = line.split("\\s+"); //The line is space delimited
 					if(!tokens[0].equalsIgnoreCase("index")) { //Ignore the header
-						int index = Integer.parseInt(tokens[indexMap.indexOf("index")]) - 1;
+						int index = Integer.parseInt(tokens[indexMap.indexOf("nuft_ind")]) - 1;
 						for(int i=indexMap.indexOf("data"); i<tokens.length; i++) { //Only read data
 							float time = times.get(i-indexMap.indexOf("data"));
 							if(!selectedTimes.contains(time)) continue; //Skip times that weren't selected
@@ -423,8 +423,8 @@ public class ParseRawFiles {
 	}
 	
 	
-	// NTAB orders values differently and needs to be reordered into an ijk index
-	public void orderNtab(String scenario) {
+	// NUFT orders values differently and needs to be reordered into an ijk index
+	public void orderNuft(String scenario) {
 		for(String parameter: dataMap.get(scenario).keySet()) {
 			for(int timeIndex=0; timeIndex<dataMap.get(scenario).get(parameter).length; timeIndex++) {
 				float[] values = dataMap.get(scenario).get(parameter)[timeIndex];

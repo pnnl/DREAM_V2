@@ -780,7 +780,7 @@ public class GridParser {
 	public Object[] getDataTypes(String fileType, Collection<GridParser> files) throws GridError, FileNotFoundException {
 		if(fileType.equals(FileBrowser.STOMP)) {
 			return extractStompData().getFieldNames().toArray();
-		} else if(fileType.equals(FileBrowser.NTAB)) {
+		} else if(fileType.equals(FileBrowser.NUFT)) {
 			List<String> fieldNames = new ArrayList<String>();			
 			List<File> allFiles = new ArrayList<File>(filesToMerge);
 			allFiles.add(dataFile);

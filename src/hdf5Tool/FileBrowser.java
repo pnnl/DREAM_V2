@@ -63,7 +63,7 @@ public class FileBrowser extends javax.swing.JFrame {
 
 	public static final String TECPLOT = "tecplot";
 	public static final String STOMP = "stomp";
-	public static final String NTAB = "ntab";
+	public static final String NUFT = "nuft";
 	
 	public static final String SCENARIO_PER_FILE = "scenario per file";
 	public static final String SCENARIO_PER_FOLDER = "scenario per folder";
@@ -125,7 +125,7 @@ public class FileBrowser extends javax.swing.JFrame {
 		setJMenuBar(menuBar);
 		
 		JPanel jPanel_fileType = new JPanel();
-		jComboBox_fileType = new JComboBox(new String[]{STOMP, NTAB, TECPLOT});
+		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, TECPLOT});
 		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FOLDER, SCENARIO_PER_FILE});
 		jComboBox_folderStructure.setEnabled(false);
 		jComboBox_fileType.addActionListener(new ActionListener() {
@@ -136,7 +136,7 @@ public class FileBrowser extends javax.swing.JFrame {
 				} else if(jComboBox_fileType.getSelectedItem().equals(STOMP)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FOLDER);
 					jComboBox_folderStructure.setEnabled(false);
-				} else if(jComboBox_fileType.getSelectedItem().equals(NTAB)) {
+				} else if(jComboBox_fileType.getSelectedItem().equals(NUFT)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FILE);
 					jComboBox_folderStructure.setEnabled(false);
 				}
@@ -489,9 +489,9 @@ public class FileBrowser extends javax.swing.JFrame {
 				File scenarioFolder = new File(file_inputDir, scenario);
 				gp.extractStompData(scenarioFolder);
 				gp.orderStomp(scenario);
-			} else if(fileType.equals(NTAB)) {
-				gp.extractNtabData(file_inputDir, scenario);
-				gp.orderNtab(scenario);
+			} else if(fileType.equals(NUFT)) {
+				gp.extractNuftData(file_inputDir, scenario);
+				gp.orderNuft(scenario);
 			} else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) { //TODO: This assumes files per folder, need to add folders per folder option when I get an example
 				File scenarioFile = new File(file_inputDir, scenario + ".dat");
 				gp.extractTecplotData(scenarioFile);
@@ -567,17 +567,17 @@ public class FileBrowser extends javax.swing.JFrame {
 						// Extract the scenarios, timeSteps, and parameters from the selected directory
 						if(fileType.equals(STOMP))
 							gp.extractStompStructure(file_inputDir);
-						else if(fileType.equals(NTAB))
-							gp.extractNtabStructure(file_inputDir);
-						else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) //TODO: This assumes files per folder, need to add folders per folder option when I get an example
+						else if(fileType.equals(NUFT))
+							gp.extractNuftStructure(file_inputDir);
+						else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) //TODO: This assumes files per folder, need to add scenarios per folder option when I get an example
 							gp.extractTecplotStructure(file_inputDir);
 						
 						// If no scenarios were detected, throw an error and bypass the rest of the method
 						if(gp.getScenarios().length==0 || gp.getTimes().length==0 || gp.getParameters().length==0) {
 							if(fileType.equals(STOMP))
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>STOMP requires that you select a folder containing a folder for each scenario.</html>");
-							else if(fileType.equals(NTAB))
-								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>NTAB requires that you select a folder containing a file for each scenario.</html>");
+							else if(fileType.equals(NUFT))
+								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>NUFT requires that you select a folder containing a file for each scenario.</html>");
 							else
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>Make sure you select the correct folder structure.</html>");
 							statusLabel.setForeground(Color.RED);
