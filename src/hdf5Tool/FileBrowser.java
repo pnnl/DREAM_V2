@@ -488,10 +488,8 @@ public class FileBrowser extends javax.swing.JFrame {
 			if(fileType.equals(STOMP)) {
 				File scenarioFolder = new File(file_inputDir, scenario);
 				gp.extractStompData(scenarioFolder);
-				gp.orderStomp(scenario);
 			} else if(fileType.equals(NUFT)) {
 				gp.extractNuftData(file_inputDir, scenario);
-				gp.orderNuft(scenario);
 			} else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) { //TODO: This assumes files per folder, need to add folders per folder option when I get an example
 				File scenarioFile = new File(file_inputDir, scenario + ".dat");
 				gp.extractTecplotData(scenarioFile);

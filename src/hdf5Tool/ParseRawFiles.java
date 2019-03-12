@@ -234,6 +234,8 @@ public class ParseRawFiles {
 						header = false;
 					// These are the criteria to isolate the parameter text above blocks
 					else if(!header && blankLine) {
+						// STOMP orders values differently and needs to be reordered into ijk
+						tempData = reorderStomp(tempData);
 						// Save the stored values for the selected parameter
 						if(selectedParameters.contains(parameter) && countNodes>0) { //Make sure we actually have data for a selected parameter
 							if(!dataMap.get(scenario).containsKey(parameter)) { //If data doesn't yet exist for the parameter
@@ -286,37 +288,19 @@ public class ParseRawFiles {
 	
 	
 	// STOMP orders values differently and needs to be reordered into an ijk index
-	public void orderStomp(String scenario) {
-		for(String parameter: dataMap.get(scenario).keySet()) {
-			for(int timeIndex=0; timeIndex<dataMap.get(scenario).get(parameter).length; timeIndex++) {
-				float[] values = dataMap.get(scenario).get(parameter)[timeIndex];
-				float[] temp = new float[values.length];
-				int counter = 0;
-				for(int i=0; i<x.size(); i++) {
-					for(int j=0; j<y.size(); j++) {
-						for(int k=0; k<z.size(); k++) {
-							int nodeNumber = k*x.size()*y.size() + j*x.size() + i;
-							temp[counter] = values[nodeNumber];
-							counter++;
-						}
-					}
-				}
-				dataMap.get(scenario).get(parameter)[timeIndex] = temp;
-			}
-		}
-		// Also need to resort the porosity values
-		float[] temp = new float[porosity.length];
+	public float[] reorderStomp(float[] original) {
+		float[] replacement = new float[original.length];
 		int counter = 0;
 		for(int i=0; i<x.size(); i++) {
 			for(int j=0; j<y.size(); j++) {
 				for(int k=0; k<z.size(); k++) {
 					int nodeNumber = k*x.size()*y.size() + j*x.size() + i;
-					temp[counter] = porosity[nodeNumber];
+					replacement[counter] = original[nodeNumber];
 					counter++;
 				}
 			}
 		}
-		porosity = temp;
+		return replacement;
 	}
 	
 	
@@ -397,7 +381,7 @@ public class ParseRawFiles {
 					// index i j k element_ref nuft_ind x y z dx dy dz volume [times]
 					String[] tokens = line.split("\\s+"); //The line is space delimited
 					if(!tokens[0].equalsIgnoreCase("index")) { //Ignore the header
-						int index = Integer.parseInt(tokens[indexMap.indexOf("nuft_ind")]) - 1;
+						int index = Integer.parseInt(tokens[indexMap.indexOf("index")]) - 1;
 						for(int i=indexMap.indexOf("data"); i<tokens.length; i++) { //Only read data
 							float time = times.get(i-indexMap.indexOf("data"));
 							if(!selectedTimes.contains(time)) continue; //Skip times that weren't selected
