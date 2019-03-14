@@ -83,7 +83,10 @@ public class E4DRunDialog extends TitleAreaDialog {
 		Composite area = (Composite) super.createDialogArea(parent);
 		
 		sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.FILL);
-		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 230).create());
+		if(ensemble.length() > 8)
+			sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 240).create());
+		else
+			sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 220).create());
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
 		
