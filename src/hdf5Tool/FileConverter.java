@@ -132,7 +132,9 @@ public class FileConverter extends javax.swing.JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(jComboBox_fileType.getSelectedItem().equals(TECPLOT)) {
-					jComboBox_folderStructure.setEnabled(true);
+					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FILE);
+					jComboBox_folderStructure.setEnabled(false);
+					//jComboBox_folderStructure.setEnabled(true); //TODO: Add this option when we add Tecplot's scenario per folder option
 				} else if(jComboBox_fileType.getSelectedItem().equals(STOMP)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FOLDER);
 					jComboBox_folderStructure.setEnabled(false);
@@ -744,9 +746,9 @@ public class FileConverter extends javax.swing.JFrame {
 			porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
 			try {
 				float input = 999;
-				while(input>1 || input < 0)
+				while(input>1 || input < 0) //Force a porosity value between 0 and 1
 					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
-				Arrays.fill(porosity, input);
+				Arrays.fill(porosity, input); //Fills porosity with a constant value across the domain
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 		    }

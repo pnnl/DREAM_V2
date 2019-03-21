@@ -47,6 +47,8 @@ public class ParseRawFiles {
 	private boolean nodal; //Determine whether parameters are given for nodes or vertices
 	// Only used by NUFT and Tecplot
 	private ArrayList<String> indexMap; //Maps parameters to columns or blocks
+	// Only used by Tecplot
+	private int elements;
 	
 	// Initialize variables
 	public ParseRawFiles() {
@@ -480,28 +482,30 @@ public class ParseRawFiles {
 					// Also add the number of nodes, as this will be used to count off blocks
 					tokens = line.split(","); //Header info is comma delimited
 					for(String token: tokens) {
-						if(token.toLowerCase().contains("nodes")) {
-							try {
+						try {
+							if(token.toLowerCase().contains("nodes")) {
 								nodes = Integer.parseInt(token.split("=")[1].trim());
-							} catch(Exception e) {
-								System.out.println("Nodes Error: " + token.split("=")[1].trim());
+							} else if(token.toLowerCase().contains("elements")) {
+								elements = Integer.parseInt(token.split("=")[1].trim());
 							}
+						} catch(Exception e) {
+							System.out.println("Node/Element Error: " + token.split("=")[1].trim());
 						}
 					}
 				}
-				// This lists the data, from which we will get xyz
+				// This lists the data, from which we will get xyz (which are actually at edges)
 				else if(!line.contains("=") && (key.equals("") || key.equals("x") || key.equals("y") || key.equals("z"))) { //Limit to the keys we want
 					key = indexMap.get(index);
 					String[] tokens = line.split("\\s+"); //Space delimited
 					for(String token: tokens) {
 						countNodes++;
 						float value = Float.parseFloat(token);
-						if(key.equals("x") & !x.contains(value))
-							x.add(value);
-						else if(key.equals("y") & !y.contains(value))
-							y.add(value);
-						else if(key.equals("z") & !z.contains(value))
-							z.add(value);
+						if(key.equals("x") & !vertexX.contains(value))
+							vertexX.add(value);
+						else if(key.equals("y") & !vertexY.contains(value))
+							vertexY.add(value);
+						else if(key.equals("z") & !vertexZ.contains(value))
+							vertexZ.add(value);
 					}
 					// When the counter is high enough, we have finished with the parameter
 					if(countNodes >= nodes) {
@@ -514,12 +518,13 @@ public class ParseRawFiles {
 			e.printStackTrace();
 		}
 		//Provided values are at the nodes (center) of each cell
-		vertexX = calculateEdges(x);
-		vertexY = calculateEdges(y);
-		vertexZ = calculateEdges(z);
+		x = calculateCenters(vertexX);
+		y = calculateCenters(vertexY);
+		z = calculateCenters(vertexZ);
 	}
 	
 	
+	//TODO: Tecplot Data here...
 	// Extracting data, statistics, and porosity from a list of Tecplot files
 	public void extractTecplotData(File subFile) {
 		String scenario = subFile.getName().split("\\.")[0];
@@ -531,9 +536,10 @@ public class ParseRawFiles {
 		String line;
 		String parameter = indexMap.get(index);
 		int timeIndex = 0;
-		float[] tempData = new float[nodes];
+		float[] tempData = new float[elements];
 		float[] tempStats = new float[3];
 		
+		int countElements = 0;
 		int countNodes = 0;
 		boolean skip = false;
 		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
@@ -548,30 +554,36 @@ public class ParseRawFiles {
 						timeIndex = selectedTimes.indexOf(time); //Parse value into float
 						skip = false;
 					}
+					
 				}
 				// This is the data - we want all selected parameters and porosity
 				if(!line.contains("=") && !line.trim().isEmpty() && !skip) {
 					String[] tokens = line.split("\\s+"); //Space delimited
-					// Skip these, they are handled elsewhere
+					// Count the numbers so we know when we finish the block - x, y, z based on node count
 					if(parameter.equals("x") || parameter.equals("y") || parameter.equals("z")) {
 						countNodes += tokens.length;
-					}
-					// Read in data for all selected parameters and porosity
-					else if(selectedParameters.contains(parameter) || (parameter.toLowerCase().contains("porosity") && porosity.length==0)) {
+					// Read in data for all selected parameters and porosity, saving statistics as we go
+					// Any parameters that weren't selected are skipped, only the first porosity is stored (special handling)
+					} else if(selectedParameters.contains(parameter) || (parameter.toLowerCase().contains("porosity") && porosity==null)) {
 						for(String token: tokens) {
 							float value = Float.parseFloat(token);
-							tempData[countNodes] = value;
+							tempData[countElements] = value;
 							if(value<tempStats[0]) tempStats[0] = value; //Min
 							tempStats[1] += value/nodes; //Avg for timestep
 							if(value>tempStats[2]) tempStats[2] = value; //Max
-							countNodes++;
+							countElements++;
 						}
+					// Count the numbers so we know when we finish the block - parameters based on elements count
+					} else { //Unselected parameters
+						countElements += tokens.length;
 					}
 					// When the counter is high enough, we have finished with the parameter and should save
-					if(countNodes >= nodes) {
+					if(countNodes >= nodes || countElements >= elements) {
+						// Tecplot orders values differently and needs to be reordered into ijk
+						tempData = reorderStomp(tempData);
 						if(selectedParameters.contains(parameter)) { //Make sure we are looking at a selected parameter
 							if(!dataMap.get(scenario).containsKey(parameter)) { //If data doesn't yet exist for the parameter
-								dataMap.get(scenario).put(parameter, new float[selectedTimes.size()][nodes]);
+								dataMap.get(scenario).put(parameter, new float[selectedTimes.size()][elements]);
 								statistics.get(scenario).put(parameter, new float[3]);
 							}
 							dataMap.get(scenario).get(parameter)[timeIndex] = tempData;
@@ -580,13 +592,18 @@ public class ParseRawFiles {
 							if(tempStats[2]>statistics.get(scenario).get(parameter)[2]) statistics.get(scenario).get(parameter)[2] = tempStats[2]; //Max
 						}
 						// Save porosity values
-						else if(parameter.toLowerCase().contains("porosity") && porosity.length==0) { //Make sure we are looking at porosity
+						else if(parameter.toLowerCase().contains("porosity") && porosity==null) { //Make sure we are looking at porosity
 							porosity = tempData;
 						}
-						tempData = new float[nodes]; //Reset these for the next parameter
+						tempData = new float[elements]; //Reset these for the next parameter
 						tempStats = new float[3];
 						countNodes = 0; //Reset the counter
-						index++; //On to the next parameter
+						countElements = 0; //Reset the counter
+						System.out.print(parameter + " ");
+						if(index<indexMap.size()-1)
+							index++;
+						else //Need special handling to reset for the next time block
+							index = 3; //Index of the first parameter that is not x, y, z
 						parameter = indexMap.get(index);
 					}
 				}
