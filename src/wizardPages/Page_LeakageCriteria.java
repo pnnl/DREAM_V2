@@ -1022,7 +1022,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				// Add the sensor to sensorSettings
 				data.getSet().addSensorSetting(sensor.sensorName, sensor.sensorType);
 				// Set values in sensorSettings from sensorData
-				data.getSet().getSensorSettings().get(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
+				data.getSet().getSensorSettings(sensor.sensorName).setUserSettings(sensor.cost, sensor.detectionThreshold,
 						sensor.trigger, sensor.deltaType, sensor.maxZ, sensor.minZ, sensor.alias);
 				// Set the specificType
 				sensor.specificType = data.getSet().getSensorSettings(label).specificType;

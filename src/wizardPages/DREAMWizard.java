@@ -239,7 +239,8 @@ public class DREAMWizard extends Wizard {
 				{ 
 					@Override 
 					public void widgetSelected(SelectionEvent e) { 
-						wizard.launchVisWindow(false, true);
+						// Since valid nodes can change if the user selects a different detection criteria, we need to force the reset every time
+						wizard.launchVisWindow(true, true);
 					} 
 
 					@Override 
