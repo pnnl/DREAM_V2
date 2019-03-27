@@ -345,9 +345,6 @@ public class FileConverter extends javax.swing.JFrame {
 			file_outputDir.mkdir();
 		
 		// Use them all.. well okay, all but one :)
-		// We are assigning each thread a scenario, so no need to start more threads than scenarios selected
-		//final int cores = Math.min(Runtime.getRuntime().availableProcessors()-1, gp.getSelectedScenarios().size());
-		// System.out.println("Using " + (cores) + " cores for " + gp.getSelectedScenarios().size() + " selected scenarios");
 		final int cores = Runtime.getRuntime().availableProcessors()-1;
 		//ExecutorService service = Executors.newFixedThreadPool(cores);
 		System.out.println("Using " + (cores) + " cores...");

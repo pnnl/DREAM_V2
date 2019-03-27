@@ -378,9 +378,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				}
 				// Run once with all sensor types - if there is more than one such type
 				if(sensorsToTest.size() > 1) sensorsToTest.add(new ArrayList<String>(data.getSet().getSensorSettings().keySet()));
-				
-				float percentDetectable = 0;
-				
+								
 				Map<String, Float> sensorTestedToTTD = new TreeMap<String, Float>();
 				Map<String, List<String>> sensorTestedScenariosDetected = new HashMap<String, List<String>>();
 				Map<String, Map<String, Float>> ttdPerSensorPerScenarioDetected = new HashMap<String, Map<String, Float>>();
@@ -405,9 +403,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						totalTimeToDetection += timeToDetection;
 						scenariosDetected.add(scenario);
 						ttdForEachDetected.put(scenario, timeToDetection);
-						if(sensorsToTest.size() == 1 || sensors.size() > 1){
-							percentDetectable += data.getSet().getGloballyNormalizedScenarioWeight(scenario);
-						}
 					}
 					
 					String sensorTested = sensors.size() == 1 ? sensors.get(0) : "Any";
@@ -416,44 +411,53 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					ttdPerSensorPerScenarioDetected.put(sensorTested, ttdForEachDetected);
 				}
 				
+				// Now write out the results into a CSV file
 				StringBuilder text = new StringBuilder();
 				
-				// Heading
-				text.append("Sensor,Average TTD in detected scenarios,Percentage of scenarios detected,Detected scenarios,Tested scenarios");
-				for(String scenario: data.getSet().getScenarios()) {
-					text.append("," + scenario);
+				// Sensors
+				text.append("Sensors");
+				for(String sensorType: sensorTestedToTTD.keySet()) {
+					text.append("," +sensorType);
 				}
 				text.append("\n");
-								
+				// Average TTD in detected scenarios
+				text.append("Average TTD in detected scenarios");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
-					
-					if(sensorType.equals("Any")){
-						text.append(sensorType + ",");
-						text.append(Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + ",");
-						int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
-						int scenariosTested = data.getSet().getScenarios().size();
-						text.append(((float)detectedScenarios)/scenariosTested*100 + ",");
-						text.append(detectedScenarios + ",");
-						text.append(scenariosTested);
-						for(String scenario: data.getSet().getScenarios()) {
-							text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
-									 Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario)) : ""));			
-						}
-						text.append("\n");
-					}
-					else{
-						text.append(sensorType + ",");
-						text.append("N/A" + ",");
-						text.append("N/A" + ",");
-						text.append("N/A");
-						for(int i = 0; i < data.getSet().getScenarios().size(); i++)
-							text.append(",N/A");
-						text.append("\n");
-					}
+					float years = Math.round(sensorTestedToTTD.get(sensorType) * 1000f) / 1000f; //This causes it to round to 3 decimal places
+					text.append("," + years + " years");
 				}
-				
-				text.append("\nWeighted percent of scenarios that are detectable:," + Constants.percentageFormat.format(percentDetectable*100));
-								
+				text.append("\n");
+				// Detected scenarios
+				text.append("Detected scenarios");
+				for(String sensorType: sensorTestedToTTD.keySet()) {
+					int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
+					int scenariosTested = data.getSet().getScenarios().size();
+					text.append("," + detectedScenarios + " of " + scenariosTested);
+				}
+				text.append("\n");
+				// Weighted percentage of scenarios detected
+				text.append("Detected scenarios (weighted %)");
+				for(String sensorType: sensorTestedToTTD.keySet()) {
+					float percent = 0;
+					for(String scenario: sensorTestedScenariosDetected.get(sensorType)) {
+						percent += data.getSet().getGloballyNormalizedScenarioWeight(scenario)*100;
+					}
+					text.append("," + percent + "%");
+				}
+				text.append("\n");
+				// Now list best TTD per scenario
+				for(String scenario: data.getSet().getScenarios()) {
+					text.append("Best TTD for " + scenario);
+					for(String sensorType: sensorTestedToTTD.keySet()) {
+						if(ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario)) {
+							float years = Math.round(sensorTestedToTTD.get(sensorType) * 1000f) / 1000f; //This causes it to round to 3 decimal places
+							text.append("," + years + " years");
+						} else {
+							text.append(",");
+						}
+					}
+					text.append("\n");
+				}
 				try {
 					File outFolder = new File(outputFolder.getText());
 					if(!outFolder.exists())
@@ -647,7 +651,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						}
 					}
 				}
-//				text.append("\n");
 				// Y values	
 				for(int k = 0; k < ijk.getK(); k++) { 
 					float prevValue = 0.0f; // Assume center is at 0
@@ -663,7 +666,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						}
 					}
 				}
-//				text.append("\n");
 				// Z values
 				float prevValue = 0.0f; // Assume center is at 0				
 				for(int k = 0; k < ijk.getK(); k++) { 
@@ -678,9 +680,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");	
 						}
 					}
-				}
-				//text.append("\n");
-				
+				}				
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
@@ -688,15 +688,11 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
 						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
 					}}}
-					//text.append("\n");
 				}
-				//text.append("\n");
-
+				
 				//Connection List
 				text.append(TecplotNode.getStringOutput(ijk.getI(), ijk.getJ(), ijk.getK()));
 				
-				//text.append("\n");
-			
 				try{
 					File outFolder = new File(outputFolder.getText());
 					if(!outFolder.exists())
@@ -714,13 +710,13 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					JOptionPane.showMessageDialog(null, "Could not write to solution_space.dat, make sure the file is not currently open");
 					e.printStackTrace();
 				}
-
+				
 				printSolutionSpace();
 			}
 		});
 		solutionSpaceButton.setVisible(Constants.buildDev);
-			
-				
+		
+		
 		//This probably needs a new name. Used to create a scatterplot, hence the button, but this is the multi-run ensemble code.
 		//We can probably get rid of the scatterplot functionality.
 		multiRunEnsembleButton = new Button(devGroup, SWT.BALLOON);

@@ -192,14 +192,13 @@ public class NodeStructure {
 	
 	public Point3f getXYZEdgeFromIJK(Point3i node) {
 		try {
-			
 			// We just have to return the right xyz, probably xyz at ijk-1?
-			if(ijkDimensions.getI() != x.size()) {
+			if(ijkDimensions.getI() == x.size()) { //Check to make sure the grid is correctly sized
+				return new Point3f(edgex.get(node.getI()-1), edgey.get(node.getJ()-1), edgez.get(node.getK()-1));
+			} else {
 				System.err.println("Implement this!!! NodeStructure: 151");
 				return null;
 			}
-			//This version uses the extrapolated edges
-			return new Point3f(edgex.get(node.getI()-1), edgey.get(node.getJ()-1), edgez.get(node.getK()-1));
 		} catch(Exception e) {
 			Constants.log(Level.SEVERE, "Node structure - node was out of bounds", node.toString()); // Maybe warning?
 			return null;
