@@ -103,13 +103,13 @@ public class Point3f implements Comparable<Point3f> {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("(");
-		builder.append(Constants.decimalFormat.format(x)).append(", ");
-		builder.append(Constants.decimalFormat.format(y)).append(", ");
+		builder.append(Constants.decimalFormat.format(x)).append(": ");
+		builder.append(Constants.decimalFormat.format(y)).append(": ");
 		builder.append(Constants.decimalFormat.format(z));
 		builder.append(")");
 		return builder.toString();
 	}
-
+	
 	static final Comparator<Point3f> X_COMPARATOR = new Comparator<Point3f>() {
 
 		/**

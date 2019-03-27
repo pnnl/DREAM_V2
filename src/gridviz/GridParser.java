@@ -167,7 +167,7 @@ public class GridParser {
 					int endIndex = line.indexOf(",yr");
 					String sub = line.substring(startIndex,endIndex).trim();
 					try {
-						timeStep = Math.round(Float.parseFloat(sub) * 1000f) / 1000f;
+						timeStep = Math.round(Float.parseFloat(sub) * 1000f) / 1000f; //This rounds to 3 decimal places
 						if (!timesAsFloats.contains(timeStep))
 							timesAsFloats.add(timeStep);
 					} catch (Exception e) {

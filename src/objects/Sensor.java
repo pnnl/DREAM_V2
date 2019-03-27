@@ -46,8 +46,7 @@ public class Sensor {
     	
     	this.nodeNumber = toCopy.nodeNumber;
     	this.node = new Point3i(toCopy.node);
-    	if(this.point != null)
-    		this.point = new Point3f(toCopy.point);
+    	this.point = new Point3f(toCopy.point);
     	
     	this.type = toCopy.type;    	
     }
@@ -56,12 +55,13 @@ public class Sensor {
 		return nodeNumber;
 	}
 	
-	public void setIJKandNodeNumber(int i, int j, int k, NodeStructure domain) {
+	public void setLocation(int i, int j, int k, NodeStructure domain) {
 		node.setI(i);
 		node.setJ(j);
 		node.setK(k);
 		node =  new Point3i(i,j,k);
     	nodeNumber = domain.getNodeNumber(node);
+    	point = domain.getXYZEdgeFromIJK(node);
 	}
 	
 	public String getSensorType() {
@@ -72,9 +72,13 @@ public class Sensor {
 		return node;
 	}
 	
+	public Point3f getXYZ() {
+		return point;
+	}
+	
     @Override
     public int hashCode() {
     	return type != null ? type.hashCode() * 37 + nodeNumber : nodeNumber;
-    } 
+    }
 
 }

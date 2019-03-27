@@ -101,19 +101,21 @@ public class ResultPrinter {
 				String fileName = "run_" + run +"_" + type.toString();
 				List<String> lines = new ArrayList<String>();
 				StringBuilder header = new StringBuilder();
-				header.append("Iteration, Weighted Average TTD, Scenarios Detected, Sensors");
+				header.append("Iteration,Average TTD (Weighted),Scenarios Detected,Sensors");
 				lines.add(header.toString());
 				for(Integer iteration: results.allConfigsMap.get(type).get(run).keySet()) {
+					if(iteration<0) continue; //Skip the initialization iterations
+					
 					Configuration configuration = results.allConfigsMap.get(type).get(run).get(iteration);
-				
+					
 					float scenariosDetected = configuration.countScenariosDetected();
 					float totalWeightsForDetectedScenarios = 0.0f;
 					float weightedAverageTTD = 0.0f;
-
+					
 					// If we want weighted, we need to weight based on the normalized value of just the detected scenarios
 					for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 						totalWeightsForDetectedScenarios += results.set.getScenarioWeights().get(detectingScenario);
-					}	
+					}
 					
 					for(String detectingScenario: configuration.getTimesToDetection().keySet()) {
 						float scenarioWeight = results.set.getScenarioWeights().get(detectingScenario);
@@ -121,12 +123,12 @@ public class ResultPrinter {
 					}
 					
 					StringBuilder line = new StringBuilder();
-					line.append(iteration + ", " + Constants.percentageFormat.format(weightedAverageTTD) + ", " + scenariosDetected);
+					line.append(iteration + "," + Constants.percentageFormat.format(weightedAverageTTD) + " years" + "," + scenariosDetected);
 					for(Sensor sensor: configuration.getSensors()) {
 						if(sensor.getSensorType().contains("Electrical Conductivity"))
-							line.append(", " + sensor.getNodeNumber() + "+" + ((ExtendedSensor)sensor).getNodePairNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
+							line.append("," + sensor.getXYZ().toString() + "+" + ((ExtendedSensor)sensor).getPairXYZ().toString() + " " + Sensor.sensorAliases.get(sensor.getSensorType()));
 						else
-							line.append(", " + sensor.getNodeNumber() + ": " + Sensor.sensorAliases.get(sensor.getSensorType()));
+							line.append("," + sensor.getXYZ().toString() + " " + Sensor.sensorAliases.get(sensor.getSensorType()));
 					}
 					lines.add(line.toString());
 				}
@@ -153,7 +155,7 @@ public class ResultPrinter {
 		Map<Float, List<String>> ttdLinesToSort = new HashMap<Float, List<String>>();
 		Map<Float, List<String>> vadLinesToSort = new HashMap<Float, List<String>>();
 		
-		lines.add(",Scenarios with Leak Detected Weighted %,Scenarios with Leak Detected Un-Weighted %, Weighted Average TTD of Successful Scenarios,Unweighted Average TTD of Successful Scenarios,"+
+		lines.add(",Scenarios with Leak Detected,Scenarios with Leak Detected (Unweighted),Average TTD of Successful Scenarios,Average TTD of Successful Scenarios (Unweighted),"+
 				  "Range of TTD over Successful Scenarios,Scenarios with No Leak Detected,Number of Wells,Cost of Configuration,Volume of Aquifer Degraded,Sensor Types (x y z)");
 
 		List<String> scenariosThatDidNotDetect = new ArrayList<String>();
@@ -212,10 +214,10 @@ public class ResultPrinter {
 			}
 			
 			StringBuilder line = new StringBuilder();
-			line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + "," +
-					  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + "," + 
-					  Constants.percentageFormat.format(weightedAverageTTD) + "," + 
-					  Constants.percentageFormat.format(unweightedAverageTTD));	
+			line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + "%," +
+					  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + "%," + 
+					  Constants.percentageFormat.format(weightedAverageTTD) + " years," + 
+					  Constants.percentageFormat.format(unweightedAverageTTD) + " years");
 			
 			line.append("," + Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " years," + scenariosNotDetected);
 			
@@ -251,7 +253,7 @@ public class ResultPrinter {
 			Collection<Float> ttds = configuration.getTimesToDetection().values();
 			StringBuilder ttdLine = new StringBuilder();
 			for(float ttd: ttds)
-				ttdLine.append("," + ttd);
+				ttdLine.append("," + ttd + " years");
 			ttdLinesToSort.get(costOfConfig).add(ttdLine.toString());
 			
 			// Store lines listing the VAD per best configuration
@@ -342,7 +344,7 @@ public class ResultPrinter {
 	public static void printObjPerIterSum() throws IOException {
 		if(!results.objPerIterSum) 
 			return;
-
+		
 		for(Type type: results.objPerIterSumMap.keySet()) {	
 			String fileName = "objective_summary_" + type.toString();
 			List<String> lines = new ArrayList<String>();
@@ -351,16 +353,16 @@ public class ResultPrinter {
 					StringBuilder line = new StringBuilder();
 					line.append("Iteration");
 					for(Integer run: results.objPerIterSumMap.get(type).get(iteration).keySet()) {
-						line.append(", run" + run + " TTD" + ", run" + run + " % scenarios detected");
+						line.append(",Run" + run + ": TTD,Run" + run + ": Scenarios Detected");
 					}
 					lines.add(line.toString());
-				}	
+				}
 				StringBuilder line = new StringBuilder();
 				line.append(String.valueOf(iteration));
-
+				
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected)) + ", " + 
-								   (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)));
+					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected) + " years") +
+							"," + (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)) + "%");
 				}
 				lines.add(line.toString());
 			}

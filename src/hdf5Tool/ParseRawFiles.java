@@ -184,7 +184,7 @@ public class ParseRawFiles {
 						if(line.contains("Time =") & line.contains(",yr")) {
 							String year = line.substring(line.indexOf(",wk")+3, line.indexOf(",yr")).trim();
 							try {
-								Float timeStep = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This causes it to round to 3 decimal places
+								Float timeStep = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This rounds to 3 decimal places
 								if(!times.contains(timeStep)) times.add(timeStep);
 							} catch (Exception e) {
 								System.out.println("Years Error: " + year);
@@ -223,7 +223,7 @@ public class ParseRawFiles {
 					// Need to skip files that aren't selected times
 					if(line.contains("Time =") & line.contains(",yr")) {
 						String year = line.substring(line.indexOf(",wk")+3, line.indexOf(",yr")).trim();
-						float time = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This causes it to round to 3 decimal places
+						float time = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This rounds to 3 decimal places
 						if(selectedTimes.contains(time))
 							timeIndex = selectedTimes.indexOf(time); //Parse value into float
 						else {

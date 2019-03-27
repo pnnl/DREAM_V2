@@ -191,7 +191,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			bestValue = Integer.MAX_VALUE;
 		
 		// Hack to add a well pairing for ERT technology
-		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration);
+		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration, set.getNodeStructure());
 		
 		for(currentIteration = 0; currentIteration < set.getIterations(); currentIteration++) {
 			//temperature= temperature * 0.99f;
@@ -243,7 +243,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			long start = System.currentTimeMillis();
 			mutate(newConfiguration, set);
 			newConfiguration.orderSensors(); //Order the sensors so we can avoid saving duplicate configurations
-			newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration); // Hack to add a well pairing for ERT technology
+			newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration, set.getNodeStructure()); // Hack to add a well pairing for ERT technology
 			float ttm = System.currentTimeMillis()-start;
 			Constants.log(Level.FINE, "Function: running - time taken to mutate", (ttm) + " ms");
 			totalMutateTime += ttm;

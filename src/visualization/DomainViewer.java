@@ -907,7 +907,7 @@ public class DomainViewer {
 					// Add all the nodes for the full column in the primary well
 					for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
 						Sensor newSensor = new Sensor(sensor);
-						newSensor.setIJKandNodeNumber(i, j, k, set.getNodeStructure());
+						newSensor.setLocation(i, j, k, set.getNodeStructure());
 						newNodes.add(newSensor);
 					}
 					
@@ -918,7 +918,7 @@ public class DomainViewer {
 					if(i!=iPair || j!=jPair) {
 						for(int k=1; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
 							Sensor newSensor = new Sensor(sensor);
-							newSensor.setIJKandNodeNumber(iPair, jPair, k, set.getNodeStructure());
+							newSensor.setLocation(iPair, jPair, k, set.getNodeStructure());
 							newNodes.add(newSensor);
 						}
 					}

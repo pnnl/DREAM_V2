@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import utilities.Constants;
+import utilities.Point3f;
 import utilities.Point3i;
 
 /**
@@ -29,8 +30,9 @@ public class ExtendedSensor extends Sensor {
     private Map<String, TreeMap<Float, Double>> scenariosUsed;
     
     // Well pairing for E4D
-    private int nodePairNumber;
-    
+    private int pairNodeNumber;
+    // The XYZ location for the well pairing
+    private Point3f pairXYZ;
     
     public ExtendedSensor(int i, int j, int k, String type, NodeStructure domain) {
     	super(i, j, k, type, domain);
@@ -60,7 +62,8 @@ public class ExtendedSensor extends Sensor {
     	
     	triggering = toCopy.isTriggering();
     	well = null;    
-    	nodePairNumber = toCopy.getNodePairNumber();
+    	pairNodeNumber = toCopy.getNodePairNumber();
+    	pairXYZ = toCopy.getPairXYZ();
     }
     
 	public ExtendedSensor makeCopy() {
@@ -89,14 +92,19 @@ public class ExtendedSensor extends Sensor {
     }
     
     // Saves the node pair for ERT technology (k = 1)
-    public void setNodePair(int nodeNumber) {
-    	nodePairNumber = nodeNumber;
+    public void setNodePair(int nodeNumber, NodeStructure nodeStructure) {
+    	pairNodeNumber = nodeNumber;
+    	pairXYZ = nodeStructure.getXYZEdgeFromIJK(nodeStructure.getIJKFromNodeNumber(nodeNumber));
     }
     
     // Calls the well pairing for ERT technology (k = 1)
     public int getNodePairNumber() {
-		return nodePairNumber;
+		return pairNodeNumber;
 	}
+    
+    public Point3f getPairXYZ() {
+    	return pairXYZ;
+    }
     
 	public void setWell(Well well) {
 		this.well = well;

@@ -423,8 +423,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				// Average TTD in detected scenarios
 				text.append("Average TTD in detected scenarios");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
-					float years = Math.round(sensorTestedToTTD.get(sensorType) * 1000f) / 1000f; //This causes it to round to 3 decimal places
-					text.append("," + years + " years");
+					text.append("," + Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + " years");
 				}
 				text.append("\n");
 				// Detected scenarios
@@ -439,9 +438,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				text.append("Detected scenarios (weighted %)");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					float percent = 0;
-					for(String scenario: sensorTestedScenariosDetected.get(sensorType)) {
+					for(String scenario: sensorTestedScenariosDetected.get(sensorType))
 						percent += data.getSet().getGloballyNormalizedScenarioWeight(scenario)*100;
-					}
 					text.append("," + percent + "%");
 				}
 				text.append("\n");
@@ -449,12 +447,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				for(String scenario: data.getSet().getScenarios()) {
 					text.append("Best TTD for " + scenario);
 					for(String sensorType: sensorTestedToTTD.keySet()) {
-						if(ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario)) {
-							float years = Math.round(sensorTestedToTTD.get(sensorType) * 1000f) / 1000f; //This causes it to round to 3 decimal places
-							text.append("," + years + " years");
-						} else {
-							text.append(",");
-						}
+						text.append(", " + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
+								Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + " years" : ""));
 					}
 					text.append("\n");
 				}
