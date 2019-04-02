@@ -130,13 +130,18 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The Scenario Weighting window lists realizations by the naming convention used in the leakage simulation input files. If the user has prior knowledge of leakage probabilities or would like to choose to weight leakage scenarios unequally, they may do so in the Scenario Weighting window. By default all scenarios are considered equally likely.\nDREAM works to minimize the average time to leakage detection across all scenarios. Weighting scenarios non-uniformly has the effect of altering the average time to detection; therefore, monitoring configurations that solve for scenarios with higher weights will be given priority while DREAM iterates over monitoring configurations. Ultimately, results show both the unweighted and weighted times to detection to provide the user with an understanding of the impact scenario weighting has on each particular problem.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Scenario Weighting window lists scenarios by the naming convention used in the leakage simulation input files. "
+						+ "If the user has prior knowledge of leakage probabilities or would like to choose to weight leakage scenarios unequally, they may do so in the Scenario Weighting window. "
+						+ "By default all scenarios are considered equally likely.\nDREAM works to minimize the average time to leakage detection across all scenarios. "
+						+ "Weighting scenarios non-uniformly has the effect of altering the average time to detection; therefore, monitoring configurations that solve for scenarios with "
+						+ "higher weights will be given priority while DREAM iterates over monitoring configurations. Ultimately, results show both the unweighted and weighted times to detection "
+						+ "to provide the user with an understanding of the impact scenario weighting has on each particular problem.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("Weight the included realizations based on the probability of occurrence. By default, all realizations are equally weighted.");
+		infoLabel.setText("Weight the included scenarios based on the probability of occurrence. By default, all scenario are equally weighted.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 4;
@@ -151,7 +156,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		selectedScenarios.clear();
 		
 		Label setLabel = new Label(container, SWT.NULL);
-		setLabel.setText("Realization");
+		setLabel.setText("Scenario");
 		Label probabilityLabel = new Label(container, SWT.NULL);
 		probabilityLabel.setText("Weight");
 		
@@ -159,7 +164,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 
 		if(scenarios.size() > 1) {
 			Label setLabel2 = new Label(container, SWT.NULL);
-			setLabel2.setText("Realization");
+			setLabel2.setText("Scenario");
 			Label probabilityLabel2 = new Label(container, SWT.NULL);
 			probabilityLabel2.setText("Weight");
 			((GridLayout)container.getLayout()).numColumns = 4;
@@ -169,7 +174,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 
 		if(scenarios.size() > 2) {
 			Label setLabel3 = new Label(container, SWT.NULL);
-			setLabel3.setText("Realization");
+			setLabel3.setText("Scenario");
 			Label probabilityLabel3 = new Label(container, SWT.NULL);
 			probabilityLabel3.setText("Weight");
 			((GridLayout)container.getLayout()).numColumns = 6;

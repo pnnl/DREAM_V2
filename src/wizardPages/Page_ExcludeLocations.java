@@ -175,7 +175,11 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The user may need to exclude (x,y) locations from the monitoring configuration that are infeasible or unapproved. This window allows the user to manually deselect nodes that should not be used in the optimization algorithm.\nIf the user has an internet connection, the Launch Google map button will pop-up a map which the user can use to overlay the realization grid over the location of interest. The input coordinates should align with the upper left corner of the simulation grid (in plan view). The toolbar allows the user to zoom in or out and pivot the google map to achieve the appropriate view. Nodes that exceed one or more of the threshold criteria are shown in gray and may be de-selected by clicking on the (x,y) location.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The user may need to exclude (x,y) locations from the monitoring configuration that are infeasible or unapproved. "
+						+ "This window allows the user to manually deselect nodes that should not be used in the optimization algorithm.\nIf the user has an internet connection, the Launch Google map button "
+						+ "will pop-up a map which the user can use to overlay the scenario grid over the location of interest. The input coordinates should align with the upper left corner of the simulation "
+						+ "grid (in plan view). The toolbar allows the user to zoom in or out and pivot the google map to achieve the appropriate view. Nodes that exceed one or more of the threshold criteria "
+						+ "are shown in gray and may be de-selected by clicking on the (x,y) location.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

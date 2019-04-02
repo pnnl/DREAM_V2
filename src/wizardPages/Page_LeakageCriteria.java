@@ -622,8 +622,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			@Override
 			public void handleEvent(Event event) {
 				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of realization outputs, "
-						+ "DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included realizations. "
+				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of scenario outputs, "
+						+ "DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included scenarios. "
 						+ "The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor "
 						+ "each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is "
 						+ "known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, "
@@ -634,7 +634,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum "
-				+ "and maximum values are read from the first realization read by DREAM. These are provided to give the user an idea of the values present.");
+				+ "and maximum values are read from the first scenario read by DREAM. These are provided to give the user an idea of the values present.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 2;
