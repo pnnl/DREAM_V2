@@ -186,8 +186,9 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		});
 
 		//Minimum distance between wells
+		String unit = data.getSet().getNodeStructure().getUnit("x");
 		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
-		exclusionRadiusLabel.setText("Minimum Distance Between Wells");
+		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
 		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
 		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
 		exclusionRadius.setForeground(Constants.black);
@@ -230,7 +231,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		
 		//Cost per well depth
 		Label wellDepthCostLabel = new Label(container, SWT.NULL);
-		wellDepthCostLabel.setText("Cost of Well Per Unit Depth");
+		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " depth");
 		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
 		wellDepthCost.setForeground(Constants.black);
@@ -252,7 +253,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		if (Constants.buildDev) {
 			//Remediation cost
 			Label remediationCostLabel = new Label(container, SWT.NULL);
-			remediationCostLabel.setText("Remediation Cost Per Water Unit");
+			remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "^3"));
 			remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 			remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
 			remediationCost.setForeground(Constants.black);

@@ -127,6 +127,7 @@ public class ScenarioSet {
 	
 	@Override
 	public String toString() {
+		String zUnit = nodeStructure.getUnit("z");
 		StringBuilder builder = new StringBuilder();
 		builder.append("———— Input Summary ————\r\n");
 		
@@ -139,6 +140,7 @@ public class ScenarioSet {
 		// Leakage criteria
 		builder.append("Sensor settings:\r\n");
 		for(String parameter: sensorSettings.keySet()) {
+			String unit = nodeStructure.getUnit(parameter);
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
 			builder.append("\t\tCost: " + sensorSettings.get(parameter).getSensorCost() + " per sensor\r\n");
@@ -147,14 +149,14 @@ public class ScenarioSet {
 				builder.append("\t\tLeakage threshold: " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
 			else {
 				if(sensorSettings.get(parameter).getDeltaType() == DeltaType.DECREASE)
-					builder.append("\t\tLeakage threshold: Negative change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+					builder.append("\t\tLeakage threshold: Negative change of " + sensorSettings.get(parameter).getDetectionThreshold() + unit + "\r\n");
 				else if (sensorSettings.get(parameter).getDeltaType() == DeltaType.INCREASE)
-					builder.append("\t\tLeakage threshold: Positive change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+					builder.append("\t\tLeakage threshold: Positive change of " + sensorSettings.get(parameter).getDetectionThreshold() + unit + "\r\n");
 				else
-					builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + "\r\n");
+					builder.append("\t\tLeakage threshold: Change of " + sensorSettings.get(parameter).getDetectionThreshold() + unit + "\r\n");
 			}
-			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + "\r\n");
-			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + "\r\n");
+			builder.append("\t\tZone bottom: " + sensorSettings.get(parameter).getThisMinZ() + zUnit + "\r\n");
+			builder.append("\t\tZone top: " + sensorSettings.get(parameter).getThisMaxZ() + zUnit + "\r\n");
 			if(sensorSettings.get(parameter).getValidNodes().size()>0) {
 				int size = nodeStructure.getIJKDimensions().getI() * nodeStructure.getIJKDimensions().getJ() * nodeStructure.getIJKDimensions().getK();
 				builder.append("\t\tValid nodes: " + sensorSettings.get(parameter).getValidNodes().size() + " of " + size + "\r\n");
@@ -173,13 +175,13 @@ public class ScenarioSet {
 			builder.append("Configuration settings:\r\n");
 		builder.append("\tSensor budget: " + sensorCostConstraint + "\r\n");
 		builder.append("\tMax wells: " + maxWells + "\r\n");
-		builder.append("\tMax distance between wells: " + exclusionRadius + "\r\n");
+		builder.append("\tMin distance between wells: " + exclusionRadius + zUnit + "\r\n");
 		builder.append("\tCost per well: " + wellCost + "\r\n");
-		builder.append("\tCost per unit depth of well: " + wellDepthCost + "\r\n");
+		builder.append("\tCost per " + (zUnit=="" ? "unit" : zUnit) + " depth of well: " + wellDepthCost + "\r\n");
 		if(Constants.buildDev)
-			builder.append("\tRemediation cost per water unit: " + remediationCost + "\r\n");
+			builder.append("\tRemediation cost: " + remediationCost + " per " + (zUnit=="" ? "water unit" : zUnit + "^3") + "\r\n");
 		builder.append("\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
-
+		
 		return builder.toString();
 	}
 	

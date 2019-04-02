@@ -405,15 +405,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			thresholdCombo.setLayoutData(thresholdComboData);			
 			
 			//Detection Value
+			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
 			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			detectionText.setText(String.valueOf(sensorData.get(sensorKey).detectionThreshold));
+			detectionText.setText(String.valueOf(sensorData.get(sensorKey).detectionThreshold));// TODO: Need to add units in a way more visible that tooltips...
 			if(sensorData.get(sensorKey).deltaType==DeltaType.INCREASE) // Needed to maintain plus sign
 				detectionText.setText("+" + String.valueOf(sensorData.get(sensorKey).detectionThreshold));
-			if(HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0)!=null) {
+			if(HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0)!=null) { //Add global statistics as a tooltip for reference
 				float min = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0);
 				float avg = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 1);
 				float max = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 2);
-				detectionText.setToolTipText("Minimum = " + min + "; Average = " + avg + "; Maximum = " + max);
+				detectionText.setToolTipText("Minimum = " + min + unit + "; Average = " + avg + unit + "; Maximum = " + max +unit);
 			}
 			detectionText.setForeground(Constants.black);
 			detectionText.addModifyListener(new ModifyListener() {
@@ -444,10 +445,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			
 			// Set minimum z
+			unit = data.getSet().getNodeStructure().getUnit("z");
 			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			minZText.setText(String.valueOf(sensorData.get(sensorKey).minZ));
 			minZText.setForeground(Constants.black);
-			minZText.setToolTipText("Global zone bottom = " + minZBound);
+			minZText.setToolTipText("Global zone bottom = " + minZBound + unit);
 			minZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -483,7 +485,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			maxZText.setText(String.valueOf(sensorData.get(sensorKey).maxZ));
 			maxZText.setForeground(Constants.black);
-			maxZText.setToolTipText("Global zone top = " + maxZBound);
+			maxZText.setToolTipText("Global zone top = " + maxZBound + unit);
 			maxZText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -653,8 +655,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		detectionLabel.setText("Detection Value");
-		minZLabel.setText("Zone Bottom");
-		maxZLabel.setText("Zone Top");
+		// We want to add units if they have been added
+		String unit = data.getSet().getNodeStructure().getUnit("z");
+		minZLabel.setText("Zone Bottom" + (unit.equals("") ? "" : " (" + unit + ")"));
+		maxZLabel.setText("Zone Top" + (unit.equals("") ? "" : " (" + unit + ")"));
+
 		monitorParams.setFont(boldFontSmall);
 		aliasLabel.setFont(boldFontSmall);
 		costPerSensor.setFont(boldFontSmall);

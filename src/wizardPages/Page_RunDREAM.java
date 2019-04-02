@@ -440,7 +440,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					float percent = 0;
 					for(String scenario: sensorTestedScenariosDetected.get(sensorType))
 						percent += data.getSet().getGloballyNormalizedScenarioWeight(scenario)*100;
-					text.append("," + percent + "%");
+					text.append("," + Constants.percentageFormat.format(percent) + "%");
 				}
 				text.append("\n");
 				// Now list best TTD per scenario
@@ -479,6 +479,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
+				String unit = data.getSet().getNodeStructure().getUnit("x");
 				
 				StringBuilder text = new StringBuilder();
 				
@@ -489,14 +490,10 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				Collections.sort(years);
 				
 				for(Float time: years){
-					text.append("\n");
-					text.append(time);
-					text.append(",");
-					text.append(averages.get(time));
-					text.append(",");
-					text.append(minimums.get(time));
-					text.append(",");
-					text.append(maximums.get(time));
+					text.append("\n" + Constants.percentageFormat.format(time) + " years");
+					text.append("," + Constants.percentageFormat.format(averages.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
+					text.append("," + Constants.percentageFormat.format(minimums.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
+					text.append("," + Constants.percentageFormat.format(maximums.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
 				}
 								
 				try {
@@ -607,14 +604,19 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event arg0) {
 				/*
-				Method for creating ntab file of the cloud.
-				Note that neither of the authors were familiar with ntab, so this is a setup that seems to work but may have underlying issues.
+				Method for creating Tecplot file of the cloud.
+				Note that neither of the authors were familiar with Tecplot, so this is a setup that seems to work but may have underlying issues.
 				*/
+				String unit = data.getSet().getNodeStructure().getUnit("x");
 				StringBuilder text = new StringBuilder();
 				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
-				text.append("VARIABLES  = \"X, m\"\t\"Y, m\"\t\"Z, m\"");
+				text.append("VARIABLES = ");
+				text.append("\t\"X" + (unit.equals("") ? "" : ", " + unit) + "\"");
+				text.append("\t\"Y" + (unit.equals("") ? "" : ", " + unit) + "\"");
+				text.append("\t\"Z" + (unit.equals("") ? "" : ", " + unit) + "\"");
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
-					text.append("\t\"" + sensorType + "\"");
+					unit = data.getSet().getNodeStructure().getUnit(sensorType);
+					text.append("\t\"" + sensorType + (unit.equals("") ? "" : ", " + unit) + "\"");
 				}
 				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
 				//Catherine said we had these backwards, switched for now
@@ -627,60 +629,60 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				varRanks.append("[1, 2, 3, ");
 				int rank = 4;
 				for(int i = 0; i < data.getSet().getSensorSettings().keySet().size(); i++)
-					varRanks.append((rank++) + ", ");				
+					varRanks.append((rank++) + ", ");
 				text.append("VARLOCATION = (" + varRanks.toString().substring(0, varRanks.length() - 2) + "]" + " = NODAL)\n");
 
 				// X values
-				for(int k = 0; k < ijk.getK(); k++) { 			
-					for(int j = 0; j < ijk.getJ(); j++) { 
-						float prevValue = 0.0f; // Assume center is at 0	
-						for(int i = 0; i < ijk.getI(); i++) { 
-							float nextValue = data.getSet().getNodeStructure().getX().get(i);	
+				for(int k = 0; k < ijk.getK(); k++) {
+					for(int j = 0; j < ijk.getJ(); j++) {
+						float prevValue = 0.0f; // Assume center is at 0
+						for(int i = 0; i < ijk.getI(); i++) {
+							float nextValue = data.getSet().getNodeStructure().getX().get(i);
 							float var0f = prevValue;
 							float var1f = prevValue + ((nextValue-prevValue)*2);
-							prevValue = var1f;	
+							prevValue = var1f;
 							String var0 = utilities.Constants.exponentialFormat.format(var0f);
-							String var1 = utilities.Constants.exponentialFormat.format(var0f);							
-							text.append(var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n");	
+							String var1 = utilities.Constants.exponentialFormat.format(var0f);
+							text.append(var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + " " + var0 + " " + var1 + "\n");
 						}
 					}
 				}
-				// Y values	
-				for(int k = 0; k < ijk.getK(); k++) { 
+				// Y values
+				for(int k = 0; k < ijk.getK(); k++) {
 					float prevValue = 0.0f; // Assume center is at 0
 					for(int j = 0; j < ijk.getJ(); j++) {
-						float nextValue = data.getSet().getNodeStructure().getY().get(j);					
+						float nextValue = data.getSet().getNodeStructure().getY().get(j);
 						float var0f = prevValue;
 						float var1f = prevValue + ((nextValue-prevValue)*2);
-						prevValue = var1f;	
+						prevValue = var1f;
 						String var0 = utilities.Constants.exponentialFormat.format(var0f);
 						String var1 = utilities.Constants.exponentialFormat.format(var0f);
-						for(int i = 0; i < ijk.getI(); i++) { 
-							text.append(var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n");	
+						for(int i = 0; i < ijk.getI(); i++) {
+							text.append(var0 + " " + var0 + " " + var1 + " " + var1 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + "\n");
 						}
 					}
 				}
 				// Z values
-				float prevValue = 0.0f; // Assume center is at 0				
-				for(int k = 0; k < ijk.getK(); k++) { 
-					float nextValue = data.getSet().getNodeStructure().getZ().get(k);					
+				float prevValue = 0.0f; // Assume center is at 0
+				for(int k = 0; k < ijk.getK(); k++) {
+					float nextValue = data.getSet().getNodeStructure().getZ().get(k);
 					float var0f = prevValue;
 					float var1f = prevValue + ((nextValue-prevValue)*2);
 					prevValue = var1f;
 					String var0 = utilities.Constants.exponentialFormat.format(var0f);
-					String var1 = utilities.Constants.exponentialFormat.format(var0f);	
-					for(int j = 0; j < ijk.getJ(); j++) {		
-						for(int i = 0; i < ijk.getI(); i++) {				
-							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");	
+					String var1 = utilities.Constants.exponentialFormat.format(var0f);
+					for(int j = 0; j < ijk.getJ(); j++) {
+						for(int i = 0; i < ijk.getI(); i++) {
+							text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var1 + " " + var1 + " " + var1 + " " + var1 + "\n");
 						}
 					}
-				}				
+				}
 				// Variables
-				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
-					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) { 
+				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
+					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) {
 						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(i, j, k);
-						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");		
-						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");	
+						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");
+						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");
 					}}}
 				}
 				

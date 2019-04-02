@@ -63,7 +63,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		this.max = max;
 		Collections.shuffle(sensors, Constants.random);// Randomize
 		generateConfigurations(new ArrayList<ExtendedSensor>(),  sensors, set);
-		ResultPrinter.printAll();
+		ResultPrinter.printAll(set.getNodeStructure());
 	}
 
 
@@ -76,7 +76,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		ResultPrinter.clearResults(set, false);
 		iterative = false;
 		generateConfigurations(new ArrayList<ExtendedSensor>(),  getAllPossibleSensors(set), set);
-		ResultPrinter.printAll();
+		ResultPrinter.printAll(set.getNodeStructure());
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			for(ScenarioSet set: sets) {
 				runInternal(initialConfiguration, set);
 			}
-			ResultPrinter.printAll();
+			ResultPrinter.printAll(sets.get(0).getNodeStructure());
 		}
 	}
 	
@@ -110,7 +110,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			wasCancelled = runInternal(initialConfiguration, set);
 			if(wasCancelled) return true;
 		}
-		ResultPrinter.printAll();
+		ResultPrinter.printAll(set.getNodeStructure());
 		return false;
 	}
 
@@ -133,7 +133,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		ResultPrinter.clearResults(set, showPlots);
 		this.modelOption = modelOption;
 		wasCancelled = runInternal(initialConfiguration, set);
-		ResultPrinter.printAll();
+		ResultPrinter.printAll(set.getNodeStructure());
 		return wasCancelled;
 	}
 
@@ -141,7 +141,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	public void run(ExtendedConfiguration initialConfiguration, ScenarioSet set, String resultTag) {
 		ResultPrinter.clearResults(set, false);
 		runInternal(initialConfiguration, set);
-		ResultPrinter.printAll();
+		ResultPrinter.printAll(set.getNodeStructure());
 	}
 
 	/**

@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
+import objects.NodeStructure;
 import objects.ScenarioSet;
 import objects.Sensor;
 import objects.SensorSetting;
@@ -40,6 +41,9 @@ public class ResultPrinter {
 	// Whether or not we want to run python scripts (disable for scatterplot runs)
 	public static boolean runScripts = true;
 	
+	private static String timeUnit = "years";
+	private static String xUnit;
+	
 	public static void clearResults(ScenarioSet set, boolean makePlots) {
 		results = new Results(set, makePlots);
 	}
@@ -63,8 +67,8 @@ public class ResultPrinter {
 	/**
 	 * Prints everything we currently know how to prints
 	 */
-	public static void printAll() {
-
+	public static void printAll(NodeStructure nodeStructure) {
+		xUnit = nodeStructure.getUnit("x");
 		try {
 			printAllConfigs();	
 		} catch (Exception e) {
@@ -123,7 +127,7 @@ public class ResultPrinter {
 					}
 					
 					StringBuilder line = new StringBuilder();
-					line.append(iteration + "," + Constants.percentageFormat.format(weightedAverageTTD) + " years" + "," + scenariosDetected);
+					line.append(iteration + "," + Constants.decimalFormat.format(weightedAverageTTD) + " " + timeUnit + "," + scenariosDetected);
 					for(Sensor sensor: configuration.getSensors()) {
 						if(sensor.getSensorType().contains("Electrical Conductivity"))
 							line.append("," + sensor.getXYZ().toString() + "+" + ((ExtendedSensor)sensor).getPairXYZ().toString() + " " + Sensor.sensorAliases.get(sensor.getSensorType()));
@@ -195,12 +199,8 @@ public class ResultPrinter {
 			for(Sensor sensor: configuration.getSensors()) {
 				if(sensor instanceof ExtendedSensor) {
 					for(String scenario: ((ExtendedSensor)sensor).getScenariosUsed().keySet()) {
-						if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) {
-							continue;
-						}			
-						if(scenariosThatDidNotDetect.contains(scenario)) {
-							continue;
-						}
+						if(!((ExtendedSensor)sensor).isTriggeredInScenario(scenario)) continue;	
+						if(scenariosThatDidNotDetect.contains(scenario)) continue;
 						TreeMap<Float, Double> ttds = ((ExtendedSensor)sensor).getScenariosUsed().get(scenario);
 						for(Float ts: ttds.keySet()) {
 							if(ts < minYear)
@@ -216,18 +216,18 @@ public class ResultPrinter {
 			StringBuilder line = new StringBuilder();
 			line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + "%," +
 					  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + "%," + 
-					  Constants.percentageFormat.format(weightedAverageTTD) + " years," + 
-					  Constants.percentageFormat.format(unweightedAverageTTD) + " years");
+					  Constants.decimalFormat.format(weightedAverageTTD) + " " + timeUnit + "," + 
+					  Constants.decimalFormat.format(unweightedAverageTTD) + " " + timeUnit);
 			
-			line.append("," + Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " years," + scenariosNotDetected);
+			line.append("," + Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " " + timeUnit + "," + scenariosNotDetected);
 			
 			line.append("," + numberOfWells);
 			
 			line.append("," + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
 			
-			line.append("," + volumeDegraded);
+			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "^3"));
 			
-			for(Sensor sensor: configuration.getSensors()) {		
+			for(Sensor sensor: configuration.getSensors()) {
 				Point3f xyz = results.set.getNodeStructure().getXYZCenterFromIJK(sensor.getIJK());
 				// Special exception for ERT where no z is needed
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
@@ -253,14 +253,14 @@ public class ResultPrinter {
 			Collection<Float> ttds = configuration.getTimesToDetection().values();
 			StringBuilder ttdLine = new StringBuilder();
 			for(float ttd: ttds)
-				ttdLine.append("," + ttd + " years");
+				ttdLine.append("," + Constants.decimalFormat.format(ttd) + " " + timeUnit);
 			ttdLinesToSort.get(costOfConfig).add(ttdLine.toString());
 			
 			// Store lines listing the VAD per best configuration
 			Collection<Float> vads = SensorSetting.getVolumesDegraded(configuration.getTimesToDetection()).values();
 			StringBuilder vadLine = new StringBuilder();
 			for(float vad: vads)
-				vadLine.append("," + vad);
+				vadLine.append("," + Constants.decimalFormat.format(vad) + (xUnit.equals("") ? "" : " " + xUnit + "^3"));
 			vadLinesToSort.get(costOfConfig).add(vadLine.toString());
 		}
 		
@@ -361,7 +361,7 @@ public class ResultPrinter {
 				line.append(String.valueOf(iteration));
 				
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected) + " years") +
+					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.decimalFormat.format(objRes.timeToDetectionInDetected) + " " + timeUnit) +
 							"," + (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)) + "%");
 				}
 				lines.add(line.toString());

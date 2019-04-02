@@ -33,11 +33,12 @@ public class NodeStructure {
 
 	private List<TimeStep> timeSteps;
 	private List<String> dataTypes;
+	private HashMap<String, String> units; //<dataType, unit>
 	private Point3i ijkDimensions;
 	
 	private HashMap<Point3i, Float> porosityOfNode;
 	
-	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosity) {
+	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosity, HashMap<String, String> units) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -45,9 +46,10 @@ public class NodeStructure {
 		this.edgey = edgey;
 		this.edgez = edgez;
 		this.timeSteps = timeSteps;
-		this.dataTypes = new ArrayList<String>();
-		this.ijkDimensions = new Point3i(x.size(), y.size(), z.size());
-		this.porosityOfNode = porosity;
+		dataTypes = new ArrayList<String>();
+		this.units = units;
+		ijkDimensions = new Point3i(x.size(), y.size(), z.size());
+		porosityOfNode = porosity;
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -57,13 +59,14 @@ public class NodeStructure {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		this.edgex = setEdge(x);
-		this.edgey = setEdge(y);
-		this.edgez = setEdge(z);
+		edgex = setEdge(x);
+		edgey = setEdge(y);
+		edgez = setEdge(z);
 		this.timeSteps = timeSteps;
-		this.porosityOfNode = new HashMap<Point3i, Float>();
-		this.dataTypes = new ArrayList<String>();
-		this.ijkDimensions = new Point3i(x.size(), y.size(), z.size());
+		dataTypes = new ArrayList<String>();
+		units = new HashMap<String, String>();
+		ijkDimensions = new Point3i(x.size(), y.size(), z.size());
+		porosityOfNode = new HashMap<Point3i, Float>();
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -76,25 +79,22 @@ public class NodeStructure {
 	 * @param run
 	 */
 	public NodeStructure(String run) {
-
-		timeSteps = new ArrayList<TimeStep>();
-		dataTypes = new ArrayList<String>();
-		ijkDimensions = new Point3i();
-
 		x = new ArrayList<Float>();
 		y = new ArrayList<Float>();
 		z = new ArrayList<Float>();
-		
-		porosityOfNode = new HashMap<Point3i, Float>();
-
 		edgex = setEdge(x);
 		edgey = setEdge(y);
 		edgez = setEdge(z);
+		timeSteps = new ArrayList<TimeStep>();
+		dataTypes = new ArrayList<String>();
+		units = new HashMap<String, String>();
+		ijkDimensions = new Point3i();
+		porosityOfNode = new HashMap<Point3i, Float>();
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
 	}
-
+	
 	@Override
 	public String toString() {
 
@@ -103,6 +103,7 @@ public class NodeStructure {
 		builder.append("Node structure:\n");
 		builder.append("\tDimensions: " + ijkDimensions.toString() + "\n");
 		builder.append("\tData types: " + dataTypes.toString() + "\n");
+		builder.append("Units: " + units.toString() + "\n");
 		builder.append("\tx: " + x.toString() + "\n");
 		builder.append("\ty: " + y.toString() + "\n");
 		builder.append("\tz: " + z.toString() + "\n");
@@ -346,6 +347,16 @@ public class NodeStructure {
 		dataTypes.add(dataType);
 	}
 	
+	public void addUnit(String dataType, String unit) {
+		units.put(dataType, unit);
+	}
+	
+	public String getUnit(String parameter) {
+		if(units.containsKey(parameter))
+			return units.get(parameter);
+		return "";
+	}
+	
 	public Point3i getIJKDimensions() {
 		return ijkDimensions;
 	}
@@ -419,6 +430,7 @@ public class NodeStructure {
 		edgez = null;
 		timeSteps = null;
 		dataTypes = null;
+		units = null;
 		ijkDimensions = null;
 		porosityOfNode = null;
 	}

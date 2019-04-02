@@ -300,16 +300,18 @@ public class ExtendedConfiguration extends Configuration {
 			Point3f xyz = nodeStructure.getXYZEdgeFromIJK(sensor.getIJK());
 			if(sensor.getSensorType().contains("Electrical Conductivity")) {
 				Point3f xyzPair = nodeStructure.getXYZEdgeFromIJK(nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber()));
-				nodePositions.append(sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + "), ");
+				nodePositions.append(", " + sensor.getSensorType() + " (" + Constants.decimalFormat.format(xyz.getX()) + " " + Constants.decimalFormat.format(xyz.getY()));
+				nodePositions.append(") (" + Constants.decimalFormat.format(xyzPair.getX()) + " " + Constants.decimalFormat.format(xyzPair.getY()) + ")");
 				Point3i nodePair = nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
 				String IJPair = nodePair.getI() + "_" + nodePair.getJ();
 				if(!ijs.contains(IJPair))
 					ijs.add(IJPair);
 			} else {
-				nodePositions.append(sensor.getSensorType() + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + "), ");
+				nodePositions.append(", " + sensor.getSensorType() + " (" + Constants.decimalFormat.format(xyz.getX()) + " ");
+				nodePositions.append(Constants.decimalFormat.format(xyz.getY()) + " " + Constants.decimalFormat.format(xyz.getZ()) + ")");
 			}
 		}
-		String nodes = ijs.size() + " wells, " + nodePositions.toString().substring(0, nodePositions.toString().length()-2);
+		String nodes = ijs.size() + " wells" + nodePositions.toString();
 		return nodes;
 	}
 

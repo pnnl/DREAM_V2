@@ -89,7 +89,7 @@ public class TimeToDetectionPlots extends JFrame {
 		JPanel allPanel = new JPanel();
 		
 		// First plot
-		ChartPanel chartPanel25 = new ChartPanel(createChart(newMoreThan90, "Iteration", "Time to detection", "New configuration TTD (detecting scenarios only)"));
+		ChartPanel chartPanel25 = new ChartPanel(createChart(newMoreThan90, "Iteration", "Time to detection (years)", "New configuration TTD (detecting scenarios only)"));
 		chartPanel25.setPreferredSize(new Dimension(400, 400));
 		twentyFivePercent.add(chartPanel25, BorderLayout.NORTH);
 		

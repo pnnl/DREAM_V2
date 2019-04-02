@@ -19,6 +19,7 @@ import objects.SensorSetting.Trigger;
 import objects.TimeStep;
 import ncsa.hdf.hdf5lib.H5;
 import ncsa.hdf.hdf5lib.HDF5Constants;
+import ncsa.hdf.object.Attribute;
 import ncsa.hdf.object.Dataset;
 import ncsa.hdf.object.Group;
 import ncsa.hdf.object.h5.H5File;
@@ -80,6 +81,7 @@ public class HDF5Interface {
 				
 				if(name.startsWith("data")) {
 					HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
+					HashMap<String, String> units = new HashMap<String, String>();
 					List<TimeStep> times = new ArrayList<TimeStep>();
 					List<Float> xValues = new ArrayList<Float>();
 					List<Float> yValues = new ArrayList<Float>();
@@ -88,7 +90,6 @@ public class HDF5Interface {
 					List<Float> edgey = new ArrayList<Float>();
 					List<Float> edgez = new ArrayList<Float>();
 					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
-						//List<Float> dataRead = new ArrayList<Float>();
 						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
 						int dataset_id = dataset.open();
 						float[] temp =  (float[])dataset.read();
@@ -97,14 +98,14 @@ public class HDF5Interface {
 							for(int i=0; i<temp.length; i++)
 								times.add(new TimeStep(i, temp[i], Math.round(temp[i])));
 						}
-						else if(dataset.getName().equals("porosity") || dataset.getName().equals("porosities")) { // Should be porosity, but for a little while it was named porosities... remove second option when ready to discontinue
+						else if(dataset.getName().equals("porosity") || dataset.getName().equals("porosities")) { // TODO: Should be porosity, but for a little while it was named porosities... remove second option when ready to discontinue
 							long size = dataset.getDims()[0] * dataset.getDims()[1] * dataset.getDims()[2];
 							temp = new float[(int)size];
 							H5.H5Dread(dataset_id, HDF5Constants.H5T_NATIVE_FLOAT, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, temp);
 							int counter = 0;
 							for(int i=1; i<=dataset.getDims()[0]; i++) {
 								for(int j=1; j<=dataset.getDims()[1]; j++) {
-									for(int k = 1; k<=dataset.getDims()[2]; k++) {
+									for(int k=1; k<=dataset.getDims()[2]; k++) {
 										porosity.put(new Point3i(i, j, k), temp[counter]);
 										counter++;
 									}
@@ -117,17 +118,23 @@ public class HDF5Interface {
 						else if(dataset.getName().equals("vertex-x")) edgex = Constants.arrayToList(temp);
 						else if(dataset.getName().equals("vertex-y")) edgey = Constants.arrayToList(temp);
 						else if(dataset.getName().equals("vertex-z")) edgez = Constants.arrayToList(temp);
+						// If we have units stored for x, y, z, we want to save them
+						if(dataset.hasAttribute()) //Right now we only list one attribute - units
+							units.put(dataset.getName(), extractUnitAttribute(dataset));
 						dataset.close(dataset_id);
 					}
 					if(edgex.size()>0)
-						nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity);
-					else //support for old file structures that don't have vertex information
+						nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity, units);
+					else //support for old file structures that don't have vertex information or units TODO: Remove when we no longer want to support
 						nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
 					
 				} else if(name.startsWith("plot") && nodeStructure.getDataTypes().isEmpty()) {
 					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
 						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-						nodeStructure.getDataTypes().add(dataset.getName());
+						nodeStructure.addDataType(dataset.getName());
+						// If we have units stored for parameters, we want to save them
+						if(dataset.hasAttribute()) //Right now we only list one attribute - units
+							nodeStructure.addUnit(dataset.getName(), extractUnitAttribute(dataset));
 					}
 					
 				} else if(name.startsWith("statistics")) {
@@ -176,21 +183,6 @@ public class HDF5Interface {
 		    }
 		});
 		return scenarios;
-	}
-	
-	/**					**\
-	 * Getters & Setters *
-	 * 					 *
-	\*					 */
-	
-	public static Float getStatistic(String dataType, int index) {
-		// 0 = minimum
-		// 1 = average
-		// 2 = maximum
-		if (!statistics.isEmpty() && !dataType.contains("allSensors") && !dataType.contains("Electrical Conductivity"))
-			if(statistics.containsKey(dataType)) //TODO: This is just a temporary fix - I need to fix the converter to get statistics for all parameters, then this line can be removed.
-				return statistics.get(dataType)[index];
-		return null;
 	}
 	
 	
@@ -369,8 +361,6 @@ public class HDF5Interface {
 			else if(setting.getDeltaType() == DeltaType.DECREASE) triggered = setting.getDetectionThreshold() >= change;
 			else if(setting.getDeltaType() == DeltaType.BOTH) triggered = setting.getDetectionThreshold() <= Math.abs(change);
 		}
-		if(triggered==true)
-			triggered = true;
 		return triggered;
 	}
 	
@@ -437,4 +427,31 @@ public class HDF5Interface {
 		return true;
 	}
 	
+	// This extracts the unit attribute from an HDF5 file
+	@SuppressWarnings("unchecked")
+	private static String extractUnitAttribute(Dataset dataset) throws Exception {
+		List<Attribute> attributes = dataset.getMetadata();
+		for(Attribute a: attributes) {
+			if(a.getName().equals("units")) {
+				Object obj = a.getValue();
+				return ((String[]) obj)[0];
+			}
+		}
+		return null;
+	}
+	
+	/**					**\
+	 * Getters & Setters *
+	 * 					 *
+	\*					 */
+	
+	public static Float getStatistic(String dataType, int index) {
+		// 0 = minimum
+		// 1 = average
+		// 2 = maximum
+		if (!statistics.isEmpty() && !dataType.contains("allSensors") && !dataType.contains("Electrical Conductivity"))
+			if(statistics.containsKey(dataType)) //TODO: For a while the converter didn't create statistics for all parameters... remove line when ready to discontinue
+				return statistics.get(dataType)[index];
+		return null;
+	}
 }
