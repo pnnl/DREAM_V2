@@ -216,14 +216,14 @@ public class ResultPrinter {
 			StringBuilder line = new StringBuilder();
 			line.append(Constants.percentageFormat.format(globallyWeightedPercentage) + "%," +
 					  Constants.percentageFormat.format((scenariosDetected/totalScenarios)*100) + "%," + 
-					  Constants.decimalFormat.format(weightedAverageTTD) + " " + timeUnit + "," + 
-					  Constants.decimalFormat.format(unweightedAverageTTD) + " " + timeUnit);
+					  Constants.percentageFormat.format(weightedAverageTTD) + " " + timeUnit + "," + 
+					  Constants.percentageFormat.format(unweightedAverageTTD) + " " + timeUnit);
 			
 			line.append("," + Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " " + timeUnit + "," + scenariosNotDetected);
 			
 			line.append("," + numberOfWells);
 			
-			line.append("," + ((costOfConfig < 1000) ? Constants.decimalFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
+			line.append("," + ((costOfConfig < 1000) ? Constants.percentageFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
 			
 			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "^3"));
 			
@@ -253,7 +253,7 @@ public class ResultPrinter {
 			Collection<Float> ttds = configuration.getTimesToDetection().values();
 			StringBuilder ttdLine = new StringBuilder();
 			for(float ttd: ttds)
-				ttdLine.append("," + Constants.decimalFormat.format(ttd) + " " + timeUnit);
+				ttdLine.append("," + Constants.percentageFormat.format(ttd) + " " + timeUnit);
 			ttdLinesToSort.get(costOfConfig).add(ttdLine.toString());
 			
 			// Store lines listing the VAD per best configuration
@@ -361,7 +361,7 @@ public class ResultPrinter {
 				line.append(String.valueOf(iteration));
 				
 				for(ObjectiveResult objRes: results.objPerIterSumMap.get(type).get(iteration).values()) {
-					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.decimalFormat.format(objRes.timeToDetectionInDetected) + " " + timeUnit) +
+					line.append(", " + (Double.isNaN(objRes.timeToDetectionInDetected) ? "" : Constants.percentageFormat.format(objRes.timeToDetectionInDetected) + " " + timeUnit) +
 							"," + (Double.isNaN(objRes.percentScenariosDetected) ? "" : Constants.percentageFormat.format(objRes.percentScenariosDetected)) + "%");
 				}
 				lines.add(line.toString());
