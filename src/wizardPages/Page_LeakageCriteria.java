@@ -474,6 +474,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			detectionUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 			detectionUnit.setText(unit);
 			detectionUnit.setForeground(Constants.grey);
+			detectionUnit.setToolTipText(HDF5Interface.getStatisticsString(sensorKey));
 			detectionUnit.addListener(SWT.MouseDown, new Listener() {
 				public void handleEvent(Event event) {
 					detectionText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
@@ -531,6 +532,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			bottomUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 			bottomUnit.setText(unit);
 			bottomUnit.setForeground(Constants.grey);
+			bottomUnit.setToolTipText("Global zone bottom = " + minZBound + unit);
 			bottomUnit.addListener(SWT.MouseDown, new Listener() {
 				public void handleEvent(Event event) {
 					bottomText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
@@ -585,6 +587,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			topUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 			topUnit.setText(unit);
 			topUnit.setForeground(Constants.grey);
+			topUnit.setToolTipText("Global zone top = " + maxZBound + unit);
 			topUnit.addListener(SWT.MouseDown, new Listener() {
 				public void handleEvent(Event event) {
 					topText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
