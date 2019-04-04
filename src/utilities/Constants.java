@@ -34,6 +34,8 @@ public class Constants {
 	
 	public static Color black = new Color(Display.getCurrent(), 0, 0, 0);
 	public static Color red = new Color(Display.getCurrent(), 255, 0, 0);
+	public static Color grey = new Color(Display.getCurrent(), 109, 109, 109);
+	public static Color white = new Color(Display.getCurrent(), 255, 255, 255);
 	
 	public enum ModelOption {
 		

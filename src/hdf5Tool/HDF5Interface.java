@@ -449,9 +449,22 @@ public class HDF5Interface {
 		// 0 = minimum
 		// 1 = average
 		// 2 = maximum
-		if (!statistics.isEmpty() && !dataType.contains("allSensors") && !dataType.contains("Electrical Conductivity"))
+		if(!statistics.isEmpty() && !dataType.contains("allSensors") && !dataType.contains("Electrical Conductivity")) {
 			if(statistics.containsKey(dataType)) //TODO: For a while the converter didn't create statistics for all parameters... remove line when ready to discontinue
 				return statistics.get(dataType)[index];
+		}
 		return null;
+	}
+	
+	public static String getStatisticsString(String dataType) {
+		if(!statistics.isEmpty() && !dataType.contains("allSensors") && !dataType.contains("Electrical Conductivity")) {
+			if(statistics.containsKey(dataType)) {//TODO: For a while the converter didn't create statistics for all parameters... remove line when ready to discontinue
+				float min = statistics.get(dataType)[0];
+				float avg = statistics.get(dataType)[1];
+				float max = statistics.get(dataType)[2];
+				return "Minimum = " + Constants.percentageFormat.format(min) + "; Average = " + Constants.percentageFormat.format(avg) + "; Maximum = " + Constants.percentageFormat.format(max);
+			}
+		}
+		return "";
 	}
 }

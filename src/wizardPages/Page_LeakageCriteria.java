@@ -24,8 +24,10 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -93,15 +95,21 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		private Label fullCloudNodeLabel;
 		private Label paretoNodeLabel;
 		private Label sensorTypeLabel;
-		private Label detectionLabel;
-		private Label minZLabel;
-		private Label maxZLabel;
 		
 		private Text aliasText;
 		private Text costText;
+		
+		private Composite detectionComposite;
 		private Text detectionText;
-		private Text minZText;
-		private Text maxZText;
+		private Label detectionUnit;
+		
+		private Composite bottomComposite;
+		private Text bottomText;
+		private Label bottomUnit;
+		
+		private Composite topComposite;
+		private Text topText;
+		private Label topUnit;
 		
 		private Combo thresholdCombo;
 		public String specificType;
@@ -160,6 +168,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		
 		public void buildUI(String sensorKey) {
+			// Creates dataGrid information for each field
+			GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			gridData.widthHint = 60; //sets minimum width per column
+			
 			//Add a button here
 			if(isDuplicate){
 				addButton = new Button(container, SWT.PUSH);
@@ -256,18 +268,18 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						if(!Constants.isValidFloat(temp.detectionText.getText()))
 							detectionError = true;
 						//Zone bottom
-						if(!Constants.isValidFloat(temp.minZText.getText()))
+						if(!Constants.isValidFloat(temp.bottomText.getText()))
 							botError = true;
 						else {
-							float minZValue = Float.parseFloat(temp.minZText.getText());
+							float minZValue = Float.parseFloat(temp.bottomText.getText());
 							if (minZValue < temp.minZBound || minZValue > temp.maxZBound)
 								botBoundError = true;
 						}
 						//Zone top
-						if(!Constants.isValidFloat(temp.maxZText.getText()))
+						if(!Constants.isValidFloat(temp.topText.getText()))
 							topError = true;
 						else {
-							float maxZValue = Float.parseFloat(temp.maxZText.getText());
+							float maxZValue = Float.parseFloat(temp.topText.getText());
 							if (maxZValue < temp.minZBound || maxZValue > temp.maxZBound)
 								topBoundError = true;
 						}
@@ -292,7 +304,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			
 			
-			//Alias Input
+			// Alias Input
 			aliasText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			aliasText.setText(sensorData.get(sensorKey).alias);
 			aliasText.setForeground(Constants.black);
@@ -331,12 +343,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(emptyError, "  Need to enter an alias.");
 				}
 			});
-			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, false, false);
+			GridData aliasTextData = new GridData(SWT.FILL, SWT.END, true, false);
 			aliasTextData.widthHint = 60;
 			aliasText.setLayoutData(aliasTextData);
 			
 			
-			//Cost Input
+			// Cost Input
 			costText = new Text(container, SWT.BORDER | SWT.SINGLE);
 			costText.setText(String.valueOf(sensorData.get(sensorKey).cost));
 			costText.setForeground(Constants.black);
@@ -358,12 +370,12 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(costError, "  Cost is not a real number.");
 				}
 			});
-			GridData costTextData = new GridData(SWT.FILL, SWT.END, false, false);
+			GridData costTextData = new GridData(SWT.FILL, SWT.END, true, false);
 			costTextData.widthHint = 60;
 			costText.setLayoutData(costTextData);
 			
 			
-			//Detection Criteria
+			// Detection Criteria
 			thresholdCombo = new Combo(container, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			thresholdCombo.add(Trigger.BELOW_THRESHOLD.toString());
 			thresholdCombo.add(Trigger.ABOVE_THRESHOLD.toString());
@@ -402,21 +414,39 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			GridData thresholdComboData = new GridData(SWT.FILL, SWT.END, false, false);
 			thresholdComboData.widthHint = 105;
-			thresholdCombo.setLayoutData(thresholdComboData);			
+			thresholdCombo.setLayoutData(thresholdComboData);
 			
-			//Detection Value
+			
+			//// Detection Value ////
+			// We want to display units within the same text box, so we need to do some fancy magic
+			// Essentially we are creating a composite with two fields within it: (1) text and (2) unit label
+			// It should look *mostly* the same as other input fields, but the user is unable to edit units
+			
+			// GridData layout for the main composite
+			GridData compositeGridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			compositeGridData.widthHint = 60;
+			compositeGridData.heightHint = 18;
+			//compositeGridData.verticalIndent = 4;
+			
+			// GridLayout for the two fields within the composite
+			final GridLayout unitGridLayout = new GridLayout(2, false);
+			unitGridLayout.marginHeight = 1;
+			unitGridLayout.marginWidth = 0;
+			unitGridLayout.horizontalSpacing = 0;
+			
+			//Get the units for each parameter
 			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
-			detectionText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			detectionText.setText(String.valueOf(sensorData.get(sensorKey).detectionThreshold));// TODO: Need to add units in a way more visible that tooltips...
-			if(sensorData.get(sensorKey).deltaType==DeltaType.INCREASE) // Needed to maintain plus sign
-				detectionText.setText("+" + String.valueOf(sensorData.get(sensorKey).detectionThreshold));
-			if(HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0)!=null) { //Add global statistics as a tooltip for reference
-				float min = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 0);
-				float avg = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 1);
-				float max = HDF5Interface.getStatistic(sensorData.get(sensorKey).sensorType, 2);
-				detectionText.setToolTipText("Minimum = " + min + unit + "; Average = " + avg + unit + "; Maximum = " + max +unit);
-			}
+			
+			// The border gives the appearance of a single component
+			detectionComposite = new Composite(container, SWT.BORDER);
+			detectionComposite.setLayoutData(compositeGridData);
+			detectionComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			
+			detectionText = new Text(detectionComposite, SWT.SINGLE | SWT.RIGHT);
+			detectionText.setLayoutData(gridData);
+			detectionText.setText((sensorData.get(sensorKey).deltaType==DeltaType.INCREASE ? "+" : "") + String.valueOf(sensorData.get(sensorKey).detectionThreshold)); //Need to maintain plus sign
 			detectionText.setForeground(Constants.black);
+			detectionText.setToolTipText(HDF5Interface.getStatisticsString(sensorKey));
 			detectionText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
@@ -439,36 +469,56 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					else deltaType = DeltaType.BOTH;
 				}
 			});
-			GridData detectionInputData = new GridData(SWT.FILL, SWT.END, false, false);
-			detectionInputData.widthHint = 60;
-			detectionText.setLayoutData(detectionInputData);
+			
+			detectionUnit = new Label(detectionComposite, SWT.NONE);
+			detectionUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			detectionUnit.setText(unit);
+			detectionUnit.setForeground(Constants.grey);
+			detectionUnit.addListener(SWT.MouseDown, new Listener() {
+				public void handleEvent(Event event) {
+					detectionText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
+					detectionText.setSelection(detectionText.toString().length()); //Sets the cursor to the end of the text
+				}
+			});
 			
 			
-			// Set minimum z
+			//// Zone Bottom Value ////
+			// We want to display units within the same text box, so we need to do some fancy magic
+			// Essentially we are creating a composite with two fields within it: (1) text and (2) unit label
+			// It should look *mostly* the same as other input fields, but the user is unable to edit units
+			
+			//Get the units for the Z value
 			unit = data.getSet().getNodeStructure().getUnit("z");
-			minZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			minZText.setText(String.valueOf(sensorData.get(sensorKey).minZ));
-			minZText.setForeground(Constants.black);
-			minZText.setToolTipText("Global zone bottom = " + minZBound + unit);
-			minZText.addModifyListener(new ModifyListener() {
+			
+			// The border gives the appearance of a single component
+			bottomComposite = new Composite(container, SWT.BORDER);
+			bottomComposite.setLayoutData(compositeGridData);
+			bottomComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			
+			bottomText = new Text(bottomComposite, SWT.SINGLE | SWT.RIGHT);
+			bottomText.setLayoutData(gridData);
+			bottomText.setText(String.valueOf(sensorData.get(sensorKey).minZ));
+			bottomText.setForeground(Constants.black);
+			bottomText.setToolTipText("Global zone bottom = " + minZBound + unit);
+			bottomText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					minZText = ((Text)e.getSource());
+					bottomText = ((Text)e.getSource());
 					boolean botError = false;
 					boolean botBoundError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(Constants.isValidFloat(temp.minZText.getText())) { //Valid number
-							float minZValue = Float.valueOf(temp.minZText.getText());
+						if(Constants.isValidFloat(temp.bottomText.getText())) { //Valid number
+							float minZValue = Float.valueOf(temp.bottomText.getText());
 							if (minZValue < minZBound || minZValue > maxZBound) {
-								temp.minZText.setForeground(Constants.red);
+								temp.bottomText.setForeground(Constants.red);
 								botBoundError = true;
 							} else {
-								temp.minZText.setForeground(Constants.black);
+								temp.bottomText.setForeground(Constants.black);
 								temp.minZ = minZValue;
 							}
 						} else { //Not a valid number
-							temp.minZText.setForeground(Constants.red);
+							temp.bottomText.setForeground(Constants.red);
 							botError = true;
 						}
 					}
@@ -476,35 +526,53 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(botBoundError, "  Bottom outside domain bounds.");
 				}
 			});
-			GridData minZTextData = new GridData(SWT.FILL, SWT.END, false, false);
-			minZTextData.widthHint = 60;
-			minZText.setLayoutData(minZTextData);
+			
+			bottomUnit = new Label(bottomComposite, SWT.NONE);
+			bottomUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			bottomUnit.setText(unit);
+			bottomUnit.setForeground(Constants.grey);
+			bottomUnit.addListener(SWT.MouseDown, new Listener() {
+				public void handleEvent(Event event) {
+					bottomText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
+					bottomText.setSelection(bottomText.toString().length()); //Sets the cursor to the end of the text
+				}
+			});
 			
 			
-			// Set maximum z
-			maxZText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			maxZText.setText(String.valueOf(sensorData.get(sensorKey).maxZ));
-			maxZText.setForeground(Constants.black);
-			maxZText.setToolTipText("Global zone top = " + maxZBound + unit);
-			maxZText.addModifyListener(new ModifyListener() {
+			//// Zone Bottom Value ////
+			// We want to display units within the same text box, so we need to do some fancy magic
+			// Essentially we are creating a composite with two fields within it: (1) text and (2) unit label
+			// It should look *mostly* the same as other input fields, but the user is unable to edit units
+			
+			// The border gives the appearance of a single component
+			topComposite = new Composite(container, SWT.BORDER);
+			topComposite.setLayoutData(compositeGridData);
+			topComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			
+			topText = new Text(topComposite, SWT.SINGLE | SWT.RIGHT);
+			topText.setLayoutData(gridData);
+			topText.setText(String.valueOf(sensorData.get(sensorKey).maxZ));
+			topText.setForeground(Constants.black);
+			topText.setToolTipText("Global zone top = " + maxZBound + unit);
+			topText.addModifyListener(new ModifyListener() {
 				@Override
 				public void modifyText(ModifyEvent e) {
-					maxZText = ((Text)e.getSource());
+					topText = ((Text)e.getSource());
 					boolean topError = false;
 					boolean topBoundError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(Constants.isValidFloat(temp.maxZText.getText())) { //Valid number
-							float maxZValue = Float.valueOf(temp.maxZText.getText());
+						if(Constants.isValidFloat(temp.topText.getText())) { //Valid number
+							float maxZValue = Float.valueOf(temp.topText.getText());
 							if (maxZValue < minZBound || maxZValue > maxZBound) {
-								temp.maxZText.setForeground(Constants.red);
+								temp.topText.setForeground(Constants.red);
 								topBoundError = true;
 							} else {
-								temp.maxZText.setForeground(Constants.black);
+								temp.topText.setForeground(Constants.black);
 								temp.maxZ = maxZValue;
 							}
 						} else { //Not a valid number
-							temp.maxZText.setForeground(Constants.red);
+							temp.topText.setForeground(Constants.red);
 							topError = true;
 						}
 					}
@@ -512,18 +580,30 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					errorFound(topBoundError, "  Top outside domain bounds.");
 				}
 			});
-			GridData maxZTextData = new GridData(SWT.FILL, SWT.END, false, false);
-			maxZTextData.widthHint = 60;
-			maxZText.setLayoutData(maxZTextData);
+			
+			topUnit = new Label(topComposite, SWT.NONE);
+			topUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			topUnit.setText(unit);
+			topUnit.setForeground(Constants.grey);
+			topUnit.addListener(SWT.MouseDown, new Listener() {
+				public void handleEvent(Event event) {
+					topText.setFocus(); //This makes it so when a user clicks the label, the cursor instead goes to the text
+					topText.setSelection(topText.toString().length()); //Sets the cursor to the end of the text
+				}
+			});
+			
 			
 			// Hide unused fields for ERT sensors
 			if(sensorKey.contains("Electrical Conductivity")) {
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				thresholdCombo.setEnabled(false);
+				detectionComposite.setEnabled(false);
 				detectionText.setEnabled(false);
-				minZText.setEnabled(false);
-				maxZText.setEnabled(false);
+				bottomComposite.setEnabled(false);
+				bottomText.setEnabled(false);
+				topComposite.setEnabled(false);
+				topText.setEnabled(false);
 			}
 			
 			// Hide unused fields for IAM
@@ -531,7 +611,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				addButton.setVisible(false);
 				aliasText.setEnabled(false);
 				thresholdCombo.setEnabled(false);
+				detectionComposite.setEnabled(false);
 				detectionText.setEnabled(false);
+				detectionUnit.setEnabled(false);
 			}
 			
 			// Hide unused fields for ALL_SENSORS
@@ -540,7 +622,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				aliasText.setEnabled(false);
 				costText.setToolTipText("This sensor will detect as a combination of all selected sensors, but will move as one sensor during optimization.");
 				thresholdCombo.setVisible(false);
+				detectionComposite.setVisible(false);
 				detectionText.setVisible(false);
+				detectionUnit.setVisible(false);
+
 			}
 			
 			toggleEnabled();
@@ -554,19 +639,43 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
 			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
-				thresholdCombo.setEnabled(isIncluded);					
+				thresholdCombo.setEnabled(isIncluded);
+			// The detection entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
+			if(detectionComposite != null && !detectionComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				detectionComposite.setEnabled(isIncluded);
+				if(isIncluded) detectionComposite.setBackground(Constants.white);
+				else detectionComposite.setBackground(container.getBackground());
+			}
 			if(detectionText != null && !detectionText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
 				detectionText.setEnabled(isIncluded);
-			if(detectionLabel != null && !detectionLabel.isDisposed())
-				detectionLabel.setEnabled(isIncluded);
-			if(minZLabel != null && !minZLabel.isDisposed())
-				minZLabel.setEnabled(isIncluded);
-			if(minZText != null && !minZText.isDisposed() && !alias.contains("ERT"))
-				minZText.setEnabled(isIncluded);
-			if(maxZLabel != null && !maxZLabel.isDisposed())
-				maxZLabel.setEnabled(isIncluded);
-			if(maxZText != null && !maxZText.isDisposed() && !alias.contains("ERT"))
-				maxZText.setEnabled(isIncluded);
+			if(detectionUnit != null && !detectionUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				if(isIncluded) detectionUnit.setBackground(Constants.white);
+				else detectionUnit.setBackground(container.getBackground());
+			}
+			// The zone bottom entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
+			if(bottomComposite != null && !bottomComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				bottomComposite.setEnabled(isIncluded);
+				if(isIncluded) bottomComposite.setBackground(Constants.white);
+				else bottomComposite.setBackground(container.getBackground());
+			}
+			if(bottomText != null && !bottomText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+				bottomText.setEnabled(isIncluded);
+			if(bottomUnit != null && !bottomUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				if(isIncluded) bottomUnit.setBackground(Constants.white);
+				else bottomUnit.setBackground(container.getBackground());
+			}
+			// The zone bottom entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
+			if(topComposite != null && !topComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				topComposite.setEnabled(isIncluded);
+				if(isIncluded) topComposite.setBackground(Constants.white);
+				else topComposite.setBackground(container.getBackground());
+			}
+			if(topText != null && !topText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+				topText.setEnabled(isIncluded);
+			if(topUnit != null && !topUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+				if(isIncluded) topUnit.setBackground(Constants.white);
+				else topUnit.setBackground(container.getBackground());
+			}
 		}
 	}
 	
@@ -655,11 +764,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		costPerSensor.setText("Cost per Sensor");
 		detectionCriteria.setText("Detection Criteria");
 		detectionLabel.setText("Detection Value");
-		// We want to add units if they have been added
-		String unit = data.getSet().getNodeStructure().getUnit("z");
-		minZLabel.setText("Zone Bottom" + (unit.equals("") ? "" : " (" + unit + ")"));
-		maxZLabel.setText("Zone Top" + (unit.equals("") ? "" : " (" + unit + ")"));
-
+		minZLabel.setText("Zone Bottom");
+		maxZLabel.setText("Zone Top");
+		
 		monitorParams.setFont(boldFontSmall);
 		aliasLabel.setFont(boldFontSmall);
 		costPerSensor.setFont(boldFontSmall);
@@ -744,7 +851,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  			@Override
 	  			public void handleEvent(Event event) {
 	  				// TODO: Catherine edit text here! This info pop-up also needs to note the specific units that E4D needs
-	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
+	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) "
+	  						+ "modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
 	  			}
 	  		});
 	  		
@@ -1073,6 +1181,30 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 		}
 	}
+	
+	public class TextWithSuffix {
+		
+        public TextWithSuffix(final Composite parent, Composite baseComposite, Text text, Label label, float value, String suffix) {
+            // The border gives the appearance of a single component
+            baseComposite = new Composite(parent, SWT.BORDER);
+            baseComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+            final GridLayout baseCompositeGridLayout = new GridLayout(2, false);
+            baseCompositeGridLayout.marginHeight = 0;
+            baseCompositeGridLayout.marginWidth = 0;
+            baseComposite.setLayout(baseCompositeGridLayout);
+            
+            // You can set the background color and force it on the children (the Text and Label objects) to create the illusion of a single component
+            baseComposite.setBackground(new Color(parent.getDisplay(), new RGB(255, 255, 255)));
+            baseComposite.setBackgroundMode(SWT.INHERIT_FORCE);
+            
+            text = new Text(baseComposite, SWT.SINGLE | SWT.RIGHT);
+            text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            
+            label = new Label(baseComposite, SWT.NONE);
+            label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+            label.setText(suffix);
+        }
+    }
 	
 	@Override
 	public boolean isPageCurrent() {
