@@ -30,8 +30,6 @@ import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import org.apache.commons.io.FileUtils;
-
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
@@ -499,12 +497,11 @@ public class FileConverter extends javax.swing.JFrame {
 			try {
 				FileFormat hdf5Format = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 				File hdf5FileLocation = new File(file_outputDir, scenario + ".h5");
-				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getName(), FileFormat.FILE_CREATE_DELETE);
+				hdf5File = (H5File)hdf5Format.createFile(hdf5FileLocation.getAbsolutePath(), FileFormat.FILE_CREATE_DELETE);
 				hdf5File.open();
 				
 				writeH5Files(gp, hdf5File, scenario);
 				
-				FileUtils.copyFile(hdf5File, hdf5FileLocation);
 				statusLabel.setText("The " + fileType + " files were successfully converted to H5 files.");
 				statusLabel.setForeground(new java.awt.Color(5, 70, 5));
 				System.out.println("Finished reading "+scenario+", writing to "+hdf5File+"... took "+(System.currentTimeMillis()-startTime)/1000+" s");
