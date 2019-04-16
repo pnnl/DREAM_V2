@@ -116,7 +116,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		aboutInfo.setLayoutData(aboutInfoData);
 		
 		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
-		Image dreamImage = new Image(container.getDisplay(), "./DreamConcept.jpg");
+		Image dreamImage = new Image(container.getDisplay(), "./img/DreamConcept.jpg");
 		dreamImageData.horizontalSpan = 2;
 		dreamImageData.heightHint = 260;
 		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
@@ -128,7 +128,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		nrapImageData.horizontalSpan = 2;
 		nrapImageData.verticalSpan = 8;
 		nrapImageData.heightHint = 110;
-		Image nrapLogo = new Image(container.getDisplay(), "./NRAP.png");
+		Image nrapLogo = new Image(container.getDisplay(), "./img/NRAP.png");
 		CLabel nrapLogoLabel = new CLabel(container, SWT.BORDER_SOLID);
 		nrapLogoLabel.setImage(nrapLogo);
 		nrapLogoLabel.setLayoutData(nrapImageData);
@@ -181,7 +181,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
 		imageData.horizontalSpan = 4;
 		imageData.heightHint = 100;
-		Image labLogos = new Image(container.getDisplay(), "./DOE-LABS_S.png");
+		Image labLogos = new Image(container.getDisplay(), "./img/DOE-LABS_S.png");
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);
