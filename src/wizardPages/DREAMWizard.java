@@ -79,7 +79,7 @@ public class DREAMWizard extends Wizard {
 		setWindowTitle(null);
 		setWindowTitle("DREAM Wizard");
 		setNeedsProgressMonitor(true);	
-		ImageData imgData = new ImageData("./img/dream.png"); 
+		ImageData imgData = new ImageData("./dream.png"); 
 		this.setDefaultPageImageDescriptor(ImageDescriptor.createFromImageData(imgData));
 		this.setTitleBarColor(new RGB(255,255,255));
 		data = new STORMData(this);
@@ -189,7 +189,7 @@ public class DREAMWizard extends Wizard {
 
 		final DREAMWizard wizard = new DREAMWizard();
 
-		WizardDialog.setDefaultImage(new Image(Display.getDefault(),"./img/icon.png"));
+		WizardDialog.setDefaultImage(new Image(Display.getDefault(),"./icon.png"));
 
 		WizardDialog wizardDialog = new WizardDialog(null, wizard) {
 			{
