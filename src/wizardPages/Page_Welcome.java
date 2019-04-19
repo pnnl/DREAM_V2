@@ -1,8 +1,11 @@
 package wizardPages;
 
 import java.awt.Desktop;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -116,7 +119,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		aboutInfo.setLayoutData(aboutInfoData);
 		
 		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
-		Image dreamImage = new Image(container.getDisplay(), "./img/DreamConcept.jpg");
+		Image dreamImage = new Image(container.getDisplay(), getClass().getResourceAsStream("/DreamConcept.jpg"));
 		dreamImageData.horizontalSpan = 2;
 		dreamImageData.heightHint = 260;
 		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
@@ -128,7 +131,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		nrapImageData.horizontalSpan = 2;
 		nrapImageData.verticalSpan = 8;
 		nrapImageData.heightHint = 110;
-		Image nrapLogo = new Image(container.getDisplay(), "./img/NRAP.png");
+		Image nrapLogo = new Image(container.getDisplay(), getClass().getResourceAsStream("/NRAP.png"));
 		CLabel nrapLogoLabel = new CLabel(container, SWT.BORDER_SOLID);
 		nrapLogoLabel.setImage(nrapLogo);
 		nrapLogoLabel.setLayoutData(nrapImageData);
@@ -156,9 +159,13 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		userManual.setText("                   <A>User manual</A>");
 		userManual.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				File userManualPdf = new File("./docs/user_manual.pdf");
+				// We essentially create a local copy of the pdf so that it works when packaged in a JAR
 				try {
-					Desktop.getDesktop().open(userManualPdf);
+			        Path tempOutput = Files.createTempFile("user_manual", ".pdf");
+			        tempOutput.toFile().deleteOnExit();
+			        InputStream is = getClass().getResourceAsStream("/user_manual.pdf");
+			        Files.copy(is, tempOutput, StandardCopyOption.REPLACE_EXISTING);
+			        Desktop.getDesktop().open(tempOutput.toFile());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -181,7 +188,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
 		imageData.horizontalSpan = 4;
 		imageData.heightHint = 100;
-		Image labLogos = new Image(container.getDisplay(), "./img/DOE-LABS_S.png");
+		Image labLogos = new Image(container.getDisplay(), getClass().getResourceAsStream("/DOE-LABS_S.png"));
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
 		labLogosLabel.setLayoutData(imageData);

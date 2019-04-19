@@ -79,7 +79,7 @@ public class DREAMWizard extends Wizard {
 		setWindowTitle(null);
 		setWindowTitle("DREAM Wizard");
 		setNeedsProgressMonitor(true);	
-		ImageData imgData = new ImageData("./img/dream.png"); 
+		ImageData imgData = new ImageData(getClass().getResourceAsStream("/dream.png")); 
 		this.setDefaultPageImageDescriptor(ImageDescriptor.createFromImageData(imgData));
 		this.setTitleBarColor(new RGB(255,255,255));
 		data = new STORMData(this);
@@ -188,9 +188,9 @@ public class DREAMWizard extends Wizard {
 			System.exit(0); // Exit if they don't accept
 
 		final DREAMWizard wizard = new DREAMWizard();
-
-		WizardDialog.setDefaultImage(new Image(Display.getDefault(),"./img/icon.png"));
-
+		
+		WizardDialog.setDefaultImage(new Image(Display.getDefault(), DREAMWizard.class.getResourceAsStream("/icon.png")));
+		
 		WizardDialog wizardDialog = new WizardDialog(null, wizard) {
 			{
 				setShellStyle(SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.MODELESS | SWT.RESIZE | SWT.MAX | SWT.MIN | SWT.ICON);
