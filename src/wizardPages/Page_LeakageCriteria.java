@@ -733,20 +733,18 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "After reading through the directory of scenario outputs, "
-						+ "DREAM will generate a table of monitoring parameters that the user can select. These parameters are specific to the included scenarios. "
-						+ "The selected monitoring parameters will be used in the optimization algorithm. The user may label what technology they will use to monitor "
-						+ "each selected parameter in the \"Alias for Monitoring Technology\" box and then provide a realistic cost per monitoring technology if it is "
-						+ "known; if not, the costs should be set equal. The detection criteria may be specified based on the relative change from initial conditions, "
-						+ "absolute change from initial conditions, or a maximum or minimum threshold. If relative delta, absolute delta, or maximum threshold is selected, "
-						+ "the given value and all values above are treated as detecting a leak. If minimum threshold is selected, that value and all values below are treated as detecting a leak.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "DREAM will generate a table of all monitoring parameters available from the loaded files. "
+						+ "Where possible, units are assigned from the loaded files. By selecting a parameter and assigning a threshold, DREAM will generate a solution space containing detecting "
+						+ "locations across all scenarios, and will further pare down the solution space based on a pareto optimality condition described further in the user manual. The threshold "
+						+ "criteria may be specified as relative or absolute change from initial conditions (+/- may restrict the change in a specific direction), or as a minimum or maximum threshold. "
+						+ "To test different technologies for the same parameter, the plus button will create a duplicate that can be assigned a different detection threshold. The alias may be customized "
+						+ "by the user. The zone restrictions will limit monitoring placement within a specified depth interval, while the default indicates the full domain thickness.");	
 			}
 		});
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("Select the monitoring parameters of interest, include a cost per appropriate sensor type, and set the detection criteria. NOTE: The minimum "
-				+ "and maximum values are read from the first scenario read by DREAM. These are provided to give the user an idea of the values present.");
+		infoLabel.setText("Select the monitoring parameters of interest, include a cost per monitoring location, set the detection criteria, and constrain based on depth. NOTE: Hover over the "
+				+ "detection threshold to show statistics across all scenarios that may provide insight when selecting a value.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 2;
@@ -764,7 +762,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		Label maxZLabel = new Label(container, SWT.LEFT);
 		monitorParams.setText("Monitoring Parameter");
 		aliasLabel.setText("Alias for Monitoring Technology");
-		costPerSensor.setText("Cost per Sensor");
+		costPerSensor.setText("Cost");
 		detectionCriteria.setText("Detection Criteria");
 		detectionLabel.setText("Detection Value");
 		minZLabel.setText("Zone Bottom");
@@ -785,7 +783,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// Find Triggering Nodes Button
 		Button findTriggeringNodes = new Button(container, SWT.BALLOON);
-		findTriggeringNodes.setText("Find triggering nodes");
+		findTriggeringNodes.setText("Find triggering locations");
 		GridData triggeringNodesData = new GridData(SWT.BEGINNING, SWT.END, false, false, 3, 1);
 		findTriggeringNodes.setLayoutData(triggeringNodesData);
 		findTriggeringNodes.addListener(SWT.Selection, new Listener() {
@@ -801,7 +799,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// Resulting nodes for full solution space (unique nodes that trigger on any scenario)
 		Group fullSolutionGroup = new Group(container, SWT.SHADOW_NONE);
-		fullSolutionGroup.setText("Full Solution Nodes for Each Parameter");
+		fullSolutionGroup.setText("Full Solution Space for Each Parameter");
 		fullSolutionGroup.setFont(boldFontSmall);
 		fullSolutionGroup.setLayout(new GridLayout(4,true));
 		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -820,7 +818,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// Resulting nodes from pareto optimal (unique nodes that trigger on the most scenarios)
 		Group paretoGroup = new Group(container, SWT.SHADOW_NONE);
-		paretoGroup.setText("Pareto Nodes for Each Parameter");
+		paretoGroup.setText("Pareto Space for Each Parameter");
 		paretoGroup.setFont(boldFontSmall);
 		paretoGroup.setLayout(new GridLayout(4,true));
 		paretoGroup.setLayoutData(tempData);
@@ -853,8 +851,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	  		infoLinkE4D.addListener(SWT.MouseUp, new Listener(){
 	  			@Override
 	  			public void handleEvent(Event event) {
-	  				// TODO: Catherine edit text here! This info pop-up also needs to note the specific units that E4D needs
-	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering nodes, the user may write input files for the E4D model. E4D is a three-dimensional (3D) "
+	  				MessageDialog.openInformation(container.getShell(), "Additional information", "After finding triggering locations, the user may write input files for the E4D model. E4D is a three-dimensional (3D) "
 	  						+ "modeling and inversion code designed for subsurface imaging and monitoring using static and time-lapse 3D electrical resistivity (ER) or spectral induced polarization (SIP) data.");	
 	  			}
 	  		});
@@ -914,7 +911,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						dialog.setMessage("An E4D file was created that provides the " + maximumWells + " best well locations across all scenarios based on the " + selectedParameter + " parameter. "
 								+ "E4D will use these well locations to reduce computatational time.\n\nDirectory: " + e4dWellFile.getAbsolutePath());
 						dialog.open();
-						// TODO: Catherine edit text here!
 					} catch (IOException e1) {
 						MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
 						dialog.setText("Write E4D File: Failed");

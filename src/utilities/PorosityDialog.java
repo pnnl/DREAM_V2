@@ -86,7 +86,7 @@ public class PorosityDialog extends TitleAreaDialog {
 	public void create() {
 		super.create();
 		setTitle("Set default porosity");
-		String message = "No porosity information was detected in the hdf5 files included for this run.";
+		String message = "No porosity information was detected in the files included for this run.";
 		message += "\nEither load the porosity information from an IJK-ordered data file, or set the porosity of zones within the domain using this dialog.";
 		message += "\nYou may save this information in the correct format using the save button as well for easy re-loading on future runs.";
 		setMessage(message, IMessageProvider.INFORMATION);

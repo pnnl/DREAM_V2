@@ -129,7 +129,6 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
 				MessageDialog.openInformation(container.getShell(), "Additional information", "The Scenario Weighting window lists scenarios by the naming convention used in the leakage simulation input files. "
 						+ "If the user has prior knowledge of leakage probabilities or would like to choose to weight leakage scenarios unequally, they may do so in the Scenario Weighting window. "
 						+ "By default all scenarios are considered equally likely.\nDREAM works to minimize the average time to leakage detection across all scenarios. "

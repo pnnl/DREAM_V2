@@ -148,13 +148,16 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			public void handleEvent(Event event) {			
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
-				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager), Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support."); //Catherine TODO: Add acknowledgement for past developers		
+				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program."
+						+ "The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager),"
+						+ "Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support. "
+						+ "The authors wish to thank Art Sadovsky, Jason Gastelum, Ellen Porter, Luke Rodriguez for their early development work on the DREAM tool.");
 				messageBox.setText("Acknowledgements");
 				messageBox.open();
 			}
 		});
 		
-		new Label(container, SWT.BEGINNING).setText("\tVersion 2016.11-1.0");
+		new Label(container, SWT.BEGINNING).setText("\tVersion 2019.05-2.0");
 		Link userManual = new Link(container, SWT.BEGINNING);
 		userManual.setText("                   <A>User manual</A>");
 		userManual.addListener(SWT.Selection, new Listener() {

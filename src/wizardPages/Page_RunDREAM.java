@@ -182,8 +182,10 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The Best TTD Possible per Sensor-type button allows the user to generate a summary of the average times to detection for all scenarios and all sensor-types individually and as a whole. The \"Weighted percent of scenarios that are detectable\" is also presented, giving the user an idea for how many of the leakage scenarios read into DREAM had leaks detected according to the leakage criteria specified. The algorithm behind this button assumes an unlimited budget and an unlimited number of wells to achieve this goal. In other words, a monitoring point is placed in every node in the solution space; therefore, the results give no indication of optimal monitoring configurations. The purpose of this button is to allow the user to have an understanding of the problem before running the iterative procedure. Results identify the best possible time to detection and highest percent of scenarios detecting a leak possible.\nThe Run Iterative Procedure button will run the simulated annealing optimization algorithm the number of times specified on the number of configurations specified.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "To the left is a summary of all the inputs previously entered. The Run Iterative Procedure "
+						+ "button will run the simulated annealing optimization algorithm the number of times specified on the number of configurations specified. The user may choose to hide "
+						+ "the iterative performance plots and visualization tool to speed up the computational process. The multi-run ensemble increments between a minimum and maximum number of "
+						+ "allowed monitoring locations, running a full DREAM optimization for each setting. Diagnostic tools are also available, with descriptions in the manual.");	
 			}			
 		});
 		infoLink.setLayoutData(infoLinkData);

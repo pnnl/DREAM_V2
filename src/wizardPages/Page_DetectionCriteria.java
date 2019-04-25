@@ -96,7 +96,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			new Label(group, SWT.NULL); // Blank filler
 			Label sensorHeader = new Label(group, SWT.LEFT);
 			Label minimumHeader = new Label(group, SWT.LEFT);
-			sensorHeader.setText("Sensor");
+			sensorHeader.setText("Monitoring Technology");
 			minimumHeader.setText("Minimum to Signify Leak");
 			sensorHeader.setFont(boldFontSmall);
 			minimumHeader.setFont(boldFontSmall);
@@ -275,15 +275,14 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The Detection Criteria window prompts the user to specify how many monitoring "
-						+ "sensors must be triggered to signify a leak has occurred. The user may create multiple tests with any combination of available sensors. "
-						+ "\"Any Sensor\" implies that any sensor detection counts towards the test.");	
+				MessageDialog.openInformation(container.getShell(), "Additional information", "The Detection Criteria window prompts the user to specify how many detections "
+						+ "must be triggered to signify a leak has occurred. The user may create multiple tests with any combination of available monitoring technologies. "
+						+ "\"Any Technology\" implies that any detection counts towards the test.");	
 			}
 		});
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("How many detecting sensors are required to have confidence in a leak?");
+		infoLabel.setText("How many detections are required to have confidence in a leak?");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 2;
@@ -292,8 +291,8 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		// Map available sensors to display text with their costs
 		textMap = new HashMap<String, String>();
 		textMapReversed = new HashMap<String, String>();
-		textMap.put("Any Sensor", "Any Sensor");
-		textMapReversed.put("Any Sensor", "Any Sensor");
+		textMap.put("Any Technology", "Any Technology");
+		textMapReversed.put("Any Technology", "Any Technology");
 		for(String sensorType: data.getSet().getSensorSettings().keySet()) {
 			SensorSetting sensorSetting = data.getSet().getSensorSettings(sensorType);
 			textMap.put(sensorType, sensorSetting.getAlias()+" (Cost = "+sensorSetting.getSensorCost()+")");
@@ -320,7 +319,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 			@Override
 			public void handleEvent(Event e) {
 				HashMap<String, Integer> test = new HashMap<String, Integer>();
-				test.put("Any Sensor", 1);
+				test.put("Any Technology", 1);
 				testList.add(new DetectionCriteria(test)); //Save to local class
 				data.getSet().getInferenceTest().addActiveTest(test); //Save to InferenceTest class
 				loadPage();
@@ -339,7 +338,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 		
-		// Determine the cheapest sensor for the "Any Sensor" option
+		// Determine the cheapest sensor for the "Any Technology" option
 		float min = Float.MAX_VALUE;
 		for(String sensor: data.getSet().getSensorSettings().keySet()) {
 			float cost = data.getSet().getSensorSettings(sensor).getSensorCost();
@@ -351,7 +350,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 		for(DetectionCriteria test: testList) {
 			float testCost = 0;
 			for(String sensor: test.activeTests.keySet()) {
-				if(sensor.equals("Any Sensor"))
+				if(sensor.equals("Any Technology"))
 					testCost += min * test.activeTests.get(sensor);
 				else
 					testCost += data.getSet().getSensorSettings(sensor).getSensorCost() * test.activeTests.get(sensor);

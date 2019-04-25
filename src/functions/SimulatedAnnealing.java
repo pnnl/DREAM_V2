@@ -154,8 +154,8 @@ public class SimulatedAnnealing extends Function {
 			float testValue = 0;
 			for(String testKey: test.keySet()) { //Loop through sensors in a test
 				
-				// We already checked that there were enough sensors, so we don't need to do anything more here
-				if(testKey.equals("Any Sensor")) continue;
+				// We already checked that there were enough technologies, so we don't need to do anything more here
+				if(testKey.equals("Any Technology")) continue;
 				
 				// Create a list of ttds for the given sensor from the test
 				List<Float> ttds = listOfValidTTDs(sensors, set, scenario, testKey);
@@ -174,7 +174,7 @@ public class SimulatedAnnealing extends Function {
 			// The configuration passed this test
 			if(testPass) {
 				
-				// Do a final check to confirm that the "any sensor" requirement doesn't increase the inferenceValue
+				// Do a final check to confirm that the "Any Technology" requirement doesn't increase the inferenceValue
 				List<Float> allTTDs = listOfValidTTDs(sensors, set, scenario, "");
 				if(allTTDs.size() < test.size()) continue; //Not enough detecting sensors to complete test
 				if(allTTDs.get(test.size()-1) > testValue) //Save the largest TTD at the minimum "All Sensor" test requirement

@@ -32,7 +32,7 @@ import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
- * Select the directory with the hdf5 files to be used, as well as the style of algorithm to run. Currently has 2 modes supported.
+ * Select the directory with the HDF5 files to be used, as well as the style of algorithm to run. Currently has 2 modes supported.
  * See line 164
  * @author port091
  * @author rodr144
@@ -142,16 +142,15 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
-				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 files for all leakage simulations to be considered. "
+				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 or NRAP-Open-IAM files for all leakage simulations to be considered. "
 						+ "If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. "
-						+ "Read more about the DREAM HDF5 Converter tool in the user manual. Note: The HDF5 files must be directly available within the directory provided; they may not be in "
-						+ "subdirectories within the root directory.");	
+						+ "Read more about the DREAM HDF5 Converter tool in the user manual. Note: The files must be directly available within the directory provided; they may not be in "
+						+ "subdirectories within the root directory.");
 			}
 		});
 		
 		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);
-		infoLabel.setText("Provide the path to a single directory containing hdf5 formatted files of all subsurface simulation output at specified plot times.");
+		infoLabel.setText("Browse to a single folder containing subsurface simulation files (.h5 or .iam)");
 		infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 4));
 		
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
@@ -227,7 +226,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		});
 				
 		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to hdf5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
+		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to HDF5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
 		GridData noteGridData = new GridData(GridData.FILL_HORIZONTAL);
 		noteGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		noteGridData.verticalSpan = 4;

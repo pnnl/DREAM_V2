@@ -129,7 +129,7 @@ public class ScenarioSet {
 	public String toString() {
 		String zUnit = nodeStructure.getUnit("z");
 		StringBuilder builder = new StringBuilder();
-		builder.append("———— Input Summary ————\r\n");
+		builder.append("---- Input Summary ----\r\n");
 		
 		// Details about the scenario set read from the file being used
 		builder.append("Scenario ensemble: " + scenarioEnsemble + "\r\n");
@@ -138,13 +138,13 @@ public class ScenarioSet {
 			builder.append("\t" + scenario + " = " + Constants.percentageFormat.format(scenarioWeights.get(scenario)) + "\r\n");
 		
 		// Leakage criteria
-		builder.append("Sensor settings:\r\n");
+		builder.append("Technology settings:\r\n");
 		for(String parameter: sensorSettings.keySet()) {
 			String unit = nodeStructure.getUnit(parameter);
 			SensorSetting sensorSetting = sensorSettings.get(parameter);
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
-			builder.append("\t\tCost: " + Constants.percentageFormat.format(sensorSetting.getSensorCost()) + " per sensor\r\n");
+			builder.append("\t\tCost: " + Constants.percentageFormat.format(sensorSetting.getSensorCost()) + " per monitoring location\r\n");
 			builder.append("\t\tTriggering on: " + sensorSetting.getTrigger() + "\r\n");
 			if(sensorSetting.getTrigger() == Trigger.BELOW_THRESHOLD || sensorSetting.getTrigger() == Trigger.ABOVE_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSetting.getDetectionThreshold() + "\r\n");
@@ -238,7 +238,7 @@ public class ScenarioSet {
 	
 	// Setup the inference test
 	public void setupInferenceTest() {
-		inferenceTest = new InferenceTest("Any Sensor", 1);
+		inferenceTest = new InferenceTest("Any Technology", 1);
 	}
 	
 	public void detectionMapForAllSensors(IProgressMonitor monitor, ArrayList<SensorData> activeSensors) {

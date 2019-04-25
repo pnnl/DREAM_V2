@@ -105,43 +105,39 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	public void loadPage() {
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren()) {
+		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
-		}
-		container.layout();	
-		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
-
-		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("Configuration Settings");
-		GridData infoGridData = new GridData(GridData.BEGINNING);
-		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
-		infoGridData.verticalSpan = 2;
-		infoLabel.setLayoutData(infoGridData);
-
-		infoLabel.setFont(boldFont);
-
-		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
-		infoLinkData.horizontalSpan = 1;
-		infoLinkData.verticalSpan = 2;
+		
+		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel1.setText("Configuration Settings");
+		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
+		infoLabel1.setFont(boldFont);
+		
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 		infoLink.setAlignment(SWT.RIGHT);
+		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
 			public void handleEvent(Event event) {
-				// TODO: Catherine edit text here!
 				MessageDialog.openInformation(container.getShell(), "Additional information", "The configuration settings specify hard constraints for the optimization algorithm. "
-						+ "The solutions may not exceed the maximum cost or the maximum number of wells defined. The user must be careful to provide a high enough cost to meet the "
-						+ "specified minimum requirements given in the previous window. The \"Add starting point\" field is the coordinate where the algorithm begins searching for "
-						+ "new monitoring device placement. The Use average time to detection checkbox averages the time to first detection of leakage across all scenarios using the "
-						+ "same monitoring configuration.\nNote: DREAM assumes that wells span the entire z-axis of simulation grids and multiple detection devices may be placed within a single well.");	
-			}			
+						+ "The solutions may not exceed the maximum cost, maximum number of wells, or include wells closer than the minimum specified distance. "
+						+ "The user may not specify a cost that is less than the minimum requirement for the tests defined on the previous page. ");
+			}
 		});
-		infoLink.setLayoutData(infoLinkData);
+		
+		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel.setText("Are there any cost or physical constraints on the monitoring configuration?");
+		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
+		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData.verticalSpan = 2;
+		infoLabel.setLayoutData(infoGridData);
 		
 		//Cost constraint
 		Label costLabel = new Label(container, SWT.NULL);
-		costLabel.setText("Sensor Budget");
+		costLabel.setText("Total Monitoring Budget");
 		if (cost<data.getSet().getSensorCostConstraint())
 			cost = data.getSet().getSensorCostConstraint();
 		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);

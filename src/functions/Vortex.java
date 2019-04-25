@@ -113,7 +113,7 @@ public class Vortex extends Function {
 	
 	private List<Integer> getCloudNodesOnSurface(int surface, Set<Integer> sensorPositions, ScenarioSet set) {
 		List<Integer> pointsOnSurface = new ArrayList<Integer>();
-		// Any sensor on the layer will become a point
+		// Any technology on the layer will become a point
 		for(Integer position: sensorPositions) {
 			if(set.getNodeStructure().getIJKFromNodeNumber(position).getK() == surface) {
 				pointsOnSurface.add(position);
@@ -125,7 +125,7 @@ public class Vortex extends Function {
 		List<Integer> pointsOnSurface = new ArrayList<Integer>();
 		List<Integer> pointsAboveSurface = new ArrayList<Integer>();
 		List<Integer> pointsBelowSurface = new ArrayList<Integer>();
-		// Any sensor on the layer will become a point
+		// Any technology on the layer will become a point
 		for(Integer position: sensorPositions) {
 			int location = surface.compareTo(set.getNodeStructure().getIJKFromNodeNumber(position).getK());
 			if(location == 0) {
