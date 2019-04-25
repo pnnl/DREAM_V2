@@ -147,6 +147,9 @@ public class IAMInterface {
 						}
 					}
 				}
+				// In case a IAM file has no detections for a scenario, remove from detection map
+				if(set.getDetectionMap().get(specificType).get(scenario).size()==0)
+					set.getDetectionMap().get(specificType).remove(scenario);
 				br.close();
 				monitor.worked(1);
 			} catch (Exception e) {
