@@ -413,12 +413,14 @@ public class DREAMWizard extends Wizard {
 							
 							// First we generate a TTD matrix based on new selected sensors settings
 							// Only do this for H5 variables, IAM is already in detectionMap
-							for(SensorData sensor: newSensors) {
-								if(monitor.isCanceled()) break;
-								if(sensor.sensorType.contains("allSensors"))
-									set.detectionMapForAllSensors(monitor, activeSensors); //Special handling - map should be lowest detection at each node
-								else
-									HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
+							if(data.fileType=="hdf5") {
+								for(SensorData sensor: newSensors) {
+									if(monitor.isCanceled()) break;
+									if(sensor.sensorType.contains("allSensors"))
+										set.detectionMapForAllSensors(monitor, activeSensors); //Special handling - map should be lowest detection at each node
+									else
+										HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
+								}
 							}
 							
 							// Last we create a list of valid nodes from the new detectionMap

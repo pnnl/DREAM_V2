@@ -366,7 +366,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		//If a sensor were placed at every node, provide the best possible time to detection
 		bestTTDTableButton = new Button(diagnosticGroup, SWT.BALLOON);
 		bestTTDTableButton.setSelection(true);
-		bestTTDTableButton.setText("Best TTD Possible per Sensor-type");
+		bestTTDTableButton.setText("Best TTD Possible per Technology");
 		bestTTDTableButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {

@@ -497,6 +497,17 @@ public class SensorSetting {
 			deltaType = DeltaType.BOTH;
 	}
 	
+	public Trigger getTriggerFromSpecificType(String specificType) {
+		if(specificType.contains("rel"))
+			return Trigger.RELATIVE_CHANGE;
+		else if (specificType.contains("abs"))
+			return Trigger.ABSOLUTE_CHANGE;
+		else if(specificType.contains("below"))
+			return Trigger.BELOW_THRESHOLD;
+		else
+			return Trigger.ABOVE_THRESHOLD;
+	}
+	
 	public String getSpecificType() {
 		String specificType = "";
 		if(getTrigger() == Trigger.BELOW_THRESHOLD)

@@ -121,7 +121,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			sensorName = sensorType;
 			alias = sensorName;
 			detectionThreshold = Float.parseFloat(tokens[2]);
-			trigger = sensorSettings.getTrigger();
+			trigger = sensorSettings.getTriggerFromSpecificType(specificType);
 			deltaType = sensorSettings.getDeltaType();
 			cost = sensorSettings.getSensorCost();
 			minZ = minZBound = sensorSettings.getGlobalMinZ();
