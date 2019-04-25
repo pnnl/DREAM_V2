@@ -363,9 +363,11 @@ public class DREAMWizard extends Wizard {
 								File file = new File(inputFolder.getPath(),"iam.grid");
 								if(file.exists())
 									set.setNodeStructure(IAMInterface.readNodeStructureIAM(file)); //Load the node structure from the iam.grid file
-								else
+								else {
 									set.setNodeStructure(IAMInterface.readNodeStructureIAM_Uncompressed(list[0])); //Load the node structure from the first IAM file
-								monitor.worked(1);
+									System.out.println("Warning: The iam.grid file was not found.");
+								}
+									monitor.worked(1);
 								
 								monitor.subTask("reading scenarios from all files");
 								IAMInterface.readIAMFiles(monitor, list, set);
