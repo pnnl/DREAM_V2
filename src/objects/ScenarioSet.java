@@ -416,7 +416,12 @@ public class ScenarioSet {
 	
 	public Map<Integer, List<Integer>> getAllPossibleWells() {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-				
+		
+		for(String sensorType: this.getSensorSettings().keySet()) {
+			for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
+				cloudNodes.add(node);
+		}
+		
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
 		for(Integer node: cloudNodes) {
 			Point3i ijk = this.getNodeStructure().getIJKFromNodeNumber(node);
