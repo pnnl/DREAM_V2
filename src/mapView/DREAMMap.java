@@ -246,7 +246,7 @@ public class DREAMMap {
 							lon = (float)latLon[1];
 							//End of test logic
 							 
-							URL map = new URL("https://maps.googleapis.com/maps/api/staticmap?center=" + lat + "," + lon + "&zoom=" + googleZoom + "&size=640x640&maptype=satellite&scale=2");
+							URL map = new URL("https://maps.googleapis.com/maps/api/staticmap?center=" + lat + "," + lon + "&zoom=" + googleZoom + "&size=640x640&maptype=satellite&scale=2&key=AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
 							BufferedImage before = ImageIO.read(map);
 							int newImageWidth = (int) (xWidth*calculatedPixelsPerMeter);
 							int newImageHeight = (int) (yWidth*calculatedPixelsPerMeter);
