@@ -352,16 +352,17 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 		
+		// Deselecting the Show Plots button will prevent the visualization from populating (runs fast)
+		showPlots = new Button(runGroup, SWT.CHECK);
+		showPlots.setText("Show Plots");
+		showPlots.setSelection(true);
+		new Label(runGroup, SWT.NULL);
+		
 		Group diagnosticGroup = new Group(container, SWT.SHADOW_NONE);
 		diagnosticGroup.setText("Diagnostic Tools");
 		diagnosticGroup.setFont(boldFontSmall);
 		diagnosticGroup.setLayout(new GridLayout(2,false));
 		diagnosticGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		
-		showPlots = new Button(diagnosticGroup, SWT.CHECK);
-		showPlots.setText("Show Plots");
-		showPlots.setSelection(true);
-		new Label(diagnosticGroup, SWT.NULL);
 		
 		//If a sensor were placed at every node, provide the best possible time to detection
 		bestTTDTableButton = new Button(diagnosticGroup, SWT.BALLOON);
@@ -802,7 +803,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					//Set this back to what it was so we don't mess up future runs
 					data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost());
 					
-					//Print our results in a csv file
+					//Print our results in a CSV file
 					try {
 						ResultPrinter.printPlotData(configurationPercentDetected, configurationAverageTTDs, configurationCosts, configs, averageVolumeDegraded);
 					} catch (IOException e) {
