@@ -767,7 +767,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							int innerWells = i;
 							int innerSensors = i*100;
 							System.out.println(innerSensors + " " + innerWells);
-							data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, dialog.getDistanceBetweenWells(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost(), data.getSet().getAllowMultipleSensorsInWell());
+							data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, dialog.getDistanceBetweenWells(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost());
 							int ittr = dialog.getIterationsPerRun();
 							data.setWorkingDirectory(outputFolder.getText());
 							data.getSet().setIterations(ittr);
@@ -800,7 +800,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 //						}
 //					}
 					//Set this back to what it was so we don't mess up future runs
-					data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost(), data.getSet().getAllowMultipleSensorsInWell());
+					data.getSet().setUserSettings(data.getSet().getAddPoint(), well, budget, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost());
 					
 					//Print our results in a csv file
 					try {

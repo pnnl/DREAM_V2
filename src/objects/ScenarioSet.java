@@ -49,7 +49,6 @@ public class ScenarioSet {
 	private float wellCost;
 	private float wellDepthCost;
 	private float remediationCost;
-	private boolean allowMultipleSensorsInWell;
 	private String scenarioEnsemble;
 	
 	private Map<String, Float> scenarioWeights;
@@ -85,7 +84,6 @@ public class ScenarioSet {
 		wellCost = 0;
 		wellDepthCost = 0;
 		remediationCost = 0;
-		allowMultipleSensorsInWell = true;
 		
 		Constants.log(Level.INFO, "Scenario set: initialized", null);
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
@@ -114,7 +112,6 @@ public class ScenarioSet {
 		wellCost = 0;
 		wellDepthCost = 0;
 		remediationCost = 0;
-		allowMultipleSensorsInWell = true;
 		
 		Constants.log(Level.INFO, "Scenario set: re-initialized", null);
 		Constants.log(Level.CONFIG, "Scenario set: configuration", this);
@@ -177,12 +174,11 @@ public class ScenarioSet {
 		builder.append("\tCost per " + (zUnit=="" ? "unit" : zUnit) + " depth of well: " + Constants.percentageFormat.format(wellDepthCost) + "\r\n");
 		if(Constants.buildDev)
 			builder.append("\tRemediation cost: " + Constants.percentageFormat.format(remediationCost) + " per " + (zUnit=="" ? "water unit" : zUnit + "^3") + "\r\n");
-		builder.append("\tAllow multiple sensors in well: " + allowMultipleSensorsInWell + "\r\n");
 		
 		return builder.toString();
 	}
 	
-	public void setUserSettings(Point3i addPoint, int maxWells, float sensorCostConstraint, float exclusionRadius, float wellCost, float wellDepthCost, float remediationCost, boolean allowMultipleSensorsInWell) {
+	public void setUserSettings(Point3i addPoint, int maxWells, float sensorCostConstraint, float exclusionRadius, float wellCost, float wellDepthCost, float remediationCost) {
 		
 		Constants.log(Level.INFO, "Scenario set: setting user settings", null);
 		
@@ -193,7 +189,6 @@ public class ScenarioSet {
 		this.wellCost = wellCost;
 		this.wellDepthCost = wellDepthCost;
 		this.remediationCost = remediationCost;
-		this.allowMultipleSensorsInWell = allowMultipleSensorsInWell;
 		isReady = true;
 		//TEST!!!
 		//for(SensorSetting setting: sensorSettings.values()){
@@ -310,10 +305,6 @@ public class ScenarioSet {
 	
 	public void setRemediationCost(float remediationCost) {
 		this.remediationCost = remediationCost;
-	}
-	
-	public boolean getAllowMultipleSensorsInWell() {
-		return allowMultipleSensorsInWell;
 	}
 	
 	public int getIterations() {
@@ -535,17 +526,9 @@ public class ScenarioSet {
 					if(distance <= exclusionRadius || distance >= inclusionRadius){
 						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
 							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
-							if(allowMultipleSensorsInWell) continue; //if we're allowing multiple, then we don't want to exclude this location no matter what
-							for(ExtendedSensor sensor : well.sensors){ //we need to determine if this well already has a sensor of this type
-								if(sensor.type.equals(sensorType)){
-									locations.put(new Point3i(i,j,1), false); //it does, so exclude it
-									continue;
-								}
-								//it doesn't, so allow it (do nothing)
-							}
+							continue;
 						}
-						else{
-							//if not, reject it by default
+						else{ //if not, reject it by default
 							locations.put(new Point3i(i,j,1), false);
 						}
 					}

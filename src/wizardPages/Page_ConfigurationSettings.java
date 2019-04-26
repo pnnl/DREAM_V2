@@ -11,7 +11,6 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -45,7 +44,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text wellCost;
 	private Text wellDepthCost;
 	private Text remediationCost;
-	private Button allowMultipleSensorsInWell;
 	private float cost = 0; //Since data.getSet().getCostConstraint is set at the end of the previous page, use local variable
 	
 	private boolean isCurrentPage = false;
@@ -273,12 +271,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			});
 		}
 
-		//Allow multiple sensors per well check box
-		allowMultipleSensorsInWell = new Button(container, SWT.CHECK);
-		allowMultipleSensorsInWell.setText("Allow Multiple Sensors in a Well");
-		new Label(container, SWT.NULL);
-		allowMultipleSensorsInWell.setSelection(data.getSet().getAllowMultipleSensorsInWell());
-
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
@@ -349,7 +341,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getWellDepthCost(), getRemediationCost(), allowMultipleSensorsInWell.getSelection());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getWellDepthCost(), getRemediationCost());
 	}
 
 	@Override
