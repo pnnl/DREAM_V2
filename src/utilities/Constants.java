@@ -36,31 +36,6 @@ public class Constants {
 	public static Color red = new Color(Display.getCurrent(), 255, 0, 0);
 	public static Color grey = new Color(Display.getCurrent(), 109, 109, 109);
 	public static Color white = new Color(Display.getCurrent(), 255, 255, 255);
-	
-	public enum ModelOption {
-		
-		INDIVIDUAL_SENSORS_2("Individual Sensors 2.0", "Prioritize moving a well over adjusting sensors in a well."),
-		ALL_SENSORS("Aggregated Sensor Technology", "Place a sensor of every type at each monitoring location");
-		//NO LONGER SUPPORTED: these used to be options and are either depreciated or redundant.
-		//INDIVIDUAL_SENSORS("Individual Sensors", "Prioritize adjusting sensors in a well over moving a well."),
-		//REALIZED__WELLS("Realized Wells", "Wells have all sensor types at each k index");
-		
-		String alias;
-		String description;
-		ModelOption(String alias, String description) {
-			this.alias = alias;
-		}
-		
-		public String getDescription() {
-			return description;
-		}
-		
-		@Override
-		public String toString() {
-			return alias;
-		}
-		
-	}	
 
 	// "Diana Bacon Runs 03"; 
 	public static String RUN_TEST =  "STORM";//"Bacon Base Case with Flux 3-D";//"120517_small_domain_STOMP_runs";//"Bacon Base Case with Flux 3-D";

@@ -16,7 +16,6 @@ import objects.ScenarioSet;
 import objects.ExtendedSensor;
 import results.ResultPrinter;
 import utilities.Constants;
-import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 
 /**
@@ -31,7 +30,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	protected Integer currentRun = 0;
 	
 	protected MUTATE mutate = MUTATE.SENSOR; // Default mutation
-	protected Constants.ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 	
 	protected boolean iterative; // Keep track of what type of run we are doing
 	
@@ -99,7 +97,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	
 	
-	public boolean run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
+	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots, int sets) {
 		boolean wasCancelled = false;
 		ResultPrinter.clearResults(set, showPlots);
 		for(int i = 0; i < sets; i++) {
@@ -128,10 +126,9 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	//	run(initialConfiguration, set, null);
 	//}
 
-	public boolean run(ModelOption modelOption, ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
+	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
 		boolean wasCancelled = false;
 		ResultPrinter.clearResults(set, showPlots);
-		this.modelOption = modelOption;
 		wasCancelled = runInternal(initialConfiguration, set);
 		ResultPrinter.printAll(set.getNodeStructure());
 		return wasCancelled;
@@ -408,7 +405,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	@Override
 	public boolean mutate(ExtendedConfiguration configuration, ScenarioSet set) {
 		if(mutate.equals(MUTATE.SENSOR)) {
-			return configuration.mutateSensor(set, modelOption);
+			return configuration.mutateSensor(set);
 		} else if(mutate.equals(MUTATE.WELL)) {
 			return configuration.mutateWell(set);
 		}		

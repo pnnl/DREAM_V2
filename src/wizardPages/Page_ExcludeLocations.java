@@ -130,7 +130,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		if(data.needToResetWells){
 			//This means that we have set new parameters and need to reset all values
 			data.needToResetWells = false;
-			wells = data.getSet().getAllPossibleWells(data.modelOption);
+			wells = data.getSet().getAllPossibleWells();
 			selection.clear();
 			minI = Integer.MAX_VALUE;
 			minJ = Integer.MAX_VALUE;

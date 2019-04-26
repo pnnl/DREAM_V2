@@ -46,7 +46,6 @@ import hdf5Tool.IAMInterface;
 import utilities.Constants;
 import utilities.E4DRunDialog;
 import utilities.Point3i;
-import utilities.Constants.ModelOption;
 import visualization.DomainVisualization;
 import wizardPages.Page_LeakageCriteria.SensorData;
 import functions.SimulatedAnnealing;
@@ -294,7 +293,6 @@ public class DREAMWizard extends Wizard {
 		private DREAMWizard wizard;
 		private ArrayList<Point3i> wells;
 		
-		public Constants.ModelOption modelOption;
 		public String fileType;
 		
 		public STORMData(DREAMWizard wizard) {
@@ -314,7 +312,7 @@ public class DREAMWizard extends Wizard {
 		}
 		
 		
-		public void setupScenarioSet(final ModelOption modelOption, final MUTATE mutate, final String function, final String input) {	
+		public void setupScenarioSet(final MUTATE mutate, final String function, final String input) {	
 			try {
 				dialog.run(true, true, new IRunnableWithProgress() {
 					@Override
@@ -346,7 +344,6 @@ public class DREAMWizard extends Wizard {
 								
 								monitor.subTask("initializing algorithm");
 								STORMData.this.mutate = mutate;	//Mutate option should always be sensor... used to have other options
-								STORMData.this.modelOption = modelOption; //Save the modelOption
 								if(function.endsWith("SimulatedAnnealing"))
 									runner = new SimulatedAnnealing(mutate); //Set the function (this will always be Simulated Annealing in this release)
 								STORMData.this.fileType = "hdf5";
@@ -377,7 +374,6 @@ public class DREAMWizard extends Wizard {
 								
 								monitor.subTask("initializing algorithm");
 								STORMData.this.mutate = mutate;	// Mutate option should always be sensor... used to have other options
-								STORMData.this.modelOption = modelOption;
 								if(function.endsWith("SimulatedAnnealing"))
 									runner = new SimulatedAnnealing(mutate); // Set the function (this will always be CCS9_1 in this release)
 								STORMData.this.fileType = "iam";
@@ -416,10 +412,7 @@ public class DREAMWizard extends Wizard {
 							if(data.fileType=="hdf5") {
 								for(SensorData sensor: newSensors) {
 									if(monitor.isCanceled()) break;
-									if(sensor.sensorType.contains("allSensors"))
-										set.detectionMapForAllSensors(monitor, activeSensors); //Special handling - map should be lowest detection at each node
-									else
-										HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
+									HDF5Interface.createDetectionMap(monitor, set, set.getSensorSettings(sensor.sensorType), sensor.specificType);
 								}
 							}
 							
@@ -480,9 +473,9 @@ public class DREAMWizard extends Wizard {
 					monitor.beginTask("Running iterative procedure ", set.getIterations()*runs);	
 					runner.setMonitor(monitor);
 					if(runs > 1) {
-						wasCancelled = runner.run(data.modelOption, initialConfiguration, set, showPlots, runs);	
+						wasCancelled = runner.run(initialConfiguration, set, showPlots, runs);	
 					} else {
-						wasCancelled = runner.run(data.modelOption, initialConfiguration, set, showPlots);	
+						wasCancelled = runner.run(initialConfiguration, set, showPlots);	
 					}					
 				}
 			});

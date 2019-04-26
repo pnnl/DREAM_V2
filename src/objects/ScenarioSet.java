@@ -9,11 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import utilities.Constants;
-import utilities.Constants.ModelOption;
-import wizardPages.Page_LeakageCriteria.SensorData;
 import utilities.Point3f;
 import utilities.Point3i;
 
@@ -223,46 +219,15 @@ public class ScenarioSet {
 			scenarioWeights.put(scenario, (float)1);
 	}
 	
-	public void setupSensorSettings(ModelOption modelOption) {
-		
+	public void setupSensorSettings() {
 		// Setup the sensor settings array
 		for(final String type: nodeStructure.getDataTypes())
 			sensorSettings.put(type, new SensorSetting(nodeStructure, type));
-		
-		// If all sensors was selected, add to sensor settings array
-		if(modelOption == ModelOption.ALL_SENSORS) {
-			sensorSettings.put("allSensors", new SensorSetting(nodeStructure, "allSensors"));
-			nodeStructure.addDataType("allSensors");
-		}
 	}
 	
 	// Setup the inference test
 	public void setupInferenceTest() {
 		inferenceTest = new InferenceTest("Any Technology", 1);
-	}
-	
-	public void detectionMapForAllSensors(IProgressMonitor monitor, ArrayList<SensorData> activeSensors) {
-		String specificType = "all_min_0.0";
-		detectionMap.put(specificType, new HashMap<String, Map<Integer, Float>>());
-		for(String scenario: allScenarios) {
-			if(monitor.isCanceled()) {
-				detectionMap.remove(specificType);
-				return;
-			}
-			monitor.subTask("generating detection matrix: All Sensors - " + scenario);
-			detectionMap.get(specificType).put(scenario, new HashMap<Integer, Float>());
-			for(SensorData sensor: activeSensors) {
-				if(sensor.sensorType.contains("allSensors")) continue; //Don't double add
-				for(Integer node: detectionMap.get(sensor.specificType).get(scenario).keySet()) {
-					Float ttd = detectionMap.get(sensor.specificType).get(scenario).get(node);
-					if(!detectionMap.get(specificType).get(scenario).containsKey(node)) //Add if it doesn't exist
-						detectionMap.get(specificType).get(scenario).put(node, ttd);
-					if(ttd<detectionMap.get(specificType).get(scenario).get(node)) //If less than current, add lowest TTD
-						detectionMap.get(specificType).get(scenario).put(node, ttd);
-				}
-			}
-			monitor.worked(900/allScenarios.size());
-		}
 	}
 	
 	
@@ -458,24 +423,14 @@ public class ScenarioSet {
 		this.nodeStructure = nodeStructure;
 	}
 	
-	public Map<Integer, List<Integer>> getAllPossibleWells(ModelOption modelOption) {
+	public Map<Integer, List<Integer>> getAllPossibleWells() {
 		List<Integer> cloudNodes = new ArrayList<Integer>();
-		
-		if(modelOption != ModelOption.ALL_SENSORS){
-			for(String sensorType: this.getSensorSettings().keySet()) {
-				for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
-					cloudNodes.add(node);
-			}
-		}
-		else{
-			for(Integer node: sensorSettings.get("allSensors").getValidNodes()) cloudNodes.add(node);
-		}
+				
 		Map<Integer, List<Integer>> ijs = new HashMap<Integer, List<Integer>>();
 		for(Integer node: cloudNodes) {
 			Point3i ijk = this.getNodeStructure().getIJKFromNodeNumber(node);
-			if(!ijs.containsKey(ijk.getI())) {
+			if(!ijs.containsKey(ijk.getI()))
 				ijs.put(ijk.getI(), new ArrayList<Integer>());
-			}
 			if(!ijs.get(ijk.getI()).contains(ijk.getJ()))
 				ijs.get(ijk.getI()).add(ijk.getJ());
 		}

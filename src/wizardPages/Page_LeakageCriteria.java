@@ -156,10 +156,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			else if(sensorType.trim().toLowerCase().equals("ph"))
 				trigger = Trigger.BELOW_THRESHOLD;
 			
-			// Exceptions for "All_SENSORS"
-			if(sensorName.contains("allSensors"))
-				alias = "All Selected Sensors";
-			
 			// Exceptions for ERT
 			if(sensorName.contains("Electrical Conductivity"))
 				alias = "ERT_" + detectionThreshold;
@@ -619,18 +615,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				detectionUnit.setEnabled(false);
 			}
 			
-			// Hide unused fields for ALL_SENSORS
-			if(sensorKey.contains("allSensors")) {
-				addButton.setVisible(false);
-				aliasText.setEnabled(false);
-				costText.setToolTipText("This sensor will detect as a combination of all selected sensors, but will move as one sensor during optimization.");
-				thresholdCombo.setVisible(false);
-				detectionComposite.setVisible(false);
-				detectionText.setVisible(false);
-				detectionUnit.setVisible(false);
-
-			}
-			
 			toggleEnabled();
 		}
 		
@@ -641,41 +625,41 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				aliasText.setEnabled(isIncluded);
 			if(costText != null && !costText.isDisposed())
 				costText.setEnabled(isIncluded);
-			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+			if(thresholdCombo != null && !thresholdCombo.isDisposed() && !alias.contains("ERT") && data.fileType!="iam")
 				thresholdCombo.setEnabled(isIncluded);
 			// The detection entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
-			if(detectionComposite != null && !detectionComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(detectionComposite != null && !detectionComposite.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				detectionComposite.setEnabled(isIncluded);
 				if(isIncluded) detectionComposite.setBackground(Constants.white);
 				else detectionComposite.setBackground(container.getBackground());
 			}
-			if(detectionText != null && !detectionText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+			if(detectionText != null && !detectionText.isDisposed() && !alias.contains("ERT") && data.fileType!="iam")
 				detectionText.setEnabled(isIncluded);
-			if(detectionUnit != null && !detectionUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(detectionUnit != null && !detectionUnit.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				if(isIncluded) detectionUnit.setBackground(Constants.white);
 				else detectionUnit.setBackground(container.getBackground());
 			}
 			// The zone bottom entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
-			if(bottomComposite != null && !bottomComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(bottomComposite != null && !bottomComposite.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				bottomComposite.setEnabled(isIncluded);
 				if(isIncluded) bottomComposite.setBackground(Constants.white);
 				else bottomComposite.setBackground(container.getBackground());
 			}
-			if(bottomText != null && !bottomText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+			if(bottomText != null && !bottomText.isDisposed() && !alias.contains("ERT") && data.fileType!="iam")
 				bottomText.setEnabled(isIncluded);
-			if(bottomUnit != null && !bottomUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(bottomUnit != null && !bottomUnit.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				if(isIncluded) bottomUnit.setBackground(Constants.white);
 				else bottomUnit.setBackground(container.getBackground());
 			}
 			// The zone bottom entry is really a composite with both text and field combined. We need to set up enable/disable for all three fields.
-			if(topComposite != null && !topComposite.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(topComposite != null && !topComposite.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				topComposite.setEnabled(isIncluded);
 				if(isIncluded) topComposite.setBackground(Constants.white);
 				else topComposite.setBackground(container.getBackground());
 			}
-			if(topText != null && !topText.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam")
+			if(topText != null && !topText.isDisposed() && !alias.contains("ERT") && data.fileType!="iam")
 				topText.setEnabled(isIncluded);
-			if(topUnit != null && !topUnit.isDisposed() && !sensorType.contains("allSensors") && !alias.contains("ERT") && data.fileType!="iam") {
+			if(topUnit != null && !topUnit.isDisposed() && !alias.contains("ERT") && data.fileType!="iam") {
 				if(isIncluded) topUnit.setBackground(Constants.white);
 				else topUnit.setBackground(container.getBackground());
 			}

@@ -10,7 +10,6 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 
 import utilities.Constants;
-import utilities.Constants.ModelOption;
 import utilities.Point3f;
 import utilities.Point3i;
 
@@ -409,7 +408,7 @@ public class ExtendedConfiguration extends Configuration {
 		return false;
 	}
 
-	public synchronized boolean mutateSensor(ScenarioSet scenarioSet, ModelOption modelOption) {
+	public synchronized boolean mutateSensor(ScenarioSet scenarioSet) {
 
 		// If we can afford a new sensor add it at the add point:
 		Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
@@ -436,24 +435,15 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		
 		// Prioritize shuffling a well
-		if(ModelOption.INDIVIDUAL_SENSORS_2 == modelOption) {
-			Object shuffledWell = shuffleWell(scenarioSet);
-			if(shuffledWell != null) {
-				Constants.log(Level.FINER, "Sensor configuration: mutated, SHUFFLED WELL", shuffledWell);
-				return true;
-			}
+		Object shuffledWell = shuffleWell(scenarioSet);
+		if(shuffledWell != null) {
+			Constants.log(Level.FINER, "Sensor configuration: mutated, SHUFFLED WELL", shuffledWell);
+			return true;
 		}
 		Object movedWell = moveWell(scenarioSet);
 		if(movedWell != null) {
 			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED WELL", movedWell);
 			return true;
-		}
-		if(ModelOption.INDIVIDUAL_SENSORS_2 != modelOption) {
-			Object shuffledWell = shuffleWell(scenarioSet);
-			if(shuffledWell != null) {
-				Constants.log(Level.FINER, "Sensor configuration: mutated, SHUFFLED WELL", shuffledWell);
-				return true;
-			}
 		}
 
 		Constants.log(Level.WARNING, "Sensor configuration: couldn't mutate", null);
@@ -463,7 +453,7 @@ public class ExtendedConfiguration extends Configuration {
 
 	public boolean mutateSensorToEdgeOnly(ScenarioSet set) {	
 		set.setEdgeMovesOnly(true);
-		boolean sensorMutate = mutateSensor(set, ModelOption.INDIVIDUAL_SENSORS_2);
+		boolean sensorMutate = mutateSensor(set);
 		set.setEdgeMovesOnly(false);
 		return sensorMutate;
 	}
@@ -538,44 +528,6 @@ public class ExtendedConfiguration extends Configuration {
 
 	}
 	
-	/*//specifically for when running in ALL_SENSORS mode
-	private Object addAllSensor(ScenarioSet scenarioSet) {
-
-		// We will try to add here first.
-		int addPoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
-		Map<String, List<Integer>> affordableSensors = new HashMap<String, List<Integer>>();
-		//List<String> types = new ArrayList<String>();
-		boolean atAddPoint = false;
-		List<Integer> validNodes = scenarioSet.getValidNodes("allSensors", this, true, true, true);
-		if(!validNodes.isEmpty()) {
-			affordableSensors.put("allSensors", validNodes);
-			if(validNodes.contains(addPoint)) {
-				atAddPoint = true; // We can add a sensor at the add point
-			}
-		}
-		if(affordableSensors.isEmpty()) {
-			// System.out.println("Could not add sensor, time taken: " + (System.currentTimeMillis()-startTime));
-			return null;
-		}
-		if(atAddPoint) {
-			ExtendedSensor toAdd = new ExtendedSensor(addPoint, "allSensors", scenarioSet.getNodeStructure());
-			addSensor(scenarioSet, toAdd);
-			return toAdd;
-		} else {
-			int index = Constants.random.nextInt(affordableSensors.get("allSensors").size());
-			for(String type: scenarioSet.getSensorSettings().keySet()){
-				if(type != "allSensors"){
-					ExtendedSensor toAdd = new ExtendedSensor(affordableSensors.get("allSensors").get(index), type, scenarioSet.getNodeStructure());
-					addSensor(scenarioSet, toAdd);
-				}
-			}
-			return new Object();
-		}
-
-		// System.out.println("Added sensor, time taken: " + (System.currentTimeMillis()-startTime));
-
-	}*/
-
 	private Object moveSensorInBounds(ScenarioSet scenarioSet) {
 
 		// First see if have any out of bounds sensors

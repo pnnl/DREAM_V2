@@ -286,7 +286,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		System.out.println("Number of scenarios = " + data.getSet().getScenarios().size() + " (" + data.getSet().getAllScenarios().size() + " available)");
 		
 		// Initialize the sensorSettings at the end of this page - resets LeakageCriteria page
-		data.getSet().setupSensorSettings(data.modelOption);
+		data.getSet().setupSensorSettings();
 		data.needToResetMonitoringParameters = true;
 	}
 	

@@ -13,13 +13,11 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -27,7 +25,6 @@ import org.eclipse.swt.widgets.Text;
 import functions.MutationFunction.MUTATE;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
-import utilities.Constants.ModelOption;
 import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -47,7 +44,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private STORMData data;
 	
 	private String simulation = "SimulatedAnnealing";
-	private ModelOption modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
 	private Text fileDirectoryText;
 	private String directory = Constants.homeDirectory;
 	
@@ -112,7 +108,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		
 		// Read in scenario and parameter information from the files
 		Constants.homeDirectory = directory;
-		data.setupScenarioSet(modelOption, MUTATE.SENSOR, simulation, fileDirectoryText.getText());
+		data.setupScenarioSet(MUTATE.SENSOR, simulation, fileDirectoryText.getText());
 		data.getSet().setScenarioEnsemble(fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator)+1));
 		// Ask for porosity input if it doesn't exist yet
 		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
@@ -200,28 +196,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				}
 				errorFound(dirError, "  Invalid directory.");
 				errorFound(fileError, "  Directory must contain an h5 or iam file.");
-			}
-		});
-
-		Group radioButton = new Group(container, SWT.SHADOW_NONE);
-		radioButton.setText("Model option");
-		radioButton.setLayout(new RowLayout(SWT.VERTICAL));
-		radioButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		Button button1 = new Button(radioButton, SWT.RADIO);
-		button1.setText(Constants.ModelOption.INDIVIDUAL_SENSORS_2.toString());
-		button1.addListener(SWT.Selection, new Listener(){
-			@Override
-			public void handleEvent(Event event) {
-				modelOption = ModelOption.INDIVIDUAL_SENSORS_2;
-			}
-		});
-		button1.setSelection(true);
-		Button button2 = new Button(radioButton, SWT.RADIO);
-		button2.setText(Constants.ModelOption.ALL_SENSORS.toString());
-		button2.addListener(SWT.Selection, new Listener(){
-			@Override
-			public void handleEvent(Event event) {
-				modelOption = ModelOption.ALL_SENSORS;
 			}
 		});
 				
