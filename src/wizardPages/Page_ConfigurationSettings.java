@@ -229,7 +229,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		
 		//Cost per well depth
 		Label wellDepthCostLabel = new Label(container, SWT.NULL);
-		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " depth");
+		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
 		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
 		wellDepthCost.setForeground(Constants.black);

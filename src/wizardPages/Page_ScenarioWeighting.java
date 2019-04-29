@@ -140,7 +140,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		infoLink.setLayoutData(infoLinkData);
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel.setText("Weight the included scenarios based on the probability of occurrence. By default, all scenario are equally weighted.");
+		infoLabel.setText("Weight the included scenarios based on the probability of occurrence. By default, all scenarios are equally weighted.");
 		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
 		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData.verticalSpan = 4;

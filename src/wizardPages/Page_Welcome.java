@@ -148,7 +148,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			public void handleEvent(Event event) {			
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
-				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program."
+				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. "
 						+ "The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager),"
 						+ "Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support. "
 						+ "The authors wish to thank Art Sadovsky, Jason Gastelum, Ellen Porter, Luke Rodriguez for their early development work on the DREAM tool.");
@@ -200,21 +200,23 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		hasBeenLoaded = true;
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(false);
+		
+		Page_Welcome.this.getShell().forceFocus(); //prevents the highlight of the acknowledgement link on load
 	}
-
+	
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
 	}
-
+	
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;
 	}
-
+	
 	@Override
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
 	}
-
+	
 }
