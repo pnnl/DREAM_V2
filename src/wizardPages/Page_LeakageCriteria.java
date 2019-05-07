@@ -175,6 +175,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					@Override
 					public void handleEvent(Event arg0) {
 						sensorData.remove(sensorName);
+						num_duplicates.put(sensorType, num_duplicates.get(sensorType) - 1);
 						data.getSet().getSensorSettings().remove(sensorName);
 						loadPage();
 						fixMacBug();
@@ -431,8 +432,13 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			unitGridLayout.horizontalSpacing = 0;
 			
 			//Get the units for each parameter
-			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
-			
+//			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
+			String unit;
+			if (sensorKey.contains("_")) {
+				unit = data.getSet().getNodeStructure().getUnit(sensorKey.substring(0, sensorKey.indexOf("_")));
+			} else {
+				unit = data.getSet().getNodeStructure().getUnit(sensorKey);
+			}
 			// The border gives the appearance of a single component
 			detectionComposite = new Composite(container, SWT.BORDER);
 			detectionComposite.setLayoutData(compositeGridData);
@@ -486,7 +492,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			//Get the units for the Z value
 			unit = data.getSet().getNodeStructure().getUnit("z");
-			
 			// The border gives the appearance of a single component
 			bottomComposite = new Composite(container, SWT.BORDER);
 			bottomComposite.setLayoutData(compositeGridData);
@@ -537,7 +542,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			
 			
-			//// Zone Bottom Value ////
+			//// Zone Top Value ////
 			// We want to display units within the same text box, so we need to do some fancy magic
 			// Essentially we are creating a composite with two fields within it: (1) text and (2) unit label
 			// It should look *mostly* the same as other input fields, but the user is unable to edit units
