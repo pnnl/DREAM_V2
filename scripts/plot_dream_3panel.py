@@ -8,7 +8,7 @@ Updated to Python3 & Added ERT by J. Whiting - February 2018
 =========================================================================
 """)
 
-# python plot_dream_3panel.py solution_space.txt best_configurations.csv 
+# python plot_dream_3panel.py ensemble_solutionSpace.txt best_configurations.csv 
 
 
 import os, re, sys
@@ -42,10 +42,12 @@ if (len(sys.argv) != 3):
 
 fname=sys.argv[1]
 bcfile=sys.argv[2]
-#fname='C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\_results\\solution_space.txt'
+#fname='C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\_results\\BCO_new_solutionSpace.txt'
 #bcfile='C:\\Users\\whit162\\Documents\\Projects\\DreamProject\\_results\\best_configurations.csv'
 
-threshold=0.5 
+ensemble = re.sub('_solutionSpace.txt','',os.path.basename(fname))
+
+threshold=0.5
 
 new_folder = os.path.join(os.path.dirname(fname) + '/best_config_visualizations')
 if not os.path.isdir(new_folder): os.mkdir(new_folder)
@@ -101,7 +103,7 @@ if xmax>5000:
 	bottom=0.10
 	bottom2=0.55
 	width=0.50
-	width2=0.27
+	width2=0.32
 	textbottom=0.78
 	bboxleft=1.11
 else: 
@@ -148,11 +150,11 @@ df3=df3.sort_values(by=['run','sensor_type'])
 axislabelcolor = "#0000ff" #Color for the labels on the x and y axes of each plot. Original "#0000ff"
 plotlinecolor = "#999999" #Color of the hash marks in the plots. Original "#999999"
 legendlabelcolor = "#666666" #Color of the labels for the legend (File:, Configuration:, etc). Original "#666666"
-legendvaluecolor = "#0000cc" #Color of the values for the legend (solution_space.tab, etc). Original "#0000cc"
+legendvaluecolor = "#0000cc" #Color of the values for the legend (solutionSpace.txt, etc). Original "#0000cc"
 sensorbordercolor = "#ffffff" #Border of color around the sensor indicator. Original "ffffff"
 
 ##These colormaps are defined by Matplotlib, see http://matplotlib.org/examples/color/colormaps_reference.html
-cloudfillcolormap = plt.cm.Blues #Color of the indicator for the cloud location. Original plt.cm.Blues
+cloudfillcolormap = plt.cm.Reds #Color of the indicator for the cloud location. Original plt.cm.Blues
 
 #Edges in the plots!
 edgewidth = 0.2 #width of edges! Original 0.2
@@ -188,9 +190,8 @@ for run, group in df3.groupby(['run']):
 		X, Y = np.meshgrid(xvals, yvals)
 		dfxy=df1.groupby(['y','x']).max().reset_index()
 		Z=np.abs(np.flipud(dfxy[field].values.reshape((X.shape[0],X.shape[1]))))*zfact
-		##plt.axes([0.05, 0.75, 0.35, 0.25]).set_aspect('equal')  #left, bottom, width, height
 		ax1=plt.axes([0.09, bottom2, width, height]) #left, bottom, width, height
-		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
+		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor, vmax=1)
 		for i, row in group2.iterrows():plt.plot(row.x, row.y, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
 			#plt.text(row.x, row.y-300, row.sensor_type,fontsize=10,color='#000066', ha='center' )
 	
@@ -208,9 +209,8 @@ for run, group in df3.groupby(['run']):
 		dfxz=df1.groupby(['z','x']).max().reset_index()
 		Z=np.abs(np.flipud(dfxz[field].values.reshape((X.shape[0],X.shape[1]))))*zfact
 		#fig.subplots_adjust(left=0.16, bottom=0.05, top=0.92, right=0.81)
-		#plt.axes([0.05, 0.75, 0.35, 0.25]).set_aspect('equal')  #left, bottom, width, height
 		ax2=plt.axes([0.09, bottom, width, height2]) #left, bottom, width, height
-		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
+		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor, vmax=1)
 		#plt.contour(X,Y,Z,([0,1]),linewidth=1, alpha=1.0)
 
 
@@ -231,9 +231,8 @@ for run, group in df3.groupby(['run']):
 		dfyz=df1.groupby(['z','y']).max().reset_index()
 		Z=np.abs(np.flipud(dfyz[field].values.reshape((X.shape[0],X.shape[1]))))*zfact
 		#fig.subplots_adjust(left=0.16, bottom=0.05, top=0.92, right=0.81)
-		#plt.axes([0.05, 0.75, 0.35, 0.25]).set_aspect('equal')  #left, bottom, width, height
 		ax3=plt.axes([0.65, bottom, width2, height2]) #left, bottom, width, height
-		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor,vmin=0.9, vmax=1.1)
+		plt.pcolor(X,Y,Z, alpha=0.55, cmap=cloudfillcolormap, linewidth=edgewidth, edgecolors=plotlinecolor, vmax=1)
 		#for i, row in group.iterrows(): plt.plot([row.y,row.y], [np.max(Y), np.max(Y)- row.z], '-', lw=2, mew=0.2, alpha=0.5)
 		for i, row in group2.iterrows():
 			plt.plot(row.y, row.z, sensormarker, ms=sensorsize, mew=sensorborderwidth, mec=sensorbordercolor, label='%02d %s (%1.1f,%1.1f,%1.1f)'%(i+1, row.sensor_type,row.x, row.y,row.z), alpha=0.75)
@@ -245,7 +244,7 @@ for run, group in df3.groupby(['run']):
 	
 	
 		fig.text(0.73,textbottom,'Ensemble:\nConfiguration:\nField:\nVol Aq. Deg.:\nCost:',horizontalalignment='right', color=legendlabelcolor, fontsize=legendfontsize, **universalfont)
-		fig.text(0.74,textbottom,'%s\n%03d\n%s\n%s\n$%s'%(fname,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
+		fig.text(0.74,textbottom,'%s\n%03d\n%s\n%s\n$%s'%(ensemble,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
 		#fig.text(0.74,textbottom,'%s\n%03d\n%s\n%1.1f\n$%6.2f'%(fname,run,field,vad,cost),horizontalalignment='left', color=legendvaluecolor, fontsize=legendfontsize, **universalfont)
 
 

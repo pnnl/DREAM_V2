@@ -1013,17 +1013,18 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		}
 		text.append("\n");
+		String ensemble = data.getSet().getScenarioEnsemble();
 		
 		try{
 			File outFolder = new File(outputFolder.getText());
 			if(!outFolder.exists())
 				outFolder.mkdirs();
-			File outFile = new File(new File(outputFolder.getText()), "solution_space.txt");
+			File outFile = new File(new File(outputFolder.getText()), ensemble+"_solutionSpace.txt");
 			if(!outFile.exists())
 				outFile.createNewFile();
 			FileUtils.writeStringToFile(outFile, text.toString());
-		}catch (IOException e) {		
-			JOptionPane.showMessageDialog(null, "Could not write to solution_space.txt, make sure the file is not currently open");
+		} catch (IOException e) {		
+			JOptionPane.showMessageDialog(null, "Could not write to "+ensemble+"_solutionSpace.txt, make sure the file is not currently open");
 			e.printStackTrace();
 		}
 	}
