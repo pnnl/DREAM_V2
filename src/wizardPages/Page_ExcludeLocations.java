@@ -57,7 +57,8 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 	private int maxI = -Integer.MAX_VALUE;
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
-	
+	private List<Integer> validXWells = new ArrayList<>();
+	private List<Integer> validYWells = new ArrayList<>();
 	private boolean isCurrentPage = false;
 	
 	public Page_ExcludeLocations(STORMData data) {
@@ -67,7 +68,6 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 	@Override
 	public void createControl(Composite parent) {
 		
-
 		buttons = new HashMap<Integer, Map<Integer, Button>>();
 		selection = new HashMap<Integer, Map<Integer, Boolean>>();
 		rootContainer = new Composite(parent, SWT.NULL);
@@ -154,8 +154,8 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 				}
 			}				
 		}
-		layout.numColumns = maxI-minI+2;
-
+		populateXandYAxisWells();
+		layout.numColumns = validXWells.size() + 1;
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Exclude Locations");
@@ -197,7 +197,6 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		launchButtonData.verticalSpan = 4;
 		launchMapButton.setLayoutData(launchButtonData);
 		
-		
 		Label corner = new Label(container, SWT.NULL);
 		/* This page can only handle so many checkboxes.
 		 * If we exceed this amount, we disable this functionality and display none. */
@@ -206,29 +205,29 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		}
 		else{
 			corner.setText("Y | X");
-			for(int i = minI; i <= maxI; i++) {			
+			for(int xVals: validXWells) {
 				Label label = new Label(container, SWT.NULL);
-				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(i-1)));
-				//System.out.println(label.getText());
-			}
-			for(int j = minJ; j <= maxJ; j++) {
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(xVals-1)));
+		}	
+			for(int yVals: validYWells) {
 				Label label = new Label(container, SWT.NULL);
-				label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(j-1)));
-				for(int i = minI; i <= maxI; i++) {		
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(yVals-1)));
+				for(int xVals: validXWells) {		
 					// Wells
-					if(wells.containsKey(i) && wells.get(i).contains(j)) {
+					if(wells.containsKey(xVals) && wells.get(xVals).contains(yVals)) {
 						Button wellButton = new Button(container, SWT.CHECK);
 						wellButton.setSelection(true);
-						if(selection.containsKey(i) && selection.get(i).containsKey(j)) {
+						if(selection.containsKey(xVals) && selection.get(xVals).containsKey(yVals)) {
 							// Already have a button here, save the state of it
-							wellButton.setSelection(selection.get(i).get(j));
-							if(!selection.get(i).get(j))
-								System.out.println("Restoring the state of a previously saved button selection: " + selection.get(i).get(j));
+							wellButton.setSelection(selection.get(xVals).get(yVals));
+							if(!selection.get(xVals).get(yVals))
+								System.out.println("Restoring the state of a previously saved button selection: "
+							+ selection.get(xVals).get(yVals));
 						}
-						if(!buttons.containsKey(i)) {
-							buttons.put(i, new HashMap<Integer, Button>());
+						if(!buttons.containsKey(xVals)) {
+							buttons.put(xVals, new HashMap<Integer, Button>());
 						}
-						buttons.get(i).put(j, wellButton);
+						buttons.get(xVals).put(yVals, wellButton);
 					} else {
 						Label empty = new Label(container, SWT.NULL);
 						empty.setText(" ");
@@ -236,6 +235,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 				}
 			}
 		}
+		
 		
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
@@ -333,5 +333,20 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 	@Override
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
+	}
+	
+	private void populateXandYAxisWells() {
+		for (int i = minI; i <= maxI; i++) {
+			if (wells.containsKey(i)) {
+				validXWells.add(i);
+			}
+		}
+		for (int j = minJ; j <= maxJ; j++) {
+			for (int temp: validXWells) {
+				if (wells.containsKey(temp) && wells.get(temp).contains(j) && !validYWells.contains(j)) {
+					validYWells.add(j);
+				}
+			}
+		}
 	}
 }
