@@ -39,6 +39,7 @@ import wizardPages.DREAMWizard.STORMData;
  * See line 180
  * @author port091
  * @author rodr144
+ * @author huan482
  */
 
 public class Page_ExcludeLocations extends WizardPage implements AbstractWizardPage {
@@ -335,6 +336,11 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		isCurrentPage = current;
 	}
 	
+	/**
+	 * @author huan482
+	 * 5/9/2019
+	 * Populates 2 ArrayList with the x and y values of a well respectively.
+	 */
 	private void populateXandYAxisWells() {
 		for (int i = minI; i <= maxI; i++) {
 			if (wells.containsKey(i)) {
