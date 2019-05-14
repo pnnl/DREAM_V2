@@ -84,6 +84,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private Button solutionSpaceButton;
 	private Button multiRunEnsembleButton;
 	private Button comparisonButton;
+	private Button detectionMapButton;
 	
 	private Text outputFolder;
 	private Text runsText;
@@ -251,6 +252,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					solutionSpaceButton.setEnabled(false);
 					multiRunEnsembleButton.setEnabled(false);
 					comparisonButton.setEnabled(false);
+					detectionMapButton.setEnabled(false);
 				} else {
 					bestTTDTableButton.setEnabled(true);
 					vadButton.setEnabled(true);
@@ -263,6 +265,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					solutionSpaceButton.setEnabled(true);
 					multiRunEnsembleButton.setEnabled(true);
 					comparisonButton.setEnabled(true);
+					detectionMapButton.setEnabled(true);
 				}
 			}
 		});
@@ -961,6 +964,73 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			}
 		});
 		comparisonButton.setVisible(Constants.buildDev);
+		
+		// This writes out information from the detection map
+		detectionMapButton = new Button(devGroup, SWT.BALLOON);
+		detectionMapButton.setSelection(true);
+		detectionMapButton.setText("Write Detection Map");
+		detectionMapButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event arg0) {
+				
+				long startTime = System.currentTimeMillis();
+				List<String> scenarios = data.getSet().getScenarios(); //All scenarios in the set
+				
+				// Each parameter should write its own file
+				for(String parameter: data.getSet().getDetectionMap().keySet()) {
+					// Skip if sensorSettings doesn't contain the parameter
+					if(!data.getSet().getSensorSettings().containsKey(parameter.split("_")[0])) continue;
+					StringBuilder text = new StringBuilder();
+					text.append("Index,Detecting Scenarios,Min TTD,Avg TTD,Max TTD");
+					for(String scenario: data.getSet().getScenarios())
+						text.append("," + scenario);
+					text.append("\n");
+					// Each scenario should be a column
+					for(String scenario: data.getSet().getDetectionMap().get(parameter).keySet()) {
+						// Each node should be a row
+						for(int node: data.getSet().getDetectionMap().get(parameter).get(scenario).keySet()) {
+							float[] ttds = new float[scenarios.size()];
+							float min = Float.MAX_VALUE;
+							float max = Float.MIN_VALUE;
+							float avg = 0;
+							int count = 0;
+							for(float ttd: data.getSet().getDetectionMap().get(parameter).get(scenario).values()) {
+								ttds[scenarios.indexOf(scenario)] = ttd;
+								if(ttd < min) min = ttd;
+								if(ttd > max) max = ttd;
+								avg += ttd; //sum now, average later
+								count++;
+							}
+							// Write out ttd values for the row
+							text.append(node+","+count/scenarios.size()*100+"%,"+min+","+avg/count+","+max);
+							for(float ttd: ttds)
+								text.append(","+ttd);
+							text.append("\n");
+						}
+					}
+					// Write out a file for each parameter
+					try {
+						File outFolder = new File(outputFolder.getText());
+						if(!outFolder.exists())
+							outFolder.mkdirs();
+						File csvOutput = new File(new File(outputFolder.getText()), "DetectionMap_"+parameter+".csv");
+						if(!csvOutput.exists())
+							csvOutput.createNewFile();
+						FileUtils.writeStringToFile(csvOutput, text.toString());
+						//Desktop.getDesktop().open(csvOutput);
+					} catch (IOException e) {		
+						JOptionPane.showMessageDialog(null, "Could not write out the detection map, make sure the file is not currently open");
+						e.printStackTrace();
+					}
+				}
+				long time = (System.currentTimeMillis() - startTime) / 1000;
+				MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
+				dialog.setText("Finished writing the Detection Map");
+				dialog.setMessage("DREAM just finished writing the detection map in "+time/60+" minutes. Results can be found at: " + outputFolder.getText());
+				dialog.open();
+			}
+		});
+		detectionMapButton.setVisible(Constants.buildDev);
 		
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
