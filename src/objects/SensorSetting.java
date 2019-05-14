@@ -75,7 +75,12 @@ public class SensorSetting {
 	public static float globalMinZ;
 	public static float globalMaxZ;
 	public String specificType;
-	
+	/**
+	 * @Catherine
+	 * Percentage to increase nodes in your pareto space.
+	 * Higher percentage = more nodes.
+	 */
+	private static double PERCENTAGE = 0.1;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
@@ -277,6 +282,7 @@ public class SensorSetting {
 	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
 		
+		
 		for(Integer nodeNumber: validNodes) {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
@@ -294,7 +300,7 @@ public class SensorSetting {
 				boolean greater = false;
 				boolean less = false;
 				for(int i=0; i<paretoSolution.size(); ++i){
-					if(paretoSolution.get(i) < ttds.get(i)) greater = true;
+					if(paretoSolution.get(i) < ttds.get(i) + (ttds.get(i) * PERCENTAGE)) greater = true;
 					if(paretoSolution.get(i) > ttds.get(i)) less = true;
 				}
 				if(greater && less){
@@ -316,6 +322,7 @@ public class SensorSetting {
 			if(everyReasonTo){
 				//We need to add this one and remove some.
 				for(Integer x : toRemove){
+					
 					optimalSolutions.remove(x);
 				}
 				optimalSolutions.put(nodeNumber, ttds);
@@ -323,7 +330,7 @@ public class SensorSetting {
 			else if(everyReasonNot){
 				//Lets not add this one, it's redundant
 			}
-			else{
+			else { 
 				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer. Let's add it.
 				optimalSolutions.put(nodeNumber, ttds);
 			}
