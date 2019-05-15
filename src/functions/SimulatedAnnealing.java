@@ -34,51 +34,6 @@ public class SimulatedAnnealing extends Function {
 		return "SimulatedAnnealing";
 	}
 	
-	/*// Inference is basically testing that enough sensors detected their threshold to count as a leak
-	// The criteria for inference is set from Page_DetectionCriteria
-	@Override
-	public InferenceResult inference(ExtendedConfiguration configuration, ScenarioSet set, String scenario) {
-		
-		// Count how many of each type of sensor has triggered
-		Map<String, Integer> totalByType = new HashMap<String, Integer>();
-		Map<String, Integer> triggeredByType = new HashMap<String, Integer>();
-
-		// Loop through sensors in the configuration
-		for(ExtendedSensor sensor: configuration.getExtendedSensors()) {
-			
-			// Add sensor types to lists
-			if(!totalByType.containsKey(sensor.getSensorType())) {
-				totalByType.put(sensor.getSensorType(), 0);
-				triggeredByType.put(sensor.getSensorType(), 0);
-			}
-			
-			// Only increment triggered totals if the current sensor is triggered
-			if(sensor.isTriggering() && sensor.isTriggeredInScenario(scenario)) {
-				int triggered = triggeredByType.get(sensor.getSensorType())+1;
-				triggeredByType.put(sensor.getSensorType(), triggered);
-			}
-			
-			//Count all sensors
-			int count = totalByType.get(sensor.getSensorType())+1;
-			totalByType.put(sensor.getSensorType(), count);
-		}
-
-		for(String type: totalByType.keySet()) {
-			Constants.log(Level.FINEST, "Simulated Annealing - inference", type + " total: " + totalByType.get(type) + "\ttriggering: " + triggeredByType.get(type));
-		}
-
-		Boolean inference = set.getInferenceTest().reachedInference(triggeredByType);
-		InferenceResult result = new InferenceResult(inference);
-
-		if(inference)
-			result = new InferenceResult(inference, set.getInferenceTest().calculateGoodness(totalByType, triggeredByType));
-
-		Constants.log(Level.FINEST, "Simulated Annealing - inference", inference.toString());
-
-		return result;
-
-	}*/
-	
 	// This calculates an value describing how well the sensors detected for this configuration
 	// A large penalty is given to sensors that do not detect
 	@Override
@@ -86,49 +41,18 @@ public class SimulatedAnnealing extends Function {
 		
 		// Start a timer	
 		long startTime = System.currentTimeMillis();		
-		List<Thread> threads = new ArrayList<Thread>();
 		// Clear out previous information
-		for (ExtendedSensor sensor : configuration.getExtendedSensors()) {
+		for (ExtendedSensor sensor: configuration.getExtendedSensors()) {
 			sensor.clearScenariosUsed();
 		}
-		final int cores = Runtime.getRuntime().availableProcessors() - 1; //Use all but one core
+		
+		//TODO: innerLoopParallel used to be threaded, but we should instead use ExecutorService
 		for(final String scenario: set.getScenarios()) {
 			if(set.getScenarioWeights().get(scenario) <= 0) continue; //Skip any scenarios with a weighting of 0
-			if(runThreaded) {
-				Thread thread = new Thread(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							long startTime = System.currentTimeMillis();
-							innerLoopParallel(configuration, set, scenario);
-							Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
-				if(threads.size() < cores) {
-					thread.start();
-					threads.add(thread);
-				}
-			} else {
-				try {
-					startTime = System.currentTimeMillis();	
-					innerLoopParallel(configuration, set, scenario);
-					Constants.timer.addPerScenario(System.currentTimeMillis() - startTime);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		if(runThreaded) {
-			for (Thread thread: threads) {
-				try {
-					thread.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			try {
+				innerLoopParallel(configuration, set, scenario);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -149,7 +73,11 @@ public class SimulatedAnnealing extends Function {
 		
 		// Loop through active tests to calculate the best inference time, if any
 		for(Map<String, Integer> test: activeTests) { //Loop through tests
-			if(sensors.size() < test.size()) continue; //Not enough sensors to complete test
+			// Pre-check: determine the minimum sensor requirement to verify valid configuration
+			int minReq = 0;
+			for(int count: test.values()) minReq += count;
+			if(sensors.size() < minReq) continue; //Not enough sensors to complete test
+			// Primary check: determine that sensor types match up to verify valid configuration
 			boolean testPass = true;
 			float testValue = 0;
 			for(String testKey: test.keySet()) { //Loop through sensors in a test
@@ -176,9 +104,9 @@ public class SimulatedAnnealing extends Function {
 				
 				// Do a final check to confirm that the "Any Technology" requirement doesn't increase the inferenceValue
 				List<Float> allTTDs = listOfValidTTDs(sensors, set, scenario, "");
-				if(allTTDs.size() < test.size()) continue; //Not enough detecting sensors to complete test
-				if(allTTDs.get(test.size()-1) > testValue) //Save the largest TTD at the minimum "All Sensor" test requirement
-					testValue = allTTDs.get(test.size()-1);
+				if(allTTDs.size() < minReq) continue; //Not enough detecting sensors to complete test
+				if(allTTDs.get(minReq-1) > testValue) //Save the largest TTD at the minimum "All Sensor" test requirement
+					testValue = allTTDs.get(minReq-1);
 				
 				// Store values globally
 				inferencePass = true;
