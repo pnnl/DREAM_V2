@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -980,33 +981,44 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				for(String parameter: data.getSet().getDetectionMap().keySet()) {
 					// Skip if sensorSettings doesn't contain the parameter
 					if(!data.getSet().getSensorSettings().containsKey(parameter.split("_")[0])) continue;
+					// Initialize arrays to save statistics across all scenarios
+					List<Integer> cloudNodes = new ArrayList<Integer>(data.getSet().getSensorSettings(parameter.split("_")[0]).getCloudNodes());
+					float[][] ttds = new float[cloudNodes.size()][scenarios.size()];
+					float[] min = new float[cloudNodes.size()];
+					Arrays.fill(min, Float.MAX_VALUE);
+					float[] max = new float[cloudNodes.size()];
+					Arrays.fill(max, Float.MIN_VALUE);
+					float[] avg = new float[cloudNodes.size()];
+					float[] count = new float[cloudNodes.size()];
+					// Each scenario should be a column
+					for(String scenario: data.getSet().getDetectionMap().get(parameter).keySet()) {
+						// Each node should be a row
+						for(int node: data.getSet().getDetectionMap().get(parameter).get(scenario).keySet()) {
+							int i = cloudNodes.indexOf(node);
+							float ttd = data.getSet().getDetectionMap().get(parameter).get(scenario).get(node);
+							ttds[i][scenarios.indexOf(scenario)] = ttd;
+							if(ttd < min[i]) min[i] = ttd;
+							if(ttd > max[i]) max[i] = ttd;
+							avg[i] += ttd; //sum now, average later
+							count[i]++;
+						}
+					}
+					// Writing out the header row
 					StringBuilder text = new StringBuilder();
 					text.append("Index,Detecting Scenarios,Min TTD,Avg TTD,Max TTD");
 					for(String scenario: data.getSet().getScenarios())
 						text.append("," + scenario);
 					text.append("\n");
-					// Each scenario should be a column
-					for(String scenario: data.getSet().getDetectionMap().get(parameter).keySet()) {
-						// Each node should be a row
-						for(int node: data.getSet().getDetectionMap().get(parameter).get(scenario).keySet()) {
-							float[] ttds = new float[scenarios.size()];
-							float min = Float.MAX_VALUE;
-							float max = Float.MIN_VALUE;
-							float avg = 0;
-							int count = 0;
-							for(float ttd: data.getSet().getDetectionMap().get(parameter).get(scenario).values()) {
-								ttds[scenarios.indexOf(scenario)] = ttd;
-								if(ttd < min) min = ttd;
-								if(ttd > max) max = ttd;
-								avg += ttd; //sum now, average later
-								count++;
-							}
-							// Write out ttd values for the row
-							text.append(node+","+count/scenarios.size()*100+"%,"+min+","+avg/count+","+max);
-							for(float ttd: ttds)
-								text.append(","+ttd);
-							text.append("\n");
-						}
+					// Writing out a row for each node
+					for(int node: cloudNodes) {
+						int i = cloudNodes.indexOf(node);
+						text.append(node+","+count[i]/(float)scenarios.size()*100.0+"%,");
+						text.append((min[i]==Float.MAX_VALUE ? "" : min[i]) + ",");
+						text.append((avg[i]==0 ? "" : avg[i]/count[i]) + ",");
+						text.append((max[i]==Float.MIN_VALUE ? "" : max[i]));
+						for(int j=0; j<scenarios.size(); j++)
+							text.append("," + (ttds[i][j]==0 ? "" : ttds[i][j]));
+						text.append("\n");
 					}
 					// Write out a file for each parameter
 					try {
