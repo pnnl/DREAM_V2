@@ -61,14 +61,12 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 	private List<Integer> validXWells = new ArrayList<>();
 	private List<Integer> validYWells = new ArrayList<>();
 	private boolean isCurrentPage = false;
-	
 	public Page_ExcludeLocations(STORMData data) {
 		super("Exclude Locations");
 		this.data = data;		
 	}
 	@Override
 	public void createControl(Composite parent) {
-		
 		buttons = new HashMap<Integer, Map<Integer, Button>>();
 		selection = new HashMap<Integer, Map<Integer, Boolean>>();
 		rootContainer = new Composite(parent, SWT.NULL);
@@ -123,10 +121,8 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		for(Control control: container.getChildren()) {
 			control.dispose(); // Remove the children.
 		}
-		
 		container.layout();			
 		buttons.clear();
-
 		// Add check boxes for all valid well locations
 		if(data.needToResetWells){
 			//This means that we have set new parameters and need to reset all values
@@ -155,18 +151,20 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 				}
 			}				
 		}
+		validXWells.clear();
+		validYWells.clear();
 		populateXandYAxisWells();
 		layout.numColumns = validXWells.size() + 1;
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );		
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Exclude Locations");
-		GridData infoGridData1 = new GridData(GridData.FILL_HORIZONTAL);
+		GridData infoGridData1 = new GridData(GridData.FILL);
 		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns - 1;
 		infoGridData1.verticalSpan = 4;
 		infoLabel1.setLayoutData(infoGridData1);
 		infoLabel1.setFont(boldFont);
 		
-		GridData infoLinkData = new GridData(GridData.FILL_HORIZONTAL);
+		GridData infoLinkData = new GridData(GridData.FILL);
 		infoLinkData.horizontalSpan = 1;
 		infoLinkData.verticalSpan = 4;
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
@@ -204,8 +202,8 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		if((maxJ-minJ)*(maxI-minI) > 9000){
 			corner.setText("Domain is too large for individual well exclusion.");
 		}
-		else{
-			corner.setText("Y | X");
+		else {
+			corner.setText("Y | X"); 
 			for(int xVals: validXWells) {
 				Label label = new Label(container, SWT.NULL);
 				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(xVals-1)));
