@@ -1,7 +1,11 @@
 package results;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,6 +14,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import objects.Configuration;
 import objects.ExtendedConfiguration;
@@ -279,17 +284,9 @@ public class ResultPrinter {
 		String ensemble = results.set.getScenarioEnsemble();
 		File bestConfigFile = new File(resultsDirectory, fileName + ".csv");
 		FileUtils.writeLines(bestConfigFile, lines);
-		if(runScripts){
-			//Try running script
-			try {
-				String script = Constants.userDir+File.separator+"scripts"+File.separator+"plot_dream_3panel.py";
-				String solutionSpace = resultsDirectory + File.separator + ensemble + "_solutionSpace.txt";
-				Runtime runtime = Runtime.getRuntime();
-				String command = "python \"" + script + "\" \"" + solutionSpace + "\" \"" + bestConfigFile.getAbsolutePath() + "\"";
-				runtime.exec(command);
-			} catch(Exception e) {
-				System.out.println("Install python3 and required libraries to create a PDF visualization");
-			}
+		if(runScripts) {
+			String solutionSpace = resultsDirectory + File.separator + ensemble + "_solutionSpace.txt";
+			runPythonScript("plot_dream_3panel.py", new String[] {solutionSpace, bestConfigFile.getAbsolutePath()});
 		}
 		
 		// Assemble strings of TTDs for the best configurations
@@ -306,16 +303,8 @@ public class ResultPrinter {
 		}
 		File ttdFile = new File(resultsDirectory, ttdFileName + ".csv");
 		FileUtils.writeLines(ttdFile, ttdLines);
-		if(runScripts){
-			//Try running script
-			try {
-				String script = Constants.userDir+File.separator+"scripts"+File.separator+"plot_best_config_ttds.py";
-				Runtime runtime = Runtime.getRuntime();
-				String command = "python \"" + script + "\" \"" + ttdFile.getAbsolutePath() + "\"";
-				runtime.exec(command);
-			} catch(Exception e) {
-				System.out.println("Install python3 and required libraries to create TTD plots");
-			}
+		if(runScripts) {
+			runPythonScript("plot_best_config_ttds.py", new String[] {ttdFile.getAbsolutePath()});
 		}
 		
 		// Assemble strings of VADs for the best configurations
@@ -328,16 +317,8 @@ public class ResultPrinter {
 		}
 		File vadFile = new File(resultsDirectory, vadFileName + ".csv");
 		FileUtils.writeLines(vadFile, vadLines);
-		if(runScripts){
-			//Try running script
-			try {
-				String script = Constants.userDir+File.separator+"scripts"+File.separator+"plot_best_config_vads.py";
-				Runtime runtime = Runtime.getRuntime();
-				String command = "python \"" + script + "\" \"" + vadFile.getAbsolutePath() + "\"";
-				runtime.exec(command);
-			} catch(Exception e) {
-				System.out.println("Install python3 and required libraries to create VAD plots");
-			}
+		if(runScripts) {
+			runPythonScript("plot_best_config_vads.py", new String[] {vadFile.getAbsolutePath()});
 		}
 	}
 
@@ -370,16 +351,8 @@ public class ResultPrinter {
 			File fileToWrite = new File(resultsDirectory, fileName + ".csv");
 			FileUtils.writeLines(fileToWrite, lines);
 			
-			if(runScripts){
-				//Try running script
-				try {
-					String script = Constants.userDir+File.separator+"scripts"+File.separator+"plot_dreamout01.py";
-					Runtime runtime = Runtime.getRuntime();
-					String command = "python \"" + script + "\" \"" + fileToWrite.getAbsolutePath() + "\"";
-					runtime.exec(command);
-				} catch(Exception e) {
-					System.out.println("Install python3 and required libraries to create a PDF visualization");
-				}
+			if(runScripts) {
+				runPythonScript("plot_dreamout01.py", new String[] {fileToWrite.getAbsolutePath()});
 			}
 		}
 	}
@@ -404,6 +377,45 @@ public class ResultPrinter {
 			lines.add(line.toString());
 		}
 		FileUtils.writeLines(new File(resultsDirectory, fileName), lines);
+	}
+	
+	private static void runPythonScript(String scriptName, String[] args) {
+		boolean printToConsole = true; //Determines whether we print Python outputs to console
+		// We essentially create a local copy of the script so that it works when packaged in a JAR
+		try {
+	        InputStream in = ResultPrinter.class.getResourceAsStream("/"+scriptName);
+	        File fileOut = new File(System.getProperty("java.io.tmpdir"),scriptName); //Within the user's temp directory
+	        OutputStream out = FileUtils.openOutputStream(fileOut);
+	        IOUtils.copy(in, out);
+	        in.close();
+	        out.close();
+    	} catch (Exception e) {
+    		System.out.println("Unable to copy the script to the temp directory");
+    		e.printStackTrace();
+    	}
+		String script = System.getProperty("java.io.tmpdir")+File.separator+scriptName;
+		StringBuilder command = new StringBuilder();
+		command.append("python \"" + script + "\"");
+		for(String arg: args) {
+			command.append(" \"" + arg + "\"");
+		}
+		try {
+			Process p = Runtime.getRuntime().exec(command.toString());
+			if(printToConsole) {
+				BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+				String line;
+				while ((line = bri.readLine()) != null)
+		            System.out.println(line);
+		        bri.close();
+				while ((line = bre.readLine()) != null)
+		        	System.out.println(line);
+		        bre.close();
+			}
+		} catch(Exception e) {
+			System.out.println("Install python3 and required libraries to create a PDF visualization");
+			e.printStackTrace();
+		}
 	}
 	
 }
