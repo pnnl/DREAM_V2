@@ -234,10 +234,20 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * Takes directly from the data set.
 	 */
 	private void createMaximumWellsLabel() {
-		Label wellLabel = new Label(container, SWT.NULL);
-		wellLabel.setText("Maximum Number of Wells");
-		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
-		createWellLabels(maxWells, true);
+		/**
+		 * Creates the label text for the maximum number of wells.
+		 * Takes directly from the data set.
+		 */
+			Label wellLabel = new Label(container, SWT.NULL);
+			wellLabel.setText("Maximum Number of Wells");
+			maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
+			maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
+			System.out.println(maxWells.getText());
+			maxWells.setForeground(Constants.black);
+			maxWells.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+			//Minimum distance between wells
+			String unit = data.getSet().getNodeStructure().getUnit("x");
 	}
 	
 	/**
