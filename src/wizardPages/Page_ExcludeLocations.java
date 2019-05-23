@@ -16,7 +16,6 @@ import objects.SensorSetting;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Font;
@@ -25,7 +24,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -42,7 +40,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author huan482
  */
 
-public class Page_ExcludeLocations extends WizardPage implements AbstractWizardPage {
+public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWizardPage {
 	
 	private ScrolledComposite sc;
 	private Composite container;
@@ -118,9 +116,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		DREAMWizard.nextButton.setVisible(true);
 		DREAMWizard.errorMessage.setText("");
 		isCurrentPage = true;
-		for(Control control: container.getChildren()) {
-			control.dispose(); // Remove the children.
-		}
+		removeChildren(container);
 		container.layout();			
 		buttons.clear();
 		// Add check boxes for all valid well locations
@@ -199,7 +195,7 @@ public class Page_ExcludeLocations extends WizardPage implements AbstractWizardP
 		Label corner = new Label(container, SWT.NULL);
 		/* This page can only handle so many checkboxes.
 		 * If we exceed this amount, we disable this functionality and display none. */
-		if((maxJ-minJ)*(maxI-minI) > 9000){
+		if(validXWells.size() * validYWells.size() > 9000){
 			corner.setText("Domain is too large for individual well exclusion.");
 		}
 		else {
