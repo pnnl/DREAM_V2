@@ -33,7 +33,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -437,9 +436,16 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 //			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
 			String unit;
 			if (sensorKey.contains("_")) {
-				unit = data.getSet().getNodeStructure().getUnit(sensorKey.substring(0, sensorKey.indexOf("_")));
+				unit = data.getSet().getNodeStructure().
+						getUnit(sensorKey.substring(0, sensorKey.indexOf("_")));
+				if (unit.contains("kg")) {
+					unit = "kg/m" + "³";
+				}
 			} else {
 				unit = data.getSet().getNodeStructure().getUnit(sensorKey);
+				if (unit.contains("kg")) {
+					unit = "kg/m" + "³";
+				}
 			}
 			// The border gives the appearance of a single component
 			detectionComposite = new Composite(container, SWT.BORDER);
