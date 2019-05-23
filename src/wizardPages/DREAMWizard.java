@@ -173,7 +173,6 @@ public class DREAMWizard extends Wizard {
 
 
 	public static void main(String[] args) {
-
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display);
 
@@ -394,7 +393,7 @@ public class DREAMWizard extends Wizard {
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(null, "Loading files was canceled by the user.");
 				e.printStackTrace();
-			}
+			} 
 		}
 		
 		

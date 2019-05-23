@@ -30,14 +30,15 @@ import utilities.Point3i;
  * Utility functions for use in reading and parsing hdf5 files to DREAM formats
  * @author port091
  * @author whit162
- */
+ */ 
 
-public class HDF5Interface {
+public class HDF5Interface { 
 	
 	// Points to all the hdf5 files in the directory
 	public static Map<String, H5File> hdf5Files = new HashMap<String, H5File>();
 	// Stores global statistics - min, average, max
 	public static Map<String, float[]> statistics = new HashMap<String, float[]>();
+	
 	
 	/*	
 	 *  Example of node number vs. index. Each cell has: 
@@ -70,15 +71,14 @@ public class HDF5Interface {
 		NodeStructure nodeStructure = null;
 		statistics.clear();
 		try {
+			// Equivalent to opening to line 80 and 81 (Theoretically)
 			H5File hdf5File  = new H5File(file.getAbsolutePath(), HDF5Constants.H5F_ACC_RDONLY);
 			hdf5File.open();
 			
-			// Get the root node
 			Group root = (Group)((javax.swing.tree.DefaultMutableTreeNode)hdf5File.getRootNode()).getUserObject();
 			// Get the data group
 			for(int rootIndex = 0; rootIndex < root.getMemberList().size(); rootIndex++) {
 				String name = root.getMemberList().get(rootIndex).getName();
-				
 				if(name.startsWith("data")) {
 					HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
 					HashMap<String, String> units = new HashMap<String, String>();
@@ -93,7 +93,6 @@ public class HDF5Interface {
 						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
 						int dataset_id = dataset.open();
 						float[] temp =  (float[])dataset.read();
-	
 						if(dataset.getName().equals("times")) {
 							for(int i=0; i<temp.length; i++)
 								times.add(new TimeStep(i, temp[i], Math.round(temp[i])));
