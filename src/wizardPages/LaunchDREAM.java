@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import utilities.Constants;
+
 /**
  * Need to add VM arguments that identify the jhdf5 library
  * Using a runtime argument to re-launch the main program with arguments
@@ -22,13 +24,14 @@ public class LaunchDREAM extends DREAMWizard {
 		
         if (args.length == 0) {
         	try {
+        		// We are creating a copy of jhdf5.dll in the user's temp directory
+        		// This is because the jar compresses internal files so that we can't point directly at it
     	        InputStream in = LaunchDREAM.class.getResourceAsStream("/jhdf5.dll");
-    	        File fileOut = new File(System.getProperty("java.io.tmpdir"),"jhdf5.dll"); //Located at the user's temp directory
+    	        File fileOut = new File(System.getProperty("java.io.tmpdir"),"jhdf5.dll"); //Within the user's temp directory
     	        OutputStream out = FileUtils.openOutputStream(fileOut);
     	        IOUtils.copy(in, out);
     	        in.close();
     	        out.close();
-    	        System.load(fileOut.toString()); //loading goes here
         	} catch (Exception e) {
         		e.printStackTrace();
         	}
@@ -42,6 +45,7 @@ public class LaunchDREAM extends DREAMWizard {
         }
         
         // Run the main program with the VM option set
+        Constants.runningJar = true;
         DREAMWizard.main(args);
     }
 }
