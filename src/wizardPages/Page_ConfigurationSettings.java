@@ -28,6 +28,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author port091
  * @author rodr144
  * @author whit162
+ * @author huan482
  */
 
 public class Page_ConfigurationSettings extends DreamWizardPage implements AbstractWizardPage {
@@ -44,6 +45,8 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	private Text wellCost;
 	private Text wellDepthCost;
 	private Text remediationCost;
+	private Font myBoldFont;
+	private String unit;
 	private float cost = 0; //Since data.getSet().getCostConstraint is set at the end of the previous page, use local variable
 	
 	private boolean isCurrentPage = false;
@@ -51,7 +54,8 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	protected Page_ConfigurationSettings(STORMData data) {
 		super("Configuration Settings");
 		//	setDescription("Run setup");
-		this.data = data;			
+		this.data = data;
+		
 	}
 	
 	@Override
@@ -68,6 +72,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	            sc.setFocus();
 	        }
 	    });
+		
 		sc.addListener(SWT.MouseWheel, new Listener() {
 	        public void handleEvent(Event event) {
 	            int wheelCount = event.count;
@@ -98,177 +103,45 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		setControl(rootContainer);
 		setPageComplete(true);
 	}
-
+	
+	/**
+	 * Loads Configuration Settings Page.
+	 */
 	@Override
 	public void loadPage() {
+		
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
 		for(Control control: container.getChildren())
 			control.dispose(); // Remove the children.
 		
-		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		myBoldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
+		unit = data.getSet().getNodeStructure().getUnit("x");
 		
-		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		infoLabel1.setText("Configuration Settings");
-		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
-		infoLabel1.setFont(boldFont);
+		createConfigurationSettingsLabel(myBoldFont);
 		
-		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
-		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
-		infoLink.setAlignment(SWT.RIGHT);
-		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
-		infoLink.addListener(SWT.MouseUp, new Listener(){
-			@Override
-			public void handleEvent(Event event) {
-				MessageDialog.openInformation(container.getShell(), "Additional information", "The configuration settings specify hard constraints for the optimization algorithm. "
-						+ "The solutions may not exceed the maximum cost, maximum number of wells, or include wells closer than the minimum specified distance. "
-						+ "The user may not specify a cost that is less than the minimum requirement for the tests defined on the previous page. ");
-			}
-		});
+		createInfoLinkLabel();
 		
 		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel.setText("Are there any cost or physical constraints on the monitoring configuration?");
-		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
-		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		infoGridData.verticalSpan = 2;
-		infoLabel.setLayoutData(infoGridData);
+		infoLabel.setLayoutData(theGridDataSpecifications());
 		
-		//Cost constraint
+		//Simple text label
 		Label costLabel = new Label(container, SWT.NULL);
 		costLabel.setText("Total Monitoring Budget");
-		if (cost<data.getSet().getSensorCostConstraint())
-			cost = data.getSet().getSensorCostConstraint();
-		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
-		costConstraint.setText(String.valueOf(cost));
-		costConstraint.setForeground(Constants.black);
-		costConstraint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		costConstraint.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-				boolean minError = false;
-				if (numError==true)
-					((Text)e.getSource()).setForeground(Constants.red);
-				else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					if(Float.valueOf(((Text)e.getSource()).getText()) < data.getSet().getSensorCostConstraint()) {
-						minError = true;
-						((Text)e.getSource()).setForeground(Constants.red);
-					} else
-						cost = Float.parseFloat(((Text)e.getSource()).getText());
-				}
-				errorFound(numError, "  Cost constraint is not a real number.");
-				errorFound(minError, "  Cost constraint cannot be less the minimum sensor requirement.");
-			}
-		});
-
-		//Maximum number of wells
-		Label wellLabel = new Label(container, SWT.NULL);
-		wellLabel.setText("Maximum Number of Wells");
-		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
-		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
-		maxWells.setForeground(Constants.black);
-		maxWells.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		maxWells.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidInt(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(Constants.red);
-				else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					data.getSet().setMaxWells(Integer.parseInt(((Text)e.getSource()).getText()));
-				}
-				errorFound(numError, "  Wells is not a real number.");
-			}
-		});
-
-		//Minimum distance between wells
-		String unit = data.getSet().getNodeStructure().getUnit("x");
-		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
-		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
-		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
-		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
-		exclusionRadius.setForeground(Constants.black);
-		exclusionRadius.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		exclusionRadius.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(Constants.red);
-				else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					data.getSet().setExclusionRadius(Float.parseFloat(((Text)e.getSource()).getText()));
-				}
-				errorFound(numError, "  Distance is not a real number.");
-			}
-		});
 		
+		createCostConstraintLabel();
 		
-		//Cost per well
-		Label wellCostLabel = new Label(container, SWT.NULL);
-		wellCostLabel.setText("Cost Per Well");
-		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-		wellCost.setForeground(Constants.black);
-		wellCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		wellCost.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(Constants.red);
-				else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					data.getSet().setWellCost(Float.parseFloat(((Text)e.getSource()).getText()));
-				}
-				errorFound(numError, "  Cost is not a real number.");
-			}
-		});
+		createMaximumWellsLabel();
 		
-		//Cost per well depth
-		Label wellDepthCostLabel = new Label(container, SWT.NULL);
-		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
-		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wellDepthCost.setText(String.valueOf(data.getSet().getWellCost()));
-		wellDepthCost.setForeground(Constants.black);
-		wellDepthCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		wellDepthCost.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-				if (numError==true)
-					((Text)e.getSource()).setForeground(Constants.red);
-				else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					data.getSet().setWellDepthCost(Float.parseFloat(((Text)e.getSource()).getText()));
-				}
-				errorFound(numError, "  Cost is not a real number.");
-			}
-		});
+		createMinimumWellLabel();
+	
+		createWellCostLabel();
+		
+		createCostWellDepthLabel();
 			
 		if (Constants.buildDev) {
-			//Remediation cost
-			Label remediationCostLabel = new Label(container, SWT.NULL);
-			remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "^3"));
-			remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
-			remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
-			remediationCost.setForeground(Constants.black);
-			remediationCost.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			remediationCost.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					boolean numError = !Constants.isValidFloat(((Text)e.getSource()).getText());
-					if (numError==true)
-						((Text)e.getSource()).setForeground(Constants.red);
-					else {
-						((Text)e.getSource()).setForeground(Constants.black);
-						data.getSet().setRemediationCost(Float.parseFloat(((Text)e.getSource()).getText()));
-					}
-					errorFound(numError, "  Remediation cost is not a real number.");
-				}
-			});
+			createRemediationCostLabel();
 		}
 
 		container.layout();	
@@ -279,7 +152,171 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 	
-
+	/**
+	 * Info label for the configuration settings.
+	 * @param TheBoldFont - The font used.
+	 */
+	private void createConfigurationSettingsLabel(final Font TheBoldFont) {
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+		infoLabel1.setText("Configuration Settings");
+		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
+		infoLabel1.setFont(TheBoldFont);
+	}
+	
+	/**
+	 * This method creates the information that details the additional information.
+	 */
+	private void createInfoLinkLabel() {
+		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
+		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
+		infoLink.setAlignment(SWT.RIGHT);
+		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
+		infoLink.addListener(SWT.MouseUp, new Listener(){
+			@Override
+			public void handleEvent(Event event) {
+				MessageDialog.openInformation(container.getShell(),
+						"Additional information",
+						"The configuration settings specify hard constraints for the optimization algorithm. "
+						+ "The solutions may not exceed the maximum cost, maximum number of wells,"
+						+ " or include wells closer than the minimum specified distance. "
+						+ "The user may not specify a cost that is less than the minimum requirement for the tests defined"
+						+ " on the previous page. ");
+			}
+		});
+	}
+	
+	/**
+	 * This method sets the GridData's specifications.
+	 * @return infoGridData - The specifications for the GridData.
+	 */
+	private GridData theGridDataSpecifications() {
+		GridData infoGridData = new GridData(GridData.FILL_HORIZONTAL);
+		infoGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		infoGridData.verticalSpan = 2;
+		return infoGridData;
+	}
+	
+	/**
+	 * This method creates the text for the cost constraints.
+	 * If there is a error (i.e not a number) text will turn red color, otherwise black.
+	 */
+	private void createCostConstraintLabel() {
+		if (cost < data.getSet().getSensorCostConstraint()) cost = data.getSet().getSensorCostConstraint();
+		
+		costConstraint = new Text(container, SWT.BORDER | SWT.SINGLE);
+		costConstraint.setText(String.valueOf(cost));
+		costConstraint.setForeground(Constants.black);
+		costConstraint.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		//Method reference
+		costConstraint.addModifyListener(this::createCostConstraintHelper);
+	}
+	
+	/**
+	 * Changes font color when error is encountered.
+	 * @param theEvent - The event.
+	 */
+	private void createCostConstraintHelper(ModifyEvent theEvent) {
+		boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());
+		boolean minError = false;
+		if (numError == true)
+			((Text) theEvent.getSource()).setForeground(Constants.red);
+		else {
+			((Text) theEvent.getSource()).setForeground(Constants.black);
+			if(Float.valueOf(( (Text) theEvent.getSource()).getText()) < data.getSet().getSensorCostConstraint()) {
+				minError = true;
+				((Text) theEvent.getSource()).setForeground(Constants.red);
+			} else
+				cost = Float.parseFloat(((Text)theEvent.getSource()).getText());
+		}
+		errorFound(numError, "  Cost constraint is not a real number.");
+		errorFound(minError, "  Cost constraint cannot be less the minimum sensor requirement.");
+	}
+	
+	/**
+	 * Creates the label text for the maximum number of wells.
+	 * Takes directly from the data set.
+	 */
+	private void createMaximumWellsLabel() {
+		Label wellLabel = new Label(container, SWT.NULL);
+		wellLabel.setText("Maximum Number of Wells");
+		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
+		createWellLabels(maxWells, true);
+	}
+	
+	/**
+	 * Creates the label text for the minimum distance between wells.
+	 */
+	private void createMinimumWellLabel() {
+		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
+		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
+		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
+		createWellLabels(exclusionRadius, true);
+	}
+	
+	/**
+	 * Creates the label text for the cost per well.
+	 */
+	private void createWellCostLabel() {
+		Label wellCostLabel = new Label(container, SWT.NULL);
+		wellCostLabel.setText("Cost Per Well");
+		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		createWellLabels(wellCost, true);
+	}
+	
+	/**
+	 * Creates the label text for the cost per well depth.
+	 */
+	private void createCostWellDepthLabel() {
+		Label wellDepthCostLabel = new Label(container, SWT.NULL);
+		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
+		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		createWellLabels(wellDepthCost, true);
+	}
+	
+	/**
+	 * Creates the label text for remediation cost.
+	 */
+	private void createRemediationCostLabel() {
+		Label remediationCostLabel = new Label(container, SWT.NULL);
+		remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "³"));
+		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		createWellLabels(remediationCost, false);
+	}
+	
+	/**
+	 * Helper method that creates the Well labels and Remediation cost label.
+	 * Created to remove repeated code.
+	 * @param theWellText - The name of the Text variable.
+	 * @param isWell - Throws different error messages if isWell or otherwise.
+	 * @author huan482
+	 */
+	private void createWellLabels(Text theWellText, boolean isWell) {
+		theWellText.setText(String.valueOf(data.getSet().getWellCost()));
+		theWellText.setForeground(Constants.black);
+		theWellText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		//Lambda function
+		theWellText.addModifyListener(theEvent -> {
+			boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());
+			if (numError == true)
+				((Text) theEvent.getSource()).setForeground(Constants.red);
+			else {
+				((Text) theEvent.getSource()).setForeground(Constants.black);
+				data.getSet().setWellDepthCost(Float.parseFloat(((Text) theEvent.getSource()).getText()));
+			}
+			if (isWell) {
+				errorFound(numError, "  Cost is not a real number.");
+			} else {
+				errorFound(numError, "  Remediation cost is not a real number.");
+			}
+		});
+	}
+	
+	
+	
+	/**
+	 * Getter for the cost constraint.
+	 * @return costConstraint
+	 */
 	public float getCostConstraint() { 
 		try {
 			return Float.parseFloat(costConstraint.getText());
@@ -341,7 +378,9 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(), getExclusionRadius(), getWellCost(), getWellDepthCost(), getRemediationCost());
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(),
+				getExclusionRadius(), getWellCost(), getWellDepthCost(),
+				getRemediationCost());
 	}
 
 	@Override
