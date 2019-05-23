@@ -234,20 +234,11 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * Takes directly from the data set.
 	 */
 	private void createMaximumWellsLabel() {
-		/**
-		 * Creates the label text for the maximum number of wells.
-		 * Takes directly from the data set.
-		 */
-			Label wellLabel = new Label(container, SWT.NULL);
-			wellLabel.setText("Maximum Number of Wells");
-			maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
-			maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
-			System.out.println(maxWells.getText());
-			maxWells.setForeground(Constants.black);
-			maxWells.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-			//Minimum distance between wells
-			String unit = data.getSet().getNodeStructure().getUnit("x");
+		Label wellLabel = new Label(container, SWT.NULL);
+		wellLabel.setText("Maximum Number of Wells");
+		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
+		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
+		createWellLabels(maxWells, true);
 	}
 	
 	/**
@@ -257,6 +248,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		Label exclusionRadiusLabel = new Label(container, SWT.NULL);
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
 		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
+		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
 		createWellLabels(exclusionRadius, true);
 	}
 	
@@ -267,6 +259,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		Label wellCostLabel = new Label(container, SWT.NULL);
 		wellCostLabel.setText("Cost Per Well");
 		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
 		createWellLabels(wellCost, true);
 	}
 	
@@ -277,6 +270,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		Label wellDepthCostLabel = new Label(container, SWT.NULL);
 		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
 		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wellDepthCost.setText(String.valueOf(data.getSet().getWellDepthCost()));
 		createWellLabels(wellDepthCost, true);
 	}
 	
@@ -287,6 +281,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		Label remediationCostLabel = new Label(container, SWT.NULL);
 		remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "³"));
 		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
 		createWellLabels(remediationCost, false);
 	}
 	
@@ -298,7 +293,6 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * @author huan482
 	 */
 	private void createWellLabels(final Text theWellText, final boolean isWell) {
-		theWellText.setText(String.valueOf(data.getSet().getWellCost()));
 		theWellText.setForeground(Constants.black);
 		theWellText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		//Lambda function
