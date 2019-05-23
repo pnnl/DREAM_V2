@@ -6,13 +6,11 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -59,7 +57,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 
@@ -112,8 +110,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren())
-			control.dispose(); // Remove the children.
+		removeChildren(container);
 		
 		myBoldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		unit = data.getSet().getNodeStructure().getUnit("x");
@@ -173,7 +170,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLink.addListener(SWT.MouseUp, new Listener(){
 			@Override
-			public void handleEvent(Event event) {
+			public void handleEvent(final Event event) {
 				MessageDialog.openInformation(container.getShell(),
 						"Additional information",
 						"The configuration settings specify hard constraints for the optimization algorithm. "
@@ -215,7 +212,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * Changes font color when error is encountered.
 	 * @param theEvent - The event.
 	 */
-	private void createCostConstraintHelper(ModifyEvent theEvent) {
+	private void createCostConstraintHelper(final ModifyEvent theEvent) {
 		boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());
 		boolean minError = false;
 		if (numError == true)
@@ -290,7 +287,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * @param isWell - Throws different error messages if isWell or otherwise.
 	 * @author huan482
 	 */
-	private void createWellLabels(Text theWellText, boolean isWell) {
+	private void createWellLabels(final Text theWellText, final boolean isWell) {
 		theWellText.setText(String.valueOf(data.getSet().getWellCost()));
 		theWellText.setForeground(Constants.black);
 		theWellText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
