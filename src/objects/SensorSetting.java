@@ -81,7 +81,7 @@ public class SensorSetting {
 	 * Percentage to increase nodes in your pareto space.
 	 * Higher percentage = more nodes.
 	 */
-	private static double PERCENTAGE = 0.5;
+//	private static double PERCENTAGE = 0.5;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
