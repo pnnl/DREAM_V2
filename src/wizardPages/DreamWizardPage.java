@@ -1,6 +1,8 @@
 package wizardPages;
 
 import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 
 /**
  * Parent class of DreamWizard, contains functions called in multiple pages
@@ -29,10 +31,15 @@ public abstract class DreamWizardPage extends WizardPage {
 		DREAMWizard.errorMessage.getParent().layout();
 	}
 	
-	
 	@Override
 	public boolean canFlipToNextPage() {
 		super.canFlipToNextPage();
 		return DREAMWizard.errorMessage.getText().trim().isEmpty();
 	} 
+	
+	public void removeChildren(final Composite theContainer) {
+		for(Control control: theContainer.getChildren()) {
+			control.dispose(); 
+		}
+	}
 }
