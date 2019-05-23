@@ -157,9 +157,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	@Override
 	public void loadPage() {
 		isCurrentPage = true;
-		for(Control control: container.getChildren()) {
-			control.dispose(); // Remove the children.
-		}
+		removeChildren(container);
 		container.layout();	
 		
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );

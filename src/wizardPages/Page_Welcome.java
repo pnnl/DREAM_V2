@@ -1,12 +1,16 @@
 package wizardPages;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.wizard.WizardPage;
@@ -42,10 +46,10 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 
 	protected Page_Welcome() {
 		super("Welcome");
-	}
+	} 
 
 	@Override
-	public void createControl(Composite parent) {		
+	public void createControl (Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 
@@ -218,5 +222,4 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 	public void setPageCurrent(boolean current) {
 		isCurrentPage = current;
 	}
-	
 }

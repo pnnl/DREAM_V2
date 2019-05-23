@@ -318,7 +318,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 						//temp.aliasText.setForeground(black);
 						for(SensorData temp2: sensorData.values()) {
 							if(!temp2.isIncluded) continue; //Skip unchecked parameters
-							if(temp.aliasText.getText().trim().equals(temp2.aliasText.getText().trim()) && !temp.sensorName.equals(temp2.sensorName)) {
+							if(temp.aliasText.getText().trim().equals(temp2.aliasText.getText().trim()) &&
+									!temp.sensorName.equals(temp2.sensorName)) {
 								temp.aliasText.setForeground(Constants.red);
 								duplicateError = true;
 							}
@@ -677,8 +678,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		isCurrentPage = true;
 		if(!DREAMWizard.errorMessage.getText().contains("  No nodes were found for the provided parameters."))
 			DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren())
-			control.dispose(); // Remove the children.
+		removeChildren(container);
 		
 		// If we need to reset sensors, this boolean will be set to true
 		if(data.needToResetMonitoringParameters) {

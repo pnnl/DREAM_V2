@@ -18,7 +18,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -152,7 +151,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 				});
 			}
 			
-			if(activeTests.size() != textMap.size()) {
+			if(activeTests.size() != textMap.size()) { 
 				
 				// Button that allows user to add another sensor to the test
 				addSensorButton = new Button(group, SWT.PUSH);
@@ -258,8 +257,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 	public void loadPage() {
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren())
-			control.dispose(); // Remove the children.
+		removeChildren(container);
 		
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		

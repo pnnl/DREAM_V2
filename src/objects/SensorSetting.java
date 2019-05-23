@@ -17,6 +17,7 @@ import utilities.Point3f;
  * @author port091
  * @author rodr144
  * @author whit162
+ * @author huan482
  */
 
 public class SensorSetting {
@@ -80,7 +81,7 @@ public class SensorSetting {
 	 * Percentage to increase nodes in your pareto space.
 	 * Higher percentage = more nodes.
 	 */
-	private static double PERCENTAGE = 0.1;
+	private static double PERCENTAGE = 0.5;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
@@ -281,12 +282,13 @@ public class SensorSetting {
 	
 	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		
+//		double percentOfScenarios = scenarios.size() * PERCENTAGE;
 		
 		for(Integer nodeNumber: validNodes) {
 			//build up the string ID and the list of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
-			for(String scenario: scenarios) {
+//			int numberOfScenarios = 0;
+			for(String scenario: scenarios) { 
 				Float timeToDegredation = Float.MAX_VALUE;
 				if(detectionMap.get(specificType).get(scenario).containsKey(nodeNumber))
 					timeToDegredation = detectionMap.get(specificType).get(scenario).get(nodeNumber);
@@ -299,14 +301,16 @@ public class SensorSetting {
 				ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
 				boolean greater = false;
 				boolean less = false;
-				for(int i=0; i<paretoSolution.size(); ++i){
-					if(paretoSolution.get(i) < ttds.get(i) + (ttds.get(i) * PERCENTAGE)) greater = true;
-					if(paretoSolution.get(i) > ttds.get(i)) less = true;
+				for(int i = 0; i < paretoSolution.size(); i++){
+					if (paretoSolution.get(i) < ttds.get(i)) {
+						greater = true;
+					}
+					if (paretoSolution.get(i) > ttds.get(i)) {
+						less = true;
+					}
 				}
-				if(greater && less){
-					//don't need to do anything, both of these are pairwise pareto optimal
-				}
-				else if(greater && !less){
+//				System.out.println("Greater is " + greater + " Less is " + less);
+				if(greater && !less){
 					everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
 					break; //we don't need to look anymore, don't include this new configuration
 				}
@@ -314,15 +318,10 @@ public class SensorSetting {
 					everyReasonTo = true; //This solution is pareto optimal to this stored one
 					toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
 				}
-				else if(!greater && !less){
-					//everyReasonNot = true; //These two spots are equal, so we might as well get rid of the one we're looking at
-					break; //We don't need to check other spots if these are equal.
-				}
 			}
 			if(everyReasonTo){
 				//We need to add this one and remove some.
 				for(Integer x : toRemove){
-					
 					optimalSolutions.remove(x);
 				}
 				optimalSolutions.put(nodeNumber, ttds);
@@ -331,11 +330,13 @@ public class SensorSetting {
 				//Lets not add this one, it's redundant
 			}
 			else { 
-				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer. Let's add it.
-				optimalSolutions.put(nodeNumber, ttds);
+				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer.
+				//Let's add it.
+				optimalSolutions.put(nodeNumber, ttds); 
 			}
 		}
-		System.out.println("Pareto Optimal just pared down valid nodes for " + specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
+		System.out.println("Pareto Optimal just pared down valid nodes for " 
+		+ specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
 		validNodes.clear();
 		validNodes.addAll(optimalSolutions.keySet());
 	}

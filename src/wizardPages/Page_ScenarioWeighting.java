@@ -105,9 +105,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	public void loadPage() {
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren()) {
-			control.dispose(); // Remove the children.
-		}
+		removeChildren(container);
 		
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 

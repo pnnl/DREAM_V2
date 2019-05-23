@@ -35,7 +35,7 @@ public class ScenarioSet {
 	// detectionMap stores values of TTD for all scenarios and specific sensors
 	// IAM files are immediately loaded into detectionMap
 	// H5 files are loaded to detectionMap at Page_LeakageCriteria based on user input settings, and saved as more are added
-	private Map<String, Map<String, Map<Integer, Float>>> detectionMap; //Specific Type <Scenario <Index, TTD>>
+	private Map<String, Map<String, Map<Integer, Float>>> detectionMap; //Specific Type <Scenario <Index, TTD>> 
 	
 	/**
 	 * User settings - 
