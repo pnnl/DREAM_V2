@@ -81,7 +81,7 @@ public class SensorSetting {
 	 * Percentage to increase nodes in your pareto space.
 	 * Higher percentage = more nodes.
 	 */
-//	private static double PERCENTAGE = 0.5;
+	private static double PERCENTAGE = 0.05;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
@@ -262,7 +262,7 @@ public class SensorSetting {
 			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
 			validNodes.addAll(fullCloudNodes);
 			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
-				paretoOptimal(set.getDetectionMap(), set.getScenarios());
+				primaryParetoOptimization(set.getDetectionMap(), set.getScenarios());
 		}
 	}
 	
@@ -282,12 +282,14 @@ public class SensorSetting {
 	
 	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
 		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-//		double percentOfScenarios = scenarios.size() * PERCENTAGE;
+		
+		double percentOfScenarios = scenarios.size() * PERCENTAGE;
 		
 		for(Integer nodeNumber: validNodes) {
-			//build up the string ID and the list of ttds (for the ones that detect)
+			//build up the string ID and the li9-st of ttds (for the ones that detect)
 			ArrayList<Float> ttds = new ArrayList<Float>();
 //			int numberOfScenarios = 0;
+			//This loop adds all the nodes from each scenario
 			for(String scenario: scenarios) { 
 				Float timeToDegredation = Float.MAX_VALUE;
 				if(detectionMap.get(specificType).get(scenario).containsKey(nodeNumber))
@@ -297,12 +299,14 @@ public class SensorSetting {
 			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
 			boolean everyReasonTo = false;
 			boolean everyReasonNot = false;
+			
+			
 			for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
 				ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
 				boolean greater = false;
 				boolean less = false;
 				for(int i = 0; i < paretoSolution.size(); i++){
-					if (paretoSolution.get(i) < ttds.get(i)) {
+					if ( (paretoSolution.get(i) < ttds.get(i)) ) {
 						greater = true;
 					}
 					if (paretoSolution.get(i) > ttds.get(i)) {
@@ -339,6 +343,39 @@ public class SensorSetting {
 		+ specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
 		validNodes.clear();
 		validNodes.addAll(optimalSolutions.keySet());
+	}
+	
+	/**
+	 * @author huan482
+	 * @author whit162
+	 * @param theDetectionMap
+	 * @param theScenarios
+	 * 
+	 */
+	private void primaryParetoOptimization(final Map<String, Map<String, Map<Integer, Float>>> theDetectionMap,
+			final List<String> theScenarios) {
+		int max = 0;
+		int threshold = (int) (theScenarios.size() * PERCENTAGE);
+		HashMap<Integer, Integer> myOptimalSolutions = new HashMap<Integer, Integer>();
+		for (Integer nodeNumber: validNodes) {
+			int counter = 0;
+			for (String theScenario: theScenarios) {
+				if (theDetectionMap.get(specificType).get(theScenario).containsKey(nodeNumber)) {
+					counter++;
+				}
+				
+			}
+			if (counter > max) {
+				max = counter;
+			}
+			myOptimalSolutions.put(nodeNumber, counter);
+		}
+		validNodes.clear();
+		for (Integer theNode: myOptimalSolutions.keySet()) {
+			if (myOptimalSolutions.get(theNode) + threshold >= max) {
+				validNodes.add(theNode);
+			}
+		}
 	}
 	
 	
