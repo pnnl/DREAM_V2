@@ -280,97 +280,106 @@ public class SensorSetting {
 		return validNodes.size();
 	}
 	
-	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
-		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
-		
-		double percentOfScenarios = scenarios.size() * PERCENTAGE;
-		
-		for(Integer nodeNumber: validNodes) {
-			//build up the string ID and the li9-st of ttds (for the ones that detect)
-			ArrayList<Float> ttds = new ArrayList<Float>();
-//			int numberOfScenarios = 0;
-			//This loop adds all the nodes from each scenario
-			for(String scenario: scenarios) { 
-				Float timeToDegredation = Float.MAX_VALUE;
-				if(detectionMap.get(specificType).get(scenario).containsKey(nodeNumber))
-					timeToDegredation = detectionMap.get(specificType).get(scenario).get(nodeNumber);
-				ttds.add(timeToDegredation);
-			}
-			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
-			boolean everyReasonTo = false;
-			boolean everyReasonNot = false;
-			
-			
-			for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
-				ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
-				boolean greater = false;
-				boolean less = false;
-				for(int i = 0; i < paretoSolution.size(); i++){
-					if ( (paretoSolution.get(i) < ttds.get(i)) ) {
-						greater = true;
-					}
-					if (paretoSolution.get(i) > ttds.get(i)) {
-						less = true;
-					}
-				}
-//				System.out.println("Greater is " + greater + " Less is " + less);
-				if(greater && !less){
-					everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
-					break; //we don't need to look anymore, don't include this new configuration
-				}
-				else if(!greater && less){
-					everyReasonTo = true; //This solution is pareto optimal to this stored one
-					toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
-				}
-			}
-			if(everyReasonTo){
-				//We need to add this one and remove some.
-				for(Integer x : toRemove){
-					optimalSolutions.remove(x);
-				}
-				optimalSolutions.put(nodeNumber, ttds);
-			}
-			else if(everyReasonNot){
-				//Lets not add this one, it's redundant
-			}
-			else { 
-				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer.
-				//Let's add it.
-				optimalSolutions.put(nodeNumber, ttds); 
-			}
-		}
-		System.out.println("Pareto Optimal just pared down valid nodes for " 
-		+ specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
-		validNodes.clear();
-		validNodes.addAll(optimalSolutions.keySet());
-	}
+//	private void paretoOptimal(Map<String, Map<String, Map<Integer, Float>>> detectionMap, List<String> scenarios) {
+//		HashMap<Integer, ArrayList<Float>> optimalSolutions = new HashMap<Integer, ArrayList<Float>>();
+//		
+//		double percentOfScenarios = scenarios.size() * PERCENTAGE;
+//		
+//		for(Integer nodeNumber: validNodes) {
+//			//build up the string ID and the li9-st of ttds (for the ones that detect)
+//			ArrayList<Float> ttds = new ArrayList<Float>();
+////			int numberOfScenarios = 0;
+//			//This loop adds all the nodes from each scenario
+//			for(String scenario: scenarios) { 
+//				Float timeToDegredation = Float.MAX_VALUE;
+//				if(detectionMap.get(specificType).get(scenario).containsKey(nodeNumber))
+//					timeToDegredation = detectionMap.get(specificType).get(scenario).get(nodeNumber);
+//				ttds.add(timeToDegredation);
+//			}
+//			ArrayList<Integer> toRemove = new ArrayList<Integer>(); //If this new configuration replaces one, it might replace multiple.
+//			boolean everyReasonTo = false;
+//			boolean everyReasonNot = false;
+//			
+//			
+//			for(Integer paretoSolutionLocation: optimalSolutions.keySet()){
+//				ArrayList<Float> paretoSolution = optimalSolutions.get(paretoSolutionLocation);
+//				boolean greater = false;
+//				boolean less = false;
+//				for(int i = 0; i < paretoSolution.size(); i++){
+//					if ( (paretoSolution.get(i) < ttds.get(i)) ) {
+//						greater = true;
+//					}
+//					if (paretoSolution.get(i) > ttds.get(i)) {
+//						less = true;
+//					}
+//				}
+////				System.out.println("Greater is " + greater + " Less is " + less);
+//				if(greater && !less){
+//					everyReasonNot = true; //This solution is redundant, as there is another that is parwise optimal
+//					break; //we don't need to look anymore, don't include this new configuration
+//				}
+//				else if(!greater && less){
+//					everyReasonTo = true; //This solution is pareto optimal to this stored one
+//					toRemove.add(paretoSolutionLocation); //We need to remove this one, it has been replaced
+//				}
+//			}
+//			if(everyReasonTo){
+//				//We need to add this one and remove some.
+//				for(Integer x : toRemove){
+//					optimalSolutions.remove(x);
+//				}
+//				optimalSolutions.put(nodeNumber, ttds);
+//			}
+//			else if(everyReasonNot){
+//				//Lets not add this one, it's redundant
+//			}
+//			else { 
+//				//No reason not to add it and it didn't replace one, it must be another pareto optimal answer.
+//				//Let's add it.
+//				optimalSolutions.put(nodeNumber, ttds); 
+//			}
+//		}
+//		System.out.println("Pareto Optimal just pared down valid nodes for " 
+//		+ specificType + " from " + validNodes.size() + " to " + optimalSolutions.size());
+//		validNodes.clear();
+//		validNodes.addAll(optimalSolutions.keySet());
+//	}
 	
 	/**
 	 * @author huan482
 	 * @author whit162
-	 * @param theDetectionMap
-	 * @param theScenarios
-	 * 
+	 * @param theDetectionMap - The detection map with all our information.
+	 * @param theScenarios - The list of scenarios.
+	 * The Pareto Algorithm that looks at the number of scenarios detected and gets rid of any nodes
+	 * with scenarios that are less than the node with the highest number of scenarios.
 	 */
 	private void primaryParetoOptimization(final Map<String, Map<String, Map<Integer, Float>>> theDetectionMap,
 			final List<String> theScenarios) {
 		int max = 0;
+		// Our "fuzziness" based off of a percent of the number of total scenarios.
 		int threshold = (int) (theScenarios.size() * PERCENTAGE);
 		HashMap<Integer, Integer> myOptimalSolutions = new HashMap<Integer, Integer>();
+		//Loops through all the nodes that are above the threshold.
 		for (Integer nodeNumber: validNodes) {
 			int counter = 0;
+			// Loops through our list of scenarios
 			for (String theScenario: theScenarios) {
+				//If the scenario contains the node number than we add a counter to indicate that the scenario
+				//Is part of that node.
 				if (theDetectionMap.get(specificType).get(theScenario).containsKey(nodeNumber)) {
 					counter++;
 				}
 				
 			}
+			//Keep track of the highest number of scenario a node has.
 			if (counter > max) {
 				max = counter;
 			}
 			myOptimalSolutions.put(nodeNumber, counter);
 		}
 		validNodes.clear();
+		//Go through every node and if the node has less number of scenarios than max
+		//(accounting for the threshold) then we don't add it to our valid node set.
 		for (Integer theNode: myOptimalSolutions.keySet()) {
 			if (myOptimalSolutions.get(theNode) + threshold >= max) {
 				validNodes.add(theNode);
