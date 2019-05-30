@@ -119,7 +119,6 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
 
         zoomInButton = new javax.swing.JButton("+");
         zoomOutButton = new javax.swing.JButton("-");
-
         latitudeLabel.setText("Latitude");
         latitudeLabel.setForeground(Color.white);
         longitudeLabel.setText("Longitude");
@@ -194,6 +193,7 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
             	if(zoom < 0)
             		zoom = 0;
             	zoomSlider.setValue(zoom);
+//            	repaint(0, 0, zoomSlider.getValue(), 0);
             }
         });
         
@@ -218,7 +218,7 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(rotateCWButton, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(zoomOutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(zoomOutButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
@@ -231,7 +231,7 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
                                     .addComponent(panDownButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(panUpButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(50, 50, 50)
-                                .addComponent(zoomInButton, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(zoomInButton, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addGap(18, 18, 18)
                 .addComponent(zoomSlider, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
