@@ -173,7 +173,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 			directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
 		if(directory.contains("huan482") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = directory + "\\OneDrive - PNNL\\Documents\\wellperm";
+			directory = directory + "\\OneDrive - PNNL\\Documents\\Task6_rev";
 		
 		//// End of hack ////
 		
