@@ -81,7 +81,7 @@ public class SensorSetting {
 	 * Percentage to increase nodes in your pareto space.
 	 * Higher percentage = more nodes.
 	 */
-	private static double PERCENTAGE = 0.05;
+	private static double PERCENTAGE = 0.2;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
@@ -116,7 +116,6 @@ public class SensorSetting {
 		detectionThreshold = Float.parseFloat(threshold); //Based on the trigger, this represents the range for valid nodes
 		setGlobalMaxZ(Collections.max(nodeStructure.getZ()));
 		setGlobalMinZ(Collections.min(nodeStructure.getZ()));
-		
 		fullCloudNodes = new HashSet<Integer>(); //Added later, initialize here
 		validNodes = new HashSet<Integer>(); //Added later, initialize here
 		
@@ -255,11 +254,14 @@ public class SensorSetting {
 						fullCloudNodes.add(node);
 				}
 			}
-			
+			validNodes.addAll(fullCloudNodes);
+			System.out.println(fullCloudNodes.size());
 			// Remove nodes outside of Z range
 			trimZ();
-			
+			System.out.println(fullCloudNodes.size());
+
 			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
+			validNodes.clear();
 			validNodes.addAll(fullCloudNodes);
 			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
 				primaryParetoOptimization(set.getDetectionMap(), set.getScenarios());
@@ -267,10 +269,12 @@ public class SensorSetting {
 	}
 	
 	
-	private void trimZ(){
+	private void trimZ() {
+//		System.out.println(minZ);
 		//Find the nodes that fit this z restriction
-		for(Integer node: fullCloudNodes) {
+		for(Integer node: validNodes) {
 			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
+			System.out.println("Minimum: " + minZ + " Current: " + test.getZ() + " Maximum: " + maxZ);
 			if(test.getZ() < minZ || test.getZ() > maxZ) //outside of bounds
 				fullCloudNodes.remove(node);
 		}
