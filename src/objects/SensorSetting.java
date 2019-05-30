@@ -255,10 +255,10 @@ public class SensorSetting {
 				}
 			}
 			validNodes.addAll(fullCloudNodes);
-			System.out.println(fullCloudNodes.size());
+//			System.out.println(fullCloudNodes.size());
 			// Remove nodes outside of Z range
 			trimZ();
-			System.out.println(fullCloudNodes.size());
+//			System.out.println(fullCloudNodes.size());
 
 			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
 			validNodes.clear();
@@ -274,7 +274,7 @@ public class SensorSetting {
 		//Find the nodes that fit this z restriction
 		for(Integer node: validNodes) {
 			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
-			System.out.println("Minimum: " + minZ + " Current: " + test.getZ() + " Maximum: " + maxZ);
+//			System.out.println("Minimum: " + minZ + " Current: " + test.getZ() + " Maximum: " + maxZ);
 			if(test.getZ() < minZ || test.getZ() > maxZ) //outside of bounds
 				fullCloudNodes.remove(node);
 		}
