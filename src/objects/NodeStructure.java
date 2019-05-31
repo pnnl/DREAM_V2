@@ -180,6 +180,11 @@ public class NodeStructure {
 		return totalVolume*porosity;
 	}
 	
+	public Point3f getXYZCenterfromNodeNumber(int nodeNumber) {
+		Point3i startNode = getIJKFromNodeNumber(nodeNumber);
+		return getXYZCenterFromIJK(startNode);
+	}
+	
 	public Point3f getXYZCenterFromIJK(Point3i node) {
 		
 		// We have to compute the cell center

@@ -48,6 +48,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import objects.Configuration;
 import objects.ExtendedConfiguration;
 import objects.ExtendedSensor;
+import objects.NodeStructure;
 import objects.Sensor;
 import objects.SensorSetting;
 import objects.TecplotNode;
@@ -157,7 +158,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	public void loadPage() {
 		isCurrentPage = true;
 		removeChildren(container);
-		container.layout();	
+		container.layout();
+		NodeStructure structure = data.getSet().getNodeStructure();
 		
 		Font boldFont = new Font( container.getDisplay(), new FontData( "Helvetica", 12, SWT.BOLD ) );
 		Font boldFontSmall = new Font( container.getDisplay(), new FontData( "Helvetica", 10, SWT.BOLD ) );
@@ -391,7 +393,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					ExtendedConfiguration configuration = new ExtendedConfiguration();
 					for(String sensorType: sensors) {	
 						for(int nodeNumber: data.getSet().getSensorSettings().get(sensorType).getValidNodes()) {
-							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, data.getSet().getNodeStructure()));
+							configuration.addSensor(new ExtendedSensor(nodeNumber, sensorType, structure));
 						}
 					}
 					
@@ -483,7 +485,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
-				String unit = data.getSet().getNodeStructure().getUnit("x");
+				String unit = structure.getUnit("x");
 				
 				StringBuilder text = new StringBuilder();
 				
@@ -611,7 +613,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				Method for creating Tecplot file of the cloud.
 				Note that neither of the authors were familiar with Tecplot, so this is a setup that seems to work but may have underlying issues.
 				*/
-				String unit = data.getSet().getNodeStructure().getUnit("x");
+				String unit = structure.getUnit("x");
 				StringBuilder text = new StringBuilder();
 				text.append("TITLE = Solution Space of Each Monitoring Parameter\n");
 				text.append("VARIABLES = ");
@@ -622,7 +624,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					unit = data.getSet().getNodeStructure().getUnit(sensorType);
 					text.append("\t\"" + sensorType + (unit.equals("") ? "" : ", " + unit) + "\"");
 				}
-				Point3i ijk = data.getSet().getNodeStructure().getIJKDimensions();
+				Point3i ijk = structure.getIJKDimensions();
 				//Catherine said we had these backwards, switched for now
 				int numElements = (ijk.getI()) * (ijk.getJ()) * (ijk.getK());
 				int numNodes = 8*numElements;
@@ -641,7 +643,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					for(int j = 0; j < ijk.getJ(); j++) {
 						float prevValue = 0.0f; // Assume center is at 0
 						for(int i = 0; i < ijk.getI(); i++) {
-							float nextValue = data.getSet().getNodeStructure().getX().get(i);
+							float nextValue = structure.getX().get(i);
 							float var0f = prevValue;
 							float var1f = prevValue + ((nextValue-prevValue)*2);
 							prevValue = var1f;
@@ -655,7 +657,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				for(int k = 0; k < ijk.getK(); k++) {
 					float prevValue = 0.0f; // Assume center is at 0
 					for(int j = 0; j < ijk.getJ(); j++) {
-						float nextValue = data.getSet().getNodeStructure().getY().get(j);
+						float nextValue = structure.getY().get(j);
 						float var0f = prevValue;
 						float var1f = prevValue + ((nextValue-prevValue)*2);
 						prevValue = var1f;
@@ -669,7 +671,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				// Z values
 				float prevValue = 0.0f; // Assume center is at 0
 				for(int k = 0; k < ijk.getK(); k++) {
-					float nextValue = data.getSet().getNodeStructure().getZ().get(k);
+					float nextValue = structure.getZ().get(k);
 					float var0f = prevValue;
 					float var1f = prevValue + ((nextValue-prevValue)*2);
 					prevValue = var1f;
@@ -684,7 +686,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				// Variables
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {
 					for(int k = 1; k <= ijk.getK(); k++) { for(int j = 1; j <= ijk.getJ(); j++) { for(int i = 1; i <= ijk.getI(); i++) {
-						int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(i, j, k);
+						int nodeNumber = structure.getNodeNumber(i, j, k);
 						String var0 = (data.getSet().getSensorSettings().get(sensorType).getValidNodes().contains(nodeNumber) ? "1" : "0");
 						text.append(var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + " " + var0 + "\n");
 					}}}
@@ -890,10 +892,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 										}
 										if(contains){ //add a sensor of type 2 in the same spot
 											ExtendedSensor oldSensor = config.getExtendedSensors().get(j);
-											newConfig.addSensor(data.getSet(), new ExtendedSensor(
-													oldSensor.getNodeNumber(),
-													sensor2,
-													data.getSet().getNodeStructure()));
+											newConfig.addSensor(data.getSet(), new ExtendedSensor(oldSensor.getNodeNumber(), sensor2, structure));
 										}
 										else newConfig.addSensor(data.getSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
 									}
@@ -927,7 +926,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 									sb.append(ttds.get(s) == null ? "N/A" : ttds.get(s));
 								}
 								for(Sensor sensor: config.getSensors()){
-									Point3f point = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(sensor.getIJK());
+									Point3f point = structure.getNodeCenteredXYZFromIJK(sensor.getIJK());
 									sb.append("," + sensor.getSensorType() + "("
 										+ point.getX() + " " 
 										+ point.getY() + " " 
@@ -1002,14 +1001,15 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					}
 					// Writing out the header row
 					StringBuilder text = new StringBuilder();
-					text.append("Index,Detecting Scenarios,Min TTD,Avg TTD,Max TTD");
+					text.append("XYZ,Detecting Scenarios,Min TTD,Avg TTD,Max TTD");
 					for(String scenario: data.getSet().getScenarios())
 						text.append("," + scenario);
 					text.append("\n");
 					// Writing out a row for each node
 					for(int node: cloudNodes) {
 						int i = cloudNodes.indexOf(node);
-						text.append(node+","+count[i]/(float)scenarios.size()*100.0+"%,");
+						Point3f xyz = structure.getXYZCenterfromNodeNumber(node);
+						text.append(xyz+","+count[i]/(float)scenarios.size()*100.0+"%,");
 						text.append((min[i]==Float.MAX_VALUE ? "" : min[i]) + ",");
 						text.append((avg[i]==0 ? "" : avg[i]/count[i]) + ",");
 						text.append((max[i]==Float.MIN_VALUE ? "" : max[i]));
@@ -1122,7 +1122,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					String[] parts = individualSensor.split(":");
 					if(parts.length == 3) {
 						int nodeNumber = Integer.parseInt(parts[0].trim());
-						Point3f xyz = data.getSet().getNodeStructure().getXYZEdgeFromIJK(data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber));
+						Point3f xyz = data.getSet().getNodeStructure().getXYZCenterfromNodeNumber(nodeNumber);
 						nodesToReplace.put(parts[0], xyz.toString());
 					} 
 				}
