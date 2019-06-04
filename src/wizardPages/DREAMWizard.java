@@ -58,6 +58,7 @@ import functions.MutationFunction.MUTATE;
  * @author port091
  * @author rodr144
  * @author whit162
+ * @author huan482
  */
 
 public class DREAMWizard extends Wizard {
@@ -71,7 +72,7 @@ public class DREAMWizard extends Wizard {
 	public static Button visLauncher;
 	public static Button nextButton;
 	
-	boolean wasCancelled;
+	private boolean wasCancelled;
 
 	public DREAMWizard() {
 		super();
@@ -103,11 +104,11 @@ public class DREAMWizard extends Wizard {
 		}
 	}
 	
-	public boolean viewerExists() {
+	private boolean viewerExists() {
 		return this.domainViewer != null;
 	}
 	
-	public void closeViewer() {
+	private void closeViewer() {
 		if(this.domainViewer != null) {
 			this.domainViewer.dispose();
 			this.domainViewer = null;
@@ -119,13 +120,13 @@ public class DREAMWizard extends Wizard {
 			this.domainViewer.hide();
 	}
 	
-	public void showViewer() {
+	private void showViewer() {
 		if(this.domainViewer != null) 
 			this.domainViewer.show();
 	}
 	
 	@Override
-	public IWizardPage getNextPage(IWizardPage current) {
+	public IWizardPage getNextPage(final IWizardPage current) {
 
 		AbstractWizardPage currentPage = ((AbstractWizardPage)current);
 		IWizardPage next = super.getNextPage(current);	
@@ -172,7 +173,7 @@ public class DREAMWizard extends Wizard {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display);
 
@@ -201,7 +202,7 @@ public class DREAMWizard extends Wizard {
 
 			
 			@Override
-			protected void createButtonsForButtonBar(Composite parent) {
+			protected void createButtonsForButtonBar(final Composite parent) {
 				
 				GridData errorMessageData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				errorMessageData.horizontalSpan = 4;
@@ -264,7 +265,7 @@ public class DREAMWizard extends Wizard {
 		wizardDialog.open();
 	}
 
-	public void launchVisWindow(boolean reset, boolean show) {
+	public void launchVisWindow(final boolean reset, final boolean show) {
 		// If we don't want to reset the vis window and 
 		if(!reset && viewerExists())
 		{
@@ -514,7 +515,7 @@ public class DREAMWizard extends Wizard {
 			});
 		}
 
-		public void setWorkingDirectory(String dir) {
+		public void setWorkingDirectory(final String dir) {
 			runner.setResultsDirectory(dir);
 		}
 		
