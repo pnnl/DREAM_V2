@@ -341,12 +341,10 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
     public static JButton newButton(File iconFolder, String buttonName, String tooltip) {
 
       File base  = new File(iconFolder.getAbsolutePath() + "/" + buttonName + ".png");
-      File pressed = new File(iconFolder.getAbsolutePath() + "/" + buttonName + "_pressed.png");
-      File rollover = new File(iconFolder.getAbsolutePath() + "/" + buttonName + "_rollover.png");
 
       javax.swing.JButton newButton = new JButton(new ImageIcon(base.getAbsolutePath()));
-      newButton.setPressedIcon(new ImageIcon(pressed.getAbsolutePath()));
-      newButton.setRolloverIcon(new ImageIcon(rollover.getAbsolutePath()));
+      newButton.setPressedIcon(new ImageIcon(base.getAbsolutePath()));
+      newButton.setRolloverIcon(new ImageIcon(base.getAbsolutePath()));
       newButton.setToolTipText(tooltip);
       newButton.setBorderPainted(false); // For Mac
       newButton.setContentAreaFilled(false);
