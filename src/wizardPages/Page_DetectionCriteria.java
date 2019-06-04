@@ -34,6 +34,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author port091
  * @author rodr144
  * @author whit162
+ * @author huan482
  */
 
 public class Page_DetectionCriteria extends DreamWizardPage implements AbstractWizardPage {
@@ -228,7 +229,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
@@ -364,7 +365,7 @@ public class Page_DetectionCriteria extends DreamWizardPage implements AbstractW
 	}
 	
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 

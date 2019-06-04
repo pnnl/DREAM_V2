@@ -49,13 +49,13 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	
 	private boolean isCurrentPage = false;
 	
-	protected Page_ScenarioWeighting(STORMData data) {
+	protected Page_ScenarioWeighting(final STORMData data) {
 		super("Scenario Weighting");
 		this.data = data;	
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 
@@ -292,7 +292,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		return isCurrentPage;
 	}
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 }

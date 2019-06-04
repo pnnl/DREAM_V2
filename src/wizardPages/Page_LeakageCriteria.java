@@ -969,7 +969,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	} //ends load page
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 		
@@ -1049,7 +1049,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	
 	// Calculates a list of timesteps and a map of volume degraded by year
-	private void volumeOfAquiferDegraded(HashSet<Integer> nodes) {
+	private void volumeOfAquiferDegraded(final HashSet<Integer> nodes) {
 		
 		// Loop through scenarios and sensor types to get a list of all detection times or timesteps
 		// Also create a TTD map that combines all the selected sensors (for quicker VOD calculations)
@@ -1207,7 +1207,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	}
 
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 	

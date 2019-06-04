@@ -49,13 +49,13 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	
 	private boolean isCurrentPage = false;
 	
-	protected Page_InputDirectory(STORMData data) {
+	protected Page_InputDirectory(final STORMData data) {
 		super("Input Directory");
 		this.data = data;
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 		
@@ -238,7 +238,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	}
 	
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 

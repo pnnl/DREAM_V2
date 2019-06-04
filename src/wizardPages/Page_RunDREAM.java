@@ -109,7 +109,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	}
 	
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
 
@@ -1050,7 +1050,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
 	
-	private List<int[]> getAllCombinations(int n, int k){
+	private List<int[]> getAllCombinations(final int n, final int k){
 		// get all combinations of size k of the first n integers
 		ArrayList<int[]> combos = new ArrayList<int[]>();
 		int[] x = new int[k];
@@ -1108,7 +1108,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		}
 	}
 
-	public void convertFile(File file) throws IOException {
+	public void convertFile(final File file) throws IOException {
 
 		List<String> lines = FileUtils.readLines(file);
 		StringBuffer fileOut = new StringBuffer();
@@ -1146,7 +1146,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		return isCurrentPage;
 	}
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 

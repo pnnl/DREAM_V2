@@ -64,7 +64,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		this.data = data;		
 	}
 	@Override
-	public void createControl(Composite parent) {
+	public void createControl(final Composite parent) {
 		buttons = new HashMap<Integer, Map<Integer, Button>>();
 		selection = new HashMap<Integer, Map<Integer, Boolean>>();
 		rootContainer = new Composite(parent, SWT.NULL);
@@ -326,7 +326,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	}
 
 	@Override
-	public void setPageCurrent(boolean current) {
+	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;
 	}
 	
