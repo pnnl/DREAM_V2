@@ -32,51 +32,52 @@ import utilities.Constants;
 
 public class DREAMMap {
 
-	public List<Float> xlines = new ArrayList<Float>();
-	public List<Float> ylines = new ArrayList<Float>();
+	private List<Float> xlines = new ArrayList<Float>();
+	private List<Float> ylines = new ArrayList<Float>();
 	//Default window size
-	int width = 1000;
-	int height = 1000;
+	private int width = 1000;
+	private int height = 1000;
 
 	//Values that will be calculated each time we draw but are needed by other functions
-	float pixelsPerMeter;
-	float gridZoomFactor = 1; //1 corresponds to showing the whole grid, zooms in as it gets larger
-	float gridZoomPixelsPerMeter;
-	int pxMax;
-	int pyMax;
-	int adjustedPxMax;
-	int adjustedPyMax;
-	float xMin;
-	float yMin;
-	float xWidth;
-	float yWidth;
+	private float pixelsPerMeter;
+	private float gridZoomFactor = 1; //1 corresponds to showing the whole grid, zooms in as it gets larger
+	private float gridZoomPixelsPerMeter;
+	private int pxMax;
+	private int pyMax;
+	private int adjustedPxMax;
+	private int adjustedPyMax;
+	private float xMin;
+	private float yMin;
+	private float xWidth;
+	private float yWidth;
 
 	//All of the IJs that we can toggle (or not)
-	List<IJ> boxes;
+	private List<IJ> boxes;
+	
 	private DraggedRectangle rect = null;
 
 	//Colors
-	Color allowedColor = new Color(84,84,84,0);
-	Color prohibitedColor = new Color(150,150,150,200);
-	Color lineColor = new Color(255,0,0,255);
-	Color backgroundColor = new Color(40,97,133,255);
+	private final Color allowedColor = new Color(84,84,84,0);
+	private final Color prohibitedColor = new Color(150,150,150,200);
+	private final Color lineColor = new Color(255,0,0,255);
+	private final Color backgroundColor = new Color(40,97,133,255);
 
 	//Storage for the google images
 	//final double circumference = 40075160f; //Circumference of the earth in meters
-	final double circumference = 6378137f*2*Math.PI * 270/200;
-	float lat = 46.3729672f; //latitude of center of domain
-	float lon = -119.2561704f; //longitude of center of domain
-	BufferedImage fullImage = null; //Stores the image once it has been cropped to the proper domain size
-	BufferedImage tempImage = null;
-	ImageObserver observer = null; //Needed for a function but never actually used.
+	private final double circumference = 6378137f*2*Math.PI * 270/200;
+	private float lat = 46.3729672f; //latitude of center of domain
+	private float lon = -119.2561704f; //longitude of center of domain
+	private BufferedImage fullImage = null; //Stores the image once it has been cropped to the proper domain size
+	private BufferedImage tempImage = null;
+	private ImageObserver observer = null; //Needed for a function but never actually used.
 
 	//Parameters from the controls initialized to defaults
-	int offsetX = 0;
-	int offsetY = 0;
-	int zoom = 50;
-	int rotate = 0;
+	private int offsetX = 0;
+	private int offsetY = 0;
+	private int zoom = 50;
+	private int rotate = 0;
 
-	float calculatedPixelsPerMeter;
+	private float calculatedPixelsPerMeter;
 	public Viewer viewer; // I want this... making it public, to lazy for getter
 
 
@@ -129,28 +130,28 @@ public class DREAMMap {
 	public class DraggedRectangle{
 		private Point p1, p2;
 
-		public DraggedRectangle(Point p1, Point p2){
+		public DraggedRectangle(final Point p1, final Point p2){
 			this.p1 = p1;
 			this.p2 = p2;
 		}
 
-		public Point getClick(){
+		private Point getClick(){
 			return this.p1;
 		}
 
-		public int xMin(){
+		private int xMin(){
 			return Math.min(p1.x, p2.x);
 		}
 
-		public int xMax(){
+		private int xMax(){
 			return Math.max(p1.x, p2.x);
 		}
 
-		public int yMin(){
+		private int yMin(){
 			return Math.min(p1.y, p2.y);
 		}
 
-		public int yMax(){
+		private int yMax(){
 			return Math.max(p1.y, p2.y);
 		}
 
@@ -186,6 +187,7 @@ public class DREAMMap {
 			/*
 			 * This panel contains the image and the grid laid on top of it
 			 */
+			
 			theGrid = new JPanel() {
 				private static final long serialVersionUID = 1L;
 
@@ -230,7 +232,7 @@ public class DREAMMap {
 						}
 						if(googleZoom > 20) googleZoom = 20;
 
-						System.out.println(pixelsPerMeter + " " + googleZoom);
+						System.out.println(pixelsPerMeter + " " + googleZoom );
 						try {
 							//Test logic for translating to center from upper-left
 							CoordinateConversion c = new CoordinateConversion();
@@ -277,7 +279,7 @@ public class DREAMMap {
 						fullImage = white;
 
 					}
-					else{
+					else {
 						BufferedImage drawImage = null;
 						int newImageWidth = (int) (xWidth*calculatedPixelsPerMeter*(1+(-zoom+50)/200f));
 						int newImageHeight = (int) (yWidth*calculatedPixelsPerMeter*(1+(-zoom+50)/200f));
@@ -285,6 +287,10 @@ public class DREAMMap {
 						tempImage = fullImage;
 						AffineTransform at = new AffineTransform();
 						//at.scale(pxMax/(double)(tempImage.getWidth()),pyMax/(double)(tempImage.getHeight()));
+						
+						//When the slider moves it scales this part of the map.
+						//Need to scale the grid so I might need to take some variables and do some new
+						//Calculations here.
 						at.scale(pxMax/(double)(newImageWidth),pyMax/(double)(newImageHeight));
 
 						at.translate((newImageWidth-fullImage.getWidth())/2-offsetX, (newImageHeight-fullImage.getHeight())/2-offsetY);
@@ -295,40 +301,10 @@ public class DREAMMap {
 						AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
 						drawImage = scaleOp.filter(tempImage, drawImage);
 						g.drawImage(drawImage, 0, 0, observer);
+						makeGridLines(g);
 					}
 
-					//Fill Colors
-					for(IJ box : boxes){
-						int i = box.i;
-						int j = box.j;
-						int x1 = (int)((xlines.get(i-1)-xMin)*gridZoomPixelsPerMeter);
-						int x2 = (int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter);
-						int y1 = (int)((ylines.get(j-1)-yMin)*gridZoomPixelsPerMeter);
-						int y2 = (int)((ylines.get(j)-yMin)*gridZoomPixelsPerMeter);
-						// FLIP
-//						int y1 = (int)(adjustedPyMax - ((ylines.get(j)-yMin))*gridZoomPixelsPerMeter);
-//						int y2 = (int)(adjustedPyMax - ((ylines.get(j+1)-yMin))*gridZoomPixelsPerMeter);
-						if(box.prohibited) g.setColor(prohibitedColor);
-						else g.setColor(allowedColor);
-						g.fillRect(x1, y1, x2-x1, y2-y1);
-					}
 
-					g.setColor(lineColor);
-					//Draw Lines
-					for(float x : xlines){
-						int px = (int) ((x-xMin)*gridZoomPixelsPerMeter);
-						g.drawLine(px, 0, px, adjustedPyMax);
-					}
-					for(float y : ylines){
-						// FLIP
-						//int py = adjustedPyMax -(int)((y-yMin)*gridZoomPixelsPerMeter);
-						int py = (int) ((y-yMin)*gridZoomPixelsPerMeter);
-						g.drawLine(0, py, adjustedPxMax, py);
-					}
-
-					//Draw the rectangle
-					g.setColor(Color.ORANGE);
-					if(rect != null) rect.draw(g);
 
 				}
 
@@ -367,7 +343,7 @@ public class DREAMMap {
 						if(((int)((xlines.get(i+1)-xMin)*gridZoomPixelsPerMeter) > x1)
 								&& ((int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter) < x2)){
 							iList.add(i+1);
-						}
+						} 
 					}
 					for(int j=0; j<ylines.size()-1; j++){
 					//FLIP
@@ -406,7 +382,49 @@ public class DREAMMap {
 			});
 		}
 	}
+	
+	
+	private void makeGridLines(final Graphics g) {
+		//Fill Colors
+		for(IJ box : boxes){
+			int i = box.i;
+			int j = box.j;
+			int x1 = (int)((xlines.get(i-1)-xMin)*gridZoomPixelsPerMeter);
+			int x2 = (int)((xlines.get(i)-xMin)*gridZoomPixelsPerMeter);
+			int y1 = (int)((ylines.get(j-1)-yMin)*gridZoomPixelsPerMeter);
+			int y2 = (int)((ylines.get(j)-yMin)*gridZoomPixelsPerMeter);
+			// FLIP
+//			int y1 = (int)(adjustedPyMax - ((ylines.get(j)-yMin))*gridZoomPixelsPerMeter);
+//			int y2 = (int)(adjustedPyMax - ((ylines.get(j+1)-yMin))*gridZoomPixelsPerMeter);
+			if(box.prohibited) g.setColor(prohibitedColor);
+			else g.setColor(allowedColor);
+			g.fillRect(x1, y1, x2-x1, y2-y1);
+		}
 
+		g.setColor(lineColor);
+		//Draw Lines
+		for(float x : xlines){
+			int px = (int) ((x-xMin)*gridZoomPixelsPerMeter);
+			
+			g.drawLine(px, 0, px, adjustedPyMax);
+//			System.out.println("px is " + px);
+		}
+//		System.out.println("Repainting" + " The xMin is " + xMin +
+//				" the gridZoomPixelsPerMeter is " + gridZoomPixelsPerMeter);
+		for(float y : ylines){
+			// FLIP
+			//int py = adjustedPyMax -(int)((y-yMin)*gridZoomPixelsPerMeter);
+			int py = (int) ((y-yMin)*gridZoomPixelsPerMeter);
+			g.drawLine(0, py, adjustedPxMax, py);
+		}
+
+		//Draw the rectangle
+		g.setColor(Color.ORANGE);
+		if(rect != null) rect.draw(g);
+	}
+	
+	
+//Need to re-initialize the theGrid JPanel with the new parameters
 	public void repaint(int offsetX, int offsetY, int zoom, int rotate) {
 		//DO THINGS WITH STUFF			
 		this.offsetX = offsetX;
@@ -415,6 +433,7 @@ public class DREAMMap {
 		this.rotate = rotate;
 		viewer.theGrid.repaint();
 		viewer.theGrid.validate();
+//		System.out.println("Calling this repaint method." + " Zoom Slider = " + zoom);
 	}
 
 	public void redraw(Float lat, Float lon) {
