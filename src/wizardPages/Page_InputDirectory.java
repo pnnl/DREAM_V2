@@ -42,7 +42,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private Composite container;
 	private Composite rootContainer;
 	private STORMData data;
-	
+	private int counter = 0;
 	private String simulation = "SimulatedAnnealing";
 	private Text fileDirectoryText;
 	private String directory = Constants.homeDirectory;
@@ -164,17 +164,17 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				}
 			}
 		});
-		
+		if (counter == 0) {
 		//// Hack that allows Jonathan and Catherine automatic directory inputs ////
-		if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = directory + "\\Desktop\\BCO_new";
-		if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = directory + "\\Desktop\\BCO_new";
-		if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
-		if(directory.contains("huan482") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-			directory = directory + "\\OneDrive - PNNL\\Documents\\Task6_rev";
-		
+			if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+				directory = directory + "\\Desktop\\BCO_new";
+			if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+				directory = directory + "\\Desktop\\BCO_new";
+			if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+				directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
+			if(directory.contains("huan482") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+				directory = directory + "\\OneDrive - PNNL\\Documents\\Task6_rev";
+		}
 		//// End of hack ////
 		
 		fileDirectoryText = new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -217,7 +217,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		DREAMWizard.convertDataButton.setEnabled(true);
 	}
 	
-	private boolean validFileCheck(String folderDir) {
+	private boolean validFileCheck(final String folderDir) {
+		counter = 1;
 		boolean h5Error = true;
 		File folder = new File(folderDir);
 		File[] fList = folder.listFiles();
