@@ -435,9 +435,7 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 	public boolean mutateSensorToEdgeOnly(ScenarioSet set) {	
-		set.setEdgeMovesOnly(true);
 		boolean sensorMutate = mutateSensor(set);
-		set.setEdgeMovesOnly(false);
 		return sensorMutate;
 	}
 

@@ -57,7 +57,6 @@ public class ScenarioSet {
 	private Map<String, SensorSetting> sensorSettingsRemoved;
 	
 	private InferenceTest inferenceTest;
-	private boolean edgeMovesOnly = false;
 	
 	
 	// Reset everything in ScenarioSet - do this before loading new files
@@ -254,10 +253,6 @@ public class ScenarioSet {
 	
 	public Map<String, Float> getScenarioWeights() {
 		return scenarioWeights;
-	}
-	
-	public void setEdgeMovesOnly(boolean edgeMovesOnly) {
-		this.edgeMovesOnly = edgeMovesOnly;
 	}
 
 	public Point3i getAddPoint() {
