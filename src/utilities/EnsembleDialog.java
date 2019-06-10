@@ -23,6 +23,7 @@ import wizardPages.DREAMWizard.STORMData;
 /**
  * Dialog for running the multi-run ensemble
  * @author rodr144
+ * @author whit162
  */
 
 public class EnsembleDialog extends TitleAreaDialog {
@@ -65,15 +66,6 @@ public class EnsembleDialog extends TitleAreaDialog {
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
-		
-		//This is where I'd add listeners, eg:
-		/*
-		sc.addListener(SWT.Activate, new Listener() {
-			public void handleEvent(Event e) {
-				sc.setFocus();
-			}
-		});
-		 */
 		
 		container = new Composite(sc, SWT.NONE);
 		buildThings();
