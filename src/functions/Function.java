@@ -39,8 +39,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 
 	private IProgressMonitor monitor; // So we can update the status
 	private DomainVisualization viewer; // Graphical representation of the run
-
-	int counter = 0;
 	
 	/**
 	 * Main algorithm
@@ -233,9 +231,11 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			
 			// Starting the next iteration - newConfiguration starts as the currentConfiguration
 			// Unless we haven't found a new best configuration for a while, then rebase to bestConfiguration
-			if(counter > set.getIterations() * percent)
+			if(counter > set.getIterations() * percent) {
 				newConfiguration.matchConfiguration(bestConfiguration);
-			else
+				counter = 0; //reset the counter to 0
+				System.out.println("Rebase to the best configuration, "+set.getIterations()*percent+" iterations since a new best");
+			} else
 				newConfiguration.matchConfiguration(currentConfiguration);
 			
 			// Mutate the new configuration
