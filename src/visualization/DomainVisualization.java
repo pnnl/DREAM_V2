@@ -1324,11 +1324,6 @@ public class DomainVisualization {
 			}
 		}
 	}
-	
-	
-	public static void main(String[] args) {
-		new DomainVisualization(new Display(), null, true);
-	}
 
 
 }
