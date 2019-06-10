@@ -892,9 +892,9 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 										}
 										if(contains){ //add a sensor of type 2 in the same spot
 											ExtendedSensor oldSensor = config.getExtendedSensors().get(j);
-											newConfig.addSensor(data.getSet(), new ExtendedSensor(oldSensor.getNodeNumber(), sensor2, structure));
+											newConfig.addSensor(new ExtendedSensor(oldSensor.getNodeNumber(), sensor2, structure));
 										}
-										else newConfig.addSensor(data.getSet(), config.getExtendedSensors().get(j).makeCopy()); //add this right back in
+										else newConfig.addSensor(config.getExtendedSensors().get(j).makeCopy()); //add this right back in
 									}
 									data.runObjective(newConfig);
 									float objective = newConfig.getObjectiveValue();

@@ -1094,7 +1094,7 @@ public class DomainVisualization {
 			if(configuration instanceof ExtendedConfiguration) {
 				name = ((ExtendedConfiguration)configuration).getSummary(set.getNodeStructure());
 			}
-			this.configuration = ((ExtendedConfiguration)configuration).makeCopy(set);
+			this.configuration = ((ExtendedConfiguration)configuration).makeCopy();
 			this.name = name;
 			this.uuid = UUID.randomUUID().toString();
 		}

@@ -148,16 +148,17 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	 */
 	private boolean runInternal(final ExtendedConfiguration initialConfiguration, ScenarioSet set) {
 		iterative = true;
-						
+		float percent = (float) 0.2;
+		
 		Constants.log(Level.INFO, "Function: running", null);
 		Constants.log(Level.FINER, "Function: running - initial configuration", initialConfiguration);
 		
 		currentIteration = -3;
 		
 		// Create three more configurations from the initial configuration
-		ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy(set);
-		ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy(set);
-		ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy(set);
+		ExtendedConfiguration currentConfiguration = initialConfiguration.makeCopy();
+		ExtendedConfiguration newConfiguration = initialConfiguration.makeCopy();
+		ExtendedConfiguration bestConfiguration = initialConfiguration.makeCopy();
 		float currentValue = objective(currentConfiguration, set, Constants.runThreaded);
 		float newValue = currentValue;
 		float bestValue = currentValue;
@@ -174,13 +175,12 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		currentIteration = -1;
 		newValue = objective(newConfiguration, set, Constants.runThreaded);
 		bestValue = currentValue;
-		double temperature = 100;
+		double temperature = 1;
 		
 		float totalMutateTime = 0;
 		float totalObjectiveTime = 0;
 		
 		Constants.log(Level.FINER, "Function: running - iteration", "-1\tCurrent: " + currentValue + "\tNew: " + newValue + "\tBest: " + bestValue);
-		
 		ResultPrinter.storeResults(currentRun, currentIteration, newConfiguration, bestConfiguration, currentConfiguration, set);
 		
 		// Did not detect in any scenario
@@ -190,51 +190,53 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		// Hack to add a well pairing for ERT technology
 		newConfiguration = E4DSensors.ertAddPairing(newConfiguration, currentConfiguration, set.getNodeStructure());
 		
+		int counter = 0; //count the number of iterations since the last "best"
 		for(currentIteration = 0; currentIteration < set.getIterations(); currentIteration++) {
 			//temperature= temperature * 0.99f;
-			temperature = 100*java.lang.Math.pow(0.01,(double)currentIteration/(double)set.getIterations()); //exponential decay
+			temperature = java.lang.Math.pow(0.01,(double)currentIteration/(double)set.getIterations()); //exponential decay
+			//float randomValue = 1;
+			float randomValue = Constants.random.nextFloat(); //seeded random number for consistent results
+			counter++;
 			
 			if(monitor.isCanceled())
 				return true;
 			if(monitor != null)
 				monitor.subTask("iteration " + currentIteration);
-			
-			//float randomValue = 1;
-			float randomValue = Constants.random.nextFloat();
-			int scenarioCount = newConfiguration.countScenariosDetected();
-			
-			System.out.println("Iteration " + currentIteration + ", Current " + currentValue + ", New " + newValue + "(" + scenarioCount + " detected), Best " + bestValue);
+			System.out.println("Iteration "+currentIteration+", Current "+currentValue+", New "+newValue+"("+newConfiguration.countScenariosDetected()+" detected), Best "+bestValue);
 			
 			// If new configuration is better than current, set current equal to new
 			if(newValue < currentValue) {
-				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+ newValue + ", currentValue=" + currentValue + ", Temp=" + temperature);
+				Constants.log(Level.FINER, "Function: running - new configuration was better than current, swapping them.", "newValue="+newValue+", currentValue="+currentValue+", Temp="+temperature);
 				// Make a copy of the new configuration and save it into the current configuration
-				currentConfiguration.matchConfiguration(set, newConfiguration);
+				currentConfiguration.matchConfiguration(newConfiguration);
 				currentValue = newValue;
 			}
-			
-			// If new configuration is worse than current, evaluate temp function to decide whether to swap
+			// If new configuration is worse than current, compare with temperature to decide whether to swap
 			else if (newValue >= currentValue) {
-				float calculatedValue = (float)Math.exp(-(newValue - currentValue) / temperature); //TODO: Do we need this? What about comparing directly with temp?
-				if (calculatedValue > randomValue) {
-					currentConfiguration.matchConfiguration(set, newConfiguration);
+				if (temperature > randomValue) {
+					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, but swapping them anyway.", "newValue="+newValue+", currentValue="+currentValue+", Temp="+temperature+", rand="+randomValue);
+					currentConfiguration.matchConfiguration(newConfiguration);
 					currentValue = newValue;
-					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, but swapping them anyway.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
 				} else {
-					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, NOT swapping.", "newValue=" + newValue + ", currentValue=" + currentValue + ", Temp=" + temperature + ", Temp Function=" + calculatedValue + ", rand=" + randomValue);
+					Constants.log(Level.FINER, "Function: running - new configuration was worse than current, NOT swapping.", "newValue="+newValue+", currentValue="+currentValue+", Temp="+temperature+", rand="+randomValue);
 				}
 			}
 			
 			// If our current value is better or equal to our best value
 			if(newValue <= bestValue) {
-				Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue=" + currentValue + ", bestValue=" + bestValue + ", Temp=" + temperature);
+				Constants.log(Level.FINER, "Function: running - new configuration was better then best, swapping them.", "currentValue="+currentValue+", bestValue="+bestValue+", Temp="+temperature);
 				// Make a copy of the current configuration and save it into the best configuration
-				bestConfiguration.matchConfiguration(set, newConfiguration);
+				bestConfiguration.matchConfiguration(newConfiguration);
 				bestValue = newValue;
+				counter = 0; //reset the counter to 0
 			}
 			
 			// Starting the next iteration - newConfiguration starts as the currentConfiguration
-			newConfiguration.matchConfiguration(set, currentConfiguration);
+			// Unless we haven't found a new best configuration for a while, then rebase to bestConfiguration
+			if(counter > set.getIterations() * percent)
+				newConfiguration.matchConfiguration(bestConfiguration);
+			else
+				newConfiguration.matchConfiguration(currentConfiguration);
 			
 			// Mutate the new configuration
 			long start = System.currentTimeMillis();
@@ -312,7 +314,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			// Create a configuration
 			ExtendedConfiguration configuration = new ExtendedConfiguration();
 			for (ExtendedSensor sensor : sensors)
-				configuration.addSensor(set, sensor);
+				configuration.addSensor(sensor);
 			
 			// Hack to add a well pairing for ERT technology
 			//E4DSensors.ertAddPairing(configuration); //TODO: Make sure this doesn't need to be called during Full Enumeration

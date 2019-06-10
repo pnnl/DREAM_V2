@@ -53,7 +53,7 @@ public class ExtendedConfiguration extends Configuration {
 		}
 	}	
 
-	public synchronized void matchConfiguration(ScenarioSet set, ExtendedConfiguration toDuplicate) {
+	public synchronized void matchConfiguration(ExtendedConfiguration toDuplicate) {
 
 		if(!toDuplicate.wells.isEmpty() && toDuplicate.wells.get(0) instanceof RealizedWell) {
 			this.sensors.clear();
@@ -63,7 +63,7 @@ public class ExtendedConfiguration extends Configuration {
 		} else {
 			this.sensors.clear();
 			for(ExtendedSensor sensor: toDuplicate.getExtendedSensors()) {
-				this.addSensor(set, sensor.makeCopy());
+				this.addSensor(sensor.makeCopy());
 			}
 		}
 
@@ -91,16 +91,15 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 
-	public synchronized ExtendedConfiguration makeCopy(ScenarioSet set) {
+	public synchronized ExtendedConfiguration makeCopy() {
 
 		ExtendedConfiguration copy = new ExtendedConfiguration(true);
 
 		// Copy sensors, this will add the wells
 		for(ExtendedSensor sensor: getExtendedSensors()) {
 			ExtendedSensor sensorCopy = sensor.makeCopy();
-			copy.addSensor(set, sensorCopy);
+			copy.addSensor(sensorCopy);
 		}
-		
 		if(!wells.isEmpty() && wells.get(0) instanceof RealizedWell) {
 			for(Well well: wells) {
 				copy.addRealizedWell((RealizedWell)well);
@@ -108,27 +107,14 @@ public class ExtendedConfiguration extends Configuration {
 		} else {
 			for(ExtendedSensor sensor: getExtendedSensors()) {
 				ExtendedSensor sensorCopy = sensor.makeCopy();
-				copy.addSensor(set, sensorCopy);
+				copy.addSensor(sensorCopy);
 			}
 		}
 		
 		copy.timesToDetection = new HashMap<String, Float>(timesToDetection);
 		copy.objectiveValues = new HashMap<String, Float>(objectiveValues);
 		copy.inferenceResults = new HashMap<String, InferenceResult>(inferenceResults);
-/*
-		// Copy in ttd and objective values?
-		for(String key: getTimesToDetection().keySet()) {
-			copy.addTimeToDetection(key, timesToDetection.get(key));
-		}
-
-		for(String key: objectiveValues.keySet()) {
-			copy.addObjectiveValue(key, objectiveValues.get(key));
-		}
-
-		for(String key: inferenceResults.keySet()) {
-			copy.addInferenceResult(key, inferenceResults.get(key));
-		}
-*/
+		
 		return copy;		
 	}
 
@@ -197,10 +183,7 @@ public class ExtendedConfiguration extends Configuration {
 	}
 
 	public List<Well> getWells() {
-		List<Well> copyOfWells = new ArrayList<Well>();
-		for(Well well: wells)
-			copyOfWells.add(well);
-		return copyOfWells;
+		return wells;
 	}
 
 	public synchronized void addObjectiveValue(String scenario, float timeInYears) {
@@ -346,15 +329,15 @@ public class ExtendedConfiguration extends Configuration {
 	 * Helper Methods for Move Logic
 	 * **************************************/
 
-	public synchronized void addSensor(ScenarioSet scenarioSet, ExtendedSensor sensor) {
+	public synchronized void addSensor(ExtendedSensor sensor) {
 
 		if(!sensors.contains(sensor))
 			sensors.add(sensor);
-		updateWells(scenarioSet);
+		updateWells();
 
 	}
 
-	private synchronized void updateWells(ScenarioSet scenarioSet) {
+	private synchronized void updateWells() {
 
 		for(Sensor sensor: sensors) {
 			if(sensor instanceof ExtendedSensor)
@@ -376,7 +359,7 @@ public class ExtendedConfiguration extends Configuration {
 				}
 			}
 			if(!foundWell) {
-				Well newWell = new Well(extendedSensor.getIJK().getI(), extendedSensor.getIJK().getJ(), scenarioSet);
+				Well newWell = new Well(extendedSensor.getIJK().getI(), extendedSensor.getIJK().getJ());
 				newWell.addSensor(extendedSensor);
 				extendedSensor.setWell(newWell);
 				wells.add(newWell);
@@ -515,12 +498,12 @@ public class ExtendedConfiguration extends Configuration {
 		String type = types.get(Constants.random.nextInt(types.size()));
 		if(atAddPoint) {
 			ExtendedSensor toAdd = new ExtendedSensor(addPoint, type, scenarioSet.getNodeStructure());
-			addSensor(scenarioSet, toAdd);
+			addSensor(toAdd);
 			return toAdd;
 		} else {
 			int index = Constants.random.nextInt(affordableSensors.get(type).size());
 			ExtendedSensor toAdd = new ExtendedSensor(affordableSensors.get(type).get(index), type, scenarioSet.getNodeStructure());
-			addSensor(scenarioSet, toAdd);
+			addSensor(toAdd);
 			return toAdd;
 		}
 
@@ -558,7 +541,7 @@ public class ExtendedConfiguration extends Configuration {
 		Collections.shuffle(wells, Constants.random);
 		for(Well well: wells) {
 			if(well.move(this, scenarioSet)) {
-				updateWells(scenarioSet);
+				updateWells();
 				return well;
 			}
 		}
@@ -574,7 +557,7 @@ public class ExtendedConfiguration extends Configuration {
 		Collections.shuffle(wells, Constants.random);
 		for(Well well: wells) {
 			if(well.shuffle(this, scenarioSet)) {
-				updateWells(scenarioSet);
+				updateWells();
 				return well;
 			}
 		}
@@ -592,7 +575,7 @@ public class ExtendedConfiguration extends Configuration {
 				continue;
 			ExtendedSensor extendedSensor = (ExtendedSensor)sensor;
 			if(extendedSensor.move(this, scenarioSet)) {
-				addSensor(scenarioSet, extendedSensor);	
+				addSensor(extendedSensor);	
 				return extendedSensor; // We were able to move an out of bounds sensor into the cloud
 			}
 		}

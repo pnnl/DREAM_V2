@@ -19,7 +19,7 @@ public class Well
 	
 	protected List<ExtendedSensor> sensors;
 	
-	public Well(int i, int j, ScenarioSet scenarioSet) {
+	public Well(int i, int j) {
 		
 		this.i = i;
 		this.j = j;
@@ -107,7 +107,7 @@ public class Well
 							if(validKsByIJ.get(i).get(j).size() >= currentConstraint) {
 								// This is a valid well location for the given type
 								if(initial) {
-									Well tempWell = new Well(i,j, scenarioSet);
+									Well tempWell = new Well(i,j);
 									if(!wellsByIJ.containsKey(i)) {
 										wellsByIJ.put(i, new HashMap<Integer, Well>()); // By i's
 									}

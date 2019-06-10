@@ -45,7 +45,6 @@ public class ScenarioSet {
 	private int iterations;
 	private float sensorCostConstraint;
 	private float exclusionRadius;
-	private float inclusionRadius;
 	private float wellCost;
 	private float wellDepthCost;
 	private float remediationCost;
@@ -80,7 +79,6 @@ public class ScenarioSet {
 		iterations = 1000;
 		sensorCostConstraint = 0;
 		exclusionRadius = 0;
-		inclusionRadius = Float.MAX_VALUE;
 		wellCost = 0;
 		wellDepthCost = 0;
 		remediationCost = 0;
@@ -108,7 +106,6 @@ public class ScenarioSet {
 		iterations = 1000;
 		sensorCostConstraint = 0;
 		exclusionRadius = 0;
-		inclusionRadius = Float.MAX_VALUE;
 		wellCost = 0;
 		wellDepthCost = 0;
 		remediationCost = 0;
@@ -447,64 +444,29 @@ public class ScenarioSet {
 		
 		// Make sure we can afford adding a new sensor of the given type
 		if(cost) {
-			float configurationCost = getSensorCost(configuration);
-			float sensorCost = getSensorSettings(sensorType).getSensorCost();
+			float configurationCost = getSensorCost(configuration); //Current cost for sensors in the configuration
+			float sensorCost = getSensorSettings(sensorType).getSensorCost(); //Cost of the sensor in question
 			
 			if(configurationCost+sensorCost > getSensorCostConstraint())
 				return validNodes; // Can't afford a new sensor of this type
 		}
-		
-		List<Well> wells = configuration.getWells();	
-		
-		int tempMaxWells = maxWells;
 				
-		List<Integer> cloudNodes = new ArrayList<Integer>();
-		for(Integer node: sensorSettings.get(sensorType).getValidNodes()) 
-			cloudNodes.add(node);
-		
-		// Remove all but edges
-		if(edgeMovesOnly) {
-			List<Integer> tempNodes = new ArrayList<Integer>();
-			tempNodes.addAll(cloudNodes);
-			for(int tempNode: tempNodes) {
-				// All neighbors
-				List<Integer> allNeighbors = getNodeStructure().getNeighborNodes(getNodeStructure().getIJKFromNodeNumber(tempNode));
-				// count neighbors in cloud
-				int neighbors = 0;
-				for(int node: tempNodes) {
-					if(allNeighbors.contains((Object)node))
-						neighbors++;
-				}
-				boolean is2D = true;
-				if(neighbors == (is2D ? 8 : 26)) {
-					cloudNodes.remove((Object)tempNode);
-				}
-			}
-		}
-		
 		//System.out.println("Spots I can move to: " + cloudNodes.size());
 		List<Integer> occupiedNodes = configuration.getSensorPositions(sensorType);
 //		System.out.println("Cloud nodes after occupied check: " + cloudNodes.size());
-		for(Integer node: cloudNodes) {
-			// Sensor is unoccupied
-//			if(!occupiedNodes.contains(node) || (withAddPoint && node.equals(getNodeStructure().getNodeNumber(addPoint)))) { //old addpoint logic
-			if(!occupiedNodes.contains(node)) {
-			if(wellConstraint) {
-					if(wells.size() < tempMaxWells) // We can add a new well
-						validNodes.add(node);
-					else {
-						// We can't create another well, lets see if there is a spot left in one that already exists
-						Point3i point = getNodeStructure().getIJKFromNodeNumber(node);
-						for(Well well: configuration.getWells()) {
-							if(well.getI() == point.getI() && well.getJ() == point.getJ()) {
-								validNodes.add(node); // Well is at node point
-								break;
-							}
-						}
+		for(Integer node: sensorSettings.get(sensorType).getValidNodes()) {
+			if(occupiedNodes.contains(node)) continue; // Sensor is unoccupied
+			if(wellConstraint && configuration.getWells().size() >= maxWells) {
+				// We can't create another well, lets see if there is a spot left in one that already exists
+				Point3i point = getNodeStructure().getIJKFromNodeNumber(node);
+				for(Well well: configuration.getWells()) {
+					if(well.getI() == point.getI() && well.getJ() == point.getJ()) {
+						validNodes.add(node); // Well is at node point
+						break;
 					}
-				} else {
-					validNodes.add(node);
 				}
+			} else {
+				validNodes.add(node);
 			}
 		}
 		
@@ -520,15 +482,12 @@ public class ScenarioSet {
 		//Set everything within exclusionRadius to false for each well
 		//Note that we don't have to check to make sure that a point to be set false isn't a well, because there should be no way that it was there in the first place.
 		for(Well well : configuration.getWells()){
-			if(well.i == 0 || well.j == 0){
-				continue;
-			} //makes sure we're not looking at the add point. Can probably remove.
 			Point3f wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
 			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
 				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
 					Point3f otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
 					float distance = otherxyz.euclideanDistance(wellxyz);
-					if(distance <= exclusionRadius || distance >= inclusionRadius){
+					if(distance <= exclusionRadius){
 						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
 							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
 							continue;

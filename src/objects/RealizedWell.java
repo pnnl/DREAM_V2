@@ -18,7 +18,7 @@ import utilities.Point3i;
 public class RealizedWell extends Well {
 
 	public RealizedWell(int i, int j, ScenarioSet scenarioSet) {
-		super(i, j, scenarioSet);
+		super(i, j);
 		
 		for(String dataType: scenarioSet.getDataTypes()) {
 			for(int k = 1; k <= scenarioSet.getNodeStructure().getIJKDimensions().getK(); k++) {
