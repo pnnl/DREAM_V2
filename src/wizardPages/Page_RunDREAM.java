@@ -771,7 +771,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							int innerWells = i;
 							int innerSensors = i*100;
 							System.out.println(innerSensors + " " + innerWells);
-							data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, dialog.getDistanceBetweenWells(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost());
+							data.getSet().setUserSettings(data.getSet().getAddPoint(), innerWells, innerSensors, data.getSet().getExclusionRadius(), data.getSet().getWellCost(), data.getSet().getWellDepthCost(), data.getSet().getRemediationCost());
 							int ittr = dialog.getIterationsPerRun();
 							data.setWorkingDirectory(outputFolder.getText());
 							data.getSet().setIterations(ittr);

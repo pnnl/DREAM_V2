@@ -29,7 +29,6 @@ public class EnsembleDialog extends TitleAreaDialog {
 
 	private ScrolledComposite sc;
 	private Composite container;
-	private STORMData data;
 	private Shell parentShell;
 	
 	public boolean readyToRun = false; //This is to tell if we pressed ok or not (if not, don't run the iterative procedure!)
@@ -39,18 +38,15 @@ public class EnsembleDialog extends TitleAreaDialog {
 	private Text maxNumSensors;
 	private Text iterationsPerSensorNumber;
 	private Text iterationsPerRun;
-	private Text minDistanceBetweenWells;
 	private Integer minSensors;
 	private Integer maxSensors;
 	private Integer iterationsPerSensor;
 	private Integer iterations;
-	private Float wellDistance;
 	
 	public EnsembleDialog(Shell parentShell, STORMData data, Integer iterations) {
 		super(parentShell);
 		this.iterations = iterations;
 		this.parentShell = parentShell;
-		this.data = data;
 	}
 	
 	@Override
@@ -166,25 +162,7 @@ public class EnsembleDialog extends TitleAreaDialog {
 				} catch (NumberFormatException ne) {
 					((Text)e.getSource()).setForeground(Constants.red);
 				}
-			}				
-		});	
-		
-		Label minDistanceBetweenWellsLabel = new Label(container, SWT.NULL);
-		minDistanceBetweenWellsLabel.setText("Minimum distance between wells");
-		minDistanceBetweenWells = new Text(container, SWT.BORDER | SWT.SINGLE);
-		minDistanceBetweenWells.setText(String.valueOf(data.getSet().getExclusionRadius()));
-		GridData minDistanceBetweenWellsGD = new GridData(GridData.FILL_HORIZONTAL);
-		minDistanceBetweenWells.setLayoutData(minDistanceBetweenWellsGD);	
-		minDistanceBetweenWells.addModifyListener(new ModifyListener() {
-			@Override
-			public void modifyText(ModifyEvent e) {
-				try {
-					Float.parseFloat(((Text)e.getSource()).getText());	
-					((Text)e.getSource()).setForeground(Constants.black);
-				} catch (NumberFormatException ne) {
-					((Text)e.getSource()).setForeground(Constants.red);
-				}
-			}				
+			}
 		});
 		
 		container.layout();
@@ -217,7 +195,6 @@ public class EnsembleDialog extends TitleAreaDialog {
 				maxSensors = Integer.valueOf(maxNumSensors.getText());
 				iterationsPerSensor = Integer.valueOf(iterationsPerSensorNumber.getText());
 				iterations = Integer.valueOf(iterationsPerRun.getText());
-				wellDistance = Float.valueOf(minDistanceBetweenWells.getText());
 				readyToRun = true;
 				super.okPressed();
 			}
@@ -247,9 +224,5 @@ public class EnsembleDialog extends TitleAreaDialog {
 	
 	public int getIterationsPerRun(){
 		return iterations;
-	}
-	
-	public float getDistanceBetweenWells(){
-		return wellDistance;
 	}
 }
