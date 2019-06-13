@@ -15,7 +15,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -105,7 +104,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		// We want to essentially reset everything at this point
 		data.getSet().clearRun();
 		HDF5Interface.statistics.clear();
-		
 		// Read in scenario and parameter information from the files
 		Constants.homeDirectory = directory;
 		data.setupScenarioSet(MUTATE.SENSOR, simulation, fileDirectoryText.getText());
@@ -121,8 +119,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	public void loadPage() {
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
-		for(Control control: container.getChildren())
-			control.dispose(); // Remove the children.
+		removeChildren(container);
 		
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
 		

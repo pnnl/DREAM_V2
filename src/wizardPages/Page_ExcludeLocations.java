@@ -29,7 +29,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
+import utilities.CoordinateSystemDialog;
 import utilities.Point3i;
+import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -59,7 +61,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private List<Integer> validXWells = new ArrayList<>();
 	private List<Integer> validYWells = new ArrayList<>();
 	private boolean isCurrentPage = false;
-	public Page_ExcludeLocations(STORMData data) {
+	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
 		this.data = data;		
 	}
@@ -126,7 +128,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			wells = data.getSet().getAllPossibleWells();
 			selection.clear();
 			minI = Integer.MAX_VALUE;
-			minJ = Integer.MAX_VALUE;
+			minJ = Integer.MAX_VALUE;	
 			maxI = Integer.MIN_VALUE;
 			maxJ = Integer.MIN_VALUE;
 		}
@@ -234,7 +236,9 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
+			public void handleEvent(final Event event) {
+				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell());
+				dialog.open();
 				final List<IJ> ijs = new ArrayList<IJ>();
 				for(int i = minI; i <= maxI; i++) {
 					for(int j = minJ; j <= maxJ; j++) {	
@@ -245,10 +249,8 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 				// Can I do this from the swt thread?
 				SwingUtilities.invokeLater(new Runnable() {
-
 					@Override
 					public void run() {
-
 						DREAMMap map = new DREAMMap(ijs, 
 								new ArrayList<Float>(data.getSet().getNodeStructure().getX()),
 								new ArrayList<Float>(data.getSet().getNodeStructure().getY()));
