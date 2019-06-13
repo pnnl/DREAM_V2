@@ -86,8 +86,9 @@ public class FileConverter extends javax.swing.JFrame {
 	private float[] porosity;
 	private ParseRawFiles gp;
 
+	
 	private JLabel statusLabel;
-
+	private String[] classValueTime;
 	public FileConverter() {
 		// Hack that allows my directory to start where I want it
 		if(Constants.homeDirectory.contains("whit162"))
@@ -194,7 +195,7 @@ public class FileConverter extends javax.swing.JFrame {
 				);
 		
 		// Timesteps:
-		jLabel_timesteps.setText("Time steps (years)");
+		jLabel_timesteps.setText("Time steps");
 		javax.swing.GroupLayout jPanel_timestepsLayout = new javax.swing.GroupLayout(jPanel_timesteps);
 		jPanel_timesteps.setLayout(jPanel_timestepsLayout);
 		jPanel_timestepsLayout.setHorizontalGroup(
@@ -654,6 +655,13 @@ public class FileConverter extends javax.swing.JFrame {
 			String[] classValue = { gp.getUnit("x") };
 			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
 			d.writeMetadata(attr);
+		} else {
+			//Made an assumption that if the file doesn't have x-units none of the other coordinates will
+			//have units
+			addXYZUnits();
+			String[] classValue = { gp.getUnit("x") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
+			d.writeMetadata(attr);
 		}
 		// Writing y variable with units
 		d = hdf5File.createScalarDS("y", dataGroup, dtype, new long[]{gp.getY().length}, null, null, 0, gp.getY());
@@ -662,6 +670,7 @@ public class FileConverter extends javax.swing.JFrame {
 			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
 			d.writeMetadata(attr);
 		}
+		
 		// Writing z variable with units
 		d = hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{gp.getZ().length}, null, null, 0, gp.getZ());
 		if(!gp.getUnit("z").equals("")) { //Add units as an attribute if they exist
@@ -690,11 +699,19 @@ public class FileConverter extends javax.swing.JFrame {
 			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
 			d.writeMetadata(attr);
 		}
+		
 		// Writing time variable with units
 		d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{gp.getSelectedTimesArray().length}, null, null, 0, gp.getSelectedTimesArray());
-		String[] classValue = { "years" };
-		Attribute attr = new Attribute("units", attrType, attrDims, classValue);
-		d.writeMetadata(attr); //Add the units as an attribute
+		if (!gp.getUnit("Time").equals("")) {
+			String[] classValueTime = { gp.getUnit("Time") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValueTime);
+			d.writeMetadata(attr); //Add the units as an attribute
+		} else {
+			addTimeUnits();
+			String[] classValueTime = {gp.getUnit("Time") };
+			Attribute attr = new Attribute("units", attrType, attrDims, classValueTime);
+			d.writeMetadata(attr); //Add the units as an attribute
+		}
 		// Writing step variable
 		float[] steps = new float[gp.getSelectedTimesArray().length];
 		for(int i=0; i<gp.getSelectedTimesArray().length; i++)
@@ -716,8 +733,8 @@ public class FileConverter extends javax.swing.JFrame {
 			for(String parameter: gp.getSelectedParameters()) {
 				d = hdf5File.createScalarDS(parameter, timeStepGroup, dtype, dims3D, null, null, 0, gp.getData(scenario, parameter)[index]);
 				if(!gp.getUnit(parameter).equals("")) { //Add units as an attribute if they exist
-					classValue[0] = gp.getUnit(parameter);
-					attr = new Attribute("units", attrType, attrDims, classValue);
+					classValueTime[0] = gp.getUnit(parameter);
+					Attribute attr = new Attribute("units", attrType, attrDims, classValueTime);
 					d.writeMetadata(attr);
 				}
 			}
@@ -730,10 +747,30 @@ public class FileConverter extends javax.swing.JFrame {
 		for(String parameter: gp.getSelectedParameters()) {
 			hdf5File.createScalarDS(parameter, statisticsGroup, dtype, new long[]{3}, null, null, 0, gp.getStatistics(scenario, parameter));
 		}
-		
 		hdf5File.close();
 	}
 	
+	private synchronized void addTimeUnits() {
+		if (gp.getUnit("Time").equals("")) {
+			String[] unitChoices = {"Years", "Months", "Days"};
+			String input = (String) JOptionPane.showInputDialog(null, "What are your Time Units",
+					"Choose Time Units", JOptionPane.QUESTION_MESSAGE, null,
+					unitChoices, unitChoices[0]);
+			gp.setUnit("Time", input);
+		}
+	}
+	
+	private synchronized void addXYZUnits() {
+		if (gp.getUnit("x").equals("")) {
+		String[] unitChoices = {"ft", "m"};
+		String input = (String) JOptionPane.showInputDialog(null, "What are your XYZ Units",
+					"Choose XYZ Units", JOptionPane.QUESTION_MESSAGE, null,
+					unitChoices, unitChoices[1]);
+			gp.setUnit("x", input);
+			gp.setUnit("y", input);
+			gp.setUnit("z", input);
+		}
+	}
 	
 	private synchronized float[] addPorosity(long[] dims3D) {
 		if(porosity==null) { //Only ask for input once across all scenarios
@@ -741,7 +778,8 @@ public class FileConverter extends javax.swing.JFrame {
 			try {
 				float input = 999;
 				while(input>1 || input < 0) //Force a porosity value between 0 and 1
-					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this, "No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this,
+							"No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
 				Arrays.fill(porosity, input); //Fills porosity with a constant value across the domain
 			} catch (NumberFormatException e) {
 				e.printStackTrace();

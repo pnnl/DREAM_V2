@@ -129,7 +129,7 @@ public class ParseRawFiles {
 						if(line.contains(",") && !line.contains("null")) { //This means they give units
 							String unit = line.split(",")[1].trim();
 							units.put(parameter, unit); //Save units
-						}
+						} 
 					// These are the criteria to isolate the xyz values
 					} else if(!header && !line.equals("") && (parameter.equals("x") || parameter.equals("y") || parameter.equals("z") || parameter.equals("porosity"))) {
 						String[] tokens = line.trim().split("\\s+"); //Split the line by any number of spaces between values
@@ -514,6 +514,7 @@ public class ParseRawFiles {
 					}
 				}
 			}
+			System.out.println(units.toString() + " These are the units");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -741,6 +742,10 @@ public class ParseRawFiles {
 		if(units.containsKey(parameter))
 			return units.get(parameter);
 		return "";
+	}
+	
+	public void setUnit(final String theParameter, final String theValue) {
+		units.put(theParameter,theValue);
 	}
 	
 }
