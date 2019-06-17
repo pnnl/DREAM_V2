@@ -182,6 +182,7 @@ public class ParseRawFiles {
 				try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
 					while ((line = br.readLine()) != null) { //We just need to read the header for each file
 						if(line.contains("Time =") & line.contains(",yr")) {
+							units.put("Time", "Years");
 							String year = line.substring(line.indexOf(",wk")+3, line.indexOf(",yr")).trim();
 							try {
 								Float timeStep = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This rounds to 3 decimal places
@@ -339,6 +340,10 @@ public class ParseRawFiles {
 					}
 					// Now we add the time
 					for(int i=indexMap.indexOf("data"); i<tokens.length; i++) {
+						String temp = tokens[i];
+						if (temp.contains("y")) {
+							units.put("Time", "Years");
+						}
 						String token = tokens[i].replaceAll("\\D+", ""); //Replace letters
 						times.add(Float.parseFloat(token));
 					}
