@@ -6,6 +6,8 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -29,7 +31,6 @@ import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import ncsa.hdf.object.Datatype;
 import ncsa.hdf.object.FileFormat;
@@ -89,6 +90,11 @@ public class FileConverter extends javax.swing.JFrame {
 	
 	private JLabel statusLabel;
 	private String[] classValueTime;
+	
+	private JPanel mainPanel = new JPanel();
+	
+	private float[] thePorosity;
+	
 	public FileConverter() {
 		// Hack that allows my directory to start where I want it
 		if(Constants.homeDirectory.contains("whit162"))
@@ -645,6 +651,8 @@ public class FileConverter extends javax.swing.JFrame {
 		// Get the dimensions of the grid
 		long[] dims3D = {gp.getX().length, gp.getY().length, gp.getZ().length};
 		
+		
+		
 		/////////////////////////////////////////////////////////
 		// Data Group: porosity, steps, times, vertex-xyz, xyz //
 		/////////////////////////////////////////////////////////
@@ -658,7 +666,7 @@ public class FileConverter extends javax.swing.JFrame {
 		} else {
 			//Made an assumption that if the file doesn't have x-units none of the other coordinates will
 			//have units
-			addXYZUnits();
+			addXYZandTimeUnits(dims3D);
 			String[] classValue = { gp.getUnit("x") };
 			Attribute attr = new Attribute("units", attrType, attrDims, classValue);
 			d.writeMetadata(attr);
@@ -707,8 +715,8 @@ public class FileConverter extends javax.swing.JFrame {
 			Attribute attr = new Attribute("units", attrType, attrDims, classValueTime);
 			d.writeMetadata(attr); //Add the units as an attribute
 		} else {
-			addTimeUnits();
-			String[] classValueTime = {gp.getUnit("Time") };
+			addXYZandTimeUnits(dims3D);
+			String[] classValueTime = { gp.getUnit("Time") };
 			Attribute attr = new Attribute("units", attrType, attrDims, classValueTime);
 			d.writeMetadata(attr); //Add the units as an attribute
 		}
@@ -718,9 +726,9 @@ public class FileConverter extends javax.swing.JFrame {
 			steps[i] = i;
 		hdf5File.createScalarDS("steps", dataGroup, dtype, new long[]{steps.length}, null, null, 0, steps);
 		// Writing porosity variable
-		if(gp.getPorosity()==null) { //If no porosity was found in parameters
-			float[] porosity = addPorosity(dims3D); //Need to query the user for a constant porosity across the domain
-			gp.setPorosity(porosity);
+		if(porosity == null) { //If no porosity was found in parameters
+			addXYZandTimeUnits(dims3D); //Need to query the user for a constant porosity across the domain
+			gp.setPorosity(thePorosity);
 		}
 		hdf5File.createScalarDS("porosity", dataGroup, dtype, dims3D, null, null, 0, gp.getPorosity()); //Porosity is a fraction (no units)
 		
@@ -749,45 +757,120 @@ public class FileConverter extends javax.swing.JFrame {
 		}
 		hdf5File.close();
 	}
-	
-	private synchronized void addTimeUnits() {
-		if (gp.getUnit("Time").equals("")) {
-			String[] unitChoices = {"Years", "Months", "Days"};
-			String input = (String) JOptionPane.showInputDialog(null, "What are your Time Units",
-					"Choose Time Units", JOptionPane.QUESTION_MESSAGE, null,
-					unitChoices, unitChoices[0]);
-			gp.setUnit("Time", input);
+	/**
+	 * Adds the XYZ distance units, Time Units, and/or Porosity values to our unit HashMap.
+	 * @param dims3D - The array for our porosity.
+	 */
+	private synchronized void addXYZandTimeUnits(final long[] dims3D) {
+		//Remove all to make sure their aren't any duplicates.
+		mainPanel.removeAll();
+		if (gp.getUnit("x").equals("") || gp.getUnit("Time").equals("") || porosity == null) {
+					
+			JComboBox<String> distanceList = new JComboBox<String>(new String[] {"m", "ft"});
+			JComboBox<String> timeList = new JComboBox<String>(new String[] {"years", "months", "days"});
+			
+			JTextField porosityText = new JTextField();
+			//Our option pane that calls our JPanel creation method.
+			int option = JOptionPane.showConfirmDialog(null, theDialogBoxes(distanceList, timeList,
+					porosityText),
+						"Set Units or Set Porosity", JOptionPane.OK_CANCEL_OPTION);
+			//When user clicks ok.
+			if (option == JOptionPane.OK_OPTION) {
+				//Put units into our unit HashMap.
+				if (gp.getUnit("x").equals("")) {
+					String distance =  distanceList.getSelectedItem().toString();
+					gp.setUnit("x", distance);
+					gp.setUnit("y", distance);
+					gp.setUnit("z", distance);
+				}
+				if (gp.getUnit("Time").equals("")) {
+					String time = timeList.getSelectedItem().toString();
+					gp.setUnit("Time", time);
+				}
+				if (porosity == null) {
+					porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
+					float input = 999;
+					try {
+						input = Float.parseFloat(porosityText.getText());
+						//If the input doesn't fall into range, force the user to input the porosity again.
+						while (input > 1 || input < 0) {
+							input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this,
+									"Please enter a Porosity in the domain (Between 0 and 1)", 0.1));
+						}
+						Arrays.fill(porosity, input);
+					} catch (final NumberFormatException theException) {
+						theException.printStackTrace();
+					}
+					thePorosity = porosity;
+				}
+			}
 		}
 	}
 	
-	private synchronized void addXYZUnits() {
-		if (gp.getUnit("x").equals("")) {
-		String[] unitChoices = {"ft", "m"};
-		String input = (String) JOptionPane.showInputDialog(null, "What are your XYZ Units",
-					"Choose XYZ Units", JOptionPane.QUESTION_MESSAGE, null,
-					unitChoices, unitChoices[1]);
-			gp.setUnit("x", input);
-			gp.setUnit("y", input);
-			gp.setUnit("z", input);
+//	private synchronized float[] addPorosity(long[] dims3D) {
+//		if(porosity==null) { //Only ask for input once across all scenarios
+//			porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
+//			try {
+//				float input = 999;
+//				while(input>1 || input < 0) //Force a porosity value between 0 and 1
+//					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this,
+//							"No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
+//				Arrays.fill(porosity, input); //Fills porosity with a constant value across the domain
+//			} catch (NumberFormatException e) {
+//				e.printStackTrace();
+//		    }
+//		}
+//		return porosity;
+//	}
+	/**
+	 * This method creates the JPanel for our option pane.
+	 * @param distanceList - The list of distance units for our drop down menu.
+	 * @param timeList - The list of time units for our drop down menu.
+	 * @param porosityText - The porosity JTextField
+	 * @return - The JPanel for our option pane.
+	 */
+	private JPanel theDialogBoxes(final JComboBox<String> distanceList
+			, final JComboBox<String> timeList, final JTextField porosityText) {
+		if (gp.getUnit("x").equals("") || gp.getUnit("Time").equals("") || porosity == null) {
+			mainPanel.setLayout(new GridLayout(0,1));
+			
+			Label distanceLabel = new Label();
+			distanceLabel.setText("XYZ Units:");
+			
+			Label timeLabel = new Label();
+			timeLabel.setText("Time Units:");
+			
+			Label porosityLabel = new Label();
+			porosityLabel.setText("Specify Porosity Value");
+			
+			porosityText.setText("0.1");
+			
+			mainPanel.add(distanceLabel);
+			mainPanel.add(distanceList);
+			
+			mainPanel.add(timeLabel);
+			mainPanel.add(timeList);
+			
+			mainPanel.add(porosityLabel);
+			mainPanel.add(porosityText);
+			
+			//If we already have these units, remove them from the JPanel they don't need to be set.
+			if (!gp.getUnit("x").equals("")) {
+				mainPanel.remove(distanceList);
+				mainPanel.remove(distanceLabel);
+			}
+			if (!gp.getUnit("Time").equals("")) {
+				mainPanel.remove(timeList);
+				mainPanel.remove(timeLabel);
+			} 
+			if (porosity != null) {
+				mainPanel.remove(porosityText);
+				mainPanel.remove(porosityLabel);
+			}
 		}
+		return mainPanel;
 	}
-	
-	private synchronized float[] addPorosity(long[] dims3D) {
-		if(porosity==null) { //Only ask for input once across all scenarios
-			porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
-			try {
-				float input = 999;
-				while(input>1 || input < 0) //Force a porosity value between 0 and 1
-					input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this,
-							"No porosity detected.\nSpecify a porosity value across the domain.", 0.1));
-				Arrays.fill(porosity, input); //Fills porosity with a constant value across the domain
-			} catch (NumberFormatException e) {
-				e.printStackTrace();
-		    }
-		}
-		return porosity;
-	}
-	
+
 	
 	public static void main(String args[]) {
 		try {
