@@ -46,7 +46,7 @@ public class ResultPrinter {
 	// Whether or not we want to run python scripts (disable for scatterplot runs)
 	public static boolean runScripts = true;
 	
-	private static String timeUnit = "years";
+	private static String timeUnit;
 	private static String xUnit;
 	
 	public static void clearResults(ScenarioSet set, boolean makePlots) {
@@ -73,6 +73,7 @@ public class ResultPrinter {
 	 * Prints everything we currently know how to prints
 	 */
 	public static void printAll(NodeStructure nodeStructure) {
+		timeUnit = nodeStructure.getUnit("times");
 		xUnit = nodeStructure.getUnit("x");
 		try {
 			printAllConfigs();	
@@ -418,4 +419,7 @@ public class ResultPrinter {
 		}
 	}
 	
+	public void setTimeUnit(final String theUnit) {
+		timeUnit = theUnit;
+	}
 }
