@@ -1,4 +1,6 @@
-package utilities;
+package mapView;
+
+import java.util.Arrays;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -24,13 +26,12 @@ import org.eclipse.swt.widgets.Text;
  *
  */
 public class CoordinateSystemDialog extends TitleAreaDialog {
-	private int theZone;
+	private String theZone;
 	
 	private int theMinX = 0;
 	
 	private int theMinY = 0;
 	
-	private String theHemisphere;
 	
 	private ScrolledComposite theComposite;
 	
@@ -39,14 +40,14 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		
 	public CoordinateSystemDialog(final Shell theShell) {
 		super(theShell);
-		theZone = 0;
+//		theZone = 0;
 	}
 	
 	@Override
 	public void create() {
 		super.create();
 		setTitle("Set Map View Specifications");
-		setMessage("Set the Zone (UTM), Hemisphere, and Minimum (x,y) coordinate (Origin Point).",
+		setMessage("Set the Zone (UTM), and Minimum (x,y) coordinate (Origin Point).",
 				IMessageProvider.INFORMATION);
 	}
 	
@@ -119,39 +120,45 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	}
 
 	private void createTheInputBoxes() {
+		
+		String regex = "(?<=\\d)(?=\\D)";
 //		Label theCoordinate = new Label(theContainer, SWT.NONE);
 //		theCoordinate.setText("Please set your coodinate System.");
 		
 		Label theDistanceLabel = new Label(theContainer, SWT.NONE);
 		theDistanceLabel.setText("Set the Zone:");
-		
-		Combo UTMZone = new Combo(theContainer, SWT.DROP_DOWN);
-		
-		Label theUTMHemisphere = new Label(theContainer, SWT.NONE);
-		theUTMHemisphere.setText("Set the Hempishere:");
-		Text UTMHemi = new Text(theContainer, SWT.BORDER);
+		Text UTMZone = new Text(theContainer, SWT.BORDER);
+//		Combo UTMZone = new Combo(theContainer, SWT.DROP_DOWN);
 		
 		Label theMinXLabel = new Label(theContainer, SWT.NONE);
-		theMinXLabel.setText("Min x Coordinate:");
+		theMinXLabel.setText("Offset x Coordinate:");
 		Text minX = new Text(theContainer, SWT.BORDER);
 		
 		Label theMinYLabel = new Label(theContainer, SWT.NONE);
-		theMinYLabel.setText("Min y Coordinate:");
+		theMinYLabel.setText("Offset y Coordinate:");
 		Text minY = new Text(theContainer, SWT.BORDER);
 		
-		for (int i = 1; i <= 20; i++) {
-			UTMZone.add(i + "N");
-		}
+//		minX.setSize(50, minX.getSize().y);
+//		minY.setSize(50, minY.getSize().y);
 		
-	    UTMZone.select(0);
-	    minX.setText("0");
-	    minY.setText("0");
-	    theZone = Integer.parseInt(UTMZone.getText().replaceFirst("N", ""));
+		
+//		for (int i = 1; i <= 20; i++) {
+//			UTMZone.add(i + "N");
+//		}
+		
+//	    UTMZone.select(0);
+//	    theZone = Integer.parseInt(UTMZone.getText().replaceFirst("N", ""));
 	    
-	    UTMZone.addModifyListener(theEvent -> theZone =
-	    		Integer.parseInt(UTMZone.getText().replaceFirst("N", "")));
-	    
-	    UTMHemi.addModifyListener(theEvent -> theHemisphere = UTMHemi.getText());
+	    UTMZone.addModifyListener(theEvent -> {
+	    	theZone = UTMZone.getText();
+	    	String[] zoneDirectionSplit = theZone.split(regex);
+	    	if (Integer.parseInt(zoneDirectionSplit[0]) > 60 || Integer.parseInt(zoneDirectionSplit[0]) < 1) {
+	    		System.out.println("invalid zone");
+	    	}
+	    	if (!zoneDirectionSplit[1].equalsIgnoreCase("n") || !zoneDirectionSplit[1].equalsIgnoreCase("s")) {
+	    		System.out.println("invalid direction");
+	    	}
+	    });	    
 	    
 	    minX.addModifyListener(theEvent -> theMinX = Integer.parseInt(minX.getText()));
 	    
@@ -160,12 +167,8 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	}
 	
 	
-	public int getZone() {
+	public String getZone() {
 		return theZone;
-	}
-	
-	public String getHemisphere() {
-		return theHemisphere;
 	}
 	
 	public int getMinX() {
