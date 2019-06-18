@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.swing.SwingUtilities;
 
+import mapView.CoordinateSystemDialog;
 import mapView.DREAMMap;
 import mapView.IJ;
 import objects.SensorSetting;
@@ -29,9 +30,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
-import utilities.CoordinateSystemDialog;
 import utilities.Point3i;
-import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
