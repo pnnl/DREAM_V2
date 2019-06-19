@@ -196,8 +196,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			float randomValue = Constants.random.nextFloat(); //seeded random number for consistent results
 			counter++;
 			
-			if(monitor.isCanceled())
+			if(monitor.isCanceled()) {
+				ResultPrinter.runScripts = false;
 				return true;
+			}
 			if(monitor != null)
 				monitor.subTask("iteration " + currentIteration);
 			System.out.println("Iteration "+currentIteration+", Current "+currentValue+", New "+newValue+"("+newConfiguration.countScenariosDetected()+" detected), Best "+bestValue);
