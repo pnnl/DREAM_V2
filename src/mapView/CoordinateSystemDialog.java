@@ -1,13 +1,13 @@
 package mapView;
 
-import java.util.Arrays;
-
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -26,18 +26,21 @@ import org.eclipse.swt.widgets.Text;
  *
  */
 public class CoordinateSystemDialog extends TitleAreaDialog {
+	
+	private boolean[] myEnableButtonCheck;
+	
+	private int theZoneNumber;
+	
 	private String theZone;
 	
 	private int theMinX = 0;
 	
 	private int theMinY = 0;
 	
-	
 	private ScrolledComposite theComposite;
 	
 	private Composite theContainer;
 	
-		
 	public CoordinateSystemDialog(final Shell theShell) {
 		super(theShell);
 //		theZone = 0;
@@ -45,10 +48,12 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	@Override
 	public void create() {
+		myEnableButtonCheck = new boolean[4];
 		super.create();
 		setTitle("Set Map View Specifications");
-		setMessage("Set the Zone (UTM), and Minimum (x,y) coordinate (Origin Point).",
+		setMessage("Set the Zone (UTM), and Offset (x,y) coordinate (Origin Point).",
 				IMessageProvider.INFORMATION);
+        getButton(OK).setEnabled(false);	
 	}
 	
 	@Override
@@ -82,19 +87,21 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 				theComposite.redraw();
 			}
 		});
-		
-		
-		theContainer = new Composite(theComposite, SWT.NONE);
 		createContainer();
 		return area;
 	}
 	
+	/**
+	 * This method sets the layouts and parent composites.
+	 */
 	private void  createContainer(){
+		theContainer = new Composite(theComposite, SWT.NONE);
 		for(Control c: theContainer.getChildren()){
 			c.dispose();
 		}
-		theContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		GridLayout layout = new GridLayout(2, false);
+		
+		theContainer.setLayoutData(new GridData(SWT.NONE, SWT.NONE, true, true));
+		GridLayout layout = new GridLayout(3, false);
 		theContainer.setLayout(layout);
 		
 		theContainer.layout();
@@ -105,11 +112,12 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	}
 	
 	@Override
-	protected void createButtonsForButtonBar(Composite parent) {
+	protected void createButtonsForButtonBar(final Composite parent) {
 		createButton(parent, OK, "OK", true);
 	}
 	
-	protected Button createButton(Composite parent, int id, String label, boolean defaultButton){
+	protected Button createButton(Composite parent, final int id,
+			final String label, final boolean defaultButton){
 		if(id == IDialogConstants.CANCEL_ID) return null;
 		return super.createButton(parent, id, label, defaultButton);
 	}
@@ -118,56 +126,121 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	protected boolean canHandleShellCloseEvent(){
 		return false;
 	}
-
+	
+	/**
+	 * This class creates the input boxes inside theContainer composite, and creates the listeners.
+	 */
 	private void createTheInputBoxes() {
 		
-		String regex = "(?<=\\d)(?=\\D)";
-//		Label theCoordinate = new Label(theContainer, SWT.NONE);
-//		theCoordinate.setText("Please set your coodinate System.");
-		
-		Label theDistanceLabel = new Label(theContainer, SWT.NONE);
-		theDistanceLabel.setText("Set the Zone:");
-		Text UTMZone = new Text(theContainer, SWT.BORDER);
-//		Combo UTMZone = new Combo(theContainer, SWT.DROP_DOWN);
-		
-		Label theMinXLabel = new Label(theContainer, SWT.NONE);
-		theMinXLabel.setText("Offset x Coordinate:");
-		Text minX = new Text(theContainer, SWT.BORDER);
-		
-		Label theMinYLabel = new Label(theContainer, SWT.NONE);
-		theMinYLabel.setText("Offset y Coordinate:");
-		Text minY = new Text(theContainer, SWT.BORDER);
-		
-//		minX.setSize(50, minX.getSize().y);
-//		minY.setSize(50, minY.getSize().y);
-		
-		
-//		for (int i = 1; i <= 20; i++) {
-//			UTMZone.add(i + "N");
-//		}
-		
-//	    UTMZone.select(0);
-//	    theZone = Integer.parseInt(UTMZone.getText().replaceFirst("N", ""));
-	    
-	    UTMZone.addModifyListener(theEvent -> {
-	    	theZone = UTMZone.getText();
-	    	String[] zoneDirectionSplit = theZone.split(regex);
-	    	if (Integer.parseInt(zoneDirectionSplit[0]) > 60 || Integer.parseInt(zoneDirectionSplit[0]) < 1) {
-	    		System.out.println("invalid zone");
-	    	}
-	    	if (!zoneDirectionSplit[1].equalsIgnoreCase("n") || !zoneDirectionSplit[1].equalsIgnoreCase("s")) {
-	    		System.out.println("invalid direction");
-	    	}
-	    });	    
-	    
-	    minX.addModifyListener(theEvent -> theMinX = Integer.parseInt(minX.getText()));
-	    
-	    minY.addModifyListener(theEvent -> theMinY = Integer.parseInt(minY.getText()));
-	    
+	Label theDistanceLabel = new Label(theContainer, SWT.NONE);
+	theDistanceLabel.setText("Set the Zone:");
+	Text UTMZone = new Text(theContainer, SWT.BORDER);
+	
+	Combo zoneDirection = new Combo(theContainer, SWT.DROP_DOWN | SWT.READ_ONLY);
+	
+	zoneDirection.add("N");
+	zoneDirection.add("E");
+	
+	
+	Label theMinXLabel = new Label(theContainer, SWT.NONE);
+	theMinXLabel.setText("Offset x Coordinate:");
+	Text minX = new Text(theContainer, SWT.BORDER);
+	Label theMinXLabelNothing = new Label(theContainer, SWT.NONE);
+	theMinXLabelNothing.setText("");
+	
+	
+	Label theMinYLabel = new Label(theContainer, SWT.NONE);
+	theMinYLabel.setText("Offset y Coordinate:");
+	Text minY = new Text(theContainer, SWT.BORDER);
+	Label theMinYLabelNothing = new Label(theContainer, SWT.NONE);
+	theMinYLabelNothing.setText("");
+    
+	zoneDirection.addSelectionListener(new SelectionListener() {
+		@Override
+	    public void widgetSelected(final SelectionEvent theEvent)
+	    {	
+	        theZone = zoneDirection.getText();
+	        //If no zone is entered then we set the button to false and the component in our array to false.
+	        if (theZone.equals(null)) {
+	    		myEnableButtonCheck[0] = false;
+	    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+	        } else {
+	        	//If zone is entered we check if all the other components have good inputs.
+	        	myEnableButtonCheck[0] = true;
+	        	if (checkForBadInput()) getButton(OK).setEnabled(true);
+	        }
+	    }
+
+		@Override
+		public void widgetDefaultSelected(SelectionEvent theEvent) {
+		}
+	});
+	
+	//Mimicked for the rest of the modify listeners.
+    UTMZone.addModifyListener(theEvent -> {
+    	try {
+    		//If we can successful parse the text then we know it's good input.
+	    	theZoneNumber = Integer.parseInt(UTMZone.getText());
+	    	//Set the flag for this component to true.
+	    	myEnableButtonCheck[1] = true;
+	    	//If all the components have good inputs then we enable the button.
+	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+    	} catch (Exception theException) {
+    		//Flag this component in our array. Basically saying this input is bad.
+    		myEnableButtonCheck[1] = false;
+    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+    		theException.printStackTrace();
+		}
+    	
+    });
+    
+    minX.addModifyListener(theEvent -> {
+    	try {
+    		theMinX = Integer.parseInt(minX.getText());
+	    	myEnableButtonCheck[2] = true;
+	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+    	} catch (final Exception theException) {
+    		myEnableButtonCheck[2] = false;
+    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+    		theException.printStackTrace();
+    	}
+    });
+    
+    minY.addModifyListener(theEvent -> {
+    	try {
+    		theMinX = Integer.parseInt(minY.getText());
+	    	myEnableButtonCheck[3] = true;
+	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+    	} catch (final Exception theException) {
+    		myEnableButtonCheck[3] = false;
+    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+    		theException.printStackTrace();
+    	}
+    });
+    
+	}
+	/**
+	 * Checks if their are any bad inputs in our text fields (non-integers).
+	 * @return - temp boolean.
+	 */
+    private boolean checkForBadInput() {
+    	//return true if all the values in the array are true.
+    	boolean temp = true;
+    	for (int i = 0; i <= 3; i++) {
+    		//If any values in the array are false return false.
+    		if (!myEnableButtonCheck[i]) {
+    			temp = false;
+    			break;
+    		}
+    	}
+    	return temp;
+    }
+    
+	public int getZone() {
+		return theZoneNumber;
 	}
 	
-	
-	public String getZone() {
+	public String getZoneDirection() {
 		return theZone;
 	}
 	

@@ -252,7 +252,11 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 					public void run() {
 						DREAMMap map = new DREAMMap(ijs, 
 								new ArrayList<Float>(data.getSet().getNodeStructure().getX()),
-								new ArrayList<Float>(data.getSet().getNodeStructure().getY()));
+								new ArrayList<Float>(data.getSet().getNodeStructure().getY()),
+										dialog.getZone(), dialog.getZoneDirection(), dialog.getMinX(),
+										dialog.getMinY());
+						
+						
 						map.viewer.addWindowListener(new WindowAdapter() {
 
 							@Override

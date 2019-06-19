@@ -76,20 +76,30 @@ public class DREAMMap {
 	private int offsetY = 0;
 	private int zoom = 50;
 	private int rotate = 0;
-
+	
 	private float calculatedPixelsPerMeter;
 	public Viewer viewer; // I want this... making it public, to lazy for getter
-
+	
+	
+	private static int myZone;
+	private static String myZoneDirection;
+	private static int ogX;
+	private static int ogY;
 
 	public DREAMMap() {
 		viewer = new Viewer();
 		viewer.setVisible(true);
 	}
 
-	public DREAMMap(List<IJ> ijs, List<Float> xLines, List<Float> yLines) {
+	public DREAMMap(final List<IJ> ijs, final List<Float> xLines, final List<Float> yLines,
+			final int theZoneNumber, final String theZone, final int theOffsetX, final int theOffsetY) {
 		this.boxes = ijs;
 		this.xlines = Constants.makeLines((ArrayList<Float>) xLines);
 		this.ylines = Constants.makeLines((ArrayList<Float>) yLines);
+		myZone = theZoneNumber;
+		myZoneDirection = theZone;
+		ogX = theOffsetX;
+		ogY = theOffsetY;
 		viewer = new Viewer();
 		viewer.setVisible(true);
 	}
@@ -120,7 +130,7 @@ public class DREAMMap {
 		xlines = Constants.makeLines((ArrayList<Float>) xlines);
 		ylines = Constants.makeLines((ArrayList<Float>) ylines);
 
-		new DREAMMap(null, xlines, ylines);
+		new DREAMMap(null, xlines, ylines, myZone, myZoneDirection, ogX, ogY );
 	}
 
 
