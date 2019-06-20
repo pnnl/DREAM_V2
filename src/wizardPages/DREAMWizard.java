@@ -463,7 +463,8 @@ public class DREAMWizard extends Wizard {
 		}
 
 		//Returns whether or not the run was cancelled for future use
-		public boolean run(final int runs, final boolean showPlots) throws Exception {
+		public boolean run(final int runs, final boolean showPlots, final int theIteration,
+				final boolean multiRun) throws Exception {
 			// Resets the vis window
 			wizard.launchVisWindow(true, showPlots);
 			runner.setDomainViewer(wizard.domainViewer);
@@ -473,8 +474,11 @@ public class DREAMWizard extends Wizard {
 					monitor.beginTask("Running iterative procedure ", set.getIterations()*runs);	
 					runner.setMonitor(monitor);
 					if(runs > 1) {
-						wasCancelled = runner.run(initialConfiguration, set, showPlots, runs);	
-					} else {
+						wasCancelled = runner.run(initialConfiguration, set, showPlots, runs);
+					} else if (multiRun) {
+						wasCancelled = runner.run(initialConfiguration, set, showPlots, theIteration, multiRun);
+					}
+					else {
 						wasCancelled = runner.run(initialConfiguration, set, showPlots);	
 					}					
 				}

@@ -104,7 +104,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			if(monitor != null) 
 				monitor.setTaskName("Running iterative procedure " + (i+1) + "/" + sets);
 			wasCancelled = runInternal(initialConfiguration, set);
-			if(wasCancelled) return true;
+			if(wasCancelled) {
+				ResultPrinter.runScripts = false;
+				return true;
+			}
 		}
 		ResultPrinter.printAll(set.getNodeStructure());
 		return false;
@@ -123,7 +126,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 	//	this.mutate = mutate;
 	//	run(initialConfiguration, set, null);
 	//}
-
+	
 	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots) {
 		boolean wasCancelled = false;
 		ResultPrinter.clearResults(set, showPlots);
@@ -132,11 +135,25 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		return wasCancelled;
 	}
 
-
 	public void run(ExtendedConfiguration initialConfiguration, ScenarioSet set, String resultTag) {
 		ResultPrinter.clearResults(set, false);
 		runInternal(initialConfiguration, set);
 		ResultPrinter.printAll(set.getNodeStructure());
+	}
+	/**
+	 * Specifically only for multi-run ensemble.
+	 */
+	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots
+			,final int theIteration, final boolean multiRun) {
+		if(monitor != null)  {
+			monitor.setTaskName("Running iterative procedure " + "for full run number " + (theIteration +1) );
+		}
+		boolean wasCancelled = false;
+		ResultPrinter.clearResults(set, showPlots);
+		wasCancelled = runInternal(initialConfiguration, set);
+		ResultPrinter.printAll(set.getNodeStructure());
+		return wasCancelled;
+			
 	}
 
 	/**
