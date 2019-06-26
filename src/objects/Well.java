@@ -1,7 +1,6 @@
 package objects;
 
 import java.util.*;
-
 import utilities.Constants;
 import utilities.Point3i;
 
@@ -130,7 +129,9 @@ public class Well
 			}
 			if(initial)
 				initial = false;
-			for(String key: validNodes.keySet())
+			HashMap<String, List<Integer>> temp = new HashMap<String, List<Integer>>();
+			temp.putAll(validNodes);
+			for(String key: temp.keySet())
 				if(validNodes.get(key).equals(toRemove))
 					validNodes.remove(key);
 		}
