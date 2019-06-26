@@ -21,7 +21,7 @@ import utilities.Point3i;
  */
 
 public class ExtendedConfiguration extends Configuration {
-	private static final int WEIGHT_OF_ADD_SENSOR = 4;
+	private static final int WEIGHT_OF_ADD_SENSOR = 6;
 	
 	private static final int NUMBER_OF_MUTATIONS = 6;
 	// Cost of configuration
@@ -341,15 +341,17 @@ public class ExtendedConfiguration extends Configuration {
 
 	}
 	
-	public synchronized void removeSensor(ExtendedSensor sensor) {
-		if (sensors.contains(sensor)) {
-			sensors.remove(sensor);
+	public synchronized void removeSensor() {
+		int index = Constants.random.nextInt(sensors.size());
+		try {
+			sensors.remove(index);
+		} catch (Exception theException){
+			theException.printStackTrace();
 		}
 		updateWells();
 	}
 	
 	private synchronized void updateWells() {
-
 		for(Sensor sensor: sensors) {
 			if(sensor instanceof ExtendedSensor)
 				((ExtendedSensor)sensor).setWell(null);
@@ -540,12 +542,13 @@ public class ExtendedConfiguration extends Configuration {
 		}
 		
 		if (num == WEIGHT_OF_ADD_SENSOR + 5) {
-			Object removeSensor = removeSensor(scenarioSet);
-			pickRand.remove(index);
-			if(removeSensor != null) {
+			try {
+				removeSensor();
 				clearAndRepopulateArray();
-				Constants.log(Level.FINER, "Sensor configuration: mutated, REMOVED SENSOR", removeSensor);
+				Constants.log(Level.FINER, "Sensor configuration: mutated, REMOVED SENSOR", scenarioSet);
 				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -590,38 +593,47 @@ public class ExtendedConfiguration extends Configuration {
 		return moveRealizedWell(wells, scenarioSet); // Any well can move
 	}
 	
-	private Object removeSensor(final ScenarioSet scenarioSet) {
-		int removePoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
-		Map<String, List<Integer>> removeableSensors = new HashMap<String, List<Integer>>();
-		List<String> types = new ArrayList<String>();
-		boolean atRemovePoint = false;
-		for (String type: scenarioSet.getDataTypes()) {
-			List<Integer> validNodesToRemove = scenarioSet.getValidNodes(type, this, true, true, true);
-			if (!validNodesToRemove.isEmpty()) {
-				removeableSensors.put(type, validNodesToRemove);
-				types.add(type);
-				if (validNodesToRemove.contains(removePoint)) {
-					atRemovePoint = true;
-				}
-			}
-		}
-		if  (removeableSensors.isEmpty()) {
-			return null;
-		}
-		String type = types.get(Constants.random.nextInt(types.size()));
-		if (atRemovePoint) {
-			ExtendedSensor toRemove = new ExtendedSensor(removePoint, type, scenarioSet.getNodeStructure());
-			removeSensor(toRemove);
-			return toRemove;
-		} else {
-			int index = Constants.random.nextInt(removeableSensors.get(type).size());
-			ExtendedSensor toRemove = new ExtendedSensor(removeableSensors.get(type).get(index),
-					type, scenarioSet.getNodeStructure());
-			removeSensor(toRemove);
-			return toRemove;
-		}
-	}
+//	private Object removeSensor(final ScenarioSet scenarioSet) {
+//		int removePoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
+//		Map<String, List<Integer>> removeableSensors = new HashMap<String, List<Integer>>();
+//		List<String> types = new ArrayList<String>();
+//		boolean atRemovePoint = false;
+//		for (String type: scenarioSet.getDataTypes()) {
+//			List<Integer> validNodesToRemove = scenarioSet.getValidNodes(type, this, false, false, false);
+//			if (!validNodesToRemove.isEmpty()) {
+//				removeableSensors.put(type, validNodesToRemove);
+//				types.add(type);
+//				if (validNodesToRemove.contains(removePoint)) {
+//					atRemovePoint = true;
+//				}
+//			}
+//		}
+//		if  (removeableSensors.isEmpty()) {
+//			return null;
+//		}
+//		String type = types.get(Constants.random.nextInt(types.size()));
+//		if (atRemovePoint) {
+//			ExtendedSensor toRemove = new ExtendedSensor(removePoint, type, scenarioSet.getNodeStructure());
+//			removeSensor(toRemove);
+//			return toRemove;
+//		} else {
+//			int index = Constants.random.nextInt(removeableSensors.get(type).size());
+//			ExtendedSensor toRemove = new ExtendedSensor(removeableSensors.get(type).get(index),
+//					type, scenarioSet.getNodeStructure());
+//			removeSensor(toRemove);
+//			return toRemove;
+//		}
+//	}
 	
+//	private Object removeSensor(final ScenarioSet scenarioSet) {
+//		try {
+//			removeSensor();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			System.out.println("No Sensor to remove");
+//		}
+//		return scenarioSet;
+//	}
 	
 	private Object addSensor(final ScenarioSet scenarioSet) {
 		// Timer
@@ -670,7 +682,6 @@ public class ExtendedConfiguration extends Configuration {
 		for(ExtendedSensor sensor: getExtendedSensors()) {
 			// The current sensor is not in the cloud, or there are multiple sensors at that location
 			if(!sensor.isInCloud(scenarioSet) || getSensorPositions(sensor).contains(sensor.getNodeNumber()))
-				System.out.println("Got here?");
 				outOfBounds.add(sensor);
 		}
 
