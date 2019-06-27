@@ -169,6 +169,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			        InputStream is = getClass().getResourceAsStream("/user_manual.pdf");
 			        Files.copy(is, tempOutput, StandardCopyOption.REPLACE_EXISTING);
 			        Desktop.getDesktop().open(tempOutput.toFile());
+			        is.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
