@@ -176,7 +176,7 @@ public class DREAMWizard extends Wizard {
 	public static void main(final String[] args) {
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display);
-
+		
 		// Pop up the disclaimer, exit on cancel
 		MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL );
 		messageBox.setMessage("The Software was produced by Battelle under Contract No. DE-AC05-76RL01830 with the Department of Energy.  The U.S. Government is granted for itself and others acting on its behalf a nonexclusive, paid-up, irrevocable worldwide license in this data to reproduce, prepare derivative works, distribute copies to the public, perform publicly and display publicly, and to permit others to do so.  The specific term of the license can be identified by inquiry made to Battelle or DOE."
@@ -463,8 +463,7 @@ public class DREAMWizard extends Wizard {
 		}
 
 		//Returns whether or not the run was cancelled for future use
-		public boolean run(final int runs, final boolean showPlots, final int theIteration,
-				final boolean multiRun) throws Exception {
+		public boolean run(final int runs, final boolean showPlots) throws Exception {
 			// Resets the vis window
 			wizard.launchVisWindow(true, showPlots);
 			runner.setDomainViewer(wizard.domainViewer);
@@ -475,10 +474,7 @@ public class DREAMWizard extends Wizard {
 					runner.setMonitor(monitor);
 					if(runs > 1) {
 						wasCancelled = runner.run(initialConfiguration, set, showPlots, runs);
-					} else if (multiRun) {
-						wasCancelled = runner.run(initialConfiguration, set, showPlots, theIteration, multiRun);
-					}
-					else {
+					} else {
 						wasCancelled = runner.run(initialConfiguration, set, showPlots);	
 					}					
 				}
