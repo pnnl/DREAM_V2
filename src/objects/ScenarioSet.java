@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import utilities.Constants;
-import utilities.Point3f;
+//import utilities.Point3f;
 import utilities.Point3i;
 
 
@@ -468,42 +468,42 @@ public class ScenarioSet {
 		
 		// if you want to run the "old" way, comment out everything below this until the matching comment
 		
-		//Find all well locations
-		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();
-		//Initialize all (i,j)s to be allowed
-		for(int i=0; i <= getNodeStructure().getIJKDimensions().getI(); i++)
-			for(int j=0; j<= getNodeStructure().getIJKDimensions().getJ(); j++)
-				locations.put(new Point3i(i, j, 1), true);
-		//Set everything within exclusionRadius to false for each well
-		//Note that we don't have to check to make sure that a point to be set false isn't a well, because there should be no way that it was there in the first place.
-		for(Well well : configuration.getWells()){
-			Point3f wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
-			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
-				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
-					Point3f otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
-					float distance = otherxyz.euclideanDistance(wellxyz);
-					if(distance <= exclusionRadius){
-						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
-							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
-							continue;
-						}
-						else{ //if not, reject it by default
-							locations.put(new Point3i(i,j,1), false);
-						}
-					}
-				}
-			}
-		}
-		List<Integer> tempValidNodes = new ArrayList<Integer>();
-		for(Integer node: validNodes){
-			if(locations.get(new Point3i(getNodeStructure().getIJKFromNodeNumber(node).getI(),getNodeStructure().getIJKFromNodeNumber(node).getJ(),1))){
-				tempValidNodes.add(node);
-			}
-		}
-		return tempValidNodes;
+//		//Find all well locations
+//		HashMap<Point3i, Boolean> locations = new HashMap<Point3i, Boolean>();
+//		//Initialize all (i,j)s to be allowed
+//		for(int i=0; i <= getNodeStructure().getIJKDimensions().getI(); i++)
+//			for(int j=0; j<= getNodeStructure().getIJKDimensions().getJ(); j++)
+//				locations.put(new Point3i(i, j, 1), true);
+//		//Set everything within exclusionRadius to false for each well
+//		//Note that we don't have to check to make sure that a point to be set false isn't a well, because there should be no way that it was there in the first place.
+//		for(Well well : configuration.getWells()){
+//			Point3f wellxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(well.i, well.j, 1));
+//			for(int i=1; i <= getNodeStructure().getIJKDimensions().getI(); i++){
+//				for(int j=1; j<= getNodeStructure().getIJKDimensions().getJ(); j++){
+//					Point3f otherxyz = getNodeStructure().getNodeCenteredXYZFromIJK(new Point3i(i, j, 1));
+//					float distance = otherxyz.euclideanDistance(wellxyz);
+//					if(distance <= exclusionRadius){
+//						if(otherxyz.equals(wellxyz)){ //are we looking at this well?
+//							//NOTE: This logic would make more sense up above in this function, but this keeps it all in one place.
+//							continue;
+//						}
+//						else{ //if not, reject it by default
+//							locations.put(new Point3i(i,j,1), false);
+//						}
+//					}
+//				}
+//			}
+//		}
+//		List<Integer> tempValidNodes = new ArrayList<Integer>();
+//		for(Integer node: validNodes){
+//			if(locations.get(new Point3i(getNodeStructure().getIJKFromNodeNumber(node).getI(),getNodeStructure().getIJKFromNodeNumber(node).getJ(),1))){
+//				tempValidNodes.add(node);
+//			}
+//		}
+//		return tempValidNodes;
 		
 		//This is the matching comment. Uncomment the line below this two for it to work like it used to.
-		//return validNodes;
+		return validNodes;
 	}
 	
 	public List<String> getValidSwitchTypes(String currentType, ExtendedConfiguration configuration){
