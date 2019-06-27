@@ -286,8 +286,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					Constants.random.setSeed(10);
-					ResultPrinter.runScripts = true;
-					data.run(runs, showPlots.getSelection(), 0, false);
+					ResultPrinter.runScripts = false;
+					data.run(runs, showPlots.getSelection());
 					long time = (System.currentTimeMillis() - startTime) / 1000;
 					System.out.println("Iterative procedure took: " + time + "s");
 					
@@ -777,7 +777,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							data.getSet().setIterations(ittr);
 							try {
 								ResultPrinter.runScripts = false;
-								if(data.run(1, false, j, true)){ //This should never show plots, we are running too many iterations.
+								if(data.run(1, false)){ //This should never show plots, we are running too many iterations.
 									//this was cancelled at some point, we'd better just return now.
 									return;
 								}
@@ -870,7 +870,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						}
 					}
 					try {
-						data.run(1, false, 0, false); //showPlots.getSelection();
+						data.run(1, false); //showPlots.getSelection();
 						List<List<ExtendedConfiguration>> fullSet = new ArrayList<List<ExtendedConfiguration>>();
 						for(ExtendedConfiguration config: ResultPrinter.results.bestConfigSumList){
 							List<ExtendedConfiguration> innerSet = new ArrayList<ExtendedConfiguration>();
