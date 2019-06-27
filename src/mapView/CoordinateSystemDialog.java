@@ -124,7 +124,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	@Override
 	protected boolean canHandleShellCloseEvent(){
-		return false;
+		return true;
 	}
 	
 	/**
