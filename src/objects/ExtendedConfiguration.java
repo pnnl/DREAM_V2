@@ -21,7 +21,7 @@ import utilities.Point3i;
  */
 
 public class ExtendedConfiguration extends Configuration {
-	private static final int WEIGHT_OF_ADD_SENSOR = 6;
+	private static final int WEIGHT_OF_ADD_SENSOR = 4;
 	
 	private static final int NUMBER_OF_MUTATIONS = 6;
 	// Cost of configuration
@@ -403,79 +403,82 @@ public class ExtendedConfiguration extends Configuration {
 
 		return false;
 	}
-//	public synchronized boolean mutateSensor(ScenarioSet scenarioSet) {	
-////while (!pickRand.isEmpty()) {
-////	int index = Constants.random.nextInt(pickRand.size());
-////	int num = pickRand.get(index);
-//	
-//	// If we can afford a new sensor add it at the add point:
-//	Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
-//	//	boolean debug = true;
-//	
-////	if (num <= WEIGHT_OF_ADD_SENSOR) {
-//		Object addedSensor = addSensor(scenarioSet);
-////		for (int i = WEIGHT_OF_ADD_SENSOR; i >= 0; i--) {
-////			pickRand.remove(i);
-////		}
-//		if(addedSensor != null) {
-//			Constants.log(Level.FINER, "Sensor configuration: mutated, ADDED SENSOR", addedSensor);
-////			clearAndRepopulateArray();
-//			return true;
-//		}
-////	}
+//		public synchronized boolean mutateSensor(ScenarioSet scenarioSet) {	
+//	//while (!pickRand.isEmpty()) {
+//	//	int index = Constants.random.nextInt(pickRand.size());
+//	//	int num = pickRand.get(index);
 //		
+//		// If we can afford a new sensor add it at the add point:
+//		Constants.log(Level.FINER, "Sensor configuration: mutating sensors", null);
+//		//	boolean debug = true;
 //		
-////	if (num == WEIGHT_OF_ADD_SENSOR + 1) {
-//		//Have to skip this if we're running as one sensor, this is pretty much guaranteed to have out of bounds sensors we don't want to move (outside of their clouds)
-//		Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
-////		pickRand.remove(index);
-//		if(movedSensorInBounds != null) {
-////			clearAndRepopulateArray();
-//			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);
-//			return true;
-//		}
-////	}
-//	
-////	if (num == WEIGHT_OF_ADD_SENSOR + 2) {
-//		Object movedSensor = moveSensor(scenarioSet);
-////		pickRand.remove(index);
-//		if(movedSensor != null) {
-////			clearAndRepopulateArray();
-//			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);
-//			return true;
-//		}
-////	}	
-//		Object removedSensor = removeSensor(scenarioSet);
-//		if (removedSensor != null) {
-//			Constants.log(Level.FINER, "Sensor configuratino: Mutated, REMOVED SENSOR", removedSensor);
-//			return true;
-//		}
-//	
-////	if (num == WEIGHT_OF_ADD_SENSOR + 3) {
-//		// Prioritize shuffling a well
-//		Object shuffledWell = shuffleWell(scenarioSet);
-////		pickRand.remove(index);
-//		if(shuffledWell != null) {
-////			clearAndRepopulateArray();
-//			Constants.log(Level.FINER, "Sensor configuration: mutated, SHUFFLED WELL", shuffledWell);
-//			return true;
-//		}
-////	}
-//	
-////	if (num == WEIGHT_OF_ADD_SENSOR + 4) {
-//		Object movedWell = moveWell(scenarioSet);
-////		pickRand.remove(index);
-//		if(movedWell != null) {
-////			clearAndRepopulateArray();
-//			Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED WELL", movedWell);
-//			return true;
-//		}
-////	}
-//	Constants.log(Level.WARNING, "Sensor configuration: couldn't mutate", null);
-////}
-////clearAndRepopulateArray();
-//return false;
-//}
+//	//	if (num <= WEIGHT_OF_ADD_SENSOR) {
+//			Object addedSensor = addSensor(scenarioSet);
+//	//		for (int i = WEIGHT_OF_ADD_SENSOR; i >= 0; i--) {
+//	//			pickRand.remove(i);
+//	//		}
+//			if(addedSensor != null) {
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, ADDED SENSOR", addedSensor);
+//	//			clearAndRepopulateArray();
+//				return true;
+//			}
+//	//	}
+//			
+//			
+//	//	if (num == WEIGHT_OF_ADD_SENSOR + 1) {
+//			//Have to skip this if we're running as one sensor, this is pretty much guaranteed to have out of bounds sensors we don't want to move (outside of their clouds)
+//			Object movedSensorInBounds = moveSensorInBounds(scenarioSet);
+//	//		pickRand.remove(index);
+//			if(movedSensorInBounds != null) {
+//	//			clearAndRepopulateArray();
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR IN BOUNDS", movedSensorInBounds);
+//				return true;
+//			}
+//	//	}
+//		
+//	//	if (num == WEIGHT_OF_ADD_SENSOR + 2) {
+//			Object movedSensor = moveSensor(scenarioSet);
+//	//		pickRand.remove(index);
+//			if(movedSensor != null) {
+//	//			clearAndRepopulateArray();
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED SENSOR", movedSensor);
+//				return true;
+//			}
+//	//	}	
+//			try {
+//				removeSensor();
+//				clearAndRepopulateArray();
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, REMOVED SENSOR", scenarioSet);
+//				return true;
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		
+//	//	if (num == WEIGHT_OF_ADD_SENSOR + 3) {
+//			// Prioritize shuffling a well
+//			Object shuffledWell = shuffleWell(scenarioSet);
+//	//		pickRand.remove(index);
+//			if(shuffledWell != null) {
+//	//			clearAndRepopulateArray();
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, SHUFFLED WELL", shuffledWell);
+//				return true;
+//			}
+//	//	}
+//		
+//	//	if (num == WEIGHT_OF_ADD_SENSOR + 4) {
+//			Object movedWell = moveWell(scenarioSet);
+//	//		pickRand.remove(index);
+//			if(movedWell != null) {
+//	//			clearAndRepopulateArray();
+//				Constants.log(Level.FINER, "Sensor configuration: mutated, MOVED WELL", movedWell);
+//				return true;
+//			}
+//	//	}
+//		Constants.log(Level.WARNING, "Sensor configuration: couldn't mutate", null);
+//	//}
+//	//clearAndRepopulateArray();
+//	return false;
+//	}
 	
 	
 	public synchronized boolean mutateSensor(final ScenarioSet scenarioSet) {	
@@ -592,48 +595,6 @@ public class ExtendedConfiguration extends Configuration {
 	private Object moveRealizedWell(final ScenarioSet scenarioSet) {
 		return moveRealizedWell(wells, scenarioSet); // Any well can move
 	}
-	
-//	private Object removeSensor(final ScenarioSet scenarioSet) {
-//		int removePoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
-//		Map<String, List<Integer>> removeableSensors = new HashMap<String, List<Integer>>();
-//		List<String> types = new ArrayList<String>();
-//		boolean atRemovePoint = false;
-//		for (String type: scenarioSet.getDataTypes()) {
-//			List<Integer> validNodesToRemove = scenarioSet.getValidNodes(type, this, false, false, false);
-//			if (!validNodesToRemove.isEmpty()) {
-//				removeableSensors.put(type, validNodesToRemove);
-//				types.add(type);
-//				if (validNodesToRemove.contains(removePoint)) {
-//					atRemovePoint = true;
-//				}
-//			}
-//		}
-//		if  (removeableSensors.isEmpty()) {
-//			return null;
-//		}
-//		String type = types.get(Constants.random.nextInt(types.size()));
-//		if (atRemovePoint) {
-//			ExtendedSensor toRemove = new ExtendedSensor(removePoint, type, scenarioSet.getNodeStructure());
-//			removeSensor(toRemove);
-//			return toRemove;
-//		} else {
-//			int index = Constants.random.nextInt(removeableSensors.get(type).size());
-//			ExtendedSensor toRemove = new ExtendedSensor(removeableSensors.get(type).get(index),
-//					type, scenarioSet.getNodeStructure());
-//			removeSensor(toRemove);
-//			return toRemove;
-//		}
-//	}
-	
-//	private Object removeSensor(final ScenarioSet scenarioSet) {
-//		try {
-//			removeSensor();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			System.out.println("No Sensor to remove");
-//		}
-//		return scenarioSet;
-//	}
 	
 	private Object addSensor(final ScenarioSet scenarioSet) {
 		// Timer
