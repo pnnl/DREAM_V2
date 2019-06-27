@@ -140,21 +140,21 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		runInternal(initialConfiguration, set);
 		ResultPrinter.printAll(set.getNodeStructure());
 	}
-	/**
-	 * Specifically only for multi-run ensemble.
-	 */
-	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots
-			,final int theIteration, final boolean multiRun) {
-		if(monitor != null)  {
-			monitor.setTaskName("Running iterative procedure " + "for full run number " + (theIteration +1) );
-		}
-		boolean wasCancelled = false;
-		ResultPrinter.clearResults(set, showPlots);
-		wasCancelled = runInternal(initialConfiguration, set);
-		ResultPrinter.printAll(set.getNodeStructure());
-		return wasCancelled;
-			
-	}
+//	/**
+//	 * Specifically only for multi-run ensemble.
+//	 */
+//	public boolean run(ExtendedConfiguration initialConfiguration, ScenarioSet set, boolean showPlots
+//			,final int theIteration, final boolean multiRun) {
+//		if(monitor != null)  {
+//			monitor.setTaskName("Running iterative procedure " + "for full run number " + (theIteration +1) );
+//		}
+//		boolean wasCancelled = false;
+//		ResultPrinter.clearResults(set, showPlots);
+//		wasCancelled = runInternal(initialConfiguration, set);
+//		ResultPrinter.printAll(set.getNodeStructure());
+//		return wasCancelled;
+//			
+//	}
 
 	/**
 	 * Runs the basic algorithm
@@ -428,6 +428,7 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 		if(mutate.equals(MUTATE.SENSOR)) {
 			return configuration.mutateSensor(set);
 		} else if(mutate.equals(MUTATE.WELL)) {
+			System.out.println("Mutating well");
 			return configuration.mutateWell(set);
 		}		
 		return false;
