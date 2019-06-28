@@ -139,7 +139,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	Combo zoneDirection = new Combo(theContainer, SWT.DROP_DOWN | SWT.READ_ONLY);
 	
 	zoneDirection.add("N");
-	zoneDirection.add("E");
+	zoneDirection.add("S");
 	
 	
 	Label theMinXLabel = new Label(theContainer, SWT.NONE);
