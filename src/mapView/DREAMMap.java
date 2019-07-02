@@ -51,11 +51,19 @@ public class DREAMMap {
 	private float xWidth;
 	private float yWidth;
 
+	
+	private float myEasting;
+	
+	private float myNorthing;
+	
+	private float myLatitude;
+	
+	private float myLongitude; 
 	//All of the IJs that we can toggle (or not)
 	private List<IJ> boxes;
 	
 	private DraggedRectangle rect = null;
-
+ 
 	//Colors
 	private final Color allowedColor = new Color(84,84,84,0);
 	private final Color prohibitedColor = new Color(150,150,150,200);
@@ -65,8 +73,10 @@ public class DREAMMap {
 	//Storage for the google images
 	//final double circumference = 40075160f; //Circumference of the earth in meters
 	private final double circumference = 6378137f*2*Math.PI * 270/200;
-	private float lat = 46.3729672f; //latitude of center of domain
-	private float lon = -119.2561704f; //longitude of center of domain
+	
+//	private float lat = 46.3729672f; //latitude of center of domain
+//	private float lon = -119.2561704f; //longitude of center of domain
+	
 	private BufferedImage fullImage = null; //Stores the image once it has been cropped to the proper domain size
 	private BufferedImage tempImage = null;
 	private ImageObserver observer = null; //Needed for a function but never actually used.
@@ -85,7 +95,7 @@ public class DREAMMap {
 	private static String myZoneDirection;
 	private static int ogX;
 	private static int ogY;
-
+	
 	public DREAMMap() {
 		viewer = new Viewer();
 		viewer.setVisible(true);
@@ -96,6 +106,8 @@ public class DREAMMap {
 		this.boxes = ijs;
 		this.xlines = Constants.makeLines((ArrayList<Float>) xLines);
 		this.ylines = Constants.makeLines((ArrayList<Float>) yLines);
+		myEasting = xlines.get(0);
+		myNorthing = ylines.get(0);
 		myZone = theZoneNumber;
 		myZoneDirection = theZone;
 		ogX = theOffsetX;
@@ -219,7 +231,7 @@ public class DREAMMap {
 					xWidth = xlines.get(xSize-1) - xMin;
 					yWidth = ylines.get(ySize-1) - yMin;
 					pixelsPerMeter = Math.min(this.getWidth()/xWidth, this.getHeight()/yWidth);
-					gridZoomPixelsPerMeter = pixelsPerMeter*gridZoomFactor;
+					gridZoomPixelsPerMeter = pixelsPerMeter * gridZoomFactor;
 					pxMax = (int)(xWidth*pixelsPerMeter);
 					pyMax = (int)(yWidth*pixelsPerMeter);
 					adjustedPxMax = (int)(pxMax*gridZoomPixelsPerMeter/pixelsPerMeter);
@@ -245,20 +257,16 @@ public class DREAMMap {
 						System.out.println(pixelsPerMeter + " " + googleZoom );
 						try {
 							//Test logic for translating to center from upper-left
-							CoordinateConversion c = new CoordinateConversion();
-							String utm = c.latLon2UTM(lat, lon);
-							String[] u = utm.split(" ");
-							int easting = Integer.valueOf(u[2]);
-							int northing = Integer.valueOf(u[3]);
-							easting += xWidth/2;
-							northing -= yWidth/2;
-							utm = u[0] + " " + u[1] + " " + easting + " " + northing;
-							double[] latLon = c.utm2LatLon(utm);
-							lat = (float)latLon[0];
-							lon = (float)latLon[1];
-							//End of test logic
+							CoordinateConversion converter = new CoordinateConversion();
+							String[] temp = converter.latLon2UTM(ogX, ogY).split(" ");
+							myEasting = myEasting + Float.parseFloat(temp[2]);
+							myNorthing = myNorthing + Float.parseFloat(temp[3]);
+							double[] myLatLong = converter.utm2LatLon(myZone + " " + myZoneDirection + " " + myEasting
+									+ " " + myNorthing); 
+							myLatitude = (float) myLatLong[0]; 
+							myLongitude = (float) myLatLong[1];
 							 
-							URL map = new URL("https://maps.googleapis.com/maps/api/staticmap?center=" + lat + "," + lon + "&zoom=" + googleZoom + "&size=640x640&maptype=satellite&scale=2&key=AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
+							URL map = new URL("https://maps.googleapis.com/maps/api/staticmap?center=" + myLatitude + "," + myLongitude + "&zoom=" + googleZoom + "&size=640x640&maptype=satellite&scale=2&key=AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
 							BufferedImage before = ImageIO.read(map);
 							int newImageWidth = (int) (xWidth*calculatedPixelsPerMeter);
 							int newImageHeight = (int) (yWidth*calculatedPixelsPerMeter);
@@ -290,6 +298,8 @@ public class DREAMMap {
 
 					}
 					else {
+						//right here is each iteration after the 1st one
+						//have to somehow calculate grid after zooming in/out
 						BufferedImage drawImage = null;
 						int newImageWidth = (int) (xWidth*calculatedPixelsPerMeter*(1+(-zoom+50)/200f));
 						int newImageHeight = (int) (yWidth*calculatedPixelsPerMeter*(1+(-zoom+50)/200f));
@@ -301,6 +311,8 @@ public class DREAMMap {
 						//When the slider moves it scales this part of the map.
 						//Need to scale the grid so I might need to take some variables and do some new
 						//Calculations here.
+						
+						
 						at.scale(pxMax/(double)(newImageWidth),pyMax/(double)(newImageHeight));
 
 						at.translate((newImageWidth-fullImage.getWidth())/2-offsetX, (newImageHeight-fullImage.getHeight())/2-offsetY);
@@ -319,15 +331,19 @@ public class DREAMMap {
 				}
 
 			};
+			
 			final JPanel theControls = new Controls(DREAMMap.this) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void paintComponent(Graphics g) {
+					super.setLatLongUTM(Float.toString(myLatitude), Float.toString(myLongitude),
+							myZone + " " + myZoneDirection + " " + myEasting
+							+ " " + myNorthing);
+					super.paintComponents(g);
 					g.setColor(backgroundColor);
 					g.fillRect(0, 0, this.getWidth(), this.getHeight());
-				}				
+				}
 			};
-
 			add(theGrid, BorderLayout.CENTER);
 			add(theControls, BorderLayout.EAST);
 			theControls.setPreferredSize(new Dimension(width/3, height));
@@ -364,7 +380,7 @@ public class DREAMMap {
 								jList.add(j+1);
 						}
 					}
-					for(IJ box : boxes){
+					for(IJ box : boxes) {
 						if(iList.contains(box.i) && jList.contains(box.j)){
 							//Disallow for left click, allow for right
 							if(box.selectable && e.getButton() == 1) box.prohibited = false;
@@ -436,7 +452,7 @@ public class DREAMMap {
 	
 //Need to re-initialize the theGrid JPanel with the new parameters
 	public void repaint(int offsetX, int offsetY, int zoom, int rotate) {
-		//DO THINGS WITH STUFF			
+		//DO THINGS WITH STUFF
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
 		this.zoom = zoom;
@@ -447,8 +463,6 @@ public class DREAMMap {
 	}
 
 	public void redraw(Float lat, Float lon) {
-		this.lat = lat;
-		this.lon = lon;
 		this.zoom = 50;
 		this.offsetX = 0;
 		this.offsetY = 0;

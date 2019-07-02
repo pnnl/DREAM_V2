@@ -367,4 +367,11 @@ public class Controls extends javax.swing.JPanel implements ActionListener {
 		System.out.println(offsetX + ", " + offsetY + ", " + zoom + ", " + rotate);
 		
 	}
+	
+	public void setLatLongUTM(final String theLat, final String theLong, final String theUTM) {
+		latitudeField.setText(theLat);
+		longitudeField.setText(theLong);
+		utmField.setText(theUTM);
+	}
+	
 }
