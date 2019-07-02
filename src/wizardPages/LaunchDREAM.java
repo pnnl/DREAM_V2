@@ -21,7 +21,8 @@ import utilities.Constants;
 public class LaunchDREAM extends DREAMWizard {
 	
 	public static void main(String[] args) {
-		
+		String nameOfFile = new java.io.File(LaunchDREAM.class.getProtectionDomain().
+				getCodeSource().getLocation().getPath()).getName();
         if (args.length == 0) {
         	try {
         		// We are creating a copy of jhdf5.dll in the user's temp directory
@@ -37,7 +38,8 @@ public class LaunchDREAM extends DREAMWizard {
         	}
             try {
                 // re-launch the program itself with VM option passed
-                Runtime.getRuntime().exec(new String[] {"java", "-Dncsa.hdf.hdf5lib.H5.hdf5lib="+System.getProperty("java.io.tmpdir")+"/jhdf5.dll", "-jar", "DREAM.jar", "test"});
+                Runtime.getRuntime().exec(new String[] {"java", "-Dncsa.hdf.hdf5lib.H5.hdf5lib="+ 
+                System.getProperty("java.io.tmpdir")+"/jhdf5.dll", "-jar", nameOfFile, "test"});
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
