@@ -95,6 +95,7 @@ public class DREAMMap {
 	private static String myZoneDirection;
 	private static int ogX;
 	private static int ogY;
+	private static String myUnit;
 	
 	public DREAMMap() {
 		viewer = new Viewer();
@@ -102,7 +103,8 @@ public class DREAMMap {
 	}
 
 	public DREAMMap(final List<IJ> ijs, final List<Float> xLines, final List<Float> yLines,
-			final int theZoneNumber, final String theZone, final int theOffsetX, final int theOffsetY) {
+			final int theZoneNumber, final String theZone, final int theOffsetX, final int theOffsetY,
+			final String theUnit) {
 		this.boxes = ijs;
 		this.xlines = Constants.makeLines((ArrayList<Float>) xLines);
 		this.ylines = Constants.makeLines((ArrayList<Float>) yLines);
@@ -112,6 +114,7 @@ public class DREAMMap {
 		myZoneDirection = theZone;
 		ogX = theOffsetX;
 		ogY = theOffsetY;
+		myUnit = theUnit;
 		viewer = new Viewer();
 		viewer.setVisible(true);
 	}
@@ -142,7 +145,7 @@ public class DREAMMap {
 		xlines = Constants.makeLines((ArrayList<Float>) xlines);
 		ylines = Constants.makeLines((ArrayList<Float>) ylines);
 
-		new DREAMMap(null, xlines, ylines, myZone, myZoneDirection, ogX, ogY );
+		new DREAMMap(null, xlines, ylines, myZone, myZoneDirection, ogX, ogY, myUnit );
 	}
 
 
@@ -261,11 +264,18 @@ public class DREAMMap {
 							String[] temp = converter.latLon2UTM(ogX, ogY).split(" ");
 							myEasting = myEasting + Float.parseFloat(temp[2]);
 							myNorthing = myNorthing + Float.parseFloat(temp[3]);
+							//Convert feet to meters
+							if (myUnit.equals("ft")) {
+								myEasting /= 3.281;
+								myNorthing /= 3.281;
+							}
 							double[] myLatLong = converter.utm2LatLon(myZone + " " + myZoneDirection + " " + myEasting
 									+ " " + myNorthing); 
 							myLatitude = (float) myLatLong[0]; 
-							myLongitude = (float) myLatLong[1];
-							 
+							myLongitude = (float) myLatLong[1]; 
+							
+							
+							
 							URL map = new URL("https://maps.googleapis.com/maps/api/staticmap?center=" + myLatitude + "," + myLongitude + "&zoom=" + googleZoom + "&size=640x640&maptype=satellite&scale=2&key=AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
 							BufferedImage before = ImageIO.read(map);
 							int newImageWidth = (int) (xWidth*calculatedPixelsPerMeter);

@@ -232,7 +232,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 		
-		
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
@@ -254,7 +253,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 								new ArrayList<Float>(data.getSet().getNodeStructure().getX()),
 								new ArrayList<Float>(data.getSet().getNodeStructure().getY()),
 										dialog.getZone(), dialog.getZoneDirection(), dialog.getMinX(),
-										dialog.getMinY());
+										dialog.getMinY(), data.getSet().getNodeStructure().getUnit("x"));
 						
 						map.viewer.addWindowListener(new WindowAdapter() {
 
