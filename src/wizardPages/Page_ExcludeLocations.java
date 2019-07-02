@@ -256,7 +256,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 										dialog.getZone(), dialog.getZoneDirection(), dialog.getMinX(),
 										dialog.getMinY());
 						
-						
 						map.viewer.addWindowListener(new WindowAdapter() {
 
 							@Override
