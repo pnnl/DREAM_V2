@@ -182,7 +182,7 @@ public class ParseRawFiles {
 				try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
 					while ((line = br.readLine()) != null) { //We just need to read the header for each file
 						if(line.contains("Time =") & line.contains(",yr")) {
-							units.put("Time", "Years");
+							units.put("time", "Years");
 							String year = line.substring(line.indexOf(",wk")+3, line.indexOf(",yr")).trim();
 							try {
 								Float timeStep = Math.round(Float.parseFloat(year) * 1000f) / 1000f; //This rounds to 3 decimal places
@@ -342,7 +342,7 @@ public class ParseRawFiles {
 					for(int i=indexMap.indexOf("data"); i<tokens.length; i++) {
 						String temp = tokens[i];
 						if (temp.contains("y")) {
-							units.put("Time", "Years");
+							units.put("time", "Years");
 						}
 						String token = tokens[i].replaceAll("\\D+", ""); //Replace letters
 						times.add(Float.parseFloat(token));
@@ -388,11 +388,15 @@ public class ParseRawFiles {
 					// index i j k element_ref nuft_ind x y z dx dy dz volume [times]
 					String[] tokens = line.split("\\s+"); //The line is space delimited
 					if(!tokens[0].equalsIgnoreCase("index")) { //Ignore the header
-						int index = Integer.parseInt(tokens[indexMap.indexOf("index")]) - 1;
-						for(int i=indexMap.indexOf("data"); i<tokens.length; i++) { //Only read data
-							float time = times.get(i-indexMap.indexOf("data"));
+						int i = Integer.parseInt(tokens[indexMap.indexOf("i")]) - 1;
+						int j = Integer.parseInt(tokens[indexMap.indexOf("j")]) - 1;
+						int k = Integer.parseInt(tokens[indexMap.indexOf("k")]) - 1;
+						int index = i*y.size()*z.size() + j*z.size() + k;
+						//int index = Integer.parseInt(tokens[indexMap.indexOf("index")]) - 1;
+						for(int ii=indexMap.indexOf("data"); ii<tokens.length; ii++) { //Only read data
+							float time = times.get(ii-indexMap.indexOf("data"));
 							if(!selectedTimes.contains(time)) continue; //Skip times that weren't selected
-							float value = Float.parseFloat(tokens[i]);
+							float value = Float.parseFloat(tokens[ii]);
 							tempData[selectedTimes.indexOf(time)][index] = value;
 							if(value<tempStats[0]) tempStats[0] = value; //Min
 							tempStats[1] += value/nodes/selectedTimes.size(); //Avg
@@ -400,6 +404,11 @@ public class ParseRawFiles {
 						}
 					}
 				}
+				/*for(int timeIndex = 0; timeIndex < tempData.length; timeIndex++) {
+					float[] temp = new float[tempData[timeIndex].length];
+					temp = reorderStomp(tempData[timeIndex]);
+					tempData[timeIndex] = temp;
+				}*/
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
