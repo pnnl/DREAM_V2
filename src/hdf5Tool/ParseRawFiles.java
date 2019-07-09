@@ -644,7 +644,7 @@ public class ParseRawFiles {
 			// Finding the number of starting characters in common
 			for(int j=0; j<minLength; j++) {
 				if(first[j] == second[j])
-					startCount = j;
+					startCount = j+1;
 				else
 					break;
 			}
@@ -660,7 +660,7 @@ public class ParseRawFiles {
 		}
 		// Now remove the common start and end from all parameters
 		for(int i=0; i<parameters.size(); i++) {
-			String replacement = parameters.get(i).substring(commonStartCount+1, parameters.get(i).length()-commonEndCount);
+			String replacement = parameters.get(i).substring(commonStartCount, parameters.get(i).length()-commonEndCount);
 			parameters.set(i, replacement);
 		}
 	}
