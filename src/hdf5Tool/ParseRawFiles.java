@@ -24,6 +24,8 @@ public class ParseRawFiles {
 	private ArrayList<String> scenarios;
 	private ArrayList<Float> times;
 	private ArrayList<String> parameters;
+	private int commonStartCount;
+	private int commonEndCount;
 	
 	private ArrayList<String> selectedScenarios;
 	private ArrayList<Float> selectedTimes;
@@ -55,6 +57,8 @@ public class ParseRawFiles {
 		scenarios = new ArrayList<String>();
 		times = new ArrayList<Float>();
 		parameters = new ArrayList<String>();
+		commonStartCount = Integer.MAX_VALUE;
+		commonEndCount = Integer.MAX_VALUE;
 		
 		selectedScenarios = new ArrayList<String>();
 		selectedTimes = new ArrayList<Float>();
@@ -198,6 +202,7 @@ public class ParseRawFiles {
 				}
 			}
 		}
+		cleanParameters();
 	}
 	
 	
@@ -259,6 +264,7 @@ public class ParseRawFiles {
 						tempStats = new float[3];
 						countNodes = 0;
 						parameter = line.split(",")[0].trim().replaceAll("\\(", "_").replaceAll("\\)", ""); //New clean parameter
+						parameter = parameter.substring(commonStartCount+1, parameter.length()-commonEndCount);
 						if(parameter.toLowerCase().contains("porosity")) parameter = "porosity"; //Override if porosity
 					// These are the criteria to isolate the data
 					} else if(!header && !line.equals("") && (selectedParameters.contains(parameter) || parameter.equals("porosity"))) {
@@ -364,6 +370,7 @@ public class ParseRawFiles {
 		vertexX = calculateEdges(x);
 		vertexY = calculateEdges(y);
 		vertexZ = calculateEdges(z);
+		cleanParameters();
 	}
 	
 	
@@ -378,6 +385,7 @@ public class ParseRawFiles {
 				statistics.put(scenario, new HashMap<String, float[]>()); //Initialize statistics for this scenario
 			}
 			String parameter = subFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll("\\.","_");
+			parameter = parameter.substring(commonStartCount+1, parameter.length()-commonEndCount);
 			if(!selectedParameters.contains(parameter)) continue; //Skip parameters that weren't selected
 			long startTime = System.currentTimeMillis();
 			float[][] tempData = new float[selectedTimes.size()][nodes];
@@ -404,11 +412,6 @@ public class ParseRawFiles {
 						}
 					}
 				}
-				/*for(int timeIndex = 0; timeIndex < tempData.length; timeIndex++) {
-					float[] temp = new float[tempData[timeIndex].length];
-					temp = reorderStomp(tempData[timeIndex]);
-					tempData[timeIndex] = temp;
-				}*/
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -419,28 +422,6 @@ public class ParseRawFiles {
 				statistics.get(scenario).put(parameter, tempStats);
 			}
 			System.out.println("    Reading "+subFile.getName()+"... took "+(System.currentTimeMillis()-startTime)/1000+" s");
-		}
-	}
-	
-	
-	// NUFT orders values differently and needs to be reordered into an ijk index
-	public void orderNuft(String scenario) {
-		for(String parameter: dataMap.get(scenario).keySet()) {
-			for(int timeIndex=0; timeIndex<dataMap.get(scenario).get(parameter).length; timeIndex++) {
-				float[] values = dataMap.get(scenario).get(parameter)[timeIndex];
-				float[] temp = new float[values.length];
-				int counter = 0;
-				for(int i=0; i<x.size(); i++) {
-					for(int j=0; j<y.size(); j++) {
-						for(int k=0; k<z.size(); k++) {
-							int index = i*z.size()*y.size() + j*z.size() + k;
-							temp[counter] = values[index];
-							counter++;
-						}
-					}
-				}
-				dataMap.get(scenario).get(parameter)[timeIndex] = temp;
-			}
 		}
 	}
 	
@@ -650,6 +631,38 @@ public class ParseRawFiles {
 			cellCenters.add(cellEdges.get(i) - (cellEdges.get(i)-cellEdges.get(i-1)) / 2);
 		}
 		return cellCenters;
+	}
+	
+	//A little script to remove common text beginning or trailing all parameter names
+	private void cleanParameters() {
+		for(int i=1; i<parameters.size(); i++) {
+			char[] first = parameters.get(i-1).toLowerCase().toCharArray();
+			char[] second = parameters.get(i).toLowerCase().toCharArray();
+			int minLength = Math.min(first.length, second.length); //So we don't exceed the array length
+			int startCount = 0;
+			int endCount = 0;
+			// Finding the number of starting characters in common
+			for(int j=0; j<minLength; j++) {
+				if(first[j] == second[j])
+					startCount = j;
+				else
+					break;
+			}
+			//Finding the number of ending characters in common
+			for(int j=1; j<minLength; j++) {
+				if(first[first.length-j] == second[second.length-j])
+					endCount = j;
+				else
+					break;
+			}
+			if(startCount < commonStartCount) commonStartCount = startCount;
+			if(endCount < commonEndCount) commonEndCount = endCount;
+		}
+		// Now remove the common start and end from all parameters
+		for(int i=0; i<parameters.size(); i++) {
+			String replacement = parameters.get(i).substring(commonStartCount+1, parameters.get(i).length()-commonEndCount);
+			parameters.set(i, replacement);
+		}
 	}
 	
 	
