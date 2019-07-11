@@ -17,6 +17,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 /**
+ * Implements Google Maps via GMapsFX 
+ * Credits to rterp @ http://rterp.github.io/GMapsFX/
  * This class is the primary driver class that displays our google map with the well locations.
  * @author huan482
  *
@@ -52,6 +54,9 @@ public class GMapView extends Application implements MapComponentInitializedList
 	
 	private List<Float> myNorthEastYLatitudes;
 	
+	/**
+	 * JavaFX start method.
+	 */
 	@Override
 	public void start(final Stage theStage) throws Exception {
 //		myXGrid = new ArrayList<Float>();
@@ -72,6 +77,9 @@ public class GMapView extends Application implements MapComponentInitializedList
 		
 	}
 	
+	/**
+	 * Initializes the map by specifying the launch center of our map and also draws the bounds and rectangles.
+	 */
 	@Override
 	public void mapInitialized() {
 		myMapOpts = new MapOptions(); 
@@ -100,8 +108,11 @@ public class GMapView extends Application implements MapComponentInitializedList
 		myMap = myMapView.createMap(myMapOpts);
 		drawBoundPolyLines();
 		createRectangles();
-	}	
+	}
 	
+	/**
+	 * Grabs the variables from our GMapInitVar class.
+	 */
 	private void initVariables() {
 //		myXGrid = GMapInitVar.getXGrid();
 //		myYGrid = GMapInitVar.getYGrid();
@@ -116,10 +127,14 @@ public class GMapView extends Application implements MapComponentInitializedList
 //		System.out.println("Bounds: " + myMinBoundsX + " " + myMinBoundsY + " " + myMaxBoundsX + " " + myMaxBoundsY);
 	}
 	
+	/**
+	 * Draws the bounds of our entire space via poly lines.
+	 */
 	private void drawBoundPolyLines() {
+		//To draw a rectangle find the NE and SW points of your rectangle (Lat,Long) then draw it.
 		LatLong topRight = new LatLong(myMaxBoundsY, myMaxBoundsX);
 		LatLong bottomleft = new LatLong(myMinBoundsY, myMinBoundsX);
-		
+		//LatLongBounds(SW,NE)
 		LatLongBounds llb = new LatLongBounds(bottomleft, topRight);
 		RectangleOptions rOpts = new RectangleOptions()
 				.bounds(llb)
@@ -154,7 +169,9 @@ public class GMapView extends Application implements MapComponentInitializedList
 //			myMap.addMapShape(poly);
 //		}
 	}
-	
+	/**
+	 * Creates the rectangles that represent out well locations.
+	 */
 	private void createRectangles() {
 		for (int i = 0; i < myNorthEastXLongitudes.size(); i++) {
 			LatLong SouthWest = new LatLong(mySouthWestYLatitudes.get(i), mySouthWestXLongitudes.get(i));

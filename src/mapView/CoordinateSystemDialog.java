@@ -51,7 +51,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		myEnableButtonCheck = new boolean[4];
 		super.create();
 		setTitle("Set Map View Specifications");
-		setMessage("Set the Zone (UTM), and Offset (x,y) coordinate (Origin Point).",
+		setMessage("Set the Zone (UTM)",
 				IMessageProvider.INFORMATION);
         getButton(OK).setEnabled(false);	
 	}
@@ -84,7 +84,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 					theComposite.getVerticalBar().setIncrement(-4);
 					wheelCount--;
 				}
-				theComposite.redraw();
+				theComposite.redraw(); 
 			}
 		});
 		createContainer();

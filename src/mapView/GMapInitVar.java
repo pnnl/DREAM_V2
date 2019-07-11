@@ -56,7 +56,7 @@ public class GMapInitVar {
 	
 	private static List<Float> mySouthWestYLatitude;
 	
-	CoordinateConversion myConverter;
+	private CoordinateConversion myConverter;
 	
 	public GMapInitVar(final List<Float> theXEdge, final List<Float> theYEdge,
 			final int theZoneNumber, final String theZone, final String theUnit,
@@ -77,13 +77,19 @@ public class GMapInitVar {
 		myZone = theZoneNumber;
 		myZoneDirection = theZone;
 	}
-
+	
+	/**
+	 * Initializes all the variables that are going to be passed to the GMapView class.
+	 */
 	public void initVariables() {
 		myBoundLines();
 		findBounds();
-		getNEandSEcoordinates();
+		getNEandSWcoordinates();
 	}
 	
+	/**
+	 * Finds the bounds of the entire space. Also converts UTM to Lat Long.
+	 */
 	private void myBoundLines() {
 		for (float x : myXEdge) {
 			if (myUnit.equals("ft")) x /= FT_TO_M_CONVERSION_FACTOR;
@@ -101,8 +107,12 @@ public class GMapInitVar {
 		}
 	}
 	
+	/**
+	 * Finds the NorthEast and SouthWest coordinates of the wells we're going to be drawn.
+	 * Required to draw our rectangle well locations.
+	 */
 	@SuppressWarnings({ "unlikely-arg-type"})
-	private void getNEandSEcoordinates() {
+	private void getNEandSWcoordinates() {
 		List<Float> myNorthEastX = new ArrayList<Float>();
 		List<Float> myNorthEastY = new ArrayList<Float>();
 		List<Float> mySouthWestX = new ArrayList<Float>();
@@ -151,6 +161,9 @@ public class GMapInitVar {
 		}
 	}
 	
+	/**
+	 * Finds the bounds of our entire space.
+	 */
 	private void findBounds() {
 		Collections.sort(myX);
 		Collections.sort(myY);
