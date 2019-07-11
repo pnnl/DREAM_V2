@@ -350,7 +350,7 @@ public class ParseRawFiles {
 						if (temp.contains("y")) {
 							units.put("time", "Years");
 						}
-						String token = tokens[i].replaceAll("\\D+", ""); //Replace letters
+						String token = tokens[i].replaceAll("[^0-9.]", ""); //Replace letters
 						times.add(Float.parseFloat(token));
 					}
 				} else { //Break when we finish reading the header
@@ -385,7 +385,7 @@ public class ParseRawFiles {
 				statistics.put(scenario, new HashMap<String, float[]>()); //Initialize statistics for this scenario
 			}
 			String parameter = subFile.getName().replace(".ntab","").replaceAll("\\d+","").replaceAll("\\.","_");
-			parameter = parameter.substring(commonStartCount+1, parameter.length()-commonEndCount);
+			parameter = parameter.substring(commonStartCount, parameter.length()-commonEndCount);
 			if(!selectedParameters.contains(parameter)) continue; //Skip parameters that weren't selected
 			long startTime = System.currentTimeMillis();
 			float[][] tempData = new float[selectedTimes.size()][nodes];
@@ -468,7 +468,7 @@ public class ParseRawFiles {
 				// Add the times from this line, scattered through file
 				else if(line.contains("ZONE")) { //This lists the zone name, which includes the timestep
 					String[] tokens = line.split("\""); //Zone name is wrapped in quotes
-					String time = tokens[1].replaceAll("\\D+", "").replaceAll("\\.", "");
+					String time = tokens[1].replaceAll("[^0-9.]", "");
 					try {
 						times.add(Float.parseFloat(time)); //Parse value into float
 					} catch(Exception e) {
