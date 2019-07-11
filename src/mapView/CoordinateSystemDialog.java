@@ -141,19 +141,6 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	zoneDirection.add("N");
 	zoneDirection.add("S");
 	
-	
-	Label theMinXLabel = new Label(theContainer, SWT.NONE);
-	theMinXLabel.setText("Offset x Coordinate:");
-	Text minX = new Text(theContainer, SWT.BORDER);
-	Label theMinXLabelNothing = new Label(theContainer, SWT.NONE);
-	theMinXLabelNothing.setText("");
-	
-	
-	Label theMinYLabel = new Label(theContainer, SWT.NONE);
-	theMinYLabel.setText("Offset y Coordinate:");
-	Text minY = new Text(theContainer, SWT.BORDER);
-	Label theMinYLabelNothing = new Label(theContainer, SWT.NONE);
-	theMinYLabelNothing.setText("");
     
 	zoneDirection.addSelectionListener(new SelectionListener() {
 		@Override
@@ -193,31 +180,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		}
     	
     });
-    
-    minX.addModifyListener(theEvent -> {
-    	try {
-    		theMinX = Integer.parseInt(minX.getText());
-	    	myEnableButtonCheck[2] = true;
-	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
-    	} catch (final Exception theException) {
-    		myEnableButtonCheck[2] = false;
-    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
-    		theException.printStackTrace();
-    	}
-    });
-    
-    minY.addModifyListener(theEvent -> {
-    	try {
-    		theMinX = Integer.parseInt(minY.getText());
-	    	myEnableButtonCheck[3] = true;
-	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
-    	} catch (final Exception theException) {
-    		myEnableButtonCheck[3] = false;
-    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
-    		theException.printStackTrace();
-    	}
-    });
-    
+
 	}
 	/**
 	 * Checks if their are any bad inputs in our text fields (non-integers).
@@ -226,7 +189,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
     private boolean checkForBadInput() {
     	//return true if all the values in the array are true.
     	boolean temp = true;
-    	for (int i = 0; i <= 3; i++) {
+    	for (int i = 0; i <= 1; i++) {
     		//If any values in the array are false return false.
     		if (!myEnableButtonCheck[i]) {
     			temp = false;

@@ -22,7 +22,7 @@ public class CoordinateConversion
 
   public double[] utm2LatLon(String UTM)
   {
-    UTM2LatLon c = new UTM2LatLon();
+    UTM2LatLon c = new UTM2LatLon(); 
     return c.convertUTMToLatLong(UTM);
   }
 

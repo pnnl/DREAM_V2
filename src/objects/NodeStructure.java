@@ -426,6 +426,16 @@ public class NodeStructure {
 		System.out.println("\tFrom startNode: " + structure.getXYZEdgeFromIJK(startNode));
 	}
 	
+	public List<Float> getEdgeX() {
+		return edgex;
+	}
+	
+	public List<Float> getEdgeY() {
+		return edgey;
+	}
+	public List<Float> getEdgeZ() {
+		return edgez;
+	}
 	public void clear() {
 		x = null;
 		y = null;
