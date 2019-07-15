@@ -8,6 +8,7 @@ import java.util.Map;
 import mapView.CoordinateSystemDialog;
 import mapView.GMapInitVar;
 import mapView.GMapView;
+import mapView.IJ;
 import objects.SensorSetting;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -24,6 +25,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+
+import com.lynden.gmapsfx.javascript.object.LatLongBounds;
 
 import javafx.application.Application;
 import utilities.Point3i;
@@ -53,7 +56,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private List<Float> myWellLocationsX;
 
 	private List<Float> myWellLocationsY;
-
 	
 	private List<Point3i> myValidNodePoints = new ArrayList<Point3i>();
 	
@@ -61,7 +63,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private int maxI = -Integer.MAX_VALUE;
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
-
+	LatLongBounds temp;
 //	private int myLat;	
 //	private int myLong;
 
@@ -70,6 +72,8 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 	private boolean isCurrentPage = false;
 
+	private List<IJ> ijs;
+	
 	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
 		this.data = data;
@@ -77,6 +81,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 	@Override
 	public void createControl(final Composite parent) {
+		ijs = new ArrayList<IJ>();
 		myWellLocationsX = new ArrayList<Float>();
 		myWellLocationsY = new ArrayList<Float>();
 		buttons = new HashMap<Integer, Map<Integer, Button>>();
@@ -133,6 +138,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		removeChildren(container);
 		container.layout();
 		buttons.clear();
+		ijs.clear();
 		myWellLocationsX.clear();
 		myWellLocationsY.clear();
 		myValidNodePoints.clear();
@@ -250,21 +256,25 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				}
 			}
 		}
+		createBoxList();
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell());
 				dialog.open();
 				GMapInitVar map = new GMapInitVar(
+						ijs,
 						new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeX()),
 						new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeY()),
 						dialog.getZone(),
 						dialog.getZoneDirection(),
 						data.getSet().getNodeStructure().getUnit("x"),
-						myValidNodePoints);
+						myValidNodePoints,
+						data.getSet().getNodeStructure().getX(),
+						data.getSet().getNodeStructure().getY());
 				map.initVariables();
 				Application.launch(GMapView.class);
-
+				
 			}
 		});
 		container.layout();
@@ -345,4 +355,17 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
+	
+	private void createBoxList() {
+		for (int i = minI; i <= maxI; i++) {
+			for (int j = minJ; j <= maxJ; j++) {
+				boolean selectable = buttons.containsKey(i) && buttons.get(i).containsKey(j);
+				ijs.add(new IJ(i,j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));
+			}
+		}
+	}
+	
+//	private void deselectWell() {
+//		
+//	}
 }

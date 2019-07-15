@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import utilities.Constants;
 import utilities.Point3i;
 
 
@@ -58,9 +59,18 @@ public class GMapInitVar {
 	
 	private CoordinateConversion myConverter;
 	
-	public GMapInitVar(final List<Float> theXEdge, final List<Float> theYEdge,
+	private static List<IJ> myBoxes;
+	
+	private static List<Float> myXLines;
+	
+	private static List<Float> myYLines;
+	
+	public GMapInitVar(final List<IJ> theBoxes,final List<Float> theXEdge, final List<Float> theYEdge,
 			final int theZoneNumber, final String theZone, final String theUnit,
-			final List<Point3i> theValidNodePoints) {
+			final List<Point3i> theValidNodePoints, final List<Float> xCenters, final List<Float> yCenters) {
+		myBoxes = theBoxes;
+		myXLines = Constants.makeLines((ArrayList<Float>) xCenters);
+		myYLines = Constants.makeLines((ArrayList<Float>) yCenters);
 		myConverter = new CoordinateConversion();
 		myNorthEastXLongitude = new ArrayList<Float>();
 		myNorthEastYLatitude = new ArrayList<Float>();
@@ -93,7 +103,7 @@ public class GMapInitVar {
 	private void myBoundLines() {
 		for (float x : myXEdge) {
 			if (myUnit.equals("ft")) x /= FT_TO_M_CONVERSION_FACTOR;
-			double[] myLatLong = myConverter.utm2LatLon(myZone + " " + myZoneDirection
+			double[] myLatLong = myConverter.utm2LatLon(myZone + " " + myZoneDirection 
 					+ " " + x + " " + 0);
 			myXGrid.add((float) myLatLong[1]);
 			myX.add(myLatLong[1]);
@@ -219,4 +229,17 @@ public class GMapInitVar {
 	public static List<Float> getMySouthWestYLatitude() {
 		return mySouthWestYLatitude;
 	}
+	
+	public static List<IJ> getMyBoxes() {
+		return myBoxes;
+	}
+	
+	public static List<Float> getMyXLines() {
+		return myXLines;
+	}
+	
+	public static List<Float> getMyYLines() {
+		return myYLines;
+	}
+	
 }

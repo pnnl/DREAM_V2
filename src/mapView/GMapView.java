@@ -1,19 +1,18 @@
 package mapView;
 
-
-
-
 import java.util.List;
 import com.lynden.gmapsfx.GoogleMapView;
 import com.lynden.gmapsfx.MapComponentInitializedListener;
+import com.lynden.gmapsfx.javascript.event.UIEventType;
 import com.lynden.gmapsfx.javascript.object.GoogleMap;
 import com.lynden.gmapsfx.javascript.object.LatLong;
 import com.lynden.gmapsfx.javascript.object.LatLongBounds;
 import com.lynden.gmapsfx.javascript.object.MapOptions;
 import com.lynden.gmapsfx.javascript.object.MapTypeIdEnum;
-import com.lynden.gmapsfx.shapes.Rectangle;
+import mapView.Rectangle;
 import com.lynden.gmapsfx.shapes.RectangleOptions;
 import javafx.application.Application;
+import netscape.javascript.JSObject;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 /**
@@ -24,7 +23,7 @@ import javafx.stage.Stage;
  *
  */
 public class GMapView extends Application implements MapComponentInitializedListener {
-	private static final int INIT_ZOOM = 13;
+	private static final int INIT_ZOOM = 13; 
 	
 	private GoogleMapView myMapView;
 	
@@ -53,6 +52,22 @@ public class GMapView extends Application implements MapComponentInitializedList
 	private List<Float> myNorthEastXLongitudes;
 	
 	private List<Float> myNorthEastYLatitudes;
+	
+//	private List<IJ> myBoxes;
+//	
+//	private List<Float> myXLines;
+//	
+//	private List<Float> myYLines;
+	
+//	private CoordinateConversion converter = new CoordinateConversion();
+	
+//	private double myMinBoundsXUTM;
+//	
+//	private double myMaxBoundsXUTM;
+//	
+//	private double myMinBoundsYUTM;
+//	
+//	private double myMaxBoundsYUTM;
 	
 	/**
 	 * JavaFX start method.
@@ -110,16 +125,30 @@ public class GMapView extends Application implements MapComponentInitializedList
 		createRectangles();
 	}
 	
-	/**
+	/** 
 	 * Grabs the variables from our GMapInitVar class.
 	 */
 	private void initVariables() {
+//		myXLines = new  ArrayList<Float>();
+//		myYLines = new  ArrayList<Float>();
 //		myXGrid = GMapInitVar.getXGrid();
 //		myYGrid = GMapInitVar.getYGrid();
+//		myXLines = GMapInitVar.getMyXLines();
+//		myYLines = GMapInitVar.getMyYLines();
+//		myBoxes = GMapInitVar.getMyBoxes();
 		myMinBoundsX = GMapInitVar.getMinBoundX();
 		myMinBoundsY = GMapInitVar.getMinBoundY();
 		myMaxBoundsX = GMapInitVar.getMaxBoundX();
 		myMaxBoundsY= GMapInitVar.getMaxBoundY();
+		
+//		String[] tempMin = converter.latLon2UTM(myMinBoundsY, myMinBoundsX).split(" ");
+//		String[] tempMax = converter.latLon2UTM(myMaxBoundsY, myMaxBoundsX).split(" ");
+//		
+//		myMinBoundsXUTM = Double.parseDouble(tempMin[2]);
+//		myMaxBoundsXUTM = Double.parseDouble(tempMax[2]);
+//		myMinBoundsYUTM = Double.parseDouble(tempMin[3]);
+//		myMaxBoundsYUTM = Double.parseDouble(tempMax[3]);
+		
 		myNorthEastXLongitudes = GMapInitVar.getMyNorthEastXLongitude();
 		myNorthEastYLatitudes = GMapInitVar.getMyNorthEastYLatitude();
 		mySouthWestXLongitudes = GMapInitVar.getMySouthWestXLongitude();
@@ -144,7 +173,7 @@ public class GMapView extends Application implements MapComponentInitializedList
 				.fillOpacity(0);
 		Rectangle rt = new Rectangle(rOpts);
 		myMap.addMapShape(rt);
-		
+//		System.out.println(rOpts.getJSObject().getMember("strokeColor"));
 //		for (int i = 0; i < myXGrid.size(); i += 2) {
 //			LatLong[] ary = new LatLong[] {new LatLong(myMinBoundsY, myXGrid.get(i)),
 //					new LatLong(myMaxBoundsY, myXGrid.get(i))};
@@ -185,6 +214,59 @@ public class GMapView extends Application implements MapComponentInitializedList
 					.fillColor("black");
 			Rectangle rect = new Rectangle(rectOpts);
 			myMap.addMapShape(rect);
+			myMap.addUIEventHandler(rect, UIEventType.click, (JSObject obj) -> {
+				if (rect.getJSObject().getMember("fillColor").equals("black")) {
+					myMap.removeMapShape(rect);
+					rectOpts.bounds(rect.getBounds()).fillColor("white");
+					rect.setRectangleOptions(rectOpts);
+					myMap.addMapShape(rect);
+				} else {			
+					myMap.removeMapShape(rect);
+					rectOpts.bounds(rect.getBounds()).fillColor("black");
+					rect.setRectangleOptions(rectOpts);
+					myMap.addMapShape(rect);
+				}						
+			});
 		}
 	} 
+	
+//	private void deselectWells(final LatLongBounds theBounds) {
+//		ArrayList<Integer> iList = new ArrayList<Integer>();
+//		ArrayList<Integer> jList = new ArrayList<Integer>();
+//		
+//		for (int i = 0; i < myXLines.size() - 1; i++) {
+//			System.out.println(myXLines.get(i + 1) + " " + myMinBoundsXUTM);
+//			if (Math.round(myXLines.get(i + 1)) > (int) myMinBoundsXUTM && Math.round(myXLines.get(i)) < myMaxBoundsXUTM) {
+//				System.out.println("Got here X");
+//				iList.add(i + 1);
+//			}
+//		}
+//		System.out.println(iList.size() + " " + iList.toString());
+//		for (int i = 0; i < myYLines.size() - 1; i++) {
+//			System.out.println(myYLines.get(i + 1) + " " + myMinBoundsYUTM);
+//			if (Math.round(myYLines.get(i + 1)) > (int) myMinBoundsYUTM && Math.round(myYLines.get(i)) < myMaxBoundsYUTM) {
+//				System.out.println("Got here Y");
+//				jList.add(i + 1);
+//			}
+//		}
+//		double midX = ((theBounds.getSouthWest().getLongitude()
+//				+ theBounds.getNorthEast().getLongitude()) / 2);
+//		
+//		
+//		double midY = ((theBounds.getSouthWest().getLatitude() 
+//				+ theBounds.getNorthEast().getLatitude()) / 2);	
+//		
+//		for (IJ box : myBoxes) {
+////			System.out.println(iList.size());
+////			System.out.println(box.i);
+//			if (iList.contains(box.i) && jList.contains(box.j)) {
+//				System.out.println("WoW it exists.");
+//			}
+////			System.out.println(box.i + " " + box.j + " " 
+////					+ "midX & midY: " + midX + " " + midY);
+//		}
+//		
+//						
+//	}
+	
 }
