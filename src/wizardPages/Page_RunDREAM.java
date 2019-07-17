@@ -450,11 +450,17 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				}
 				text.append("\n");
 				// Now list best TTD per scenario
+				String unit;
+				try {
+					unit = " " + data.getSet().getNodeStructure().getUnit("times");
+				} catch (Exception e) {
+					unit = " years";
+				}
 				for(String scenario: data.getSet().getScenarios()) {
 					text.append("Best TTD for " + scenario);
 					for(String sensorType: sensorTestedToTTD.keySet()) {
 						text.append(", " + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
-								Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + " years" : ""));
+								Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario)) + unit : ""));
 					}
 					text.append("\n");
 				}
