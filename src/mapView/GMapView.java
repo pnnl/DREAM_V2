@@ -179,7 +179,8 @@ public class GMapView extends Application implements MapComponentInitializedList
 	}
 	
 	/**
-	 * Creates the rectangles that represent out well locations.
+	 * Creates the rectangles that represent out well locations and also adds the action listeners
+	 * required.
 	 */
 	private void createRectangles() {
 		for (int i = 0; i < myNorthEastXLongitudes.size(); i++) {
@@ -213,6 +214,13 @@ public class GMapView extends Application implements MapComponentInitializedList
 		}
 	}
 	
+	/**
+	 * Sets the check boxes on the exclude locations page to selected or de-selected 
+	 * based on whether the rectangle inside the google maps window was selected
+	 * or de-selected.
+	 * @param theLLB - The LatLongBounds from the rectangle that was clicked.
+	 * @param allowWell - Boolean value for whether we should select or de-select the well.
+	 */
 	private void selectingWells(final LatLongBounds theLLB, final boolean allowWell) {
 		for (LatLongBounds key: myBoxMapping.keySet()) {
 			if (checkEqualLLB(key, theLLB)) {
@@ -221,6 +229,14 @@ public class GMapView extends Application implements MapComponentInitializedList
 		
 		}
 	}
+	/**
+	 * LatLongBound equality and LatLong equality doesn't output correct boolean value.
+	 * Had to decompose the LatLongBounds to it's each individual Latitude and Longitude and then
+	 * check those.
+	 * @param keySet - The key from the KeySet
+	 * @param theLLB - The LatLongBounds from the rectangle that was clicked.
+	 * @return - Whether they are the same LatLongBounds.
+	 */
 	private boolean checkEqualLLB(final LatLongBounds keySet, final LatLongBounds theLLB) {
 		return keySet.getNorthEast().getLatitude() == theLLB.getNorthEast().getLatitude()
 				&& keySet.getNorthEast().getLongitude() == theLLB.getNorthEast().getLongitude()
