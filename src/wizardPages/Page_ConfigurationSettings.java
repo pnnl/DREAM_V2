@@ -379,7 +379,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), getCostConstraint(),
+		data.getSet().setUserSettings(getAddPoint(), getMaxWells(), data.getSet().getSensorCostConstraint(),
 				getExclusionRadius(), getWellCost(), getWellDepthCost(),
 				getRemediationCost());
 	}
