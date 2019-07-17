@@ -26,9 +26,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
-import com.lynden.gmapsfx.javascript.object.LatLongBounds;
-
 import javafx.application.Application;
+import javafx.application.Platform;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -45,7 +44,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 	private ScrolledComposite sc;
 	private Composite container;
-	private Composite rootContainer;
+	private Composite rootContainer; 
 	private STORMData data;
 
 	private GridLayout layout;
@@ -63,9 +62,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private int maxI = -Integer.MAX_VALUE;
 	private int minJ = Integer.MAX_VALUE;
 	private int maxJ = -Integer.MAX_VALUE;
-	LatLongBounds temp;
-//	private int myLat;	
-//	private int myLong;
 
 	private List<Integer> validXWells = new ArrayList<>();
 	private List<Integer> validYWells = new ArrayList<>();
@@ -226,18 +222,18 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			corner.setText("Y | X");
 			for (int xVals : validXWells) {
 				Label label = new Label(container, SWT.NULL);
-				label.setText(String.valueOf(data.getSet().getNodeStructure().getX().get(xVals - 1)));
-				myWellLocationsX.add(data.getSet().getNodeStructure().getX().get(xVals - 1));
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getEdgeX().get(xVals - 1)));
+				myWellLocationsX.add(data.getSet().getNodeStructure().getEdgeX().get(xVals - 1));
 			}
 			for (int yVals : validYWells) {
 				Label label = new Label(container, SWT.NULL);
-				label.setText(String.valueOf(data.getSet().getNodeStructure().getY().get(yVals - 1)));
+				label.setText(String.valueOf(data.getSet().getNodeStructure().getEdgeY().get(yVals - 1)));
 				for (int xVals : validXWells) {
 					// Wells
 					if (wells.containsKey(xVals) && wells.get(xVals).contains(yVals)) {
 						Button wellButton = new Button(container, SWT.CHECK);
 						wellButton.setSelection(true);
-						myWellLocationsY.add(data.getSet().getNodeStructure().getY().get(yVals - 1));
+						myWellLocationsY.add(data.getSet().getNodeStructure().getEdgeY().get(yVals - 1));
 						if (selection.containsKey(xVals) && selection.get(xVals).containsKey(yVals)) {
 							// Already have a button here, save the state of it
 							wellButton.setSelection(selection.get(xVals).get(yVals));
@@ -269,18 +265,23 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 						dialog.getZone(),
 						dialog.getZoneDirection(),
 						data.getSet().getNodeStructure().getUnit("x"),
-						myValidNodePoints,
-						data.getSet().getNodeStructure().getX(),
-						data.getSet().getNodeStructure().getY());
+						myValidNodePoints);
 				map.initVariables();
 				Application.launch(GMapView.class);
+				
+				if (Platform.isImplicitExit()) {
+					for (IJ box : ijs) {
+						if (buttons.get(box.i).get(box.j) != null) {
+							buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+						}
+					}
+				}
 				
 			}
 		});
 		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();
-
 		DREAMWizard.visLauncher.setEnabled(true);
 		DREAMWizard.convertDataButton.setEnabled(false);
 	}
@@ -360,12 +361,10 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		for (int i = minI; i <= maxI; i++) {
 			for (int j = minJ; j <= maxJ; j++) {
 				boolean selectable = buttons.containsKey(i) && buttons.get(i).containsKey(j);
-				ijs.add(new IJ(i,j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));
+				if (selectable) {
+					ijs.add(new IJ(i,j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));
+				}
 			}
 		}
 	}
-	
-//	private void deselectWell() {
-//		
-//	}
 }

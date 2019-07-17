@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import utilities.Constants;
 import utilities.Point3i;
 
 
@@ -61,20 +60,14 @@ public class GMapInitVar {
 	
 	private static List<IJ> myBoxes;
 	
-	private static List<Float> myXLines;
-	
-	private static List<Float> myYLines;
-	
 	public GMapInitVar(final List<IJ> theBoxes,final List<Float> theXEdge, final List<Float> theYEdge,
 			final int theZoneNumber, final String theZone, final String theUnit,
-			final List<Point3i> theValidNodePoints, final List<Float> xCenters, final List<Float> yCenters) {
+			final List<Point3i> theValidNodePoints) {
 		myBoxes = theBoxes;
-		myXLines = Constants.makeLines((ArrayList<Float>) xCenters);
-		myYLines = Constants.makeLines((ArrayList<Float>) yCenters);
 		myConverter = new CoordinateConversion();
 		myNorthEastXLongitude = new ArrayList<Float>();
 		myNorthEastYLatitude = new ArrayList<Float>();
-		mySouthWestXLongitude = new ArrayList<Float>();
+		mySouthWestXLongitude = new ArrayList<Float>(); 
 		mySouthWestYLatitude = new ArrayList<Float>();
 		myValidNodePoints = theValidNodePoints;
 		myX = new ArrayList<Double>();
@@ -232,14 +225,6 @@ public class GMapInitVar {
 	
 	public static List<IJ> getMyBoxes() {
 		return myBoxes;
-	}
-	
-	public static List<Float> getMyXLines() {
-		return myXLines;
-	}
-	
-	public static List<Float> getMyYLines() {
-		return myYLines;
 	}
 	
 }

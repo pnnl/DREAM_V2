@@ -1,6 +1,9 @@
 package mapView;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.lynden.gmapsfx.GoogleMapView;
 import com.lynden.gmapsfx.MapComponentInitializedListener;
 import com.lynden.gmapsfx.javascript.event.UIEventType;
@@ -53,21 +56,9 @@ public class GMapView extends Application implements MapComponentInitializedList
 	
 	private List<Float> myNorthEastYLatitudes;
 	
-//	private List<IJ> myBoxes;
-//	
-//	private List<Float> myXLines;
-//	
-//	private List<Float> myYLines;
+	private List<IJ> myBoxes;
 	
-//	private CoordinateConversion converter = new CoordinateConversion();
-	
-//	private double myMinBoundsXUTM;
-//	
-//	private double myMaxBoundsXUTM;
-//	
-//	private double myMinBoundsYUTM;
-//	
-//	private double myMaxBoundsYUTM;
+	private Map<LatLongBounds, IJ> myBoxMapping;
 	
 	/**
 	 * JavaFX start method.
@@ -77,7 +68,6 @@ public class GMapView extends Application implements MapComponentInitializedList
 //		myXGrid = new ArrayList<Float>();
 //		myYGrid = new ArrayList<Float>();
 		myStage = theStage;
-		initVariables();
 		//Google Maps API Key, 2nd parameter
 		myMapView = new GoogleMapView("en", "AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
 		myMapView.addMapInializedListener(this);
@@ -97,6 +87,7 @@ public class GMapView extends Application implements MapComponentInitializedList
 	 */
 	@Override
 	public void mapInitialized() {
+		initVariables();
 		myMapOpts = new MapOptions(); 
 		//Opens up console for debugging purposes
 //		myMapView.getWebview().getEngine().executeScript("if (!document.getElementById"
@@ -129,26 +120,14 @@ public class GMapView extends Application implements MapComponentInitializedList
 	 * Grabs the variables from our GMapInitVar class.
 	 */
 	private void initVariables() {
-//		myXLines = new  ArrayList<Float>();
-//		myYLines = new  ArrayList<Float>();
 //		myXGrid = GMapInitVar.getXGrid();
 //		myYGrid = GMapInitVar.getYGrid();
-//		myXLines = GMapInitVar.getMyXLines();
-//		myYLines = GMapInitVar.getMyYLines();
-//		myBoxes = GMapInitVar.getMyBoxes();
+		myBoxes = GMapInitVar.getMyBoxes();
 		myMinBoundsX = GMapInitVar.getMinBoundX();
 		myMinBoundsY = GMapInitVar.getMinBoundY();
 		myMaxBoundsX = GMapInitVar.getMaxBoundX();
 		myMaxBoundsY= GMapInitVar.getMaxBoundY();
-		
-//		String[] tempMin = converter.latLon2UTM(myMinBoundsY, myMinBoundsX).split(" ");
-//		String[] tempMax = converter.latLon2UTM(myMaxBoundsY, myMaxBoundsX).split(" ");
-//		
-//		myMinBoundsXUTM = Double.parseDouble(tempMin[2]);
-//		myMaxBoundsXUTM = Double.parseDouble(tempMax[2]);
-//		myMinBoundsYUTM = Double.parseDouble(tempMin[3]);
-//		myMaxBoundsYUTM = Double.parseDouble(tempMax[3]);
-		
+		myBoxMapping = new HashMap<LatLongBounds, IJ>();
 		myNorthEastXLongitudes = GMapInitVar.getMyNorthEastXLongitude();
 		myNorthEastYLatitudes = GMapInitVar.getMyNorthEastYLatitude();
 		mySouthWestXLongitudes = GMapInitVar.getMySouthWestXLongitude();
@@ -198,6 +177,7 @@ public class GMapView extends Application implements MapComponentInitializedList
 //			myMap.addMapShape(poly);
 //		}
 	}
+	
 	/**
 	 * Creates the rectangles that represent out well locations.
 	 */
@@ -214,59 +194,37 @@ public class GMapView extends Application implements MapComponentInitializedList
 					.fillColor("black");
 			Rectangle rect = new Rectangle(rectOpts);
 			myMap.addMapShape(rect);
+			myBoxMapping.put(rectangleBounds, myBoxes.get(i));
 			myMap.addUIEventHandler(rect, UIEventType.click, (JSObject obj) -> {
 				if (rect.getJSObject().getMember("fillColor").equals("black")) {
 					myMap.removeMapShape(rect);
 					rectOpts.bounds(rect.getBounds()).fillColor("white");
 					rect.setRectangleOptions(rectOpts);
 					myMap.addMapShape(rect);
+					selectingWells(rect.getBounds(), false);
 				} else {			
 					myMap.removeMapShape(rect);
 					rectOpts.bounds(rect.getBounds()).fillColor("black");
 					rect.setRectangleOptions(rectOpts);
 					myMap.addMapShape(rect);
+					selectingWells(rect.getBounds(), true);
 				}						
 			});
 		}
-	} 
+	}
 	
-//	private void deselectWells(final LatLongBounds theBounds) {
-//		ArrayList<Integer> iList = new ArrayList<Integer>();
-//		ArrayList<Integer> jList = new ArrayList<Integer>();
-//		
-//		for (int i = 0; i < myXLines.size() - 1; i++) {
-//			System.out.println(myXLines.get(i + 1) + " " + myMinBoundsXUTM);
-//			if (Math.round(myXLines.get(i + 1)) > (int) myMinBoundsXUTM && Math.round(myXLines.get(i)) < myMaxBoundsXUTM) {
-//				System.out.println("Got here X");
-//				iList.add(i + 1);
-//			}
-//		}
-//		System.out.println(iList.size() + " " + iList.toString());
-//		for (int i = 0; i < myYLines.size() - 1; i++) {
-//			System.out.println(myYLines.get(i + 1) + " " + myMinBoundsYUTM);
-//			if (Math.round(myYLines.get(i + 1)) > (int) myMinBoundsYUTM && Math.round(myYLines.get(i)) < myMaxBoundsYUTM) {
-//				System.out.println("Got here Y");
-//				jList.add(i + 1);
-//			}
-//		}
-//		double midX = ((theBounds.getSouthWest().getLongitude()
-//				+ theBounds.getNorthEast().getLongitude()) / 2);
-//		
-//		
-//		double midY = ((theBounds.getSouthWest().getLatitude() 
-//				+ theBounds.getNorthEast().getLatitude()) / 2);	
-//		
-//		for (IJ box : myBoxes) {
-////			System.out.println(iList.size());
-////			System.out.println(box.i);
-//			if (iList.contains(box.i) && jList.contains(box.j)) {
-//				System.out.println("WoW it exists.");
-//			}
-////			System.out.println(box.i + " " + box.j + " " 
-////					+ "midX & midY: " + midX + " " + midY);
-//		}
-//		
-//						
-//	}
-	
+	private void selectingWells(final LatLongBounds theLLB, final boolean allowWell) {
+		for (LatLongBounds key: myBoxMapping.keySet()) {
+			if (checkEqualLLB(key, theLLB)) {
+				myBoxMapping.get(key).prohibited = allowWell;
+			}
+		
+		}
+	}
+	private boolean checkEqualLLB(final LatLongBounds keySet, final LatLongBounds theLLB) {
+		return keySet.getNorthEast().getLatitude() == theLLB.getNorthEast().getLatitude()
+				&& keySet.getNorthEast().getLongitude() == theLLB.getNorthEast().getLongitude()
+				&& keySet.getSouthWest().getLatitude() == theLLB.getSouthWest().getLatitude()
+				&& keySet.getSouthWest().getLongitude() == theLLB.getSouthWest().getLongitude();
+	}
 }

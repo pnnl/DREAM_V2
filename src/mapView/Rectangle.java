@@ -35,8 +35,8 @@ public class Rectangle extends MapShape {
         super(GMapObjectType.RECTANGLE, opts);
     }
     /**
-     * 
-     * @param newOpts
+     * Added this method to change the rectangle options.
+     * @param newOpts - the Rectangle Options
      */
     public void setRectangleOptions(RectangleOptions newOpts) {
     	invokeJavascript("setOptions", newOpts);
