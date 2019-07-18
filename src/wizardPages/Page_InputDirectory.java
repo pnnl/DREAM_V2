@@ -14,6 +14,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
@@ -47,6 +48,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private String directory = Constants.homeDirectory;
 	
 	private boolean isCurrentPage = false;
+	
+	private static String positiveDirection;
 	
 	protected Page_InputDirectory(final STORMData data) {
 		super("Input Directory");
@@ -206,6 +209,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		noteGridData.widthHint = 500;
 		noteLabel.setLayoutData(noteGridData);
 		
+		addZAxialOptions();
 		container.layout();	
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		sc.layout();		
@@ -228,6 +232,30 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		return h5Error;
 	}
 	
+	private void addZAxialOptions() {
+		Label ZOrientation = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
+		ZOrientation.setText("Please set your Z-Axis Positive Direction: ");
+		GridData ZData = new GridData(GridData.FILL_HORIZONTAL);
+		ZData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		ZData.verticalSpan = 4;
+		ZData.widthHint = 500;
+		ZOrientation.setLayoutData(ZData);
+		Combo positionDropDown = new Combo(container, SWT.DROP_DOWN | SWT.BORDER | SWT.READ_ONLY);
+		positionDropDown.add("up");
+		positionDropDown.add("down");
+		positionDropDown.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event theEvent) {
+				positiveDirection = positionDropDown.getText();		
+			}
+			
+		});
+	}
+	
+	public static String getPositiveDirection() {
+		return positiveDirection;
+	}
 	
 	@Override
 	public boolean isPageCurrent() {
