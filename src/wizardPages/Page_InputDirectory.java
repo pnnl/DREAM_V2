@@ -164,7 +164,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		if (counter == 0) {
 		//// Hack that allows Jonathan and Catherine automatic directory inputs ////
 			if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-				directory = directory + "\\Desktop\\BCO_new";
+				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
 			if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\Desktop\\BCO_new";
 			if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
