@@ -231,7 +231,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		}
 		return h5Error;
 	}
-	
+	//Adds a drop down that lets the user pick the positive direction of their z-axis
+	//Will be taken out when files are converted with the fixed file converter.
 	private void addZAxialOptions() {
 		Label ZOrientation = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
 		ZOrientation.setText("Please set your Z-Axis Positive Direction: ");
