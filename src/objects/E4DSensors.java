@@ -278,7 +278,7 @@ public class E4DSensors {
 					for(Integer secondWellLoop: ertDetectionTimes.get(threshold).get(firstScenario).get(firstWellLoop).keySet()) {
 						float sumTTD = 0;
 						for(String scenarioLoop: ertDetectionTimes.get(threshold).keySet())
-							sumTTD =+ ertDetectionTimes.get(threshold).get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
+							sumTTD += ertDetectionTimes.get(threshold).get(scenarioLoop).get(firstWellLoop).get(secondWellLoop);
 						float avgTTD = sumTTD / ertDetectionTimes.get(threshold).size();
 						if(avgTTD!=0)
 							averageTTD.add(avgTTD);
