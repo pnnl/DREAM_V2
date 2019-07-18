@@ -1099,7 +1099,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				for(Integer nodeNumber: earliestDetectionForAllSensors.get(scenario).keySet()) {
 					if(earliestDetectionForAllSensors.get(scenario).get(nodeNumber) <= time) {
 						Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber); //get location of node that detected at this time
-						vod =+ data.getSet().getNodeStructure().getVolumeOfNode(location); //convert the found node into a volume and add cumulatively
+						vod += data.getSet().getNodeStructure().getVolumeOfNode(location); //convert the found node into a volume and add cumulatively
 					}
 				}
 				volumeDegradedByYear.get(scenario).put(time, vod);
