@@ -20,7 +20,7 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
  * @date   February 18, 2019
  */
 public class ParseRawFiles {
-	
+	private static final String POSITIVE = "positive";
 	private ArrayList<String> scenarios;
 	private ArrayList<Float> times;
 	private ArrayList<String> parameters;
@@ -75,6 +75,7 @@ public class ParseRawFiles {
 		dataMap = new HashMap<String, Map<String, float[][]>>();
 		statistics = new HashMap<String, Map<String, float[]>>();
 		units = new HashMap<String, String>();
+		units.put(POSITIVE, "");
 		indexMap = new ArrayList<String>();
 	}
 	
@@ -775,4 +776,16 @@ public class ParseRawFiles {
 		units.put(theParameter,theValue);
 	}
 	
+	public void setZOrientation(final String positiveDirection) {
+		units.put(POSITIVE, positiveDirection);
+	}
+	
+	public Float[] ZOrientationArray() {
+		Float[] temp = {(float) - 1};
+		return temp;
+	}
+	
+	public String getZOrientation() {
+		return units.get(POSITIVE);
+	}
 }

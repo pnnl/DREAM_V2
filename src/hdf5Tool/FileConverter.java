@@ -648,7 +648,8 @@ public class FileConverter extends javax.swing.JFrame {
 		// Make sure that we have XYZ and time units, and porosity
 		// Made an assumption that if the file doesn't have x-units none of the other coordinates will have units
 		// Might need to query the user for a constant porosity across the domain
-		if(gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null)
+		if(gp.getUnit("x").equals("") || gp.getUnit("time").equals("") ||
+				gp.getPorosity() == null || gp.getUnit("positive").equals(""))
 			addXYZandTimeUnits(dims3D);
 		
 		/////////////////////////////////////////////////////////
@@ -698,6 +699,12 @@ public class FileConverter extends javax.swing.JFrame {
 		attr = new Attribute("units", attrType, attrDims, classValue);
 		d.writeMetadata(attr); //Add the units as an attribute
 		
+		//Writing Z-Orientation variable
+		d = hdf5File.createScalarDS("positive", dataGroup, dtype, new long[]{gp.ZOrientationArray().length}, null, null, 0, gp.ZOrientationArray());
+		classValue = new String[] {gp.getZOrientation()};
+		attr = new Attribute("positive", attrType, attrDims, classValue);
+		d.writeMetadata(attr);
+		
 		// Writing step variable, no units
 		float[] steps = new float[gp.getSelectedTimesArray().length];
 		for(int i=0; i<gp.getSelectedTimesArray().length; i++)
@@ -706,6 +713,8 @@ public class FileConverter extends javax.swing.JFrame {
 		
 		// Writing porosity variable, no units
 		hdf5File.createScalarDS("porosity", dataGroup, dtype, dims3D, null, null, 0, gp.getPorosity()); //Porosity is a fraction (no units)
+		
+
 		
 		///////////////////////////////////////////////////////
 		// Plot groups per step with data for all parameters //
@@ -739,16 +748,17 @@ public class FileConverter extends javax.swing.JFrame {
 	private synchronized void addXYZandTimeUnits(final long[] dims3D) {
 		//Remove all to make sure their aren't any duplicates.
 		mainPanel.removeAll();
-		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null) {
-					
+		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null
+				|| gp.getZOrientation().equals("")) {
+			JComboBox<String> ZOrientation = new JComboBox<String>(new String[] {"up", "down"});	
 			JComboBox<String> distanceList = new JComboBox<String>(new String[] {"m", "ft"});
 			JComboBox<String> timeList = new JComboBox<String>(new String[] {"years", "months", "days"});
 			
 			JTextField porosityText = new JTextField();
 			//Our option pane that calls our JPanel creation method.
 			int option = JOptionPane.showConfirmDialog(null, theDialogBoxes(distanceList, timeList,
-					porosityText),
-						"Set Units or Set Porosity", JOptionPane.OK_CANCEL_OPTION);
+					porosityText, ZOrientation),
+						"Set Units, Set Porosity, or Set Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
 			//When user clicks ok.
 			if (option == JOptionPane.OK_OPTION) {
 				//Put units into our unit HashMap.
@@ -758,6 +768,8 @@ public class FileConverter extends javax.swing.JFrame {
 					gp.setUnit("y", distance);
 					gp.setUnit("z", distance);
 				}
+				String ZOrient = ZOrientation.getSelectedItem().toString();
+				gp.setZOrientation(ZOrient);
 				if (gp.getUnit("time").equals("")) {
 					String time = timeList.getSelectedItem().toString();
 					gp.setUnit("time", time);
@@ -791,15 +803,21 @@ public class FileConverter extends javax.swing.JFrame {
 	 * @return - The JPanel for our option pane.
 	 */
 	private JPanel theDialogBoxes(final JComboBox<String> distanceList
-			, final JComboBox<String> timeList, final JTextField porosityText) {
-		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null) {
-			mainPanel.setLayout(new GridLayout(0,1));
+			, final JComboBox<String> timeList, final JTextField porosityText,
+			final JComboBox<String> theZOrientation) {
+		mainPanel.setLayout(new GridLayout(0,1));
+		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null
+				|| gp.getZOrientation().equals("")) {
+
 			
 			Label distanceLabel = new Label();
 			distanceLabel.setText("XYZ Units:");
 			
 			Label timeLabel = new Label();
 			timeLabel.setText("Time Units:");
+			
+			Label ZOrientationLabel = new Label();
+			ZOrientationLabel.setText("Z-Axis Positive Direction: ");
 			
 			Label porosityLabel = new Label();
 			porosityLabel.setText("Specify Porosity Value");
@@ -811,6 +829,9 @@ public class FileConverter extends javax.swing.JFrame {
 			
 			mainPanel.add(timeLabel);
 			mainPanel.add(timeList);
+			
+			mainPanel.add(ZOrientationLabel);
+			mainPanel.add(theZOrientation);
 			
 			mainPanel.add(porosityLabel);
 			mainPanel.add(porosityText);
