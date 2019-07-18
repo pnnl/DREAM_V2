@@ -264,7 +264,7 @@ public class ParseRawFiles {
 						tempStats = new float[3];
 						countNodes = 0;
 						parameter = line.split(",")[0].trim().replaceAll("\\(", "_").replaceAll("\\)", ""); //New clean parameter
-						parameter = parameter.substring(commonStartCount+1, parameter.length()-commonEndCount);
+						parameter = parameter.substring(commonStartCount, parameter.length()-commonEndCount);
 						if(parameter.toLowerCase().contains("porosity")) parameter = "porosity"; //Override if porosity
 					// These are the criteria to isolate the data
 					} else if(!header && !line.equals("") && (selectedParameters.contains(parameter) || parameter.equals("porosity"))) {
