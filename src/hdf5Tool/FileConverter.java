@@ -702,7 +702,7 @@ public class FileConverter extends javax.swing.JFrame {
 		//Writing Z-Orientation variable
 		d = hdf5File.createScalarDS("positive", dataGroup, dtype, new long[]{gp.ZOrientationArray().length}, null, null, 0, gp.ZOrientationArray());
 		classValue = new String[] {gp.getZOrientation()};
-		attr = new Attribute("positive", attrType, attrDims, classValue);
+		attr = new Attribute("units", attrType, attrDims, classValue);
 		d.writeMetadata(attr);
 		
 		// Writing step variable, no units
