@@ -331,109 +331,117 @@ public class FileConverter extends javax.swing.JFrame {
 		pack();
 	}
 
-	private void jButton_doneActionPerformed(ActionEvent evt) throws Exception {
-		
+	// TODO: MARK
+	private void jButton_doneActionPerformed(final ActionEvent evt) throws Exception {
+
 		// Save selected scenarios, timesteps, and parameters
-		gp.setSelected(checkList_scenarios.getListData(), checkList_timesteps.getListData(), checkList_parameters.getListData());
-		
-		// Initialize global variables
-		processedTasks = 0;
-		
-		// Create the HDF5 output directory if it doesn't exist
-		if(!file_outputDir.exists())
-			file_outputDir.mkdir();
-		
-		// Use them all.. well okay, all but one :)
-		final int cores = Runtime.getRuntime().availableProcessors()-1;
-		//ExecutorService service = Executors.newFixedThreadPool(cores);
-		System.out.println("Using " + (cores) + " cores...");
-		if(gp.getSelectedScenarios().size()==gp.getScenarios().length)
-			System.out.println("Selected Scenarios: All");
-		else
-			System.out.println("Selected Scenarios: " + gp.getSelectedScenarios().toString());
-		if(gp.getSelectedTimes().size()==gp.getTimes().length)
-			System.out.println("Selected Times: All");
-		else
-			System.out.println("Selected Times: " + gp.getSelectedTimes().toString());
-		if(gp.getSelectedParameters().size()==gp.getParameters().length)
-			System.out.println("Selected Parameter: All");
-		else
-			System.out.println("Selected Parameters: " + gp.getSelectedParameters().toString());
-		
-		final List<Thread> runningThreads = new ArrayList<Thread>();
-		final List<Thread> threadsToRun = new ArrayList<Thread>();
-		
-		for(String scenario: gp.getSelectedScenarios()) {
-			FileConverterThread runnable = new FileConverterThread(scenario);
-			Thread thread = new Thread(runnable);
-			threadsToRun.add(thread);
-		}
-		
-		MonitorRunnable monitorRunnable = new MonitorRunnable(null, (cores), gp.getSelectedScenarios().size());
-		new Thread(monitorRunnable).start();
-		
-		Thread runningAllStuffThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while(!threadsToRun.isEmpty()) {
-					if(runningThreads.size() < cores - 1) { // probably not
-						Thread thread = threadsToRun.remove(0);
-						thread.start();
-						runningThreads.add(thread);
-					} else {
-						List<Thread> deadThreads = new ArrayList<Thread>();
-						for(Thread thread: runningThreads) {
-							if(!thread.isAlive()) {
-								deadThreads.add(thread);
+		gp.setSelected(checkList_scenarios.getListData(), checkList_timesteps.getListData(),
+				checkList_parameters.getListData());
+		if (gp.getSelectedParameters().size() < 1 || gp.getSelectedScenarios().size() < 1
+				|| gp.getSelectedTimes().size() < 1) {
+			statusLabel.setText("Select atleast one: Param/Scenario/Time");
+			statusLabel.setForeground(Color.red);
+
+		} else {
+			// Initialize global variables
+			processedTasks = 0;
+
+			// Create the HDF5 output directory if it doesn't exist
+			if (!file_outputDir.exists())
+				file_outputDir.mkdir();
+
+			// Use them all.. well okay, all but one :)
+			final int cores = Runtime.getRuntime().availableProcessors() - 1;
+			// ExecutorService service = Executors.newFixedThreadPool(cores);
+			System.out.println("Using " + (cores) + " cores...");
+			if (gp.getSelectedScenarios().size() == gp.getScenarios().length)
+				System.out.println("Selected Scenarios: All");
+			else
+				System.out.println("Selected Scenarios: " + gp.getSelectedScenarios().toString());
+			if (gp.getSelectedTimes().size() == gp.getTimes().length)
+				System.out.println("Selected Times: All");
+			else
+				System.out.println("Selected Times: " + gp.getSelectedTimes().toString());
+			if (gp.getSelectedParameters().size() == gp.getParameters().length)
+				System.out.println("Selected Parameter: All");
+			else
+				System.out.println("Selected Parameters: " + gp.getSelectedParameters().toString());
+
+			final List<Thread> runningThreads = new ArrayList<Thread>();
+			final List<Thread> threadsToRun = new ArrayList<Thread>();
+
+			for (String scenario : gp.getSelectedScenarios()) {
+				FileConverterThread runnable = new FileConverterThread(scenario);
+				Thread thread = new Thread(runnable);
+				threadsToRun.add(thread);
+			}
+
+			MonitorRunnable monitorRunnable = new MonitorRunnable(null, (cores), gp.getSelectedScenarios().size());
+			new Thread(monitorRunnable).start();
+
+			Thread runningAllStuffThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					while (!threadsToRun.isEmpty()) {
+						if (runningThreads.size() < cores - 1) { // probably not
+							Thread thread = threadsToRun.remove(0);
+							thread.start();
+							runningThreads.add(thread);
+						} else {
+							List<Thread> deadThreads = new ArrayList<Thread>();
+							for (Thread thread : runningThreads) {
+								if (!thread.isAlive()) {
+									deadThreads.add(thread);
+								}
+							}
+							for (Thread dead : deadThreads) {
+								runningThreads.remove(dead); // remove the dead...!
 							}
 						}
-						for(Thread dead: deadThreads) {
+						try {
+							Thread.sleep(100); // mmmm maybe?
+							// Listening for a cancel
+							if (monitor.isCanceled()) {
+								// Kill everything
+								for (Thread killable : runningThreads)
+									killable.interrupt();
+								runningThreads.clear();
+								threadsToRun.clear(); // maybe java can collect these???
+								return;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					while (!runningThreads.isEmpty()) {
+						List<Thread> deadThreads = new ArrayList<Thread>();
+						for (Thread thread : runningThreads) {
+							if (!thread.isAlive())
+								deadThreads.add(thread);
+						}
+						for (Thread dead : deadThreads) {
 							runningThreads.remove(dead); // remove the dead...!
 						}
-					}
-					try {
-						Thread.sleep(100); // mmmm maybe?
-						// Listening for a cancel
-						if(monitor.isCanceled()) {
-							// Kill everything
-							for(Thread killable: runningThreads)
-								killable.interrupt();
-							runningThreads.clear();
-							threadsToRun.clear(); // maybe java can collect these???
-							return;
+						try {
+							Thread.sleep(1000); // mmmm maybe?
+							// Listening for a cancel
+							if (monitor.isCanceled()) {
+								// kill everything
+								for (Thread killable : runningThreads)
+									killable.interrupt();
+								runningThreads.clear();
+								threadsToRun.clear(); // maybe java can collect these???
+								return;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
 					}
 				}
-				
-				while(!runningThreads.isEmpty()) {
-					List<Thread> deadThreads = new ArrayList<Thread>();
-					for(Thread thread: runningThreads) {
-						if(!thread.isAlive())
-							deadThreads.add(thread);
-					}
-					for(Thread dead: deadThreads) {
-						runningThreads.remove(dead); // remove the dead...!
-					}
-					try {
-						Thread.sleep(1000); // mmmm maybe?
-						// Listening for a cancel
-						if(monitor.isCanceled()) {
-							// kill everything
-							for(Thread killable: runningThreads)
-								killable.interrupt();
-							runningThreads.clear();
-							threadsToRun.clear(); // maybe java can collect these???
-							return;
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		});
-		runningAllStuffThread.start();
+			});
+			runningAllStuffThread.start();
+		}
 	}
 
 	private class MonitorRunnable implements Runnable {
