@@ -95,9 +95,8 @@ public class DomainVisualization {
 	private TableItem cloudSelectAll;
 	private TableItem validSelectAll;
 	private TableItem sensorSelectAll;
-
+	
 	private boolean resetTreeRequired = false;
-
 	public DomainVisualization(Display display, ScenarioSet set, Boolean show) {
 		shell = new Shell(display, SWT.DIALOG_TRIM | SWT.MODELESS); 
 		
@@ -553,7 +552,7 @@ public class DomainVisualization {
 				//	cellBoundsZ.add(new Float(Math.abs(zs.get(z))+half).floatValue());
 					cellBoundsZ.add(new Float(zs.get(z)+half).floatValue());
 		}
-		Collections.sort(cellBoundsZ);
+//		Collections.sort(cellBoundsZ);
 		return cellBoundsZ;
 	}
 
@@ -634,7 +633,10 @@ public class DomainVisualization {
 			if(renderUniform()) tempZs.add(zs.get(i)*scaleZ);
 			else tempZs.add((zs.get(i)-zs.get(0))*scaleZ);
 		}
-		zs = tempZs;	
+		zs = tempZs;
+		if (getZAxialPosition()) {
+			Collections.reverse(zs);
+		}
 		return zs;
 	}
 
@@ -1324,6 +1326,9 @@ public class DomainVisualization {
 			}
 		}
 	}
-
+	
+	public boolean getZAxialPosition() {
+		return set.getNodeStructure().getUnit("positive").equals("down");
+	}
 
 }

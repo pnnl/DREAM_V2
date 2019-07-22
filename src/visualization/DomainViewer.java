@@ -82,7 +82,7 @@ public class DomainViewer {
 	private Point3f cameraPosition = new Point3f(0, 0, 0);
 
 	private int numVertices = 0;
-
+	
 	//================================================================
 	/**
 	 * Constructor.
@@ -302,7 +302,6 @@ public class DomainViewer {
 
 				gl2.glRasterPos3f(-maxLength/10, -maxLength/10, zs.get(zs.size()-1)/2);
 				glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, domainVisualization.getZLabel());
-
 				gl2.glPopMatrix();
 			}
 			
@@ -362,11 +361,19 @@ public class DomainViewer {
 			gl2.glVertex3f(0.0f, 2000.0f, 0.0f);
 			gl2.glEnd();
 			gl2.glColor3f(0.0f, 0.0f, 1.0f);
-			gl2.glRasterPos3f(0f, 0f, 2000f);
+			if (domainVisualization.getZAxialPosition()) {
+				gl2.glRasterPos3f(0f, 0f, -2000f);
+			} else {
+				gl2.glRasterPos3f(0f, 0f, 2000f);
+			}
 			glut.glutBitmapString(GLUT.BITMAP_HELVETICA_10, "Z");
 			gl2.glBegin(GL.GL_LINES);
 			gl2.glVertex3f(0.0f, 0.0f, 0.0f);
-			gl2.glVertex3f(0.0f, 0.0f, 2000.0f);
+			if (domainVisualization.getZAxialPosition()) {
+				gl2.glVertex3f(0.0f, 0.0f, -2000.0f);
+			} else {
+				gl2.glVertex3f(0.0f, 0.0f, 2000.0f);
+			}
 			gl2.glRasterPos3f(0f,0f,0f);
 			gl2.glEnd();
 			//grab the rotation
@@ -594,11 +601,10 @@ public class DomainViewer {
 		List<Float> xs = domainVisualization.getRenderCellBoundsX();
 		List<Float> ys = domainVisualization.getRenderCellBoundsY();
 		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-
 		Point3f distance = domainVisualization.getRenderDistance();
 		Point3i meshColor = domainVisualization.getMeshColor();
 		List<Line> meshLines = new ArrayList<Line>();
-
+		
 		// Bottom; z == 0
 		for(int i = 0; i < xs.size(); i++) {
 			meshLines.add(new Line(new Point3f(xs.get(i), 0, 0), 
@@ -672,6 +678,12 @@ public class DomainViewer {
 				float xMax = xs.get(point.getI());
 				float yMax = ys.get(point.getJ());
 				float zMax = zs.get(point.getK());
+				//If the Z-Axis positive direction is down then zMin = zMax and zMax = zMin
+				if (domainVisualization.getZAxialPosition()) {
+					float temp = zMin;
+					zMin = zMax;
+					zMax = temp;
+				}
 				Face f1 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
 						new Point3f(xMax, yMax, zMin), new Point3f(xMin, yMax, zMin), color, transparency);
 				Face f2 = new Face(new Point3f(xMin, yMin, zMax), new Point3f(xMax, yMin, zMax), 
@@ -784,6 +796,11 @@ public class DomainViewer {
 				float xMax = xs.get(point.getI());
 				float yMax = ys.get(point.getJ());
 				float zMax = zs.get(point.getK());
+				if (domainVisualization.getZAxialPosition()) {
+					float temp = zMin;
+					zMin = zMax;
+					zMax = temp;
+				}
 				Face f1 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
 						new Point3f(xMax, yMax, zMin), new Point3f(xMin, yMax, zMin), color, transparency);
 				Face f2 = new Face(new Point3f(xMin, yMin, zMax), new Point3f(xMax, yMin, zMax), 
@@ -877,6 +894,7 @@ public class DomainViewer {
 			int i = point.getI();
 			int j = point.getJ();
 			for(int k=2; k<=set.getNodeStructure().getIJKDimensions().getK(); k++) {
+				
 				Point3i newPoint = new Point3i(i, j, k);
 				newNodes.add(newPoint);
 			}
@@ -938,6 +956,11 @@ public class DomainViewer {
 				float xMax = xs.get(sensor.getIJK().getI());
 				float yMax = ys.get(sensor.getIJK().getJ());
 				float zMax = zs.get(sensor.getIJK().getK());
+				if (domainVisualization.getZAxialPosition()) {
+					float temp = zMin;
+					zMin = zMax;
+					zMax = temp;
+				}
 				Face f1 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
 						new Point3f(xMax, yMax, zMin), new Point3f(xMin, yMax, zMin), color, transparency);
 				Face f2 = new Face(new Point3f(xMin, yMin, zMax), new Point3f(xMax, yMin, zMax), 
@@ -1063,5 +1086,4 @@ public class DomainViewer {
 		disposeVertexBuffers();
 		glcanvas.dispose();
 	}
-
 }

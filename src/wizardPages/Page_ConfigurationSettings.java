@@ -238,7 +238,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellLabel.setText("Maximum Number of Wells");
 		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
 		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
-		createWellLabels(maxWells, true);
+		createWellLabels(maxWells, true, "10.0");
 	}
 	
 	/**
@@ -249,7 +249,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
 		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
 		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
-		createWellLabels(exclusionRadius, true);
+		createWellLabels(exclusionRadius, true, "0.0");
 	}
 	
 	/**
@@ -260,7 +260,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellCostLabel.setText("Cost Per Well");
 		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
-		createWellLabels(wellCost, true);
+		createWellLabels(wellCost, true, "1000.0");
 	}
 	
 	/**
@@ -271,7 +271,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
 		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellDepthCost.setText(String.valueOf(data.getSet().getWellDepthCost()));
-		createWellLabels(wellDepthCost, true);
+		createWellLabels(wellDepthCost, true, "1.0");
 	}
 	
 	/**
@@ -282,7 +282,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "³"));
 		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
-		createWellLabels(remediationCost, false);
+		createWellLabels(remediationCost, false, "0.0");
 	}
 	
 	/**
@@ -292,9 +292,10 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 * @param isWell - Throws different error messages if isWell or otherwise.
 	 * @author huan482
 	 */
-	private void createWellLabels(final Text theWellText, final boolean isWell) {
+	private void createWellLabels(final Text theWellText, final boolean isWell, final String value) {
 		theWellText.setForeground(Constants.black);
 		theWellText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		theWellText.setText(value);
 		//Lambda function
 		theWellText.addModifyListener(theEvent -> {
 			boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());

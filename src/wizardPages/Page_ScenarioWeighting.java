@@ -269,7 +269,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 		try {
 			if (!Page_InputDirectory.getPositiveDirection().equals(null)) {
 				data.getSet().getNodeStructure().addUnit("positive", Page_InputDirectory.getPositiveDirection());
-				System.out.println(data.getSet().getNodeStructure().getUnit("positive"));
+				
 			}
 		} catch (Exception e) {
 			System.out.println("Didn't set Z-Axial direction");

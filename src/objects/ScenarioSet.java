@@ -382,12 +382,18 @@ public class ScenarioSet {
 			cost += sensorSettings.get(sensor.getSensorType()).getSensorCost();
 		}
 		for(Point3i location: locations){
-			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
-			cost += (maxZ - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellDepthCost;
+			float xVal;
+			if (nodeStructure.getUnit("positive").equals("down")) {
+				xVal = SensorSetting.globalMinZ;
+			} else {
+				xVal = SensorSetting.globalMaxZ;
+			}
+//			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
+			cost += (xVal - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellDepthCost;
 			cost += this.wellCost;
 		}
 		configuration.setConfigCost(cost);
-		return cost;
+		return Math.abs(cost);
 	}
 	
 	public float getSensorCostConstraint() {
