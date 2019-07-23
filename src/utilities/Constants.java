@@ -23,11 +23,11 @@ import org.eclipse.swt.widgets.Display;
 public class Constants {
 	
 	// These probably be eventually wrapped into the code directly, but for now give us functionality for debugging/developing extensions without breaking the working release
-	public static boolean buildDev = false;
+	public static boolean buildDev = true;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
-	public static boolean runningJar = false;
+	public static boolean runningJar = false; 
 	
 	static File userDirectory = new File(System.getProperty("user.dir"));
 	public static String userDir = userDirectory.getPath();
@@ -47,6 +47,7 @@ public class Constants {
 	public static DecimalFormat percentageFormat = new DecimalFormat("###.##");
 	public static DecimalFormat exponentialFormat = new DecimalFormat("0.00000000E00");
 	public static DecimalFormat exponentialFormatShort = new DecimalFormat("0.0E00");
+	public static DecimalFormat decimalFormatForCost = new DecimalFormat("##.##");
 	
 	private static Logger LOGGER;
 	private static boolean loggerOn;

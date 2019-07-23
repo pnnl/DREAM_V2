@@ -393,7 +393,8 @@ public class ScenarioSet {
 			cost += this.wellCost;
 		}
 		configuration.setConfigCost(cost);
-		return Math.abs(cost);
+//		System.out.println(Math.abs(Float.parseFloat(Constants.decimalFormatForCost.format(cost))));
+		return Math.abs(Float.parseFloat(Constants.decimalFormatForCost.format(cost)));
 	}
 	
 	public float getSensorCostConstraint() {

@@ -546,10 +546,14 @@ public class ExtendedConfiguration extends Configuration {
 		
 		if (num == WEIGHT_OF_ADD_SENSOR + 5) {
 			try {
-				removeSensor();
-				clearAndRepopulateArray();
-				Constants.log(Level.FINER, "Sensor configuration: mutated, REMOVED SENSOR", scenarioSet);
-				return true;
+				if (sensors.size() != 0 ) {
+					removeSensor();
+					clearAndRepopulateArray();
+					Constants.log(Level.FINER, "Sensor configuration: mutated, REMOVED SENSOR", scenarioSet);
+					return true;
+				} else {
+					pickRand.remove(index);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
