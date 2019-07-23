@@ -78,8 +78,8 @@ public class ScenarioSet {
 		iterations = 1000;
 		sensorCostConstraint = 0;
 		exclusionRadius = 0;
-		wellCost = 0;
-		wellDepthCost = 0;
+		wellCost = 1000;
+		wellDepthCost = 1;
 		remediationCost = 0;
 		
 		Constants.log(Level.INFO, "Scenario set: initialized", null);
@@ -105,8 +105,8 @@ public class ScenarioSet {
 		iterations = 1000;
 		sensorCostConstraint = 0;
 		exclusionRadius = 0;
-		wellCost = 0;
-		wellDepthCost = 0;
+		wellCost = 1000;
+		wellDepthCost = 1;
 		remediationCost = 0;
 		
 		Constants.log(Level.INFO, "Scenario set: re-initialized", null);
