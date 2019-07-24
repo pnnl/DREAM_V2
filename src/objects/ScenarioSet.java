@@ -18,7 +18,7 @@ import utilities.Point3i;
  * Selections made by the user for a given run should be set here.
  * @author port091
  * @author rodr144
- *
+ * @author huan482
  */
 public class ScenarioSet {
 
@@ -382,18 +382,16 @@ public class ScenarioSet {
 			cost += sensorSettings.get(sensor.getSensorType()).getSensorCost();
 		}
 		for(Point3i location: locations){
-			float xVal;
-			if (nodeStructure.getUnit("positive").equals("down")) {
-				xVal = SensorSetting.globalMinZ;
-			} else {
-				xVal = SensorSetting.globalMaxZ;
-			}
-//			float maxZ = SensorSetting.globalMaxZ > 0 ? SensorSetting.globalMaxZ : 0; //Use 0 as the top if the locations are negative, otherwise use globalMaxZ
-			cost += (xVal - this.getNodeStructure().getXYZEdgeFromIJK(location).getZ()) * this.wellDepthCost;
+//			float xVal = 0;
+//			if (nodeStructure.getUnit("positive").equals("down")) {
+//				xVal = 0;
+//			} else {
+//				xVal = SensorSetting.globalMaxZ;
+//			}
+			cost += Math.abs(this.getNodeStructure().getXYZCenterFromIJK(location).getZ()) * this.wellDepthCost;
 			cost += this.wellCost;
 		}
 		configuration.setConfigCost(cost);
-//		System.out.println(Math.abs(Float.parseFloat(Constants.decimalFormatForCost.format(cost))));
 		return Math.abs(Float.parseFloat(Constants.decimalFormatForCost.format(cost)));
 	}
 	
