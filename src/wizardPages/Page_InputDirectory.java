@@ -169,11 +169,11 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
 			if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-				directory = directory + "\\Desktop\\BCO_new";
+				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
 			if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
 			if(directory.contains("huan482") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
-				directory = directory + "\\OneDrive - PNNL\\Documents\\Task6_rev";
+				directory = directory + "\\OneDrive - PNNL\\Documents\\Kim12_20sims";
 		}
 		//// End of hack ////
 		
