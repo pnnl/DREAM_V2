@@ -412,11 +412,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					} else if(((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_CHANGE.toString())) {
 						trigger = Trigger.RELATIVE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
-						if (detectionUnit.getText().contains("kg")) {
-							detectionUnit.setVisible(false);
-							unitData.exclude = true;
-							detectionComposite.layout(true);
-						}
+						detectionUnit.setVisible(false);
+						unitData.exclude = true;
+						detectionComposite.layout(true);
 					} else { //(((Combo)e.getSource()).getText().equals(Trigger.ABSOLUTE_DELTA.toString()))
 						trigger = Trigger.ABSOLUTE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
@@ -514,7 +512,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			});
 			
-			if (trigger == Trigger.RELATIVE_CHANGE && detectionUnit.getText().contains("kg")) {
+			if (trigger == Trigger.RELATIVE_CHANGE) {
 				detectionUnit.setVisible(false);
 				unitData.exclude = true;
 				detectionComposite.layout(true);
