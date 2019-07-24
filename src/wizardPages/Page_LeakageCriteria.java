@@ -71,7 +71,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	protected Page_LeakageCriteria(STORMData data) {
 		super("Leakage Criteria");
-		this.data = data;	
+		this.data = data;	 
 	}
 	
 	public class SensorData {
@@ -113,6 +113,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		private Combo thresholdCombo;
 		public String specificType;
+		
+		private GridData unitData;
 		
 		// New class for storing the data about one particular sensor type (IAM)
 		public SensorData(String specificType, SensorSetting sensorSettings) {
@@ -394,15 +396,35 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					if(((Combo)e.getSource()).getText().equals(Trigger.ABOVE_THRESHOLD.toString())) {
 						trigger = Trigger.ABOVE_THRESHOLD;
 						thresholdCombo.setToolTipText("Leak when concentration is above value");
+						if (!detectionUnit.isVisible()) {
+							detectionUnit.setVisible(true);
+							unitData.exclude = false;
+							detectionComposite.layout(true);
+						}
 					} else if(((Combo)e.getSource()).getText().equals(Trigger.BELOW_THRESHOLD.toString())) {
 						trigger = Trigger.BELOW_THRESHOLD;
 						thresholdCombo.setToolTipText("Leak when concentration is below value");
+						if (!detectionUnit.isVisible()) {
+							detectionUnit.setVisible(true);
+							unitData.exclude = false;
+							detectionComposite.layout(true);
+						}
 					} else if(((Combo)e.getSource()).getText().equals(Trigger.RELATIVE_CHANGE.toString())) {
 						trigger = Trigger.RELATIVE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration relative to the initial concentration (decimal) exceeds value");
+						if (detectionUnit.getText().contains("kg")) {
+							detectionUnit.setVisible(false);
+							unitData.exclude = true;
+							detectionComposite.layout(true);
+						}
 					} else { //(((Combo)e.getSource()).getText().equals(Trigger.ABSOLUTE_DELTA.toString()))
 						trigger = Trigger.ABSOLUTE_CHANGE;
 						thresholdCombo.setToolTipText("Leak when change from original concentration exceeds value");
+						if (!detectionUnit.isVisible()) {
+							detectionUnit.setVisible(true);
+							unitData.exclude = false;
+							detectionComposite.layout(true);
+						}
 					}
 					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
@@ -479,9 +501,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					else deltaType = DeltaType.BOTH;
 				}
 			});
-			
+			unitData = new GridData(SWT.FILL, SWT.CENTER, false, false);
 			detectionUnit = new Label(detectionComposite, SWT.NONE);
-			detectionUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			detectionUnit.setLayoutData(unitData);
 			detectionUnit.setText(unit);
 			detectionUnit.setForeground(Constants.grey);
 			detectionUnit.setToolTipText(HDF5Interface.getStatisticsString(sensorKey));
@@ -492,7 +514,11 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 			});
 			
-			
+			if (trigger == Trigger.RELATIVE_CHANGE && detectionUnit.getText().contains("kg")) {
+				detectionUnit.setVisible(false);
+				unitData.exclude = true;
+				detectionComposite.layout(true);
+			}
 			//// Zone Bottom Value ////
 			// We want to display units within the same text box, so we need to do some fancy magic
 			// Essentially we are creating a composite with two fields within it: (1) text and (2) unit label
