@@ -74,7 +74,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private List<IJ> ijs;
 	
 	private boolean offsetRequired;
-	private boolean offsetRequiredY;
 	
 	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
@@ -412,7 +411,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				data.getSet().getNodeStructure().getEdgeX().set(i, (float) temp);
 			}
 		}
-		if (offsetRequiredY || includeButton) {
+		if (offsetRequired || includeButton) {
 			int sizeY = data.getSet().getNodeStructure().getEdgeY().size();
 			for (int i = 0; i < sizeY; i++) {
 				double temp = theOperation.applyAsDouble(
