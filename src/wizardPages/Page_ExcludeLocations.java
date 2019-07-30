@@ -73,7 +73,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 	private List<IJ> ijs;
 	
-	private boolean offsetRequiredX;
+	private boolean offsetRequired;
 	private boolean offsetRequiredY;
 	
 	public Page_ExcludeLocations(final STORMData data) {
@@ -266,13 +266,13 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 		createBoxList();
-		offsetRequiredX = Collections.min(data.getSet().getNodeStructure().getEdgeX()) == 0;
-		offsetRequiredY = Collections.min(data.getSet().getNodeStructure().getEdgeY()) == 0;
+		offsetRequired = Collections.min(data.getSet().getNodeStructure().getEdgeX()) == 0
+				|| Collections.min(data.getSet().getNodeStructure().getEdgeY()) == 0;
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(),
-						offsetRequiredX, offsetRequiredY);
+						offsetRequired);
 				dialog.open();
 				offsetCalculation(dialog, false, (x , y) -> x + y);
 				GMapInitVar map = new GMapInitVar(
@@ -303,7 +303,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			public void handleEvent(final Event event) {
 				ExistingWellsDialogBox wellDialog = new ExistingWellsDialogBox(container.getShell(), data);
 				CoordinateSystemDialog coordinateDialog = new CoordinateSystemDialog(container.getShell(),
-						true, true);
+						true);
 				wellDialog.open();
 //				checkInterval(wellDialog);
 				coordinateDialog.open();
@@ -402,7 +402,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	//Calculates the well locations after the offset is applied.
 	private void offsetCalculation (final CoordinateSystemDialog dialog, final boolean includeButton,
 			final DoubleBinaryOperator theOperation) {
-		if (offsetRequiredX || includeButton) {
+		if (offsetRequired || includeButton) {
 			int sizeX = data.getSet().getNodeStructure().getEdgeX().size();
 			for (int i = 0; i < sizeX; i++) {
 				double temp = theOperation.applyAsDouble(

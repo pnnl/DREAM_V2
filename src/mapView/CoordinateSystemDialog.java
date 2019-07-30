@@ -43,15 +43,12 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	private Composite theContainer;
 	
-	private boolean offsetReqX;
+	private boolean offsetRequired;
 	
-	private boolean offsetReqY;
-	
-	public CoordinateSystemDialog(final Shell theShell, boolean offsetReqX, boolean offsetReqY) {
+	public CoordinateSystemDialog(final Shell theShell, boolean offsetRequired) {
 		super(theShell);
 //		theZone = 0;
-		this.offsetReqX = offsetReqX;
-		this.offsetReqY = offsetReqY;
+		this.offsetRequired = offsetRequired;
 	}
 	
 	@Override
@@ -150,7 +147,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	zoneDirection.add("N");
 	zoneDirection.add("S");
 	
-	if (offsetReqX) {
+	if (offsetRequired) {
 	    Label xLabel = new Label(theContainer, SWT.NONE);
 	    xLabel.setText("Offset X: ");
 	    Text xText = new Text(theContainer, SWT.BORDER);
@@ -178,7 +175,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		myEnableButtonCheck[2] = true;
 	}
 	
-	if (offsetReqY) {
+	if (offsetRequired) {
 	    Label yLabel = new Label(theContainer, SWT.NONE);
 	    yLabel.setText("Offset Y: ");
 	    Text yText = new Text(theContainer, SWT.BORDER);
