@@ -114,25 +114,19 @@ public class GMapInitVar {
 	 * Finds the NorthEast and SouthWest coordinates of the wells we're going to be drawn.
 	 * Required to draw our rectangle well locations.
 	 */
-	@SuppressWarnings({ "unlikely-arg-type"})
+//	@SuppressWarnings({ "unlikely-arg-type"})
+	//TODO: check for wells that are already created maybe start at the GMapView class
 	private void getNEandSWcoordinates() {
 		List<Float> myNorthEastX = new ArrayList<Float>();
 		List<Float> myNorthEastY = new ArrayList<Float>();
 		List<Float> mySouthWestX = new ArrayList<Float>();
 		List<Float> mySouthWestY = new ArrayList<Float>();
 		for (Point3i thePoint : myValidNodePoints) {
-			if (!myXEdge.contains(thePoint.getI() + 1)) {
-				myNorthEastX.add(myXEdge.get(thePoint.getI()  + 1));
-			}
-			if (!myYEdge.contains(thePoint.getJ())) {
-				myNorthEastY.add(myYEdge.get(thePoint.getJ()));
-			}
-			if (!myXEdge.contains(thePoint.getI())) {
-				mySouthWestX.add(myXEdge.get(thePoint.getI()));
-			}
-			if (!myYEdge.contains(thePoint.getJ() + 1)) {
-				mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1));
-			}
+			myNorthEastX.add(myXEdge.get(thePoint.getI() + 1));
+			myNorthEastY.add(myYEdge.get(thePoint.getJ()));
+			mySouthWestX.add(myXEdge.get(thePoint.getI()));
+			mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1));
+
 		}
 		for (int i = 0; i < myNorthEastX.size(); i++) {
 			float temp = myNorthEastX.get(i);
@@ -170,10 +164,10 @@ public class GMapInitVar {
 	private void findBounds() {
 		Collections.sort(myX);
 		Collections.sort(myY);
-		minBoundsX = myX.get(0);
-		maxBoundsX = myX.get(myX.size() - 1);
-		minBoundsY = myY.get(0);
-		maxBoundsY = myY.get(myY.size() - 1);
+		minBoundsX = Collections.min(myX);
+		maxBoundsX = Collections.max(myX);
+		minBoundsY = Collections.min(myY);
+		maxBoundsY = Collections.max(myY);
 	}
 
 	public static List<Float> getXLines() {

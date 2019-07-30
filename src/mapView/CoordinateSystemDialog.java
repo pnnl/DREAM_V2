@@ -20,6 +20,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import utilities.Constants;
+
 /**
  * The pop-up box that allows the user to input specific parameters for their map view.
  * @author huan482
@@ -33,17 +35,23 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	private String theZone;
 	
-	private int theMinX = 0;
+	private float theMinX = 0;
 	
-	private int theMinY = 0;
+	private float theMinY = 0;
 	
 	private ScrolledComposite theComposite;
 	
 	private Composite theContainer;
 	
-	public CoordinateSystemDialog(final Shell theShell) {
+	private boolean offsetReqX;
+	
+	private boolean offsetReqY;
+	
+	public CoordinateSystemDialog(final Shell theShell, boolean offsetReqX, boolean offsetReqY) {
 		super(theShell);
 //		theZone = 0;
+		this.offsetReqX = offsetReqX;
+		this.offsetReqY = offsetReqY;
 	}
 	
 	@Override
@@ -134,6 +142,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		
 	Label theDistanceLabel = new Label(theContainer, SWT.NONE);
 	theDistanceLabel.setText("Set the Zone:");
+	
 	Text UTMZone = new Text(theContainer, SWT.BORDER);
 	
 	Combo zoneDirection = new Combo(theContainer, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -141,6 +150,64 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	zoneDirection.add("N");
 	zoneDirection.add("S");
 	
+	if (offsetReqX) {
+	    Label xLabel = new Label(theContainer, SWT.NONE);
+	    xLabel.setText("Offset X: ");
+	    Text xText = new Text(theContainer, SWT.BORDER);
+	    Label xBlank = new Label(theContainer, SWT.NONE);
+	    xBlank.setText("");
+		//Mimicked for the rest of the modify listeners.
+	    xText.addModifyListener(theEvent -> {
+	    	try {
+	    		//If we can successful parse the text then we know it's good input.
+		    	theMinX = Float.parseFloat(xText.getText());
+		    	//Set the flag for this component to true.
+		    	myEnableButtonCheck[2] = true;
+		    	//If all the components have good inputs then we enable the button.
+		    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+				((Text) theEvent.getSource()).setForeground(Constants.black);
+	    	} catch (Exception theException) {
+	    		//Flag this component in our array. Basically saying this input is bad.
+	    		myEnableButtonCheck[2] = false;
+	    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+				((Text) theEvent.getSource()).setForeground(Constants.red);
+			}
+	    	
+	    });
+	} else {
+		myEnableButtonCheck[2] = true;
+	}
+	
+	if (offsetReqY) {
+	    Label yLabel = new Label(theContainer, SWT.NONE);
+	    yLabel.setText("Offset Y: ");
+	    Text yText = new Text(theContainer, SWT.BORDER);
+	    Label yBlank = new Label(theContainer, SWT.NONE);
+	    yBlank.setText("");
+		//Mimicked for the rest of the modify listeners.
+	    yText.addModifyListener(theEvent -> {
+	    	try {
+	    		//If we can successful parse the text then we know it's good input.
+		    	theMinY = Float.parseFloat(yText.getText());
+				((Text) theEvent.getSource()).setForeground(Constants.black);
+		    	//Set the flag for this component to true.
+		    	myEnableButtonCheck[3] = true;
+		    	//If all the components have good inputs then we enable the button.
+		    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+				((Text) theEvent.getSource()).setForeground(Constants.black);
+	    	} catch (Exception theException) {
+	    		//Flag this component in our array. Basically saying this input is bad.
+	    		myEnableButtonCheck[3] = false;
+	    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+				((Text) theEvent.getSource()).setForeground(Constants.red);
+			}
+	    	
+	    });
+	} else {
+		myEnableButtonCheck[3] = true;
+	}
+    
+    
     
 	zoneDirection.addSelectionListener(new SelectionListener() {
 		@Override
@@ -172,15 +239,15 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	    	myEnableButtonCheck[1] = true;
 	    	//If all the components have good inputs then we enable the button.
 	    	if (checkForBadInput()) getButton(OK).setEnabled(true);	
+			((Text) theEvent.getSource()).setForeground(Constants.black);
     	} catch (Exception theException) {
     		//Flag this component in our array. Basically saying this input is bad.
     		myEnableButtonCheck[1] = false;
     		if (!checkForBadInput()) getButton(OK).setEnabled(false);
-    		theException.printStackTrace();
+			((Text) theEvent.getSource()).setForeground(Constants.red);
 		}
     	
-    });
-
+    });  
 	}
 	/**
 	 * Checks if their are any bad inputs in our text fields (non-integers).
@@ -189,7 +256,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
     private boolean checkForBadInput() {
     	//return true if all the values in the array are true.
     	boolean temp = true;
-    	for (int i = 0; i <= 1; i++) {
+    	for (int i = 0; i < myEnableButtonCheck.length; i++) {
     		//If any values in the array are false return false.
     		if (!myEnableButtonCheck[i]) {
     			temp = false;
@@ -199,6 +266,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
     	return temp;
     }
     
+    
 	public int getZone() {
 		return theZoneNumber;
 	}
@@ -207,11 +275,11 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		return theZone;
 	}
 	
-	public int getMinX() {
+	public float getMinX() {
 		return theMinX;
 	}
 	
-	public int getMinY() {
+	public float getMinY() {
 		return theMinY;
 	}
 }

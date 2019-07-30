@@ -1,11 +1,14 @@
 package wizardPages;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleBinaryOperator;
 
 import mapView.CoordinateSystemDialog;
+import mapView.ExistingWellsDialogBox;
 import mapView.GMapInitVar;
 import mapView.GMapView;
 import mapView.IJ;
@@ -69,6 +72,9 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private boolean isCurrentPage = false;
 
 	private List<IJ> ijs;
+	
+	private boolean offsetRequiredX;
+	private boolean offsetRequiredY;
 	
 	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
@@ -211,6 +217,13 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		launchButtonData.horizontalSpan = ((GridLayout) container.getLayout()).numColumns;
 		launchButtonData.verticalSpan = 4;
 		launchMapButton.setLayoutData(launchButtonData);
+		
+		Button launchExistingWellButton = new Button(container, SWT.BUTTON1);
+		GridData launchExistingData = new GridData(GridData.BEGINNING);
+		launchExistingData.horizontalSpan = ((GridLayout) container.getLayout()).numColumns;
+		launchExistingData.verticalSpan = 4;
+		launchExistingWellButton.setLayoutData(launchExistingData);
+		launchExistingWellButton.setText("Include Locations");
 		Label corner = new Label(container, SWT.NULL);
 		/*
 		 * This page can only handle so many checkboxes. If we exceed this amount, we
@@ -253,11 +266,15 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 		createBoxList();
+		offsetRequiredX = Collections.min(data.getSet().getNodeStructure().getEdgeX()) == 0;
+		offsetRequiredY = Collections.min(data.getSet().getNodeStructure().getEdgeY()) == 0;
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
-				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell());
+				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(),
+						offsetRequiredX, offsetRequiredY);
 				dialog.open();
+				offsetCalculation(dialog, false, (x , y) -> x + y);
 				GMapInitVar map = new GMapInitVar(
 						ijs,
 						new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeX()),
@@ -278,6 +295,21 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				}
 				
 			}
+		});
+		
+		launchExistingWellButton.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(final Event event) {
+				ExistingWellsDialogBox wellDialog = new ExistingWellsDialogBox(container.getShell(), data);
+				CoordinateSystemDialog coordinateDialog = new CoordinateSystemDialog(container.getShell(),
+						true, true);
+				wellDialog.open();
+//				checkInterval(wellDialog);
+				coordinateDialog.open();
+				offsetCalculation(coordinateDialog, true, (x , y) -> x - y);
+			}
+			
 		});
 		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -367,4 +399,46 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
+	//Calculates the well locations after the offset is applied.
+	private void offsetCalculation (final CoordinateSystemDialog dialog, final boolean includeButton,
+			final DoubleBinaryOperator theOperation) {
+		if (offsetRequiredX || includeButton) {
+			int sizeX = data.getSet().getNodeStructure().getEdgeX().size();
+			for (int i = 0; i < sizeX; i++) {
+				double temp = theOperation.applyAsDouble(
+						(double) data.getSet().getNodeStructure().getEdgeX().get(i),
+						(double) dialog.getMinX());
+				
+				data.getSet().getNodeStructure().getEdgeX().set(i, (float) temp);
+			}
+		}
+		if (offsetRequiredY || includeButton) {
+			int sizeY = data.getSet().getNodeStructure().getEdgeY().size();
+			for (int i = 0; i < sizeY; i++) {
+				double temp = theOperation.applyAsDouble(
+						(double) data.getSet().getNodeStructure().getEdgeY().get(i),
+						(double)dialog.getMinY());
+				data.getSet().getNodeStructure().getEdgeY().set(i, (float) temp);
+			}
+		}
+	}
+	
+//	private void checkInterval(final ExistingWellsDialogBox wellDialog) {
+//		Float tempMinX = Collections.min(data.getSet().getNodeStructure().getEdgeX());
+//		Float tempMaxX = Collections.max(data.getSet().getNodeStructure().getEdgeX());
+//		Float tempMinY = Collections.min(data.getSet().getNodeStructure().getEdgeY());
+//		Float tempMaxY = Collections.max(data.getSet().getNodeStructure().getEdgeY());
+//		//If the user entered well is within the bounds of our node structure then we will add it
+//		//To display on our google map
+//		//The existing well will not have a clickable rectangle associated with it.
+//		for (int i = 0; i < wellDialog.getMyWells().size(); i++) {
+//			if (!(wellDialog.getMyWells().get(i).getX() > tempMaxX ||
+//					wellDialog.getMyWells().get(i).getX() < tempMinX || 
+//					wellDialog.getMyWells().get(i).getY() > tempMaxY ||
+//					wellDialog.getMyWells().get(i).getY() < tempMinY)) {
+//				data.getSet().getNodeStructure().getEdgeX().add(wellDialog.getMyWells().get(i).getX());
+//				data.getSet().getNodeStructure().getEdgeY().add(wellDialog.getMyWells().get(i).getY());
+//			}
+//		}
+//	}
 }
