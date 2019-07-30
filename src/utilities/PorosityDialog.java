@@ -168,7 +168,7 @@ public class PorosityDialog extends TitleAreaDialog {
 
 	@Override
 	protected boolean canHandleShellCloseEvent(){
-		return false;
+		return true;
 	}
 	
 	private void createZoneHeaders(){
