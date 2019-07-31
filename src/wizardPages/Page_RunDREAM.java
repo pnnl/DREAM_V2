@@ -375,6 +375,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void handleEvent(Event arg0) {
 				List<List<String>> sensorsToTest = new ArrayList<List<String>>();
+				String timeUnit = structure.getUnit("times");
 				
 				// Run once with each sensor type
 				for(String sensorType: data.getSet().getSensorSettings().keySet()) {	
@@ -421,48 +422,37 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				StringBuilder text = new StringBuilder();
 				
 				// Sensors
-				text.append("Sensors");
+				text.append("Parameters");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					text.append("," +sensorType);
 				}
-				text.append("\n");
 				// Average TTD in detected scenarios
-				text.append("Average TTD in detected scenarios");
+				text.append("\nAverage TTD for detected scenarios ("+timeUnit+")");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
-					text.append("," + Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)) + " years");
+					text.append("," + Constants.percentageFormat.format(sensorTestedToTTD.get(sensorType)));
 				}
-				text.append("\n");
 				// Detected scenarios
-				text.append("Detected scenarios");
+				text.append("\nDetected scenarios");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					int detectedScenarios = sensorTestedScenariosDetected.get(sensorType).size();
 					int scenariosTested = data.getSet().getScenarios().size();
 					text.append("," + detectedScenarios + " of " + scenariosTested);
 				}
-				text.append("\n");
 				// Weighted percentage of scenarios detected
-				text.append("Detected scenarios (weighted %)");
+				text.append("\nDetected scenarios (weighted %)");
 				for(String sensorType: sensorTestedToTTD.keySet()) {
 					float percent = 0;
 					for(String scenario: sensorTestedScenariosDetected.get(sensorType))
 						percent += data.getSet().getGloballyNormalizedScenarioWeight(scenario)*100;
 					text.append("," + Constants.percentageFormat.format(percent) + "%");
 				}
-				text.append("\n");
 				// Now list best TTD per scenario
-				String unit;
-				try {
-					unit = " " + data.getSet().getNodeStructure().getUnit("times");
-				} catch (Exception e) {
-					unit = " years";
-				}
 				for(String scenario: data.getSet().getScenarios()) {
-					text.append("Best TTD for " + scenario);
+					text.append("\nBest TTD for "+scenario+" ("+timeUnit+")");
 					for(String sensorType: sensorTestedToTTD.keySet()) {
-						text.append(", " + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
-								Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario)) + unit : ""));
+						text.append("," + (ttdPerSensorPerScenarioDetected.get(sensorType).containsKey(scenario) ?
+								Constants.percentageFormat.format(ttdPerSensorPerScenarioDetected.get(sensorType).get(scenario)): ""));
 					}
-					text.append("\n");
 				}
 				try {
 					File outFolder = new File(outputFolder.getText());
@@ -491,34 +481,35 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
-				String unit = structure.getUnit("x");
+				String xUnit = structure.getUnit("x");
+				String timeUnit = structure.getUnit("times");
 				
 				StringBuilder text = new StringBuilder();
 				
 				// Heading
-				text.append("Timestep,Average VAD over all scenarios,Minimum VAD,Maximum VAD");
+				text.append("Time ("+timeUnit+"),Average VAD ("+xUnit+"^3),Minimum VAD ("+xUnit+"^3),Maximum VAD ("+xUnit+"^3)");
 				
 				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
 				Collections.sort(years);
 				
 				for(Float time: years){
-					text.append("\n" + Constants.percentageFormat.format(time) + " years");
-					text.append("," + Constants.percentageFormat.format(averages.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
-					text.append("," + Constants.percentageFormat.format(minimums.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
-					text.append("," + Constants.percentageFormat.format(maximums.get(time)) + (unit.equals("") ? "" : " " + unit + "^3"));
+					text.append("\n" + Constants.percentageFormat.format(time));
+					text.append("," + Constants.percentageFormat.format(averages.get(time)));
+					text.append("," + Constants.percentageFormat.format(minimums.get(time)));
+					text.append("," + Constants.percentageFormat.format(maximums.get(time)));
 				}
 								
 				try {
 					File outFolder = new File(outputFolder.getText());
 					if(!outFolder.exists())
 						outFolder.mkdirs();
-					File csvOutput = new File(new File(outputFolder.getText()), "VAD.csv");
+					File csvOutput = new File(new File(outputFolder.getText()), "VolumeOfAquiferDegraded.csv");
 					if(!csvOutput.exists())
 						csvOutput.createNewFile();
 					FileUtils.writeStringToFile(csvOutput, text.toString());
 					Desktop.getDesktop().open(csvOutput);
 				} catch (IOException e) {		
-					JOptionPane.showMessageDialog(null, "Could not write to VAD.csv, make sure the file is not currently open");
+					JOptionPane.showMessageDialog(null, "Could not write to VolumeOfAquiferDegraded.csv, make sure the file is not currently open");
 					e.printStackTrace();
 				}
 			}	       
