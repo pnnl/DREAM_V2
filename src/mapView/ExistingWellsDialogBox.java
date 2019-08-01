@@ -46,8 +46,11 @@ public class ExistingWellsDialogBox extends TitleAreaDialog {
 
 	private int counterForCoordinate;
 	
+	private STORMData myData;
+	
 	public ExistingWellsDialogBox(Shell parentShell, STORMData data) {
 		super(parentShell);
+		myData = data; 
 		myWellCounter = 1;
 		counterForCoordinate = 0;
 		checkAllInputs = new HashMap<Integer, Boolean>();
@@ -215,16 +218,30 @@ public class ExistingWellsDialogBox extends TitleAreaDialog {
 	@Override
 	protected void buttonPressed(int id) {
 		if (id == OK) {
+			CoordinateSystemDialog coordinateDialog = new CoordinateSystemDialog(container.getShell(),
+					true, true);
+			coordinateDialog.open();
+			float minX = coordinateDialog.getMinX();
+			float minY = coordinateDialog.getMinY();
+			
 			List<Float> temp = new ArrayList<Float>();
 			for (Integer ints : mapToValue.keySet()) {
 				temp.add(mapToValue.get(ints));
 			}
-			//Since their are 3 coordinates the ordering is always going to be (x,y,z) in our list.
-			//That is why I'm grabbing the first 3 values and iterating by 3 every loop.
+			// Since their are 3 coordinates the ordering is always going to be (x,y,z) in
+			// our list.
+			// That is why I'm grabbing the first 3 values and iterating by 3 every loop.
 			for (int i = 0; i < temp.size(); i += 3) {
-				myWells.add(new ExistingWell(temp.get(i), temp.get(i + 1), temp.get(i + 2)));
+				float offsetX = temp.get(i) - minX;
+				float offsetY = temp.get(i + 1) - minY;
+				myWells.add(new ExistingWell(temp.get(i), temp.get(i + 1), temp.get(i + 2), offsetX, offsetY));
 			}
-
+			IncludeLocationResults printOut = new IncludeLocationResults(
+					myData.getSet().getNodeStructure().getEdgeX(),
+					myData.getSet().getNodeStructure().getEdgeY(),
+					myData.getSet().getNodeStructure().getEdgeZ(),
+					myWells, myData, coordinateDialog.getOutputDir());
+			printOut.printOutResults();
 			super.okPressed();
 		}
 	}

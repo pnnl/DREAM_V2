@@ -2,7 +2,6 @@ package wizardPages;
 
 import java.io.File;
 
-
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -20,7 +19,6 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
@@ -35,15 +33,16 @@ import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
- * Select the directory with the HDF5 files to be used, as well as the style of algorithm to run. Currently has 2 modes supported.
- * See line 164
+ * Select the directory with the HDF5 files to be used, as well as the style of
+ * algorithm to run. Currently has 2 modes supported. See line 164
+ * 
  * @author port091
  * @author rodr144
  * @author whit162
  */
 
 public class Page_InputDirectory extends DreamWizardPage implements AbstractWizardPage {
-	
+
 	private ScrolledComposite sc;
 	private Composite container;
 	private Composite rootContainer;
@@ -52,53 +51,53 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private String simulation = "SimulatedAnnealing";
 	private Text fileDirectoryText;
 	private String directory = Constants.homeDirectory;
-	
+
 	private boolean isCurrentPage = false;
-	
+
 	private boolean isH5;
-	
+
 	private boolean isIAM;
-	
+
 	private static String positiveDirection;
-	
+
 	private JPanel mainPanel = new JPanel();
-	
+
 	protected Page_InputDirectory(final STORMData data) {
 		super("Input Directory");
 		this.data = data;
 	}
-	
+
 	@Override
 	public void createControl(final Composite parent) {
 		rootContainer = new Composite(parent, SWT.NULL);
 		rootContainer.setLayout(GridLayoutFactory.fillDefaults().create());
-		
+
 		sc = new ScrolledComposite(rootContainer, SWT.V_SCROLL | SWT.H_SCROLL);
 		sc.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).hint(SWT.DEFAULT, 200).create());
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
 		sc.addListener(SWT.Activate, new Listener() {
-	        public void handleEvent(Event e) {
-	            sc.setFocus();
-	        }
-	    });
+			public void handleEvent(Event e) {
+				sc.setFocus();
+			}
+		});
 		sc.addListener(SWT.MouseWheel, new Listener() {
-	        public void handleEvent(Event event) {
-	            int wheelCount = event.count;
-	            wheelCount = (int) Math.ceil(wheelCount / 3.0f);
-	            while (wheelCount < 0) {
-	                sc.getVerticalBar().setIncrement(4);
-	                wheelCount++;
-	            }
+			public void handleEvent(Event event) {
+				int wheelCount = event.count;
+				wheelCount = (int) Math.ceil(wheelCount / 3.0f);
+				while (wheelCount < 0) {
+					sc.getVerticalBar().setIncrement(4);
+					wheelCount++;
+				}
 
-	            while (wheelCount > 0) {
-	                sc.getVerticalBar().setIncrement(-4);
-	                wheelCount--;
-	            }
-	            sc.redraw();
-	        }
-	    });
-		
+				while (wheelCount > 0) {
+					sc.getVerticalBar().setIncrement(-4);
+					wheelCount--;
+				}
+				sc.redraw();
+			}
+		});
+
 		container = new Composite(sc, SWT.NULL);
 		GridLayout layout = new GridLayout();
 		layout.horizontalSpacing = 12;
@@ -113,19 +112,20 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		setPageComplete(true);
 	}
 
-	public void completePage() throws Exception {	
+	public void completePage() throws Exception {
 		isCurrentPage = false;
-		
+
 		// We want to essentially reset everything at this point
 		data.getSet().clearRun();
 		HDF5Interface.statistics.clear();
 		// Read in scenario and parameter information from the files
 		Constants.homeDirectory = directory;
 		data.setupScenarioSet(MUTATE.SENSOR, simulation, fileDirectoryText.getText());
-		data.getSet().setScenarioEnsemble(fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator)+1));
+		data.getSet().setScenarioEnsemble(
+				fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator) + 1));
 		// Ask for porosity input if it doesn't exist yet
 		createOptionPane();
-		if(!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
+		if (!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
 		}
@@ -136,32 +136,33 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		isCurrentPage = true;
 		DREAMWizard.errorMessage.setText("");
 		removeChildren(container);
-		
+
 		Font boldFont = new Font(container.getDisplay(), new FontData("Helvetica", 12, SWT.BOLD));
-		
-		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
+
+		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
 		infoLabel1.setText("Input Directory");
 		infoLabel1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
 		infoLabel1.setFont(boldFont);
-		
+
 		Label infoLink = new Label(container, SWT.TOP | SWT.RIGHT);
 		infoLink.setImage(container.getDisplay().getSystemImage(SWT.ICON_INFORMATION));
 		infoLink.setAlignment(SWT.RIGHT);
 		infoLink.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 2));
-		infoLink.addListener(SWT.MouseUp, new Listener(){
+		infoLink.addListener(SWT.MouseUp, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				MessageDialog.openInformation(container.getShell(), "Additional information", "Select the directory containing HDF5 or NRAP-Open-IAM files for all leakage simulations to be considered. "
-						+ "If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. "
-						+ "Read more about the DREAM HDF5 Converter tool in the user manual. Note: The files must be directly available within the directory provided; they may not be in "
-						+ "subdirectories within the root directory.");
+				MessageDialog.openInformation(container.getShell(), "Additional information",
+						"Select the directory containing HDF5 or NRAP-Open-IAM files for all leakage simulations to be considered. "
+								+ "If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. "
+								+ "Read more about the DREAM HDF5 Converter tool in the user manual. Note: The files must be directly available within the directory provided; they may not be in "
+								+ "subdirectories within the root directory.");
 			}
 		});
-		
-		Label infoLabel = new Label(container,  SWT.TOP | SWT.LEFT | SWT.WRAP);
+
+		Label infoLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
 		infoLabel.setText("Browse to a single folder containing subsurface simulation files (.h5 or .iam)");
 		infoLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 4));
-		
+
 		final DirectoryDialog directoryDialog = new DirectoryDialog(container.getShell());
 		Button buttonSelectDir = new Button(container, SWT.PUSH);
 		buttonSelectDir.setText(" Select a directory ");
@@ -178,18 +179,19 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			}
 		});
 		if (counter == 0) {
-		//// Hack that allows Jonathan and Catherine automatic directory inputs ////
-			if(directory.contains("whit162") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+			//// Hack that allows Jonathan and Catherine automatic directory inputs ////
+			if (directory.contains("whit162") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
-			if(!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+			if (!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404")
+					&& directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
-			if(directory.contains("d3x455") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+			if (directory.contains("d3x455") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
-			if(directory.contains("huan482") && directory==Constants.homeDirectory && !directory.contains("Desktop"))
+			if (directory.contains("huan482") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Documents\\Task6_rev";
 		}
 		//// End of hack ////
-		
+
 		fileDirectoryText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		fileDirectoryText.setText(directory);
 		fileDirectoryText.setForeground(Constants.black);
@@ -198,46 +200,47 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		fileDirectoryText.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				File resultsFolder = new File(((Text)e.getSource()).getText());
+				File resultsFolder = new File(((Text) e.getSource()).getText());
 				boolean dirError = !resultsFolder.isDirectory();
 				boolean fileError = true;
 				if (dirError == true) {
-					((Text)e.getSource()).setForeground(Constants.red);
+					((Text) e.getSource()).setForeground(Constants.red);
 					fileError = false;
 				} else {
-					((Text)e.getSource()).setForeground(Constants.black);
-					directory = ((Text)e.getSource()).getText();
+					((Text) e.getSource()).setForeground(Constants.black);
+					directory = ((Text) e.getSource()).getText();
 					fileError = validFileCheck(resultsFolder.getPath());
 				}
 				errorFound(dirError, "  Invalid directory.");
 				errorFound(fileError, "  Directory must contain an h5 or iam file.");
 			}
 		});
-				
-		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
-		noteLabel.setText("More info: The \"Launch Converter\" button will allow file format conversions from ASCII to HDF5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
+
+		Label noteLabel = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
+		noteLabel.setText(
+				"More info: The \"Launch Converter\" button will allow file format conversions from ASCII to HDF5 for common subsurface simulation output formats (currently: NUFT, STOMP). If the file converter is incompatible with the desired output file format, specific formatting requirements are given in the user manual. ");
 		GridData noteGridData = new GridData(GridData.FILL_HORIZONTAL);
-		noteGridData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
+		noteGridData.horizontalSpan = ((GridLayout) container.getLayout()).numColumns;
 		noteGridData.verticalSpan = 4;
 		noteGridData.widthHint = 500;
 		noteLabel.setLayoutData(noteGridData);
-		
-		addZAxialOptions();
-		container.layout();	
+
+//		addZAxialOptions();
+		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		sc.layout();		
+		sc.layout();
 
 		DREAMWizard.visLauncher.setEnabled(false);
 		DREAMWizard.convertDataButton.setEnabled(true);
 	}
-	
+
 	private boolean validFileCheck(final String folderDir) {
 		counter = 1;
 		boolean h5Error = true;
 		File folder = new File(folderDir);
 		File[] fList = folder.listFiles();
 		for (File file : fList) {
-			if(file.getName().contains(".h5") || file.getName().contains(".iam")) {
+			if (file.getName().contains(".h5") || file.getName().contains(".iam")) {
 				isH5 = file.getName().contains(".h5");
 				isIAM = file.getName().contains(".iam");
 				h5Error = false;
@@ -246,29 +249,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		}
 		return h5Error;
 	}
-	//Adds a drop down that lets the user pick the positive direction of their z-axis
-	//Will be taken out when files are converted with the fixed file converter.
-	private void addZAxialOptions() {
-		Label ZOrientation = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP);
-		ZOrientation.setText("Please set your Z-Axis Positive Direction: ");
-		GridData ZData = new GridData(GridData.FILL_HORIZONTAL);
-		ZData.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
-		ZData.verticalSpan = 4;
-		ZData.widthHint = 500;
-		ZOrientation.setLayoutData(ZData);
-		Combo positionDropDown = new Combo(container, SWT.DROP_DOWN | SWT.BORDER | SWT.READ_ONLY);
-		positionDropDown.add("up");
-		positionDropDown.add("down");
-		positionDropDown.addListener(SWT.Selection, new Listener() {
 
-			@Override
-			public void handleEvent(Event theEvent) {
-				positiveDirection = positionDropDown.getText();		
-			}
-			
-		});
-	}
-	
 	private void createOptionPane() {
 		mainPanel.removeAll();
 		if (isH5) {
@@ -299,23 +280,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 						String time = timeList.getSelectedItem().toString();
 						data.getSet().getNodeStructure().addUnit("times", time);
 					}
-//					if (!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
-//						float[] porosity = new float[(int) dims3D[0] * (int) dims3D[1] * (int) dims3D[2]];
-//						float input = 999;
-//						try {
-//							input = Float.parseFloat(porosityText.getText());
-//							// If the input doesn't fall into range, force the user to input the porosity
-//							// again.
-//							while (input > 1 || input < 0) {
-//								input = Float.parseFloat(JOptionPane.showInputDialog(FileConverter.this,
-//										"Please enter a Porosity in the domain (Between 0 and 1)", 0.1));
-//							}
-//							Arrays.fill(porosity, input);
-//						} catch (final NumberFormatException theException) {
-//							theException.printStackTrace();
-//						}
-//						gp.setPorosity(porosity);
-//					}
 				}
 			}
 		} else if (isIAM) {
@@ -346,17 +310,15 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		}
 	}
 
-	private JPanel theDialogBoxes(final JComboBox<String> distanceList
-			, final JComboBox<String> timeList, final JTextField porosityText,
-			final JComboBox<String> theZOrientation) {
-		mainPanel.setLayout(new java.awt.GridLayout(0,1));
-		
-		if (data.getSet().getNodeStructure().getUnit("x").equals("") || 
-				data.getSet().getNodeStructure().getUnit("times").equals("") ||
-				data.getSet().getNodeStructure().porosityOfNodeIsSet() || 
-				data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+	private JPanel theDialogBoxes(final JComboBox<String> distanceList, final JComboBox<String> timeList,
+			final JTextField porosityText, final JComboBox<String> theZOrientation) {
+		mainPanel.setLayout(new java.awt.GridLayout(0, 1));
 
-			
+		if (data.getSet().getNodeStructure().getUnit("x").equals("")
+				|| data.getSet().getNodeStructure().getUnit("times").equals("")
+				|| data.getSet().getNodeStructure().porosityOfNodeIsSet()
+				|| data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+
 			java.awt.Label distanceLabel = new java.awt.Label();
 			distanceLabel.setText("XYZ Units:");
 
@@ -400,16 +362,16 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		}
 		return mainPanel;
 	}
-	
+
 	public static String getPositiveDirection() {
 		return positiveDirection;
 	}
-	
+
 	@Override
 	public boolean isPageCurrent() {
 		return isCurrentPage;
 	}
-	
+
 	@Override
 	public void setPageCurrent(final boolean current) {
 		isCurrentPage = current;

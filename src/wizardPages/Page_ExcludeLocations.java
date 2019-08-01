@@ -271,7 +271,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(),
-						offsetRequired);
+						offsetRequired, false);
 				dialog.open();
 				offsetCalculation(dialog, false, (x , y) -> x + y);
 				GMapInitVar map = new GMapInitVar(
@@ -301,12 +301,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			@Override
 			public void handleEvent(final Event event) {
 				ExistingWellsDialogBox wellDialog = new ExistingWellsDialogBox(container.getShell(), data);
-				CoordinateSystemDialog coordinateDialog = new CoordinateSystemDialog(container.getShell(),
-						true);
 				wellDialog.open();
-//				checkInterval(wellDialog);
-				coordinateDialog.open();
-				offsetCalculation(coordinateDialog, true, (x , y) -> x - y);
 			}
 			
 		});
@@ -401,7 +396,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	//Calculates the well locations after the offset is applied.
 	private void offsetCalculation (final CoordinateSystemDialog dialog, final boolean includeButton,
 			final DoubleBinaryOperator theOperation) {
-		if (offsetRequired || includeButton) {
+		if (offsetRequired) {
 			int sizeX = data.getSet().getNodeStructure().getEdgeX().size();
 			for (int i = 0; i < sizeX; i++) {
 				double temp = theOperation.applyAsDouble(
@@ -409,14 +404,13 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 						(double) dialog.getMinX());
 				
 				data.getSet().getNodeStructure().getEdgeX().set(i, (float) temp);
+				
 			}
-		}
-		if (offsetRequired || includeButton) {
 			int sizeY = data.getSet().getNodeStructure().getEdgeY().size();
 			for (int i = 0; i < sizeY; i++) {
 				double temp = theOperation.applyAsDouble(
 						(double) data.getSet().getNodeStructure().getEdgeY().get(i),
-						(double)dialog.getMinY());
+						(double) dialog.getMinY());
 				data.getSet().getNodeStructure().getEdgeY().set(i, (float) temp);
 			}
 		}

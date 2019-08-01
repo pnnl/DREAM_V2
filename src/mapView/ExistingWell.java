@@ -12,10 +12,17 @@ public class ExistingWell {
 	
 	private float z;
 	
-	public ExistingWell(final Float x, final Float y, final Float z) {
+	private float OffsetX;
+	
+	private float OffsetY;
+	
+	public ExistingWell(final Float x, final Float y, final Float z,
+			final Float theOffsetX, final Float theOffsetY) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		OffsetX = theOffsetX;
+		OffsetY = theOffsetY;
 	}
 	
 	public float getX() {
@@ -28,6 +35,14 @@ public class ExistingWell {
 	
 	public float getZ() {
 		return z;
+	}
+	
+	public float getOriginalXLocation() {
+		return OffsetX;
+	}
+	
+	public float getOriginalYLocation() {
+		return OffsetY;
 	}
 	
 	@Override
