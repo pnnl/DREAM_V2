@@ -1,7 +1,6 @@
 package mapView;
 
 import java.io.File;
-import java.util.Arrays;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
