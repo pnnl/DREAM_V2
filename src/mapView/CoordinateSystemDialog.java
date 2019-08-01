@@ -268,7 +268,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		} else {
 			myEnableButtonCheck[3] = true;
 		}
-		if (offsetRequired) {
+		if (isIncludeLocations) {
 			createDirectoryGUI();
 		}
 	}
