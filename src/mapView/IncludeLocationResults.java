@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class IncludeLocationResults {
 	private List<Integer> scenariosThatHaveParamDetected;
 
 	private int numberOfScenarios;
+	
+	private Map<Integer,List<Integer>> wellNumberToNodes;
 	/**
 	 * A lengthy constructor but we need a lot of information from different classes.
 	 * @param theEdgeX - The list of Edge X values.
@@ -65,6 +68,7 @@ public class IncludeLocationResults {
 		outputForEachWell = new ArrayList<Map<String, Float>>();
 		scenariosThatHaveParamDetected = new ArrayList<Integer>();
 		userOutputdir = theOutputDir;
+		wellNumberToNodes = new HashMap<Integer, List<Integer>>();
 	}
 	
 	/**
@@ -83,6 +87,7 @@ public class IncludeLocationResults {
 			foundAYLocation = false;
 			foundAZLocation = false;
 			myPreviousZValues.clear();
+			myNodeNumbers.clear();
 			for (int j = 1; j < myEdgeXValues.size(); j++) {
 				if (myEdgeXValues.get(j - 1) < myIncludedWells.get(i).getOriginalXLocation()
 						&& myEdgeXValues.get(j) > myIncludedWells.get(i).getOriginalXLocation()) {
@@ -115,6 +120,7 @@ public class IncludeLocationResults {
 					myNodeNumbers.add(theNodeNumber);
 				}
 			}
+			wellNumberToNodes.put(i, new ArrayList<Integer>(myNodeNumbers));
 		}
 	}
 	//Sorry to anyone who has to maintain this portion of the code after me. :(
@@ -133,6 +139,7 @@ public class IncludeLocationResults {
 		// For each well the user has entered.
 		for (int z = 0; z < myIncludedWells.size(); z++) {
 			myParameterToTTD.clear();
+			scenariosThatHaveParamDetected.clear();
 			//For each parameter the user has selected.
 			for (String parameter : myData.getSet().getSensorSettings().keySet()) {
 				String specificType = myData.getSet().getSensorSettings(parameter).specificType;
@@ -144,12 +151,12 @@ public class IncludeLocationResults {
 					firstValueNode = false;
 					sumTTDForScenario = 0;
 					//For each node number calculated from the well included.
-					for (int i = 0; i < myNodeNumbers.size(); i++) {
+					for (int i = 0; i < wellNumberToNodes.get(z).size(); i++) {
 						if (myData.getSet().getDetectionMap().get(specificType).get(scenario)
-								.containsKey(myNodeNumbers.get(i))) {
+								.containsKey(wellNumberToNodes.get(z).get(i))) {
 							//Get the TTD
 							float ttd = myData.getSet().getDetectionMap().get(specificType).get(scenario)
-									.get(myNodeNumbers.get(i));
+									.get((wellNumberToNodes.get(z).get(i)));
 							//Keep track of the number of detecting scenarios we have
 							if (!firstValueNode) {
 								firstValueNode = true;
