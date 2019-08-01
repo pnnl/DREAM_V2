@@ -1,6 +1,7 @@
 package mapView;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -10,6 +11,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -162,27 +165,27 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 
 			zoneDirection.add("N");
 			zoneDirection.add("S");
-			UTMZone.addModifyListener(theEvent -> {
-				try {
-					// If we can successful parse the text then we know it's good input.
-					theZoneNumber = Integer.parseInt(UTMZone.getText());
-					// Set the flag for this component to true.
-					myEnableButtonCheck[1] = true;
-					// If all the components have good inputs then we enable the button.
-					if (checkForBadInput())
-						getButton(OK).setEnabled(true);
-					((Text) theEvent.getSource()).setForeground(Constants.black);
-				} catch (Exception theException) {
-					// Flag this component in our array. Basically saying this input is bad.
-					myEnableButtonCheck[1] = false;
-					if (!checkForBadInput())
-						getButton(OK).setEnabled(false);
-					((Text) theEvent.getSource()).setForeground(Constants.red);
+			// Mimicked for the rest of the modify listeners.
+			zoneDirection.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					theZone = zoneDirection.getText();
+			        //If no zone is entered then we set the button to false and the component in our array to false.
+			        if (theZone.equals(null)) {
+			    		myEnableButtonCheck[0] = false;
+			    		if (!checkForBadInput()) getButton(OK).setEnabled(false);
+			        } else {
+			        	//If zone is entered we check if all the other components have good inputs.
+			        	myEnableButtonCheck[0] = true;
+			        	if (checkForBadInput()) getButton(OK).setEnabled(true);
+			        }	
 				}
 
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
 			});
-
-			// Mimicked for the rest of the modify listeners.
 			UTMZone.addModifyListener(theEvent -> {
 				try {
 					// If we can successful parse the text then we know it's good input.
@@ -266,13 +269,8 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		} else {
 			myEnableButtonCheck[3] = true;
 		}
-		
 		if (offsetRequired) {
 			createDirectoryGUI();
-//			Label xBlank1 = new Label(theContainer, SWT.NONE);
-//			xBlank1.setText("");
-//			Label xBlank2 = new Label(theContainer, SWT.NONE);
-//			xBlank2.setText("");
 		}
 	}
 
