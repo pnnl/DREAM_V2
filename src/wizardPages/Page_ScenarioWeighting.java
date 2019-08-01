@@ -272,7 +272,7 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				
 			}
 		} catch (Exception e) {
-			System.out.println("Didn't set positive Z-Axis direction direction (Setting to up)");
+			
 		}
 		data.needToResetMonitoringParameters = true;
 		data.getSet().getScenarioWeights().clear();
