@@ -139,7 +139,6 @@ public class IncludeLocationResults {
 		// For each well the user has entered.
 		for (int z = 0; z < myIncludedWells.size(); z++) {
 			myParameterToTTD.clear();
-			scenariosThatHaveParamDetected.clear();
 			//For each parameter the user has selected.
 			for (String parameter : myData.getSet().getSensorSettings().keySet()) {
 				String specificType = myData.getSet().getSensorSettings(parameter).specificType;
