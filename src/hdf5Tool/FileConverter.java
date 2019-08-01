@@ -656,7 +656,7 @@ public class FileConverter extends javax.swing.JFrame {
 		// Make sure that we have XYZ and time units, and porosity
 		// Made an assumption that if the file doesn't have x-units none of the other coordinates will have units
 		// Might need to query the user for a constant porosity across the domain
-		if(gp.getUnit("x").equals("") || gp.getUnit("time").equals("") ||
+		if(gp.getUnit("x").equals("") || gp.getUnit("times").equals("") ||
 				gp.getPorosity() == null || gp.getUnit("positive").equals(""))
 			addXYZandTimeUnits(dims3D);
 		
@@ -703,7 +703,7 @@ public class FileConverter extends javax.swing.JFrame {
 		
 		// Writing time variable with units
 		d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{gp.getSelectedTimesArray().length}, null, null, 0, gp.getSelectedTimesArray());
-		classValue = new String[]{ gp.getUnit("time") };
+		classValue = new String[]{ gp.getUnit("times") };
 		attr = new Attribute("units", attrType, attrDims, classValue);
 		d.writeMetadata(attr); //Add the units as an attribute
 		
@@ -756,7 +756,7 @@ public class FileConverter extends javax.swing.JFrame {
 	private synchronized void addXYZandTimeUnits(final long[] dims3D) {
 		//Remove all to make sure their aren't any duplicates.
 		mainPanel.removeAll();
-		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null
+		if (gp.getUnit("x").equals("") || gp.getUnit("times").equals("") || gp.getPorosity() == null
 				|| gp.getZOrientation().equals("")) {
 			JComboBox<String> ZOrientation = new JComboBox<String>(new String[] {"up", "down"});	
 			JComboBox<String> distanceList = new JComboBox<String>(new String[] {"m", "ft"});
@@ -778,9 +778,9 @@ public class FileConverter extends javax.swing.JFrame {
 				}
 				String ZOrient = ZOrientation.getSelectedItem().toString();
 				gp.setZOrientation(ZOrient);
-				if (gp.getUnit("time").equals("")) {
+				if (gp.getUnit("times").equals("")) {
 					String time = timeList.getSelectedItem().toString();
-					gp.setUnit("time", time);
+					gp.setUnit("times", time);
 				}
 				if (gp.getPorosity() == null) {
 					float[] porosity = new float[(int)dims3D[0]*(int)dims3D[1]*(int)dims3D[2]];
@@ -814,7 +814,7 @@ public class FileConverter extends javax.swing.JFrame {
 			, final JComboBox<String> timeList, final JTextField porosityText,
 			final JComboBox<String> theZOrientation) {
 		mainPanel.setLayout(new GridLayout(0,1));
-		if (gp.getUnit("x").equals("") || gp.getUnit("time").equals("") || gp.getPorosity() == null
+		if (gp.getUnit("x").equals("") || gp.getUnit("times").equals("") || gp.getPorosity() == null
 				|| gp.getZOrientation().equals("")) {
 
 			
@@ -849,7 +849,7 @@ public class FileConverter extends javax.swing.JFrame {
 				mainPanel.remove(distanceList);
 				mainPanel.remove(distanceLabel);
 			}
-			if (!gp.getUnit("time").equals("")) {
+			if (!gp.getUnit("times").equals("")) {
 				mainPanel.remove(timeList);
 				mainPanel.remove(timeLabel);
 			} 

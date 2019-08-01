@@ -75,6 +75,8 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	
 	private boolean offsetRequired;
 	
+	private boolean offsetDone;
+	
 	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
 		this.data = data;
@@ -292,7 +294,10 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 						}
 					}
 				}
-				
+				if (offsetDone) {
+					offsetCalculation(dialog, false, (x , y) -> x - y);
+					offsetDone = false;
+				}
 			}
 		});
 		
@@ -397,6 +402,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private void offsetCalculation (final CoordinateSystemDialog dialog, final boolean includeButton,
 			final DoubleBinaryOperator theOperation) {
 		if (offsetRequired) {
+			offsetDone = true;
 			int sizeX = data.getSet().getNodeStructure().getEdgeX().size();
 			for (int i = 0; i < sizeX; i++) {
 				double temp = theOperation.applyAsDouble(
@@ -415,23 +421,4 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
-	
-//	private void checkInterval(final ExistingWellsDialogBox wellDialog) {
-//		Float tempMinX = Collections.min(data.getSet().getNodeStructure().getEdgeX());
-//		Float tempMaxX = Collections.max(data.getSet().getNodeStructure().getEdgeX());
-//		Float tempMinY = Collections.min(data.getSet().getNodeStructure().getEdgeY());
-//		Float tempMaxY = Collections.max(data.getSet().getNodeStructure().getEdgeY());
-//		//If the user entered well is within the bounds of our node structure then we will add it
-//		//To display on our google map
-//		//The existing well will not have a clickable rectangle associated with it.
-//		for (int i = 0; i < wellDialog.getMyWells().size(); i++) {
-//			if (!(wellDialog.getMyWells().get(i).getX() > tempMaxX ||
-//					wellDialog.getMyWells().get(i).getX() < tempMinX || 
-//					wellDialog.getMyWells().get(i).getY() > tempMaxY ||
-//					wellDialog.getMyWells().get(i).getY() < tempMinY)) {
-//				data.getSet().getNodeStructure().getEdgeX().add(wellDialog.getMyWells().get(i).getX());
-//				data.getSet().getNodeStructure().getEdgeY().add(wellDialog.getMyWells().get(i).getY());
-//			}
-//		}
-//	}
 }
