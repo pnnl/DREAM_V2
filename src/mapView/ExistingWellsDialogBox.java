@@ -29,7 +29,11 @@ import org.eclipse.swt.widgets.Text;
 
 import utilities.Constants;
 import wizardPages.DREAMWizard.STORMData;
-
+/**
+ * Creates the include locations dialog box.
+ * @author huan482
+ *
+ */
 public class ExistingWellsDialogBox extends TitleAreaDialog {
 
 	private Map<Integer, Float> mapToValue;
@@ -141,7 +145,9 @@ public class ExistingWellsDialogBox extends TitleAreaDialog {
 	protected boolean canHandleShellCloseEvent() {
 		return true;
 	}
-
+	/**
+	 * Creates the zone headers.
+	 */
 	private void createZoneHeaders() {
 		Label blank = new Label(container, SWT.NONE);
 		blank.setText("");
@@ -152,7 +158,9 @@ public class ExistingWellsDialogBox extends TitleAreaDialog {
 		Label zLabel = new Label(container, SWT.NONE);
 		zLabel.setText("Depth");
 	}
-
+	/**
+	 * Creates the zone text boxes.
+	 */
 	private void createZone() {
 
 		Label wellLabel = new Label(container, SWT.NONE);

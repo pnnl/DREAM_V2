@@ -13,7 +13,11 @@ import javax.swing.JOptionPane;
 import org.apache.commons.io.FileUtils;
 
 import wizardPages.DREAMWizard.STORMData;
-
+/**
+ * This class parses through all the information and outputs it into a .csv file.
+ * @author huan482
+ *
+ */
 public class IncludeLocationResults {
 
 	private List<Float> myEdgeXValues;
@@ -39,7 +43,15 @@ public class IncludeLocationResults {
 	private List<Integer> scenariosThatHaveParamDetected;
 
 	private int numberOfScenarios;
-
+	/**
+	 * A lengthy constructor but we need a lot of information from different classes.
+	 * @param theEdgeX - The list of Edge X values.
+	 * @param theEdgeY - The list of Edge Y values.
+	 * @param theEdgeZ - The list of Edge Z values.
+	 * @param theIncludedWells - The included wells the user entered in.
+	 * @param theData - The data of the file the user entered.
+	 * @param theOutputDir - The output directory of the csv file.
+	 */
 	// Offset values are built into the existing well class.
 	public IncludeLocationResults(final List<Float> theEdgeX, final List<Float> theEdgeY, final List<Float> theEdgeZ,
 			final List<ExistingWell> theIncludedWells, final STORMData theData, final String theOutputDir) {
@@ -54,7 +66,11 @@ public class IncludeLocationResults {
 		scenariosThatHaveParamDetected = new ArrayList<Integer>();
 		userOutputdir = theOutputDir;
 	}
-
+	
+	/**
+	 * Calculates the IJK Points of the existing wells the user has entered,
+	 * and then converts these points into node numbers of our set.
+	 */
 	private void calculateIJKPoints() {
 		myNodeNumbers = new ArrayList<Integer>();
 		int iIndex = 0;
@@ -101,9 +117,11 @@ public class IncludeLocationResults {
 			}
 		}
 	}
-
+	//Sorry to anyone who has to maintain this portion of the code after me. :(
 	/**
-	 * Sorry to anyone who has to maintain this portion of the code after me. ; - ;
+	 * Goes through our detection map and checks if the well the user has entered (now a node number)
+	 * is in our solution space. Grabs all the information we need to print out our output file.
+	 * 
 	 * 
 	 */
 	private void getValuesFromDetectionMap() {
@@ -112,22 +130,27 @@ public class IncludeLocationResults {
 		float averageTTDForDetectScenarios = 0;
 		int counterForDetectingScenarios = 0;
 		int cc = 0;
-		// For each parameter
+		// For each well the user has entered.
 		for (int z = 0; z < myIncludedWells.size(); z++) {
 			myParameterToTTD.clear();
+			//For each parameter the user has selected.
 			for (String parameter : myData.getSet().getSensorSettings().keySet()) {
 				String specificType = myData.getSet().getSensorSettings(parameter).specificType;
 				counterForDetectingScenarios = 0;
 				numberOfScenarios = myData.getSet().getDetectionMap().get(specificType).size();
 				cc = 0;
+				//For each scenario the user has entered.
 				for (String scenario : myData.getSet().getDetectionMap().get(specificType).keySet()) {
 					firstValueNode = false;
 					sumTTDForScenario = 0;
+					//For each node number calculated from the well included.
 					for (int i = 0; i < myNodeNumbers.size(); i++) {
 						if (myData.getSet().getDetectionMap().get(specificType).get(scenario)
 								.containsKey(myNodeNumbers.get(i))) {
+							//Get the TTD
 							float ttd = myData.getSet().getDetectionMap().get(specificType).get(scenario)
 									.get(myNodeNumbers.get(i));
+							//Keep track of the number of detecting scenarios we have
 							if (!firstValueNode) {
 								firstValueNode = true;
 								counterForDetectingScenarios++;
@@ -154,7 +177,9 @@ public class IncludeLocationResults {
 			outputForEachWell.add(new LinkedHashMap<String, Float>(myParameterToTTD));
 		}
 	}
-
+	/**
+	 * Loops through all our data gathered and then writes it in a csv file.
+	 */
 	public void printOutResults() {
 		StringBuilder outputText = new StringBuilder();
 		calculateIJKPoints();
