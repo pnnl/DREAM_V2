@@ -169,7 +169,7 @@ public class ScenarioSet {
 		builder.append("\tCost per well: " + Constants.percentageFormat.format(wellCost) + "\r\n");
 		builder.append("\tCost per " + (zUnit=="" ? "unit" : zUnit) + " depth of well: " + Constants.percentageFormat.format(wellDepthCost) + "\r\n");
 		if(Constants.buildDev)
-			builder.append("\tRemediation cost: " + Constants.percentageFormat.format(remediationCost) + " per " + (zUnit=="" ? "water unit" : zUnit + "^3") + "\r\n");
+			builder.append("\tRemediation cost: " + Constants.percentageFormat.format(remediationCost) + " per " + (zUnit=="" ? "water unit" : zUnit + "³") + "\r\n");
 		
 		return builder.toString();
 	}

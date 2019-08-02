@@ -487,7 +487,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				StringBuilder text = new StringBuilder();
 				
 				// Heading
-				text.append("Time ("+timeUnit+"),Average VAD ("+xUnit+"^3),Minimum VAD ("+xUnit+"^3),Maximum VAD ("+xUnit+"^3)");
+				text.append("Time ("+timeUnit+"),Average VAD ("+xUnit+"³),Minimum VAD ("+xUnit+"^3),Maximum VAD ("+xUnit+"^3)");
 				
 				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
 				Collections.sort(years);

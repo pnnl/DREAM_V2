@@ -231,7 +231,7 @@ public class ResultPrinter {
 			
 			line.append("," + ((costOfConfig < 1000) ? Constants.percentageFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
 			
-			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "^3"));
+			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "³"));
 			
 			for(Sensor sensor: configuration.getSensors()) {
 				Point3f xyz = results.set.getNodeStructure().getXYZCenterFromIJK(sensor.getIJK());
@@ -266,7 +266,7 @@ public class ResultPrinter {
 			Collection<Float> vads = SensorSetting.getVolumesDegraded(configuration.getTimesToDetection()).values();
 			StringBuilder vadLine = new StringBuilder();
 			for(float vad: vads)
-				vadLine.append("," + Constants.decimalFormat.format(vad) + (xUnit.equals("") ? "" : " " + xUnit + "^3"));
+				vadLine.append("," + Constants.decimalFormat.format(vad) + (xUnit.equals("") ? "" : " " + xUnit + "³"));
 			vadLinesToSort.get(costOfConfig).add(vadLine.toString());
 		}
 		
