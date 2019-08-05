@@ -58,6 +58,8 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	private String theOutputDir;
 	
+	private boolean buttonPressed;
+	
 	private String outputs = (Constants.runningJar ? Constants.userDir : Constants.parentDir) + File.separator
 			+ "_results";
 
@@ -147,7 +149,13 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	protected boolean canHandleShellCloseEvent() {
 		return true;
 	}
-
+@Override
+	protected void buttonPressed(int buttonId) {
+		if (buttonId == OK) {
+			buttonPressed = true;
+		}
+		super.buttonPressed(buttonId);
+	}
 	/**
 	 * This class creates the input boxes inside theContainer composite, and creates
 	 * the listeners.
@@ -326,7 +334,11 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		});
 
 	}
-
+	
+	public boolean getButtonPressed() {
+		return buttonPressed;
+	}
+	
 	public int getZone() {
 		return theZoneNumber;
 	}

@@ -276,27 +276,29 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 						offsetRequired, false);
 				dialog.open();
 				offsetCalculation(dialog, false, (x , y) -> x + y);
-				GMapInitVar map = new GMapInitVar(
-						ijs,
-						new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeX()),
-						new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeY()),
-						dialog.getZone(),
-						dialog.getZoneDirection(),
-						data.getSet().getNodeStructure().getUnit("x"),
-						myValidNodePoints);
-				map.initVariables();
-				Application.launch(GMapView.class);
-				
-				if (Platform.isImplicitExit()) {
-					for (IJ box : ijs) {
-						if (buttons.get(box.i).get(box.j) != null) {
-							buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+				if  (dialog.getButtonPressed()) {
+					GMapInitVar map = new GMapInitVar(
+							ijs,
+							new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeX()),
+							new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeY()),
+							dialog.getZone(),
+							dialog.getZoneDirection(),
+							data.getSet().getNodeStructure().getUnit("x"),
+							myValidNodePoints);
+					map.initVariables();
+					Application.launch(GMapView.class);
+					
+					if (Platform.isImplicitExit()) {
+						for (IJ box : ijs) {
+							if (buttons.get(box.i).get(box.j) != null) {
+								buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+							}
 						}
 					}
-				}
-				if (offsetDone) {
-					offsetCalculation(dialog, false, (x , y) -> x - y);
-					offsetDone = false;
+					if (offsetDone) {
+						offsetCalculation(dialog, false, (x , y) -> x - y);
+						offsetDone = false;
+					}
 				}
 			}
 		});
