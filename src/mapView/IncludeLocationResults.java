@@ -114,6 +114,7 @@ public class IncludeLocationResults {
 				}
 			}
 			// Z location will be a little bit different than the other coordinates.
+			// Have to take account for the Z-Axis positive orientation and if it's a negative value
 			if (foundAYLocation) {
 				for (int j = 1; j < myEdgeZValues.size(); j++) {
 					if (myData.getSet().getNodeStructure().getUnit("positive").equals("down")
@@ -123,13 +124,14 @@ public class IncludeLocationResults {
 						kIndex = j;
 					} else {
 						//If the first number in the sorted list is negative we go to this branch.
-						//Since the numbers were negative the ordering is slightly out of order so have to switch the signs.
+						//Since the numbers were negative the ordering is slightly out of order so have to switch the >, < signs.
 						if (isNegative && Math.abs(myEdgeZValues.get(j - 1)) > Math.abs(myIncludedWells.get(i).getZ()) &&
 								Math.abs(myEdgeZValues.get(j)) < Math.abs(myIncludedWells.get(i).getZ())) {
 							foundAZLocation = true;
 							kIndex = j;
 						} else {
-							if (!isNegative && Math.abs(myEdgeZValues.get(j - 1)) < Math.abs(myIncludedWells.get(i).getZ())&&
+							//If the output is positive then we just do this branch.
+							if (!isNegative && myEdgeZValues.get(j - 1) < myIncludedWells.get(i).getZ() &&
 									myEdgeZValues.get(j) > myIncludedWells.get(i).getZ()) {
 								foundAZLocation = true;
 								kIndex = j;
@@ -214,7 +216,7 @@ public class IncludeLocationResults {
 		outputText.append("Parameter");
 		for (String theParameter : myParameterToTTD.keySet()) {
 			outputText.append("," + "Average TTD of Detecting Scenarios " + theParameter);
-			outputText.append("," + "Percent of Detecting Scenarios" + theParameter);
+			outputText.append("," + "Percent of Detecting Scenarios " + theParameter);
 		}
 		int mycounter = 0;
 		for (int i = 0; i < outputForEachWell.size(); i++) {
