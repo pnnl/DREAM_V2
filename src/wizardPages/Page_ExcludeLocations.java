@@ -295,10 +295,10 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 							}
 						}
 					}
-					if (offsetDone) {
-						offsetCalculation(dialog, false, (x , y) -> x - y);
-						offsetDone = false;
-					}
+				}
+				if (offsetDone) {
+					offsetCalculation(dialog, false, (x , y) -> x - y);
+					offsetDone = false;
 				}
 			}
 		});
