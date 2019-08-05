@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.io.FileUtils;
 
+import utilities.Constants;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -33,8 +34,6 @@ public class IncludeLocationResults {
 	private List<ExistingWell> myIncludedWells;
 
 	private STORMData myData;
-
-	private List<Integer> myPreviousZValues;
 
 	private List<Integer> myNodeNumbers;
 
@@ -69,7 +68,7 @@ public class IncludeLocationResults {
 		myEdgeZValues = new ArrayList<Float>(theEdgeZ);
 		myIncludedWells = new ArrayList<ExistingWell>(theIncludedWells);
 		myData = theData;
-		myPreviousZValues = new ArrayList<Integer>();
+//		myPreviousZValues = new ArrayList<Integer>();
 		myParameterToTTD = new LinkedHashMap<String, Float>();
 		outputForEachWell = new ArrayList<Map<String, Float>>();
 		scenariosThatHaveParamDetected = new ArrayList<Integer>();
@@ -85,19 +84,23 @@ public class IncludeLocationResults {
 		myNodeNumbers = new ArrayList<Integer>();
 		int iIndex = 0;
 		int jIndex = 0;
+		int kIndex = 0;
 		boolean foundAXLocation = false;
 		boolean foundAYLocation = false;
 		boolean foundAZLocation = false;
+		boolean isNegative = false;
+		if (myEdgeZValues.get(0) < 0) {
+			isNegative = true;
+		}
 		for (int i = 0; i < myIncludedWells.size(); i++) {
 			foundAXLocation = false;
 			foundAYLocation = false;
 			foundAZLocation = false;
-			myPreviousZValues.clear();
 			myNodeNumbers.clear();
 			for (int j = 1; j < myEdgeXValues.size(); j++) {
 				if (myEdgeXValues.get(j - 1) < myIncludedWells.get(i).getOriginalXLocation()
 						&& myEdgeXValues.get(j) > myIncludedWells.get(i).getOriginalXLocation()) {
-					iIndex = j - 1;
+					iIndex = j;
 					foundAXLocation = true;
 				}
 			}
@@ -105,26 +108,39 @@ public class IncludeLocationResults {
 				for (int j = 1; j < myEdgeYValues.size(); j++) {
 					if (myEdgeYValues.get(j - 1) < myIncludedWells.get(i).getOriginalYLocation()
 							&& myEdgeYValues.get(j) > myIncludedWells.get(i).getOriginalYLocation()) {
-						jIndex = j - 1;
+						jIndex = j;
 						foundAYLocation = true;
 					}
 				}
 			}
 			// Z location will be a little bit different than the other coordinates.
 			if (foundAYLocation) {
-				for (int j = 0; j < myEdgeZValues.size(); j++) {
-					if (myEdgeZValues.get(j) < myIncludedWells.get(i).getZ()) {
+				for (int j = 1; j < myEdgeZValues.size(); j++) {
+					if (myData.getSet().getNodeStructure().getUnit("positive").equals("down")
+							&& myEdgeZValues.get(j - 1) < myIncludedWells.get(i).getZ() &&
+							myEdgeZValues.get(j) > myIncludedWells.get(i).getZ()) {
 						foundAZLocation = true;
-						myPreviousZValues.add(j);
+						kIndex = j;
+					} else {
+						//If the first number in the sorted list is negative we go to this branch.
+						//Since the numbers were negative the ordering is slightly out of order so have to switch the signs.
+						if (isNegative && Math.abs(myEdgeZValues.get(j - 1)) > Math.abs(myIncludedWells.get(i).getZ()) &&
+								Math.abs(myEdgeZValues.get(j)) < Math.abs(myIncludedWells.get(i).getZ())) {
+							foundAZLocation = true;
+							kIndex = j;
+						} else {
+							if (!isNegative && Math.abs(myEdgeZValues.get(j - 1)) < Math.abs(myIncludedWells.get(i).getZ())&&
+									myEdgeZValues.get(j) > myIncludedWells.get(i).getZ()) {
+								foundAZLocation = true;
+								kIndex = j;
+							}
+						}
 					}
 				}
 			}
 			if (foundAZLocation) {
-				for (int j = 0; j < myPreviousZValues.size(); j++) {
-					int theNodeNumber = myData.getSet().getNodeStructure().getNodeNumber(iIndex, jIndex,
-							myPreviousZValues.get(j));
-					myNodeNumbers.add(theNodeNumber);
-				}
+				int theNodeNumber = myData.getSet().getNodeStructure().getNodeNumber(iIndex, jIndex, kIndex);
+				myNodeNumbers.add(theNodeNumber);
 			}
 			wellNumberToNodes.put(i, new ArrayList<Integer>(myNodeNumbers));
 		}
@@ -143,21 +159,18 @@ public class IncludeLocationResults {
 		float sumTTDForScenario = 0;
 		float averageTTDForDetectScenarios = 0;
 		int counterForDetectingScenarios = 0;
-		int cc = 0;
 		// For each well the user has entered.
 		for (int z = 0; z < myIncludedWells.size(); z++) {
 			myParameterToTTD.clear();
 			// For each parameter the user has selected.
 			for (String parameter : myData.getSet().getSensorSettings().keySet()) {
 				String specificType = myData.getSet().getSensorSettings(parameter).specificType;
-				counterForDetectingScenarios = 0;
 				numberOfScenarios = myData.getSet().getDetectionMap().get(specificType).size();
-				cc = 0;
-				// For each scenario the user has entered.
+				counterForDetectingScenarios = 0;
+				// For each scenario the user has entered.\
+				sumTTDForScenario = 0;
 				for (String scenario : myData.getSet().getDetectionMap().get(specificType).keySet()) {
 					firstValueNode = false;
-					sumTTDForScenario = 0;
-					// For each node number calculated from the well included.
 					for (int i = 0; i < wellNumberToNodes.get(z).size(); i++) {
 						if (myData.getSet().getDetectionMap().get(specificType).get(scenario)
 								.containsKey(wellNumberToNodes.get(z).get(i))) {
@@ -169,8 +182,7 @@ public class IncludeLocationResults {
 								firstValueNode = true;
 								counterForDetectingScenarios++;
 								sumTTDForScenario += ttd;
-								cc++;
-							} else {
+							} else  {
 								sumTTDForScenario += ttd;
 							}
 						}
@@ -185,7 +197,7 @@ public class IncludeLocationResults {
 				// scenario
 				// We put the lowest TTD out of all the scenarios nodes into this map.
 				// That TTD will be the best TTD for the parameter
-				scenariosThatHaveParamDetected.add(cc);
+				scenariosThatHaveParamDetected.add(counterForDetectingScenarios);
 				myParameterToTTD.put(specificType, averageTTDForDetectScenarios);
 			}
 			outputForEachWell.add(new LinkedHashMap<String, Float>(myParameterToTTD));
@@ -210,16 +222,18 @@ public class IncludeLocationResults {
 			for (String theParameter : outputForEachWell.get(i).keySet()) {
 				if (outputForEachWell.get(i).get(theParameter) == 0) {
 					outputText.append("," + "N/A");
-					outputText.append(","
-							+ ((float) scenariosThatHaveParamDetected.get(mycounter) / (float) numberOfScenarios) * 100
+					outputText.append("," + Constants.percentageFormat.format(
+							(float) (scenariosThatHaveParamDetected.get(mycounter) / (float) numberOfScenarios) * 100)
 							+ "%");
 					if (mycounter != scenariosThatHaveParamDetected.size() - 1) {
 						mycounter++;
 					}
 				} else {
-					outputText.append("," + outputForEachWell.get(i).get(theParameter));
-					outputText.append(","
-							+ ((float) scenariosThatHaveParamDetected.get(mycounter) / (float) numberOfScenarios) * 100
+					outputText.append(
+							"," + Constants.decimalFormatForCost.format(outputForEachWell.get(i).get(theParameter)) + " "
+									+ myData.getSet().getNodeStructure().getUnit("times"));
+					outputText.append("," + Constants.percentageFormat.format(
+							(float) (scenariosThatHaveParamDetected.get(mycounter) / (float) numberOfScenarios) * 100)
 							+ "%");
 					if (mycounter != scenariosThatHaveParamDetected.size() - 1) {
 						mycounter++;
