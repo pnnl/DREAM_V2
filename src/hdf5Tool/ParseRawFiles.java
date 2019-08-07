@@ -476,16 +476,16 @@ public class ParseRawFiles {
 						System.out.println("Years Error: " + time);
 					}
 					// Also add the number of nodes, as this will be used to count off blocks
-					tokens = line.split(","); //Header info is comma delimited
-					for(String token: tokens) {
+					tokens = line.split("[ ,]"); //Header info is comma delimited
+					for (int i = 0; i < tokens.length; i++) {
 						try {
-							if(token.toLowerCase().contains("nodes")) {
-								nodes = Integer.parseInt(token.split("=")[1].trim());
-							} else if(token.toLowerCase().contains("elements")) {
-								elements = Integer.parseInt(token.split("=")[1].trim());
+							if (tokens[i].equals("NODES")) {
+								nodes = Integer.parseInt(tokens[i + 2]);
+							} else if(tokens[i].equals("ELEMENTS")) {
+								elements = Integer.parseInt(tokens[i + 2]);
 							}
-						} catch(Exception e) {
-							System.out.println("Node/Element Error: " + token.split("=")[1].trim());
+						} catch (Exception theException) {
+							System.out.println("NODE/ELEMENTS: " + tokens[i]);
 						}
 					}
 				}
@@ -533,7 +533,7 @@ public class ParseRawFiles {
 		String line;
 		String parameter = indexMap.get(index);
 		int timeIndex = 0;
-		float[] tempData = new float[elements + 100];
+		float[] tempData = new float[elements];
 		float[] tempStats = new float[3];
 		
 		int countElements = 0;
@@ -554,7 +554,7 @@ public class ParseRawFiles {
 					
 				}
 				// This is the data - we want all selected parameters and porosity
-				if(!line.contains("=") && !line.trim().isEmpty() && !skip) {
+				if(!line.contains("=") && !line.trim().isEmpty() && skip) {
 					String[] tokens = line.split("\\s+"); //Space delimited
 					// Count the numbers so we know when we finish the block - x, y, z based on node count
 					if(parameter.equals("x") || parameter.equals("y") || parameter.equals("z")) {
