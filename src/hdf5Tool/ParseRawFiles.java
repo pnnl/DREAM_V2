@@ -533,7 +533,7 @@ public class ParseRawFiles {
 		String line;
 		String parameter = indexMap.get(index);
 		int timeIndex = 0;
-		float[] tempData = new float[elements];
+		float[] tempData = new float[elements + 100];
 		float[] tempStats = new float[3];
 		
 		int countElements = 0;
@@ -564,7 +564,10 @@ public class ParseRawFiles {
 					} else if(selectedParameters.contains(parameter) || (parameter.toLowerCase().contains("porosity") && porosity==null)) {
 						for(String token: tokens) {
 							float value = Float.parseFloat(token);
-							tempData[countElements] = value;
+							//Catches Array Index Bounds Exception
+							if (countElements < elements) {
+								tempData[countElements] = value;
+							}
 							if(value<tempStats[0]) tempStats[0] = value; //Min
 							tempStats[1] += value/nodes; //Avg for timestep
 							if(value>tempStats[2]) tempStats[2] = value; //Max

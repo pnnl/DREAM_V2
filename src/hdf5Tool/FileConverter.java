@@ -731,11 +731,16 @@ public class FileConverter extends javax.swing.JFrame {
 			int index = gp.getSelectedTimeIndex(time);
 			Group timeStepGroup = hdf5File.createGroup("plot" + index, root);
 			for(String parameter: gp.getSelectedParameters()) {
-				d = hdf5File.createScalarDS(parameter, timeStepGroup, dtype, dims3D, null, null, 0, gp.getData(scenario, parameter)[index]);
-				if(!gp.getUnit(parameter).equals("")) { //Add units as an attribute if they exist
-					classValue[0] = gp.getUnit(parameter);
-					attr = new Attribute("units", attrType, attrDims, classValue);
-					d.writeMetadata(attr);
+				try {
+					d = hdf5File.createScalarDS(parameter, timeStepGroup, dtype, dims3D, null, null, 0,
+							gp.getData(scenario, parameter)[index]);
+					if (!gp.getUnit(parameter).equals("")) { // Add units as an attribute if they exist
+						classValue[0] = gp.getUnit(parameter);
+						attr = new Attribute("units", attrType, attrDims, classValue);
+						d.writeMetadata(attr);
+					}
+				} catch (Exception theException) {
+					System.out.println("No parameter for the scenario.");
 				}
 			}
 		}
