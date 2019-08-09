@@ -535,16 +535,17 @@ public class ParseRawFiles {
 		int timeIndex = 0;
 		float[] tempData = new float[elements];
 		float[] tempStats = new float[3];
-		
+		boolean nextHeader = false;
 		int countElements = 0;
 		int countNodes = 0;
 		boolean skip = false;
 		try (BufferedReader br = new BufferedReader(new FileReader(subFile))) {
 			while ((line = br.readLine()) != null) {
 				// Get the time index from the header
-				if(line.contains("ZONE")) { //This lists the zone name, which includes the timestep
+				if(line.contains("ZONE") && !nextHeader) {
+					nextHeader = false;//This lists the zone name, which includes the timestep
 					String[] tokens = line.split("\""); //Zone name is wrapped in quotes
-					float time = Float.parseFloat(tokens[1].replaceAll("\\D+", "").replaceAll("\\.", ""));
+					float time = Float.parseFloat(tokens[1].replaceAll("[^0-9.]", ""));
 					if(!selectedTimes.contains(time)) {
 						skip = true; //This means we don't want the timestep - skip it until we check at the next timestep
 					} else {
@@ -554,7 +555,7 @@ public class ParseRawFiles {
 					
 				}
 				// This is the data - we want all selected parameters and porosity
-				if(!line.contains("=") && !line.trim().isEmpty() && skip) {
+				if(!line.contains("=") && !line.trim().isEmpty() && !skip && !nextHeader) {
 					String[] tokens = line.split("\\s+"); //Space delimited
 					// Count the numbers so we know when we finish the block - x, y, z based on node count
 					if(parameter.equals("x") || parameter.equals("y") || parameter.equals("z")) {
@@ -564,10 +565,7 @@ public class ParseRawFiles {
 					} else if(selectedParameters.contains(parameter) || (parameter.toLowerCase().contains("porosity") && porosity==null)) {
 						for(String token: tokens) {
 							float value = Float.parseFloat(token);
-							//Catches Array Index Bounds Exception
-							if (countElements < elements) {
-								tempData[countElements] = value;
-							}
+							tempData[countElements] = value;
 							if(value<tempStats[0]) tempStats[0] = value; //Min
 							tempStats[1] += value/nodes; //Avg for timestep
 							if(value>tempStats[2]) tempStats[2] = value; //Max
@@ -600,10 +598,12 @@ public class ParseRawFiles {
 						countNodes = 0; //Reset the counter
 						countElements = 0; //Reset the counter
 						System.out.print(parameter + " ");
-						if(index<indexMap.size()-1)
+						if (index < indexMap.size() - 1)
 							index++;
-						else //Need special handling to reset for the next time block
-							index = 3; //Index of the first parameter that is not x, y, z
+						else if (index == indexMap.size() - 1 && !line.toLowerCase().contains("zone")) {
+							nextHeader = true;
+						} else
+							index = 3; // Index of the first parameter that is not x, y, z
 						parameter = indexMap.get(index);
 					}
 				}
