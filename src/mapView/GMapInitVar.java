@@ -2,7 +2,9 @@ package mapView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import utilities.Point3i;
 
@@ -14,7 +16,7 @@ import utilities.Point3i;
 
 public class GMapInitVar {
 	
-	private final static double FT_TO_M_CONVERSION_FACTOR = 3.281;
+	private final static float FT_TO_M_CONVERSION_FACTOR = (float) 3.281;
 	
 	private static List<Float> xlines = new ArrayList<Float>();
 	
@@ -24,6 +26,8 @@ public class GMapInitVar {
 
 	private List<Double> myY;
 
+	
+	
 	private static int myZone;
 	
 	private static String myZoneDirection;
@@ -60,6 +64,8 @@ public class GMapInitVar {
 	
 	private static List<IJ> myBoxes;
 	
+	private Map<Rectangle, String> rectangleToUtm;
+	
 	public GMapInitVar(final List<IJ> theBoxes,final List<Float> theXEdge, final List<Float> theYEdge,
 			final int theZoneNumber, final String theZone, final String theUnit,
 			final List<Point3i> theValidNodePoints) {
@@ -79,6 +85,7 @@ public class GMapInitVar {
 		myUnit = theUnit;
 		myZone = theZoneNumber;
 		myZoneDirection = theZone;
+		rectangleToUtm = new HashMap<Rectangle, String>();
 	}
 	
 	/**
@@ -108,6 +115,7 @@ public class GMapInitVar {
 			myYGrid.add((float) myLatLong[0]);
 			myY.add(myLatLong[0]);
 		}
+		
 	}
 	
 	/**
@@ -122,39 +130,35 @@ public class GMapInitVar {
 		List<Float> mySouthWestX = new ArrayList<Float>();
 		List<Float> mySouthWestY = new ArrayList<Float>();
 		for (Point3i thePoint : myValidNodePoints) {
-			myNorthEastX.add(myXEdge.get(thePoint.getI() + 1));
-			myNorthEastY.add(myYEdge.get(thePoint.getJ()));
-			mySouthWestX.add(myXEdge.get(thePoint.getI()));
-			mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1));
-
+			if (myUnit.equals("ft")) {
+				myNorthEastX.add(myXEdge.get(thePoint.getI() + 1) / FT_TO_M_CONVERSION_FACTOR);
+				myNorthEastY.add(myYEdge.get(thePoint.getJ()) / FT_TO_M_CONVERSION_FACTOR);
+				mySouthWestX.add(myXEdge.get(thePoint.getI()) / FT_TO_M_CONVERSION_FACTOR);
+				mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1) / FT_TO_M_CONVERSION_FACTOR);
+			} else {
+				myNorthEastX.add(myXEdge.get(thePoint.getI() + 1));
+				myNorthEastY.add(myYEdge.get(thePoint.getJ()));
+				mySouthWestX.add(myXEdge.get(thePoint.getI()));
+				mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1));
+			}
 		}
 		for (int i = 0; i < myNorthEastX.size(); i++) {
-			float temp = myNorthEastX.get(i);
-			if (myUnit.equals("ft")) temp /= FT_TO_M_CONVERSION_FACTOR;
-			double [] myLatLong = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
-					" " + temp + " " + 0));
-			myNorthEastXLongitude.add((float) myLatLong[1]);
-		}
-		for (int i = 0; i < mySouthWestX.size(); i++) {
-			float temp = mySouthWestX.get(i);
-			if (myUnit.equals("ft")) temp /= FT_TO_M_CONVERSION_FACTOR;
-			double [] myLatLong = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
-					" " + temp + " " + 0));
-			mySouthWestXLongitude.add((float) myLatLong[1]);
-		}
-		for (int i = 0; i < myNorthEastY.size(); i++) {
-			float temp = myNorthEastY.get(i);
-			if (myUnit.equals("ft")) temp /= FT_TO_M_CONVERSION_FACTOR;
-			double [] myLatLong = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
-					" " + 0 + " " + temp));
-			myNorthEastYLatitude.add((float) myLatLong[0]);
-		}
-		for (int i = 0; i < mySouthWestY.size(); i++) {
-			float temp = mySouthWestY.get(i);
-			if (myUnit.equals("ft"))  temp /= FT_TO_M_CONVERSION_FACTOR;
-			double [] myLatLong = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
-					" " + 0 + " " + temp));
-			mySouthWestYLatitude.add((float) myLatLong[0]);
+			float tempNEX = myNorthEastX.get(i);
+			float tempSWX = mySouthWestX.get(i);
+			float tempNEY = myNorthEastY.get(i);
+			float tempSWY = mySouthWestY.get(i);
+			double [] myLatLongNEX = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
+					" " + tempNEX + " " + 0));
+			double [] myLatLongSWX = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
+					" " + tempSWX + " " + 0));
+			double [] myLatLongNEY = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
+					" " + 0 + " " + tempNEY));
+			double [] myLatLongSWY = myConverter.utm2LatLon((myZone + " " + myZoneDirection +
+					" " + 0 + " " + tempSWY));
+			myNorthEastXLongitude.add((float) myLatLongNEX[1]);
+			mySouthWestXLongitude.add((float) myLatLongSWX[1]);
+			myNorthEastYLatitude.add((float) myLatLongNEY[0]);
+			mySouthWestYLatitude.add((float) myLatLongSWY[0]);
 		}
 	}
 	
@@ -162,8 +166,6 @@ public class GMapInitVar {
 	 * Finds the bounds of our entire space.
 	 */
 	private void findBounds() {
-		Collections.sort(myX);
-		Collections.sort(myY);
 		minBoundsX = Collections.min(myX);
 		maxBoundsX = Collections.max(myX);
 		minBoundsY = Collections.min(myY);
