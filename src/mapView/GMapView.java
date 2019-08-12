@@ -44,10 +44,6 @@ public class GMapView extends Application implements MapComponentInitializedList
 	
 	private double myMaxBoundsY;
 	
-//	private List<Float> myXGrid;
-//	
-//	private List<Float> myYGrid;
-	
 	private List<Float> mySouthWestXLongitudes;
 	
 	private List<Float> mySouthWestYLatitudes;
@@ -56,17 +52,15 @@ public class GMapView extends Application implements MapComponentInitializedList
 	
 	private List<Float> myNorthEastYLatitudes;
 	
-	private List<IJ> myBoxes;
+	private Map<Integer, IJ> myBoxMapping;
 	
-	private Map<LatLongBounds, IJ> myBoxMapping;
+	private Map<Rectangle, IJ> rectToBox;
 	
 	/**
 	 * JavaFX start method.
 	 */
 	@Override
 	public void start(final Stage theStage) throws Exception {
-//		myXGrid = new ArrayList<Float>();
-//		myYGrid = new ArrayList<Float>();
 		myStage = theStage;
 		//Google Maps API Key, 2nd parameter
 		myMapView = new GoogleMapView("en", "AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
@@ -120,19 +114,17 @@ public class GMapView extends Application implements MapComponentInitializedList
 	 * Grabs the variables from our GMapInitVar class.
 	 */
 	private void initVariables() {
-//		myXGrid = GMapInitVar.getXGrid();
-//		myYGrid = GMapInitVar.getYGrid();
-		myBoxes = GMapInitVar.getMyBoxes();
 		myMinBoundsX = GMapInitVar.getMinBoundX();
 		myMinBoundsY = GMapInitVar.getMinBoundY();
 		myMaxBoundsX = GMapInitVar.getMaxBoundX();
 		myMaxBoundsY= GMapInitVar.getMaxBoundY();
-		myBoxMapping = new HashMap<LatLongBounds, IJ>();
+		myBoxMapping = new HashMap<Integer, IJ>();
 		myNorthEastXLongitudes = GMapInitVar.getMyNorthEastXLongitude();
 		myNorthEastYLatitudes = GMapInitVar.getMyNorthEastYLatitude();
 		mySouthWestXLongitudes = GMapInitVar.getMySouthWestXLongitude();
 		mySouthWestYLatitudes = GMapInitVar.getMySouthWestYLatitude();
-//		System.out.println("Bounds: " + myMinBoundsX + " " + myMinBoundsY + " " + myMaxBoundsX + " " + myMaxBoundsY);
+		myBoxMapping = GMapInitVar.getTempMapping();
+		rectToBox = new HashMap<Rectangle, IJ>();
 	}
 	
 	/**
@@ -195,52 +187,22 @@ public class GMapView extends Application implements MapComponentInitializedList
 					.fillColor("black");
 			Rectangle rect = new Rectangle(rectOpts);
 			myMap.addMapShape(rect);
-			myBoxMapping.put(rectangleBounds, myBoxes.get(i));
+			rectToBox.put(rect, myBoxMapping.get(i + 1));
 			myMap.addUIEventHandler(rect, UIEventType.click, (JSObject obj) -> {
 				if (rect.getJSObject().getMember("fillColor").equals("black")) {
 					myMap.removeMapShape(rect);
 					rectOpts.bounds(rect.getBounds()).fillColor("white");
 					rect.setRectangleOptions(rectOpts);
 					myMap.addMapShape(rect);
-					selectingWells(rect.getBounds(), false);
+					rectToBox.get(rect).prohibited = false;
 				} else {			
 					myMap.removeMapShape(rect);
 					rectOpts.bounds(rect.getBounds()).fillColor("black");
 					rect.setRectangleOptions(rectOpts);
 					myMap.addMapShape(rect);
-					selectingWells(rect.getBounds(), true);
+					rectToBox.get(rect).prohibited = true;
 				}						
 			});
 		}
-	}
-	
-	/**
-	 * Sets the check boxes on the exclude locations page to selected or de-selected 
-	 * based on whether the rectangle inside the google maps window was selected
-	 * or de-selected.
-	 * @param theLLB - The LatLongBounds from the rectangle that was clicked.
-	 * @param allowWell - Boolean value for whether we should select or de-select the well.
-	 */
-	private void selectingWells(final LatLongBounds theLLB, final boolean allowWell) {
-		for (LatLongBounds key: myBoxMapping.keySet()) {
-			if (checkEqualLLB(key, theLLB)) {
-				myBoxMapping.get(key).prohibited = allowWell;
-			}
-		
-		}
-	}
-	/**
-	 * LatLongBound equality and LatLong equality doesn't output correct boolean value.
-	 * Had to decompose the LatLongBounds to it's each individual Latitude and Longitude and then
-	 * check those.
-	 * @param keySet - The key from the KeySet
-	 * @param theLLB - The LatLongBounds from the rectangle that was clicked.
-	 * @return - Whether they are the same LatLongBounds.
-	 */
-	private boolean checkEqualLLB(final LatLongBounds keySet, final LatLongBounds theLLB) {
-		return keySet.getNorthEast().getLatitude() == theLLB.getNorthEast().getLatitude()
-				&& keySet.getNorthEast().getLongitude() == theLLB.getNorthEast().getLongitude()
-				&& keySet.getSouthWest().getLatitude() == theLLB.getSouthWest().getLatitude()
-				&& keySet.getSouthWest().getLongitude() == theLLB.getSouthWest().getLongitude();
 	}
 }
