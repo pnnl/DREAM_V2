@@ -13,12 +13,6 @@ public class InitGMap {
 
 	private static List<Float> longValues;
 
-	private float offSetX = 0;
-
-	private float offSetY = 0;
-
-	private String utmString = "";
-
 //	private float timeStep = 0;
 
 	private List<String> allValues = new ArrayList<String>();
@@ -30,7 +24,9 @@ public class InitGMap {
 	private int myZone;
 
 	private String myZoneDirection;
-
+	
+	private static File[] listOfFiles;
+	
 	public InitGMap(final String outputDir, final int theZone, final String theZoneDirection, final STORMData theData) {
 		data = theData;
 		latValues = new ArrayList<Float>();
@@ -46,9 +42,12 @@ public class InitGMap {
 	}
 	
 	private void calculateUTMValues(final File directory) {
-		File[] listOfFiles = directory.listFiles((d, name) -> name.endsWith(".fwd"));
-		for (int i = 0; i < listOfFiles.length; i++) {
-			String theFileName = listOfFiles[i].getName().substring(0, listOfFiles[i].getName().indexOf("."));
+		float offSetX = 0;
+		float offSetY = 0;
+		String utmString = "";
+		listOfFiles = directory.listFiles((d, name) -> name.endsWith(".fwd"));
+		for (File f : listOfFiles) {
+			String theFileName = f.getName().substring(0, f.getName().indexOf("."));
 			String[] fileTokens = theFileName.split("_");
 			// Once the python script is changed these 3 tokens will always be near the end
 			// of the file name.
@@ -87,4 +86,9 @@ public class InitGMap {
 	public static List<Float> getLongVal() {
 		return longValues;
 	}
+	
+	public static File getFile(final int index) {
+		return listOfFiles[index];
+	}
+	
 }

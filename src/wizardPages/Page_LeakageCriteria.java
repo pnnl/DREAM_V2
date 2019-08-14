@@ -828,7 +828,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			public void handleEvent(final Event theEvent) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false);
 				dialog.open();
-				//When we start doing this programatically.
+				//When we start doing this program
 //				InitGMap gMap = new InitGMap(dialog.getOutputDir(), dialog.getZone(), dialog.getZoneDirection(), data);
 				InitGMap gMap = new InitGMap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code",
 						dialog.getZone(), dialog.getZoneDirection(), data);
