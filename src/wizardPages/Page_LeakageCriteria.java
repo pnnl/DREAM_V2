@@ -40,7 +40,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import gravity.GravGMap;
+import gravity.InitGMap;
 import hdf5Tool.HDF5Interface;
+import javafx.application.Application;
+import mapView.CoordinateSystemDialog;
 import utilities.Constants;
 import utilities.Point3i;
 import utilities.E4DDialog;
@@ -816,7 +820,22 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				findTriggeringNodes();
 			}	       
 		});
-		
+		//TODO: Place holder spot for this button.
+		Button launchGravityButton = new Button(container, SWT.BALLOON);
+		launchGravityButton.setText("Launch Gravity Contour Map");
+		launchGravityButton.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(final Event theEvent) {
+				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false);
+				dialog.open();
+				//When we start doing this programatically.
+//				InitGMap gMap = new InitGMap(dialog.getOutputDir(), dialog.getZone(), dialog.getZoneDirection(), data);
+				InitGMap gMap = new InitGMap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code",
+						dialog.getZone(), dialog.getZoneDirection(), data);
+				gMap.initVariables();
+				Application.launch(GravGMap.class);
+			}
+		});
 		// Resulting nodes for full solution space (unique nodes that trigger on any scenario)
 		Group fullSolutionGroup = new Group(container, SWT.SHADOW_NONE);
 		fullSolutionGroup.setText("Full Solution Space for Each Parameter");
