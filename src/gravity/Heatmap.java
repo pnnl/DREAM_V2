@@ -1,6 +1,9 @@
 package gravity;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,27 +27,32 @@ public class Heatmap {
 	private File[] listOfFiles;
 
 	private static List<Grid> myGrid;
-	
+
 	private double intervalY;
-	
+
 	private double intervalX;
-	
+
 	private double rowAmountX;
-	
+
 	private Comparator<Grid> compare;
-	
+
 	public Heatmap(final String directory) {
 		myGrid = new ArrayList<Grid>();
 		theFolder = new File(directory);
 		listOfFiles = theFolder.listFiles((d, name) -> name.endsWith(".fwd"));
 	}
-
+	
+	public Image getHeatMap() throws IOException {
+		return parseGridData();
+	}
+	
 	/**
 	 * When user clicks on the marker we will grab the (x,y) value and then match it
 	 * with the title of the
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
-	public void parseGridData() throws IOException {
+	private Image parseGridData() throws IOException {
 		String line;
 		// The First File
 		try (BufferedReader br = new BufferedReader(new FileReader(listOfFiles[0]))) {
@@ -52,7 +60,8 @@ public class Heatmap {
 				if (!line.contains("gravity") && !line.contains("x")) {
 					String[] tokens = line.trim().split("\\s+");
 					try {
-						myGrid.add(new Grid(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]), Double.parseDouble(tokens[2])));
+						myGrid.add(new Grid(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]),
+								Double.parseDouble(tokens[2])));
 					} catch (NumberFormatException theException) {
 						System.out.println(tokens[0] + " " + tokens[1] + " " + tokens[2]);
 					}
@@ -73,21 +82,21 @@ public class Heatmap {
 			}
 		}
 		double maxX = Collections.max(myGrid, compare).getX();
-		
+
 		double maxY = Collections.max(myGrid, compare).getY();
 		rowAmountX = maxX / intervalX;
-		createHeatMap(maxX, maxY);
+		return createHeatMap(maxX, maxY);
 	}
 
-	private void createHeatMap(double themaxX, double theMaxY) throws IOException {
+	private Image createHeatMap(double themaxX, double theMaxY) throws IOException {
 		int counter = 0;
 		int rowCounter = 0;
 		double[][] mapARR = new double[(int) rowAmountX][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
-			counter= 0;
+			counter = 0;
 			double[] tempRow = new double[(int) rowAmountX];
 			for (double xVal = intervalX; xVal <= themaxX; xVal += intervalX) {
-				for (Grid gridbox: myGrid) {
+				for (Grid gridbox : myGrid) {
 					if (gridbox.contains(xVal, yVal)) {
 						tempRow[counter] = gridbox.getgz();
 						counter++;
@@ -98,14 +107,14 @@ public class Heatmap {
 			mapARR[rowCounter] = tempRow;
 			rowCounter++;
 		}
-		outputHeatMap(mapARR);
+		return outputHeatMap(mapARR);
 	}
-	
-	private void outputHeatMap(double[][] theHeatMapData) throws IOException {
+
+	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
-		//Dark Blue
+		// Dark Blue
 		Color lowValColor = Color.decode("#05469B");
-		//Dark Red 
+		// Dark Red
 		Color highValColor = Color.decode("#3f0000");
 		map.setLowValueColour(lowValColor);
 		map.setHighValueColour(highValColor);
@@ -113,8 +122,11 @@ public class Heatmap {
 		map.setYValues(980, -intervalY);
 		map.setXValues(intervalX, intervalX);
 		map.setTitle("Gravity Contour Map");
-		map.setXAxisLabel("X-Vals");
-		map.setYAxisLabel("Y Vals");
-		map.saveToFile(new File("test.png"));
+		map.setXAxisLabel("X-Vals (m)");
+		map.setYAxisLabel("Y Vals (m)");
+		// Default is 20
+		map.setCellSize(new Dimension(20, 20));
+		map.setAxisLabelsFont(new Font("Sans-Serif", Font.PLAIN, 20));
+		return map.getChartImage();
 	}
 }

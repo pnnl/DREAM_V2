@@ -60,22 +60,26 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	
 	private boolean buttonPressed;
 	
+	private boolean generateMap = false;
+	
 	private String outputs = (Constants.runningJar ? Constants.userDir : Constants.parentDir) + File.separator
 			+ "_results";
 
-	public CoordinateSystemDialog(final Shell theShell, boolean offsetRequired, boolean isIncludeLocations) {
+	public CoordinateSystemDialog(final Shell theShell, boolean offsetRequired, boolean isIncludeLocations,
+			final boolean getMap) {
 		super(theShell);
 //		theZone = 0;
 		this.offsetRequired = offsetRequired;
 		this.isIncludeLocations = isIncludeLocations;
+		generateMap = getMap;
 	}
 
 	@Override
 	public void create() {
 		myEnableButtonCheck = new boolean[4];
 		super.create();
-		setTitle("Set Map View Specifications");
-		setMessage("Set the Zone (UTM)", IMessageProvider.INFORMATION);
+		setTitle("Set Specifications");
+		setMessage("Input Parameters", IMessageProvider.INFORMATION);
 		getButton(OK).setEnabled(false);
 	}
 
@@ -162,7 +166,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	 */
 	private void createTheInputBoxes() {
 
-		if (!isIncludeLocations) {
+		if (!isIncludeLocations && !generateMap) {
 			Label theDistanceLabel = new Label(theContainer, SWT.NONE);
 			theDistanceLabel.setText("Set the Zone:");
 
@@ -276,7 +280,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		} else {
 			myEnableButtonCheck[3] = true;
 		}
-		if (isIncludeLocations) {
+		if (isIncludeLocations || generateMap) {
 			createDirectoryGUI();
 		}
 	}
@@ -302,7 +306,11 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 	private void createDirectoryGUI() {
 		final DirectoryDialog directoryDialog = new DirectoryDialog(theContainer.getShell());
 		Button buttonSelectDir = new Button(theContainer, SWT.PUSH);
-		buttonSelectDir.setText("Output Directory");
+		if (generateMap) {
+			buttonSelectDir.setText("Input .fwd Files");
+		} else {
+			buttonSelectDir.setText("Output Directory");	
+		}
 		buttonSelectDir.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				directoryDialog.setFilterPath(outputFolder.getText());

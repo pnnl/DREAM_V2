@@ -273,7 +273,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(),
-						offsetRequired, false);
+						offsetRequired, false, false);
 				dialog.open();
 				offsetCalculation(dialog, false, (x , y) -> x + y);
 				if  (dialog.getButtonPressed()) {

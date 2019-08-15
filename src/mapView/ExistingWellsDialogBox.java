@@ -227,7 +227,7 @@ public class ExistingWellsDialogBox extends TitleAreaDialog {
 	protected void buttonPressed(int id) {
 		if (id == OK) {
 			CoordinateSystemDialog coordinateDialog = new CoordinateSystemDialog(container.getShell(),
-					true, true);
+					true, true, false);
 			coordinateDialog.open();
 			float minX = coordinateDialog.getMinX();
 			float minY = coordinateDialog.getMinY();
