@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -31,8 +30,6 @@ public class Heatmap {
 	private double intervalX;
 	
 	private double rowAmountX;
-	
-	private double rowAmountY;
 	
 	private Comparator<Grid> compare;
 	
@@ -78,7 +75,6 @@ public class Heatmap {
 		double maxX = Collections.max(myGrid, compare).getX();
 		
 		double maxY = Collections.max(myGrid, compare).getY();
-		rowAmountY = maxY / intervalY;
 		rowAmountX = maxX / intervalX;
 		createHeatMap(maxX, maxY);
 	}
@@ -107,11 +103,13 @@ public class Heatmap {
 	
 	private void outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
+		//Dark Blue
 		Color lowValColor = Color.decode("#05469B");
+		//Dark Red 
 		Color highValColor = Color.decode("#3f0000");
 		map.setLowValueColour(lowValColor);
 		map.setHighValueColour(highValColor);
-		map.setColourScale(0.5);
+		map.setColourScale(1);
 		map.setYValues(980, -intervalY);
 		map.setXValues(intervalX, intervalX);
 		map.setTitle("Gravity Contour Map");

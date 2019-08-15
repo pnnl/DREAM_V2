@@ -201,6 +201,7 @@ public class HeatChart {
 	private Color lowValueColour;
 	
 	// How many RGB steps there are between the high and low colours.
+	@SuppressWarnings("unused")
 	private int colourValueDistance;
 	
 	private double lowValue;
@@ -1282,7 +1283,7 @@ public class HeatChart {
 		IIOImage image = new IIOImage(chart, null, null);
 		writer.write(null, image, iwp);
 		writer.dispose();
-		
+		output.close();
 	}
 	
 	/**
