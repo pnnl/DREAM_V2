@@ -81,6 +81,9 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		setTitle("Set Specifications");
 		setMessage("Input Parameters", IMessageProvider.INFORMATION);
 		getButton(OK).setEnabled(false);
+		if (generateMap) {
+			getButton(OK).setEnabled(true);
+		}
 	}
 
 	@Override
