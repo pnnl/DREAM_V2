@@ -40,10 +40,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
-import gravity.GravGMap;
-import gravity.InitGMap;
+import gravity.Heatmap;
 import hdf5Tool.HDF5Interface;
-import javafx.application.Application;
 import mapView.CoordinateSystemDialog;
 import utilities.Constants;
 import utilities.Point3i;
@@ -826,14 +824,17 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		launchGravityButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(final Event theEvent) {
-				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false);
-				dialog.open();
+//				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false);
+//				dialog.open();
 				//When we start doing this program
-//				InitGMap gMap = new InitGMap(dialog.getOutputDir(), dialog.getZone(), dialog.getZoneDirection(), data);
-				InitGMap gMap = new InitGMap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code",
-						dialog.getZone(), dialog.getZoneDirection(), data);
-				gMap.initVariables();
-				Application.launch(GravGMap.class);
+//				InitGMap gMap = new InitGMap(dialog.getOutputDir());
+				Heatmap heatMap = new Heatmap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code");
+				try {
+					heatMap.parseGridData();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 		// Resulting nodes for full solution space (unique nodes that trigger on any scenario)

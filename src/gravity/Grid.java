@@ -6,16 +6,18 @@ package gravity;
  * @author huan482
  *
  */
-public class Grid {
+public class Grid  {
 	
 	private double x;
 	
 	private double y;
-
-	public Grid(final double x, final double y) {
+	
+	private double gz; 
+	
+	public Grid(final double x, final double y, final double gzIndex) {
 		this.x = x;
 		this.y = y;
-		
+		this.gz = gzIndex;
 	}
 	
 	public double getX() {
@@ -26,8 +28,16 @@ public class Grid {
 		return y;
 	}
 	
+	public double getgz() {
+		return gz;
+	}
+	
+	public boolean contains(final double xInput, final double yInput) {
+		return xInput == x && yInput == y;
+	}
+	
 	@Override
 	public String toString() {
-		return "x: " + x + " y: " + y; 
+		return "x: " + x + " y: " + y + " " + gz; 
 	}
 }
