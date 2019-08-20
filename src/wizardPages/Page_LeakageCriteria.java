@@ -1,5 +1,6 @@
 package wizardPages;
 
+import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import objects.E4DSensors;
 import objects.Sensor;
 import objects.SensorSetting;
@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
+import gravity.HeatMapWindow;
 import gravity.Heatmap;
 import hdf5Tool.HDF5Interface;
 import mapView.CoordinateSystemDialog;
@@ -818,18 +819,22 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				findTriggeringNodes();
 			}	       
 		});
+		
 		//TODO: Place holder spot for this button.
 		Button launchGravityButton = new Button(container, SWT.BALLOON);
 		launchGravityButton.setText("Launch Gravity Contour Map");
 		launchGravityButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(final Event theEvent) {
-				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false, true);
-				dialog.open();
-				//When we start doing this program
+//				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false, true);
+//				dialog.open(); 
+				// When we start doing this program
 				Heatmap heatMap = new Heatmap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code");
 				try {
-					heatMap.getHeatMap();
+					Image tempImage = heatMap.getHeatMap(1,0);
+					HeatMapWindow window = new HeatMapWindow(tempImage, getContainer().getShell().getSize().x,
+							getContainer().getShell().getSize().y, heatMap.parseTimeSteps(), heatMap);
+					window.run();
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
