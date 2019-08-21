@@ -192,6 +192,10 @@ public class Heatmap {
 							} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
 								if (otherC == resolution) {
 									outlierCounter++;
+									otherC = 0;
+									if (outlierCounter == rowOutlier.size()) {
+										outlierCounter--;
+									}
 								}
 								mapARR[row + k][column + l] = rowOutlier.get(outlierCounter);
 								mapARR[column + l][row + k] = columnOutlier.get(outlierCounter);
