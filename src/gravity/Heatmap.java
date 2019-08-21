@@ -34,7 +34,7 @@ public class Heatmap {
 
 	private double intervalX;
 
-	private double rowAmountX;
+	private double sizeOfSquare;
 
 	double maxY;
 
@@ -73,61 +73,62 @@ public class Heatmap {
 	 * @throws IOException
 	 */
 	private Image parseGridData(final int resolution, final int timeStep) throws IOException {
-			String line;
-			int theFile = 0;
-			// The First File
-			for (File f : listOfFiles) {
-				String temp = f.getName().substring(0, f.getName().indexOf("."));
-				String[] tempTokens = temp.split("_");
-				if (timeStep == Integer.parseInt(tempTokens[tempTokens.length - 1])) {
-					theFile = timeStep - 1;
-					break;
-				}
+		String line;
+		int theFile = 0;
+		// The First File
+		for (File f : listOfFiles) {
+			String temp = f.getName().substring(0, f.getName().indexOf("."));
+			String[] tempTokens = temp.split("_");
+			if (timeStep == Integer.parseInt(tempTokens[tempTokens.length - 1])) {
+				theFile = timeStep - 1;
+				break;
 			}
-			try (BufferedReader br = new BufferedReader(new FileReader(listOfFiles[theFile]))) {
-				while ((line = br.readLine()) != null) {
-					if (!line.contains("gravity") && !line.contains("x")) {
-						String[] tokens = line.trim().split("\\s+");
-						try {
+		}
+		try (BufferedReader br = new BufferedReader(new FileReader(listOfFiles[theFile]))) {
+			while ((line = br.readLine()) != null) {
+				if (!line.contains("gravity") && !line.contains("x")) {
+					String[] tokens = line.trim().split("\\s+");
+					try {
 //						min = Double.parseDouble(tokens[2]);
 //						max = Double.parseDouble(tokens[2]);
-							myGrid.add(new Grid(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]),
-									Double.parseDouble(tokens[2])));
-						} catch (NumberFormatException theException) {
-							System.out.println("File format is wrong.");
-						}
+						myGrid.add(new Grid(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]),
+								Double.parseDouble(tokens[2])));
+					} catch (NumberFormatException theException) {
+						System.out.println("File format is wrong.");
 					}
 				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
-			compare = Comparator.comparing(Grid::getX).thenComparing(Grid::getY);
-			intervalY = myGrid.get(1).getY() - myGrid.get(0).getY();
-			double temp = myGrid.get(0).getX();
-			for (Grid g : myGrid) {
-				if (g.getX() != temp) {
-					intervalX = g.getX() - myGrid.get(0).getX();
-					break;
-				}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		compare = Comparator.comparing(Grid::getX).thenComparing(Grid::getY);
+		intervalY = myGrid.get(1).getY() - myGrid.get(0).getY();
+		double temp = myGrid.get(0).getX();
+		for (Grid g : myGrid) {
+			if (g.getX() != temp) {
+				intervalX = g.getX() - myGrid.get(0).getX();
+				break;
 			}
-			double maxX = Collections.max(myGrid, compare).getX();
+		}
+		double maxX = Collections.max(myGrid, compare).getX();
 
-			maxY = Collections.max(myGrid, compare).getY();
-			rowAmountX = maxX / intervalX;
-			return createHeatMap(maxX, maxY, resolution);
+		maxY = Collections.max(myGrid, compare).getY();
+		sizeOfSquare = maxX / intervalX;
+		return createHeatMap(maxX, maxY, resolution);
 	}
 
 	private Image createHeatMap(double themaxX, double theMaxY, int resolution) throws IOException {
 		Image myImg = null;
 		int counter = 0;
 		int rowCounter = 0;
-		divisibleTick = (int) rowAmountX / 5;
-		double[][] mapARR = new double[(int) rowAmountX][];
+		divisibleTick = (int) sizeOfSquare / 5;
+		ArrayList<Double> temp = new ArrayList<Double>();
+		double[][] mapARR = new double[(int) sizeOfSquare][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
 			counter = 0;
-			double[] tempRow = new double[(int) rowAmountX];
+			double[] tempRow = new double[(int) sizeOfSquare];
 			for (double xVal = intervalX; xVal <= themaxX; xVal += intervalX) {
 				for (Grid gridbox : myGrid) {
 					if (gridbox.contains(xVal, yVal)) {
@@ -141,38 +142,66 @@ public class Heatmap {
 			rowCounter++;
 		}
 		myImg = outputHeatMap(mapARR, resolution);
+
 		if (firstMapCompleted && resolution != 1) {
-			ArrayList<Double> temp = new ArrayList<Double>();
-			int numOfElements = (int) ((rowAmountX - (rowAmountX % resolution)) / resolution);
-			double[][] scaledMap = new double[numOfElements][];
 			double average = 0;
-			for (int i = 0; i < rowAmountX - (rowAmountX % resolution); i++) {
-				for (int j = 0; j < rowAmountX - (rowAmountX % resolution) + 1; j++) {
-					if (j % resolution == 0 && j != 0) {
-						temp.add(average);
-						average = 0;
+			int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
+			int cc = 0;
+			double outlierAverageRow = 0;
+			double outlierAverageColumn = 0;
+			ArrayList<Double> rowOutlier = new ArrayList<Double>();
+			ArrayList<Double> columnOutlier = new ArrayList<Double>();
+			for (int row = 0; row < sizeOfSquare; row += resolution) {
+				for (int column = 0; column < sizeOfSquare; column += resolution) {
+					for (int k = 0; k < resolution; k++) {
+						for (int l = 0; l < resolution; l++) {
+							if (row < remainder && column < remainder) {
+								if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
+									temp.add(average / Math.pow(resolution, 2));
+									average = 0;
+								}
+								average += mapARR[row + k][column + l];
+							} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
+								outlierAverageRow += mapARR[row + k][column + l];
+								outlierAverageColumn += mapARR[column + l][row + k];
+								cc++;
+								if (cc == resolution) {
+									rowOutlier.add(outlierAverageRow / resolution);
+									columnOutlier.add(outlierAverageColumn / resolution);
+									cc = 0;
+									outlierAverageRow = 0;
+									outlierAverageColumn = 0;
+								}
+							}
+						}
 					}
-					average += mapARR[i][j];
 				}
 			}
-			int counter2 = 0;
-			int previousIndex = 0;
-			double averageAmount = -1;
-			for (int a = 0; a < numOfElements; a++) {
-				double[] tempRow = new double[numOfElements];
-				for (int b = 0; b < numOfElements; b++) {
-					counter2 = 0;
-					previousIndex++;
-					averageAmount = temp.get(previousIndex);
-					for (int c = 0; c < numOfElements; c++) {
-						counter2 += numOfElements;
-						averageAmount += temp.get(previousIndex + counter2 - 1);
+			int squareCounter = 0;
+			int outlierCounter = 0;
+			int otherC = 0;
+			for (int row = 0; row < sizeOfSquare; row += resolution) {
+				for (int column = 0; column < sizeOfSquare; column += resolution) {
+					for (int k = 0; k < resolution; k++) {
+						for (int l = 0; l < resolution; l++) {
+							if (row < remainder && column < remainder) {
+								mapARR[row + k][column + l] = temp.get(squareCounter);
+								if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
+									squareCounter++;
+								}
+							} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
+								if (otherC == resolution) {
+									outlierCounter++;
+								}
+								mapARR[row + k][column + l] = rowOutlier.get(outlierCounter);
+								mapARR[column + l][row + k] = columnOutlier.get(outlierCounter);
+								otherC++;
+							}
+						}
 					}
-					tempRow[b] = (averageAmount / (resolution * resolution));
 				}
-				scaledMap[a] = tempRow;
 			}
-			myImg = outputHeatMap(scaledMap,resolution);
+			myImg = outputHeatMap(mapARR, resolution);
 		}
 		firstMapCompleted = true;
 		return myImg;
@@ -193,7 +222,7 @@ public class Heatmap {
 		map.setXAxisLabel("X-Vals (m)");
 		map.setYAxisLabel("Y-Vals (m)");
 		// Default is 20
-		map.setCellSize(new Dimension(BASE_DIMENSIONS * resolution, BASE_DIMENSIONS * resolution));
+		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
 
