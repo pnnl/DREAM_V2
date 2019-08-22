@@ -412,7 +412,7 @@ public class HeatChart {
 	 * element.
 	 * @param xInterval an interval that will separate each x-value item.
 	 */
-	public void setXValues(double xOffset, double xInterval) {		
+	public void setXValues(int xOffset, int xInterval) {		
 		// Update the x-values according to the offset and interval.
 		xValues = new Object[zValues[0].length];
 		for (int i=0; i<zValues[0].length; i++) {

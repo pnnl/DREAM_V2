@@ -2,6 +2,7 @@ package gravity;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,8 +37,10 @@ public class Heatmap {
 
 	private double sizeOfSquare;
 
-	double maxY;
-
+	private double maxY;
+	
+	private Font baseFont;
+	
 	private Comparator<Grid> compare;
 
 	private List<String> myTimeSteps;
@@ -57,6 +60,7 @@ public class Heatmap {
 	private static final String HIGH_VAL_COLOUR =  "#3f0000";
 	
 	public Heatmap(final String directory) {
+		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
 		myTimeSteps = new ArrayList<String>();
 		theFolder = new File(directory);
@@ -153,6 +157,7 @@ public class Heatmap {
 		int rowCounter = 0;
 		divisibleTick = (int) sizeOfSquare / 5;
 		ArrayList<Double> temp = new ArrayList<Double>();
+		//Creates the 1:1 resolution map.
 		double[][] mapARR = new double[(int) sizeOfSquare][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
 			counter = 0;
@@ -240,6 +245,8 @@ public class Heatmap {
 
 	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
+		map.setAxisValuesFont(baseFont);
+		map.setAxisLabelsFont(baseFont);
 		// Dark Blue
 		map.setLowValueColour(Color.decode(LOW_VAL_COLOUR));
 		// Dark Red
@@ -247,9 +254,8 @@ public class Heatmap {
 		map.setColourScale(1);
 		map.setXAxisValuesFrequency(2);
 		map.setYAxisValuesFrequency(2);
-		map.setXValues(intervalX, intervalX);
-		map.setYValues((Double) map.getXValues()[map.getXValues().length - 1], -intervalY);
-		map.setTitle("Gravity Contour Map");
+		map.setXValues((int) intervalX, (int) intervalX);
+		map.setYValues(maxY, -intervalY);
 		map.setXAxisLabel("Easting (m)");
 		map.setYAxisLabel("Northing (m)");
 		// Default is 20
@@ -260,6 +266,7 @@ public class Heatmap {
 	private Image outputColorScale(double[][] theColourScale, final double max, final double interval)
 			throws IOException {
 		HeatChart map = new HeatChart(theColourScale);
+		map.setAxisValuesFont(baseFont);
 		// Dark Blue
 		map.setLowValueColour(Color.decode(LOW_VAL_COLOUR));
 		// Dark Red
