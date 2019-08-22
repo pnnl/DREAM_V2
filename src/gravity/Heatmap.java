@@ -99,8 +99,6 @@ public class Heatmap {
 				if (!line.contains("gravity") && !line.contains("x")) {
 					String[] tokens = line.trim().split("\\s+");
 					try {
-//						min = Double.parseDouble(tokens[2]);
-//						max = Double.parseDouble(tokens[2]);
 						myGrid.add(new Grid(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]),
 								Double.parseDouble(tokens[2])));
 					} catch (NumberFormatException theException) {

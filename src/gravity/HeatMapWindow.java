@@ -1,6 +1,7 @@
 package gravity;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -76,7 +76,9 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		int max = myHeatMap.getDivisibleTick();
 		int min = 1;
 		JLabel title = new JLabel();
-		title.setText("Resolution");
+		title.setText("Select Resolution");
+		JLabel titleTimeStep = new JLabel();
+		titleTimeStep.setText("Select TimeStep");
 		JSlider resolution = new JSlider(JSlider.HORIZONTAL, min, max, 1);
 		resolution.setMajorTickSpacing(1);
 		resolution.setPaintTicks(true);
@@ -93,25 +95,22 @@ public class HeatMapWindow extends JFrame implements Runnable {
 
 		String[] temparr = myTimeSteps.toArray(new String[0]);
 		JComboBox<String> selectTimeStep = new JComboBox<String>(temparr);
+		selectTimeStep.setMaximumSize(new Dimension((int) getLayout().preferredLayoutSize(this).getWidth(), 20));
 		selectTimeStep.addActionListener(theEvent -> {
 			timeStep = Integer.parseInt((String) selectTimeStep.getSelectedItem());
 			try {
+				resolution.setValue(1);
 				Image myImage = myHeatMap.getHeatMap(1, timeStep);
 				imageLabel.setIcon(new ImageIcon(myImage.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		});
-
-		// Just need to change the resolution and it'll be very good
-		JDialog widgets = new JDialog(this, "Change Resolution & TimeStep");
+		temp.add(titleTimeStep);
+		temp.add(selectTimeStep);
 		temp.add(title);
 		temp.add(resolution);
-		widgets.setSize(width / 3, height / 6);
-		temp.add(selectTimeStep);
-		widgets.add(temp);
-		widgets.setVisible(true);
-
+		add(temp, BorderLayout.WEST);
 	}
 
 	@Override

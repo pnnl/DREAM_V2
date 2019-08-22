@@ -826,10 +826,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		launchGravityButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(final Event theEvent) {
-//				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false, true);
-//				dialog.open(); 
+				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false, true);
+				dialog.open(); 
 				// When we start doing this program
-				Heatmap heatMap = new Heatmap("C:\\Users\\huan482\\OneDrive - PNNL\\Documents\\Yang - Code");
+				Heatmap heatMap = new Heatmap(dialog.getOutputDir());
 				try {
 					Image tempImage = heatMap.getHeatMap(1,0);
 					HeatMapWindow window = new HeatMapWindow(tempImage, getContainer().getShell().getSize().x,
