@@ -42,10 +42,20 @@ public class Heatmap {
 
 	private List<String> myTimeSteps;
 
-	private boolean firstMapCompleted;
-
 	private int divisibleTick;
 
+	private double max;
+
+	private double min;
+
+	private Image colorScaleImage;
+
+	private boolean colorScaleCreated;
+	
+	private static final String LOW_VAL_COLOUR =  "#05469B";
+	
+	private static final String HIGH_VAL_COLOUR =  "#3f0000";
+	
 	public Heatmap(final String directory) {
 		myGrid = new ArrayList<Grid>();
 		myTimeSteps = new ArrayList<String>();
@@ -116,6 +126,26 @@ public class Heatmap {
 
 		maxY = Collections.max(myGrid, compare).getY();
 		sizeOfSquare = maxX / intervalX;
+		// build the color scale
+		if (!colorScaleCreated) {
+			compare = Comparator.comparing(Grid::getgz);
+			max = Collections.max(myGrid, compare).getgz();
+			min = Collections.min(myGrid, compare).getgz();
+			double intervalForColorScale = (max - min) / sizeOfSquare;
+			double[][] colorScale = new double[(int) sizeOfSquare][];
+			colorScaleImage = null;
+			double originalMax = max;
+			for (int i = 0; i < sizeOfSquare; i++) {
+				double[] rowForScale = new double[2];
+				rowForScale[0] = max;
+				rowForScale[1] = max;
+				max -= intervalForColorScale;
+				colorScale[i] = rowForScale;
+			}
+			colorScaleImage = outputColorScale(colorScale, originalMax, intervalForColorScale);
+		}
+		colorScaleCreated = true;
+
 		return createHeatMap(maxX, maxY, resolution);
 	}
 
@@ -141,9 +171,9 @@ public class Heatmap {
 			mapARR[rowCounter] = tempRow;
 			rowCounter++;
 		}
-		myImg = outputHeatMap(mapARR, resolution);
+		myImg = outputHeatMap(mapARR);
 
-		if (firstMapCompleted && resolution != 1) {
+		if (resolution != 1) {
 			double average = 0;
 			int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
 			int cc = 0;
@@ -205,33 +235,51 @@ public class Heatmap {
 					}
 				}
 			}
-			myImg = outputHeatMap(mapARR, resolution);
+			myImg = outputHeatMap(mapARR);
 		}
-		firstMapCompleted = true;
 		return myImg;
 	}
 
-	private Image outputHeatMap(double[][] theHeatMapData, final int resolution) throws IOException {
+	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
 		// Dark Blue
-		Color lowValColor = Color.decode("#05469B");
+		map.setLowValueColour(Color.decode(LOW_VAL_COLOUR));
 		// Dark Red
-		Color highValColor = Color.decode("#3f0000");
-		map.setLowValueColour(lowValColor);
-		map.setHighValueColour(highValColor);
+		map.setHighValueColour(Color.decode(HIGH_VAL_COLOUR));
 		map.setColourScale(1);
+		map.setXAxisValuesFrequency(2);
+		map.setYAxisValuesFrequency(2);
 		map.setXValues(intervalX, intervalX);
 		map.setYValues((Double) map.getXValues()[map.getXValues().length - 1], -intervalY);
 		map.setTitle("Gravity Contour Map");
-		map.setXAxisLabel("X-Vals (m)");
-		map.setYAxisLabel("Y-Vals (m)");
+		map.setXAxisLabel("Easting (m)");
+		map.setYAxisLabel("Northing (m)");
 		// Default is 20
+		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
+		return map.getChartImage();
+	}
+
+	private Image outputColorScale(double[][] theColourScale, final double max, final double interval)
+			throws IOException {
+		HeatChart map = new HeatChart(theColourScale);
+		// Dark Blue
+		map.setLowValueColour(Color.decode(LOW_VAL_COLOUR));
+		// Dark Red
+		map.setHighValueColour(Color.decode(HIGH_VAL_COLOUR));
+		map.setColourScale(1);
+		map.setShowXAxisValues(false);
+		map.setYAxisValuesFrequency((int) sizeOfSquare / 4);
+		map.setYValues(max, -interval);
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
 
 	public int getDivisibleTick() {
 		return divisibleTick;
+	}
+
+	public Image getColorScale() {
+		return colorScaleImage;
 	}
 
 }

@@ -34,6 +34,8 @@ import java.util.Iterator;
 import javax.imageio.*;
 import javax.imageio.stream.FileImageOutputStream;
 
+import utilities.Constants;
+
 /**
  * The <code>HeatChart</code> class describes a chart which can display 
  * 3-dimensions of values - x,y and z, where x and y are the usual 2-dimensional
@@ -453,7 +455,7 @@ public class HeatChart {
 		// Update the y-values according to the offset and interval.
 		yValues = new Object[zValues.length];
 		for (int i=0; i<zValues.length; i++) {
-			yValues[i] = yOffset + (i * yInterval);
+			yValues[i] = Constants.decimalFormat.format((yOffset + (i * yInterval)));
 		}
 	}
 	

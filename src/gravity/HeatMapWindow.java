@@ -59,6 +59,8 @@ public class HeatMapWindow extends JFrame implements Runnable {
 
 		add(imagePanel);
 		makeJDialog();
+		add(new JLabel(new ImageIcon(myHeatMap.getColorScale().getScaledInstance(width / 10, (int) (height / 1.1), Image.SCALE_SMOOTH))),
+				BorderLayout.EAST);
 		setVisible(true);
 		pack();
 	}
@@ -82,7 +84,6 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		resolution.addChangeListener(theEvent -> {
 			myResolution = resolution.getValue();
 			try {
-				System.out.println(myResolution);
 				Image myImage = myHeatMap.getHeatMap(myResolution, timeStep);
 				imageLabel.setIcon(new ImageIcon(myImage.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
@@ -95,7 +96,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		selectTimeStep.addActionListener(theEvent -> {
 			timeStep = Integer.parseInt((String) selectTimeStep.getSelectedItem());
 			try {
-				Image myImage = myHeatMap.getHeatMap(myResolution, timeStep);
+				Image myImage = myHeatMap.getHeatMap(1, timeStep);
 				imageLabel.setIcon(new ImageIcon(myImage.getScaledInstance(width, height, Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
