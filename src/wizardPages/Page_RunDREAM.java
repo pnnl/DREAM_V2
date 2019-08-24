@@ -923,7 +923,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 									sb.append(ttds.get(s) == null ? "N/A" : ttds.get(s));
 								}
 								for(Sensor sensor: config.getSensors()){
-									Point3f point = structure.getNodeCenteredXYZFromIJK(sensor.getIJK());
+									Point3f point = structure.getXYZFromIJK(sensor.getIJK());
 									sb.append("," + sensor.getSensorType() + "("
 										+ point.getX() + " " 
 										+ point.getY() + " " 
@@ -1005,7 +1005,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					// Writing out a row for each node
 					for(int node: cloudNodes) {
 						int i = cloudNodes.indexOf(node);
-						Point3f xyz = structure.getXYZCenterfromNodeNumber(node);
+						Point3f xyz = structure.getXYZFromNodeNumber(node);
 						text.append(xyz+","+count[i]/(float)scenarios.size()*100.0+"%,");
 						text.append((min[i]==Float.MAX_VALUE ? "" : min[i]) + ",");
 						text.append((avg[i]==0 ? "" : avg[i]/count[i]) + ",");
@@ -1078,8 +1078,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			for(int j = 1; j <= ijk.getJ(); j++) { 
 				for(int i = 1; i <= ijk.getI(); i++) {
 					Point3i node = new Point3i(i, j, k);
-					int nodeNumber = data.getSet().getNodeStructure().getNodeNumber(node);
-					Point3f xyz = data.getSet().getNodeStructure().getNodeCenteredXYZFromIJK(node);
+					int nodeNumber = data.getSet().getNodeStructure().getNodeNumberFromIJK(node);
+					Point3f xyz = data.getSet().getNodeStructure().getXYZFromIJK(node);
 					text.append("\n" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ());
 					for(String type: data.getSet().getSensorSettings().keySet()){
 						String var = ((data.getSet().getSensorSettings().get(type).getValidNodes().contains(nodeNumber)) ? "1" : "0");
@@ -1119,7 +1119,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					String[] parts = individualSensor.split(":");
 					if(parts.length == 3) {
 						int nodeNumber = Integer.parseInt(parts[0].trim());
-						Point3f xyz = data.getSet().getNodeStructure().getXYZCenterfromNodeNumber(nodeNumber);
+						Point3f xyz = data.getSet().getNodeStructure().getXYZFromNodeNumber(nodeNumber);
 						nodesToReplace.put(parts[0], xyz.toString());
 					} 
 				}

@@ -165,11 +165,11 @@ public class E4DSensors {
 		ertPotentialWellPairings.clear();
 		// May need to remove these if they were added previously
 		List<String> toRemove = new ArrayList<String>();
-		for(String type: set.getNodeStructure().getDataTypes()) {
+		for(String type: set.getNodeStructure().getParameters()) {
 			if(type.contains("Electrical Conductivity"))
 				toRemove.add(type);
 		}
-		set.getNodeStructure().getDataTypes().removeAll(toRemove);
+		set.getNodeStructure().getParameters().removeAll(toRemove);
 		
 		File dir = new File(Constants.userDir, "e4d");
 		if(!dir.exists()) return; // Skip if the e4d module isn't installed
@@ -181,7 +181,7 @@ public class E4DSensors {
 			ertPotentialWellPairings.put(threshold, new HashMap<Integer, List<Integer>>());
 			
 			set.addSensorSetting("Electrical Conductivity_" + threshold, "rel", Float.toString(threshold));
-			set.getNodeStructure().getDataTypes().add("Electrical Conductivity_" + threshold);
+			set.getNodeStructure().getParameters().add("Electrical Conductivity_" + threshold);
 			
 			// Here, we want to read sensor pairings and times from the matrix
 			String line = "";
@@ -240,7 +240,7 @@ public class E4DSensors {
 						int count = ertDetectionTimes.get(threshold).size();
 						System.out.println("The ERT Matrix had scenarios("+count+") not matching what DREAM expects("+scenarios.size()+")");
 						set.removeSensorSettings("Electrical Conductivity_" + threshold);
-						set.getNodeStructure().getDataTypes().remove("Electrical Conductivity_" + threshold);
+						set.getNodeStructure().getParameters().remove("Electrical Conductivity_" + threshold);
 						return;
 					}
 				}

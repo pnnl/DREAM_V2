@@ -273,7 +273,7 @@ public class SensorSetting {
 //		System.out.println(minZ);
 		//Find the nodes that fit this z restriction
 		for(Integer node: validNodes) {
-			Point3f test = nodeStructure.getNodeCenteredXYZFromIJK(nodeStructure.getIJKFromNodeNumber(node));
+			Point3f test = nodeStructure.getXYZFromNodeNumber(node);
 //			System.out.println("Minimum: " + minZ + " Current: " + test.getZ() + " Maximum: " + maxZ);
 			if(test.getZ() < minZ || test.getZ() > maxZ) //outside of bounds
 				fullCloudNodes.remove(node);

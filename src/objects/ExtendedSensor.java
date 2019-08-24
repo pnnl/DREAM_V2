@@ -94,7 +94,7 @@ public class ExtendedSensor extends Sensor {
     // Saves the node pair for ERT technology (k = 1)
     public void setNodePair(int nodeNumber, NodeStructure nodeStructure) {
     	pairNodeNumber = nodeNumber;
-    	pairXYZ = nodeStructure.getXYZEdgeFromIJK(nodeStructure.getIJKFromNodeNumber(nodeNumber));
+    	pairXYZ = nodeStructure.getXYZFromIJK(nodeStructure.getIJKFromNodeNumber(nodeNumber));
     }
     
     // Calls the well pairing for ERT technology (k = 1)
@@ -262,7 +262,7 @@ public class ExtendedSensor extends Sensor {
 	private void move(int nodeNumber, NodeStructure domain) {
     	this.nodeNumber = nodeNumber;
     	node = domain.getIJKFromNodeNumber(nodeNumber);
-    	point = domain.getXYZEdgeFromIJK(node);
+    	point = domain.getXYZFromIJK(node);
     	
     	clearScenariosUsed();
     	clearHistory();
@@ -280,8 +280,8 @@ public class ExtendedSensor extends Sensor {
 	public void moveTo(int i, int j, NodeStructure domain) {
 		
 		node = new Point3i(i, j, node.getK());
-    	nodeNumber = domain.getNodeNumber(node);    	
-    	point = domain.getXYZEdgeFromIJK(node);
+    	nodeNumber = domain.getNodeNumberFromIJK(node);    	
+    	point = domain.getXYZFromIJK(node);
     	
     	clearScenariosUsed();
     	clearHistory();

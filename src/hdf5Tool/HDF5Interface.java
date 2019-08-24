@@ -127,10 +127,10 @@ public class HDF5Interface {
 					else //support for old file structures that don't have vertex information or units TODO: Remove when we no longer want to support
 						nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
 					
-				} else if(name.startsWith("plot") && nodeStructure.getDataTypes().isEmpty()) {
+				} else if(name.startsWith("plot") && nodeStructure.getParameters().isEmpty()) {
 					for(int groupIndex = 0; groupIndex < ((Group)root.getMemberList().get(rootIndex)).getMemberList().size(); groupIndex++) {
 						Dataset dataset = (Dataset)((Group)root.getMemberList().get(rootIndex)).getMemberList().get(groupIndex);
-						nodeStructure.addDataType(dataset.getName());
+						nodeStructure.addParameter(dataset.getName());
 						// If we have units stored for parameters, we want to save them
 						if(dataset.hasAttribute()) //Right now we only list one attribute - units
 							nodeStructure.addUnit(dataset.getName(), extractUnitAttribute(dataset));

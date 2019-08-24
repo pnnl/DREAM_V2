@@ -234,11 +234,11 @@ public class ResultPrinter {
 			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "³"));
 			
 			for(Sensor sensor: configuration.getSensors()) {
-				Point3f xyz = results.set.getNodeStructure().getXYZCenterFromIJK(sensor.getIJK());
+				Point3f xyz = results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 				// Special exception for ERT where no z is needed
 				if(sensor.getSensorType().contains("Electrical Conductivity")) {
 					Point3i ijkPair = results.set.getNodeStructure().getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
-					Point3f xyzPair = results.set.getNodeStructure().getXYZCenterFromIJK(ijkPair);
+					Point3f xyzPair = results.set.getNodeStructure().getXYZFromIJK(ijkPair);
 					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + ") (" + xyzPair.getX() + " " + xyzPair.getY() + ")");
 				} else {
 					line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
@@ -372,7 +372,7 @@ public class ResultPrinter {
 			line.append(volumeDegraded.get(i) + ",");
 			line.append(configs.get(i).getSensors().size());
 			for(Sensor sensor: configs.get(i).getSensors()){
-				Point3f xyz =results.set.getNodeStructure().getXYZEdgeFromIJK(sensor.getIJK());
+				Point3f xyz =results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
 				line.append("," + Sensor.sensorAliases.get(sensor.getSensorType()) + " (" + xyz.getX() + " " + xyz.getY() + " " + xyz.getZ() + ")");
 			}
 			lines.add(line.toString());

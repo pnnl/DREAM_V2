@@ -30,15 +30,20 @@ public class Point3f implements Comparable<Point3f> {
 		this.y = xyzPoint.getY();
 		this.z = xyzPoint.getZ();
 	}
-
+	
+	/**					**\
+	 * Getters & Setters *
+	 * 					 *
+	\*					 */
+	
 	public float getX() {
 		return x;
 	}
-
+	
 	public float getY() {
 		return y;
 	}
-
+	
 	public float getZ() {
 		return z;
 	}

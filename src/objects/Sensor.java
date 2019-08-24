@@ -27,8 +27,8 @@ public class Sensor {
     public Sensor(int i, int j, int k, String type, NodeStructure domain) {
     	
     	node =  new Point3i(i,j,k);
-    	nodeNumber = domain.getNodeNumber(node);
-    	point = domain.getXYZEdgeFromIJK(node);
+    	nodeNumber = domain.getNodeNumberFromIJK(node);
+    	point = domain.getXYZFromIJK(node);
     	
     	this.type = type;
     }
@@ -37,7 +37,7 @@ public class Sensor {
     	
     	this.nodeNumber = nodeNumber;
     	node = domain.getIJKFromNodeNumber(nodeNumber);
-    	point = domain.getXYZEdgeFromIJK(node);
+    	point = domain.getXYZFromIJK(node);
     	
     	this.type = type;
     }
@@ -60,8 +60,8 @@ public class Sensor {
 		node.setJ(j);
 		node.setK(k);
 		node =  new Point3i(i,j,k);
-    	nodeNumber = domain.getNodeNumber(node);
-    	point = domain.getXYZEdgeFromIJK(node);
+    	nodeNumber = domain.getNodeNumberFromIJK(node);
+    	point = domain.getXYZFromIJK(node);
 	}
 	
 	public String getSensorType() {

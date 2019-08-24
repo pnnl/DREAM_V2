@@ -283,9 +283,9 @@ public class ExtendedConfiguration extends Configuration {
 			String IJ = sensor.getIJK().getI() + "_" + sensor.getIJK().getJ();
 			if(!ijs.contains(IJ))
 				ijs.add(IJ);
-			Point3f xyz = nodeStructure.getXYZEdgeFromIJK(sensor.getIJK());
+			Point3f xyz = nodeStructure.getXYZFromIJK(sensor.getIJK());
 			if(sensor.getSensorType().contains("Electrical Conductivity")) {
-				Point3f xyzPair = nodeStructure.getXYZEdgeFromIJK(nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber()));
+				Point3f xyzPair = nodeStructure.getXYZFromIJK(nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber()));
 				nodePositions.append(", " + sensor.getSensorType() + " (" + Constants.decimalFormat.format(xyz.getX()) + " " + Constants.decimalFormat.format(xyz.getY()));
 				nodePositions.append(") (" + Constants.decimalFormat.format(xyzPair.getX()) + " " + Constants.decimalFormat.format(xyzPair.getY()) + ")");
 				Point3i nodePair = nodeStructure.getIJKFromNodeNumber(((ExtendedSensor)sensor).getNodePairNumber());
@@ -605,7 +605,7 @@ public class ExtendedConfiguration extends Configuration {
 		// long startTime = System.currentTimeMillis();
 
 		// We will try to add here first.
-		int addPoint = scenarioSet.getNodeStructure().getNodeNumber(scenarioSet.getAddPoint());
+		int addPoint = scenarioSet.getNodeStructure().getNodeNumberFromIJK(scenarioSet.getAddPoint());
 		Map<String, List<Integer>> affordableSensors = new HashMap<String, List<Integer>>();
 		List<String> types = new ArrayList<String>();
 		boolean atAddPoint = false;

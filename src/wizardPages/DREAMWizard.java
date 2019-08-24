@@ -368,7 +368,7 @@ public class DREAMWizard extends Wizard {
 								
 								monitor.subTask("reading scenarios from all files");
 								IAMInterface.readIAMFiles(monitor, list, set);
-								set.getNodeStructure().setDataTypes(IAMInterface.getDataTypes()); // Set the data types
+								set.getNodeStructure().setParameters(IAMInterface.getDataTypes()); // Set the data types
 								set.setupScenarios(IAMInterface.getScenarios()); // Set the scenarios
 								monitor.worked(list.length);
 								

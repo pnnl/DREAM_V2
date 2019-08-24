@@ -212,7 +212,7 @@ public class ScenarioSet {
 	
 	public void setupSensorSettings() {
 		// Setup the sensor settings array
-		for(final String type: nodeStructure.getDataTypes())
+		for(final String type: nodeStructure.getParameters())
 			sensorSettings.put(type, new SensorSetting(nodeStructure, type));
 	}
 	
@@ -388,7 +388,7 @@ public class ScenarioSet {
 //			} else {
 //				xVal = SensorSetting.globalMaxZ;
 //			}
-			cost += Math.abs(this.getNodeStructure().getXYZCenterFromIJK(location).getZ()) * this.wellDepthCost;
+			cost += Math.abs(this.getNodeStructure().getXYZFromIJK(location).getZ()) * this.wellDepthCost;
 			cost += this.wellCost;
 		}
 		configuration.setConfigCost(cost);
@@ -526,7 +526,7 @@ public class ScenarioSet {
 	}
 	
 	public List<String> getAllPossibleDataTypes() {
-		return nodeStructure.getDataTypes();
+		return nodeStructure.getParameters();
 	}
 
 	public void resetSensorSettings(String type) {
