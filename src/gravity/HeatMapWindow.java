@@ -48,7 +48,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 	}
 
 	private void setJFrame() {
-		setResizable(false);
+		setResizable(true);
 		setTitle("Gravity Contour Map");
 		ImageIcon temp = new ImageIcon(
 				image.getImage().getScaledInstance((int) (width / 1.2), (int) (height / 1.2), Image.SCALE_SMOOTH));
@@ -72,12 +72,12 @@ public class HeatMapWindow extends JFrame implements Runnable {
 
 	private void makeJDialog() {
 		JPanel temp = new JPanel();
-//		temp.setLayout(new BoxLayout(temp, BoxLayout.Y_AXIS));
+
 
 		int max = myHeatMap.getDivisibleTick();
 		int min = 1;
 		JLabel title = new JLabel();
-		title.setText("Select Resolution: ");
+		title.setText("Select Resolution: 1:? ");
 		JLabel titleTimeStep = new JLabel();
 		titleTimeStep.setText("Select TimeStep: ");
 		JSlider resolution = new JSlider(JSlider.HORIZONTAL, min, max, 1);

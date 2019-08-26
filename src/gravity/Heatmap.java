@@ -156,7 +156,6 @@ public class Heatmap {
 		int counter = 0;
 		int rowCounter = 0;
 		divisibleTick = (int) sizeOfSquare / 5;
-		ArrayList<Double> temp = new ArrayList<Double>();
 		//Creates the 1:1 resolution map.
 		double[][] mapARR = new double[(int) sizeOfSquare][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
@@ -175,76 +174,97 @@ public class Heatmap {
 			rowCounter++;
 		}
 		myImg = outputHeatMap(mapARR);
-
+		//This section of the code is what we use for different resolutions
 		if (resolution != 1) {
-			double average = 0;
-			int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
-			int cc = 0;
-			double outlierAverageRow = 0;
-			double outlierAverageColumn = 0;
-			ArrayList<Double> rowOutlier = new ArrayList<Double>();
-			ArrayList<Double> columnOutlier = new ArrayList<Double>();
-			for (int row = 0; row < sizeOfSquare; row += resolution) {
-				for (int column = 0; column < sizeOfSquare; column += resolution) {
-					for (int k = 0; k < resolution; k++) {
-						for (int l = 0; l < resolution; l++) {
-							if (row < remainder && column < remainder) {
-								if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
-									temp.add(average / Math.pow(resolution, 2));
-									average = 0;
-								}
-								average += mapARR[row + k][column + l];
-							} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
-								outlierAverageRow += mapARR[row + k][column + l];
-								outlierAverageColumn += mapARR[column + l][row + k];
-								cc++;
-								if (cc == resolution) {
-									rowOutlier.add(outlierAverageRow / resolution);
-									columnOutlier.add(outlierAverageColumn / resolution);
-									cc = 0;
-									outlierAverageRow = 0;
-									outlierAverageColumn = 0;
-								}
-							}
-						}
-					}
-				}
-			}
-			int squareCounter = 0;
-			int outlierCounter = 0;
-			int otherC = 0;
-			for (int row = 0; row < sizeOfSquare; row += resolution) {
-				for (int column = 0; column < sizeOfSquare; column += resolution) {
-					for (int k = 0; k < resolution; k++) {
-						for (int l = 0; l < resolution; l++) {
-							if (row < remainder && column < remainder) {
-								mapARR[row + k][column + l] = temp.get(squareCounter);
-								if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
-									squareCounter++;
-								}
-							} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
-								if (otherC == resolution) {
-									outlierCounter++;
-									otherC = 0;
-									if (outlierCounter == rowOutlier.size()) {
-										outlierCounter--;
-									}
-								}
-								mapARR[row + k][column + l] = rowOutlier.get(outlierCounter);
-								mapARR[column + l][row + k] = columnOutlier.get(outlierCounter);
-								otherC++;
-							}
-						}
-					}
-				}
-			}
-			myImg = outputHeatMap(mapARR);
+			myImg = createDifferentResolutionMap(mapARR, resolution);
 		}
 		return myImg;
 	}
-
+	
+	/**
+	 * This method deals with creating a heatmap with different resolutions. (resolution != 1)
+	 * @param mapARR - The map we're changing and which has all of our information in.
+	 * @param resolution - The resolution requested.
+	 * @return - The new HeatMap
+	 * @throws IOException - We're turning an image which has some risks inherently.
+	 */
+	private Image createDifferentResolutionMap(final double [][] mapARR, final int resolution) throws IOException {
+		ArrayList<Double> temp = new ArrayList<Double>();
+		double average = 0;
+		int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
+		int cc = 0;
+		double outlierAverageRow = 0;
+		double outlierAverageColumn = 0;
+		ArrayList<Double> rowOutlier = new ArrayList<Double>();
+		ArrayList<Double> columnOutlier = new ArrayList<Double>();
+		//This part of the code calculates the average of the (resolution x resolution) square we're requesting for.
+		//THe 4 for loops is just a method to average the values in the square.
+		for (int row = 0; row < sizeOfSquare; row += resolution) {
+			for (int column = 0; column < sizeOfSquare; column += resolution) {
+				for (int k = 0; k < resolution; k++) {
+					for (int l = 0; l < resolution; l++) {
+						if (row < remainder && column < remainder) {
+							if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
+								temp.add(average / Math.pow(resolution, 2));
+								average = 0;
+							}
+							average += mapARR[row + k][column + l];
+						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
+							//Purpose of this branch is too average the outlier's rows/columns.
+							//We add the averaged values into a separate list.
+							outlierAverageRow += mapARR[row + k][column + l];
+							outlierAverageColumn += mapARR[column + l][row + k];
+							cc++;
+							if (cc == resolution) {
+								rowOutlier.add(outlierAverageRow / resolution);
+								columnOutlier.add(outlierAverageColumn / resolution);
+								cc = 0;
+								outlierAverageRow = 0;
+								outlierAverageColumn = 0;
+							}
+						}
+					}
+				}
+			}
+		}
+		int squareCounter = 0;
+		int outlierCounter = 0;
+		int otherC = 0;
+		//This section of the for loop places all the averages we calculated for the square inside the square.
+		for (int row = 0; row < sizeOfSquare; row += resolution) {
+			for (int column = 0; column < sizeOfSquare; column += resolution) {
+				for (int k = 0; k < resolution; k++) {
+					for (int l = 0; l < resolution; l++) {
+						if (row < remainder && column < remainder) {
+							//This is the replacement part of the code where we replace the elements inside our array.
+							mapARR[row + k][column + l] = temp.get(squareCounter);
+							if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
+								//When we move onto the next (# x # square) we're going to go to the next value we found averaged
+								squareCounter++;
+							}
+						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
+							if (otherC == resolution) {
+								//We need to replace the outlier's now.
+								outlierCounter++;
+								otherC = 0;
+								if (outlierCounter == rowOutlier.size()) {
+									outlierCounter--;
+								}
+							}
+							mapARR[row + k][column + l] = rowOutlier.get(outlierCounter);
+							mapARR[column + l][row + k] = columnOutlier.get(outlierCounter);
+							otherC++;
+						}
+					}
+				}
+			}
+		}
+		return outputHeatMap(mapARR);
+	}
+	
 	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
+		//To change the font please change the variable baseFont
 		map.setAxisValuesFont(baseFont);
 		map.setAxisLabelsFont(baseFont);
 		// Dark Blue
@@ -258,7 +278,7 @@ public class Heatmap {
 		map.setYValues(maxY, -intervalY);
 		map.setXAxisLabel("Easting (m)");
 		map.setYAxisLabel("Northing (m)");
-		// Default is 20
+		// Default is 20, change static variable to get different cell size.
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
@@ -278,7 +298,7 @@ public class Heatmap {
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
-
+	
 	public int getDivisibleTick() {
 		return divisibleTick;
 	}
