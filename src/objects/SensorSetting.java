@@ -71,7 +71,7 @@ public class SensorSetting {
 
 	private HashSet<Integer> validNodes; //Pareto optimal locations (if set in Constants class)
 	private HashSet<Integer> fullCloudNodes; //Full set of allowed locations
-	private static Map<String, HashMap<Float, Float>> volumeDegradedByYear;
+	private static Map<String, HashMap<Float, Float>> volumeDegradedByYear; //Scenario <time, VAD>
 	private static List<Float> years;
 	public static float globalMinZ;
 	public static float globalMaxZ;
@@ -125,64 +125,45 @@ public class SensorSetting {
 		Constants.log(Level.CONFIG, "Sensor settings "+type+": configuration", this);
 	}
 	
-	public static void setVolumeDegradedByYear(Map<String, HashMap<Float, Float>> volumeDegradedByYear2, ArrayList<Float> yearList){
+	public static void setVolumeDegradedByYear(Map<String, HashMap<Float, Float>> volumeDegraded, ArrayList<Float> yearList){
 		years = yearList;
-		volumeDegradedByYear = volumeDegradedByYear2;
+		volumeDegradedByYear = volumeDegraded;
 	}
 	
 	public static List<Float> getYears() {
 		return years;
 	}
 	
-	public static Map<String, Float> getVolumesDegraded(Map<String, Float> ttdMap){
+	//Returns a map of VAD by scenario
+	//volumeDegradedByYear = Scenario <time, VAD>
+	public static Map<String, Float> getVolumesDegraded(Map<String, Float> ttdMap) {
 		HashMap<String, Float> vadMap = new HashMap<String, Float>();
-		for(String scenario: ttdMap.keySet()){
-			if(volumeDegradedByYear.containsKey(scenario)){
-				int i=1;
-				while(i <= years.size()){
-					if(i == years.size()) vadMap.put(scenario, volumeDegradedByYear.get(scenario).get(years.get(i-1)));
-					else if(ttdMap.get(scenario) <= years.get(i)){
-						vadMap.put(scenario, volumeDegradedByYear.get(scenario).get(years.get(i)));
-						break;
-					}
-					i++;
-				}
-			}
-			else{
-				vadMap.put(scenario, 0f);
-				System.out.println("Wasn't sure I would hit this - VAD for printing");
-			}
+		for(String scenario: ttdMap.keySet()) {
+			float ttd = ttdMap.get(scenario);
+			float vad = volumeDegradedByYear.get(scenario).get(ttd);
+			vadMap.put(scenario, vad);
 		}
 		return vadMap;
 	}
 	
-	public static float getVolumeDegradedByTTDs(Map<String, Float> ttdMap, int numScenarios) {
-		float volume = 0;
-		//Note that this only loops over scenarios in which some volume of aquifer is degraded
-		for(String scenario: volumeDegradedByYear.keySet()){
-			if(!ttdMap.containsKey(scenario) && years.size() != 0){
-				volume += volumeDegradedByYear.get(scenario).get(years.get(years.size()-1));
-				continue;
-			}
-			int i=1;
-			while(i <= years.size()){
-				if(i == years.size()) volume += volumeDegradedByYear.get(scenario).get(years.get(i-1)); // I don't think this should ever happen, but just making sure.
-				else if(ttdMap.get(scenario) <= years.get(i)){
-					volume += volumeDegradedByYear.get(scenario).get(years.get(i));
-					break;
-				}
-				i++;
-			}
+	//Returns the average VAD
+	//volumeDegradedByYear = Scenario <time, VAD>
+	public static float getAverageVolumeDegraded(Map<String, Float> ttdMap) {
+		float sum = 0;
+		//Note that this only loops over detecting scenarios
+		for(String scenario: ttdMap.keySet()) {
+			float ttd = ttdMap.get(scenario);
+			sum += volumeDegradedByYear.get(scenario).get(ttd);
 		}
-		return volume/numScenarios;
+		return sum/ttdMap.size(); //Divide by number of detecting scenarios
 	}
 	
-	public static HashMap<Float,Float> getAverageVolumeDegradedAtTimesteps(){
-		HashMap<Float,Float> averageVADMap = new HashMap<Float,Float>();
-		int numScenarios = volumeDegradedByYear.keySet().size();
-		for(Float year: years){
+	public static HashMap<Float,Float> getAverageVolumeDegradedAtTimesteps() {
+		HashMap<Float,Float> averageVADMap = new HashMap<Float,Float>(); // <year, VAD>
+		int numScenarios = volumeDegradedByYear.size();
+		for(float year: years) {
 			float totalVAD = 0;
-			for(String scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()) {
 				totalVAD += volumeDegradedByYear.get(scenario).get(year);
 			}
 			averageVADMap.put(year, totalVAD/numScenarios);
@@ -190,11 +171,11 @@ public class SensorSetting {
 		return averageVADMap;
 	}
 	
-	public static HashMap<Float,Float> getMaxVolumeDegradedAtTimesteps(){
-		HashMap<Float,Float> maxVADMap = new HashMap<Float,Float>();
-		for(Float year: years){
+	public static HashMap<Float,Float> getMaxVolumeDegradedAtTimesteps() {
+		HashMap<Float,Float> maxVADMap = new HashMap<Float,Float>(); // <year, VAD>
+		for(float year: years) {
 			float maxVAD = 0;
-			for(String scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()) {
 				maxVAD = Math.max(maxVAD, volumeDegradedByYear.get(scenario).get(year));
 			}
 			maxVADMap.put(year, maxVAD);
@@ -202,11 +183,11 @@ public class SensorSetting {
 		return maxVADMap;
 	}
 	
-	public static HashMap<Float,Float> getMinVolumeDegradedAtTimesteps(){
-		HashMap<Float,Float> minVADMap = new HashMap<Float,Float>();
-		for(Float year: years){
+	public static HashMap<Float,Float> getMinVolumeDegradedAtTimesteps() {
+		HashMap<Float,Float> minVADMap = new HashMap<Float,Float>(); // <year, VAD>
+		for(float year: years) {
 			float minVAD = Float.MAX_VALUE;
-			for(String scenario: volumeDegradedByYear.keySet()){
+			for(String scenario: volumeDegradedByYear.keySet()) {
 				minVAD = Math.min(minVAD, volumeDegradedByYear.get(scenario).get(year));
 			}
 			minVADMap.put(year, minVAD);

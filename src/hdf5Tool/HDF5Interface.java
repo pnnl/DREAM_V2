@@ -263,7 +263,7 @@ public class HDF5Interface {
 			monitor.worked(900/hdf5Files.size());
 		}
 		long elapsedTime = (System.currentTimeMillis() - startTime)/1000;
-		System.out.println("You just created a detection map for " + specificType + " in " + elapsedTime + " seconds! Awesome! So Fast!");
+		System.out.println("You just created a detection map for " + specificType + " in " + Constants.formatSeconds(elapsedTime) + "! Awesome! So Fast!");
 	}
 	
 	

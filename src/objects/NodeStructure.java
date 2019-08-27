@@ -149,6 +149,23 @@ public class NodeStructure {
 		return this.z.indexOf(z) + 1;
 	}
 	
+	// Returns the total possible volume of aquifer degraded
+	public float getPossibleVAD() {
+		float totalVolume = 0;
+		for(int i=1; i<edgex.size(); i++) {
+			for(int j=1; j<edgey.size(); j++) {
+				for(int k=1; k<edgez.size(); k++) {
+					float lengthx = edgex.get(i) - edgex.get(i-1);
+					float lengthy = edgey.get(j) - edgey.get(j-1);
+					float lengthz = edgez.get(k) - edgez.get(k-1);
+					float volume = lengthx*lengthy*lengthz*porosityOfNode.get(new Point3i(i,j,k));
+					totalVolume += volume;
+				}
+			}
+		}
+		return totalVolume;
+	}
+	
 	// Returns the volume of aquifer degraded for a cube (factors porosity)
 	public float getVolumeOfNode(Point3i location){
 		float lengthx = edgex.get(location.getI()) - edgex.get(location.getI()-1);

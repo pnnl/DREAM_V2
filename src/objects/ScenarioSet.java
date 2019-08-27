@@ -50,6 +50,7 @@ public class ScenarioSet {
 	private float remediationCost;
 	private String scenarioEnsemble;
 	
+	private boolean equalWeights;
 	private Map<String, Float> scenarioWeights;
 	private Map<String, SensorSetting> sensorSettings;
 	//Finding nodes removes some sensor settings, causing problems going back a page and then forward again
@@ -69,6 +70,7 @@ public class ScenarioSet {
 		
 		detectionMap = new HashMap<String, Map<String, Map<Integer, Float>>>();
 		
+		equalWeights = true;
 		scenarioWeights = new HashMap<String, Float>();
 		sensorSettings = new HashMap<String, SensorSetting>();
 		sensorSettingsRemoved = new HashMap<String, SensorSetting>();
@@ -96,6 +98,7 @@ public class ScenarioSet {
 		
 		detectionMap.clear();
 		
+		equalWeights = true;
 		scenarioWeights.clear();
 		sensorSettings.clear();
 		sensorSettingsRemoved.clear();
@@ -123,8 +126,12 @@ public class ScenarioSet {
 		// Details about the scenario set read from the file being used
 		builder.append("Scenario ensemble: " + scenarioEnsemble + "\r\n");
 		builder.append("Scenario weights:\r\n");
-		for(String scenario: scenarios)
-			builder.append("\t" + scenario + " = " + Constants.percentageFormat.format(scenarioWeights.get(scenario)) + "\r\n");
+		if(equalWeights)
+			builder.append("\tEqually weighted\r\n");
+		else {
+			for(String scenario: scenarios)
+				builder.append("\t" + scenario + " = " + Constants.percentageFormat.format(scenarioWeights.get(scenario)) + "\r\n");
+		}
 		
 		// Leakage criteria
 		builder.append("Technology settings:\r\n");
@@ -133,20 +140,20 @@ public class ScenarioSet {
 			SensorSetting sensorSetting = sensorSettings.get(parameter);
 			builder.append("\t" + parameter + ":\r\n");
 			builder.append("\t\tAlias: " + Sensor.sensorAliases.get(parameter) + "\r\n");
-			builder.append("\t\tCost: " + Constants.percentageFormat.format(sensorSetting.getSensorCost()) + " per monitoring location\r\n");
+			builder.append("\t\tCost: " + Constants.percentageFormat.format(sensorSetting.getSensorCost()) + " per location\r\n");
 			builder.append("\t\tTriggering on: " + sensorSetting.getTrigger() + "\r\n");
 			if(sensorSetting.getTrigger() == Trigger.BELOW_THRESHOLD || sensorSetting.getTrigger() == Trigger.ABOVE_THRESHOLD)
 				builder.append("\t\tLeakage threshold: " + sensorSetting.getDetectionThreshold() + "\r\n");
 			else {
 				if(sensorSetting.getDeltaType() == DeltaType.DECREASE)
-					builder.append("\t\tLeakage threshold: Negative change of " + sensorSetting.getDetectionThreshold() + unit + "\r\n");
+					builder.append("\t\tLeakage threshold: Negative change of " + sensorSetting.getDetectionThreshold() + " " + unit + "\r\n");
 				else if (sensorSetting.getDeltaType() == DeltaType.INCREASE)
-					builder.append("\t\tLeakage threshold: Positive change of " + sensorSetting.getDetectionThreshold() + unit + "\r\n");
+					builder.append("\t\tLeakage threshold: Positive change of " + sensorSetting.getDetectionThreshold() + " " + unit + "\r\n");
 				else
-					builder.append("\t\tLeakage threshold: Change of " + sensorSetting.getDetectionThreshold() + unit + "\r\n");
+					builder.append("\t\tLeakage threshold: Change of " + sensorSetting.getDetectionThreshold() + " " + unit + "\r\n");
 			}
-			builder.append("\t\tZone bottom: " + Constants.percentageFormat.format(sensorSetting.getThisMinZ()) + zUnit + "\r\n");
-			builder.append("\t\tZone top: " + Constants.percentageFormat.format(sensorSetting.getThisMaxZ()) + zUnit + "\r\n");
+			builder.append("\t\tZone bottom: " + Constants.percentageFormat.format(sensorSetting.getThisMinZ()) + " " + zUnit + "\r\n");
+			builder.append("\t\tZone top: " + Constants.percentageFormat.format(sensorSetting.getThisMaxZ()) + " " + zUnit + "\r\n");
 			if(sensorSetting.getValidNodes().size()>0) {
 				int size = nodeStructure.getIJKDimensions().getI() * nodeStructure.getIJKDimensions().getJ() * nodeStructure.getIJKDimensions().getK();
 				builder.append("\t\tValid nodes: " + sensorSetting.getValidNodes().size() + " of " + size + "\r\n");
@@ -165,7 +172,7 @@ public class ScenarioSet {
 			builder.append("Configuration settings:\r\n");
 		builder.append("\tSensor budget: " + Constants.percentageFormat.format(sensorCostConstraint) + "\r\n");
 		builder.append("\tMax wells: " + maxWells + "\r\n");
-		builder.append("\tMin distance between wells: " + Constants.percentageFormat.format(exclusionRadius) + zUnit + "\r\n");
+		builder.append("\tMin distance between wells: " + Constants.percentageFormat.format(exclusionRadius) + " " + zUnit + "\r\n");
 		builder.append("\tCost per well: " + Constants.percentageFormat.format(wellCost) + "\r\n");
 		builder.append("\tCost per " + (zUnit=="" ? "unit" : zUnit) + " depth of well: " + Constants.percentageFormat.format(wellDepthCost) + "\r\n");
 		if(Constants.buildDev)
@@ -253,6 +260,14 @@ public class ScenarioSet {
 	
 	public Map<String, Float> getScenarioWeights() {
 		return scenarioWeights;
+	}
+	
+	public boolean getEqualWeights() {
+		return equalWeights;
+	}
+	
+	public void setEqualWeights(boolean equalWeights) {
+		this.equalWeights = equalWeights;
 	}
 
 	public Point3i getAddPoint() {

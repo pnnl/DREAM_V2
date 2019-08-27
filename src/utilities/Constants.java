@@ -208,4 +208,15 @@ public class Constants {
 		}
 		return list;
 	}
+	
+	public static String formatSeconds(long sec) {
+		String text;
+		if(sec>18000)
+			text = sec/3600 + " hours"; 
+		else if(sec>300)
+			text = sec/60 + " minutes";
+		else
+			text = sec + " seconds";
+		return text;
+	}
 }

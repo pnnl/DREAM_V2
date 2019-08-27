@@ -13,7 +13,7 @@ import java.util.Map;
 public class Configuration {
 	
 	protected List<Sensor> sensors = new ArrayList<Sensor>();	
-	protected Map<String, Float> timesToDetection;
+	protected Map<String, Float> timesToDetection; // <Scenario, TTD>
 	
 	public Configuration() {
 		sensors = new ArrayList<Sensor>();

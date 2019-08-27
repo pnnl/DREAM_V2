@@ -807,7 +807,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		// Find Triggering Nodes Button
 		Button findTriggeringNodes = new Button(container, SWT.BALLOON);
 		findTriggeringNodes.setText("Find triggering locations");
-		GridData triggeringNodesData = new GridData(SWT.BEGINNING, SWT.END, false, false, 3, 1);
+		GridData triggeringNodesData = new GridData(SWT.BEGINNING, SWT.END, false, false, 2, 1);
 		findTriggeringNodes.setLayoutData(triggeringNodesData);
 		findTriggeringNodes.addListener(SWT.Selection, new Listener() {
 			@Override
@@ -1107,7 +1107,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		HashSet<Float> years = new HashSet<Float>();
 		for(SensorData sensor: sensorData.values()) {
 			if(!sensor.isIncluded) continue; //Only included sensors
-			if(!sensor.sensorType.contains("Electrical Conductivity")) {
+			if(!sensor.sensorType.contains("Electrical Conductivity")) { //Handle normal sensors
 				for(String scenario: data.getSet().getDetectionMap().get(sensor.specificType).keySet()) {
 					for(Integer nodeNumber: data.getSet().getDetectionMap().get(sensor.specificType).get(scenario).keySet()) {
 						float ttd = data.getSet().getDetectionMap().get(sensor.specificType).get(scenario).get(nodeNumber);
@@ -1140,17 +1140,17 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// Determine the volume of aquifer degraded per scenario
 		Map<String, HashMap<Float, Float>> volumeDegradedByYear = new HashMap<String, HashMap<Float, Float>>(); //Scenario <Year, VolumeDegraded>
-		float vod = 0;
+		float vad = 0;
 		for(String scenario: data.getSet().getScenarios()) {
 			volumeDegradedByYear.put(scenario, new HashMap<Float, Float>());
 			for(Float time: sortedYears) {
 				for(Integer nodeNumber: earliestDetectionForAllSensors.get(scenario).keySet()) {
 					if(earliestDetectionForAllSensors.get(scenario).get(nodeNumber) <= time) {
 						Point3i location = data.getSet().getNodeStructure().getIJKFromNodeNumber(nodeNumber); //get location of node that detected at this time
-						vod += data.getSet().getNodeStructure().getVolumeOfNode(location); //convert the found node into a volume and add cumulatively
+						vad += data.getSet().getNodeStructure().getVolumeOfNode(location); //convert the found node into a volume and add cumulatively
 					}
 				}
-				volumeDegradedByYear.get(scenario).put(time, vod);
+				volumeDegradedByYear.get(scenario).put(time, vad);
 			}
 		}
 		

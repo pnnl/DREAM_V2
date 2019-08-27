@@ -289,17 +289,12 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					ResultPrinter.runScripts = false;
 					data.run(runs, showPlots.getSelection());
 					long time = (System.currentTimeMillis() - startTime) / 1000;
-					System.out.println("Iterative procedure took: " + time + "s");
+					System.out.println("Iterative procedure took: " + Constants.formatSeconds(time));
 					
 					//create the dialog box
 					MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
 					dialog.setText("Completed the Dream Run");
-					if(time>18000)
-						dialog.setMessage("Dream just completed " + ittr + " iterations in " + time/3600 + " hours. Results can be found at: " + outputFolder.getText());
-					else if(time>300)
-						dialog.setMessage("Dream just completed " + ittr + " iterations in " + time/60 + " minutes. Results can be found at: " + outputFolder.getText());
-					else
-						dialog.setMessage("Dream just completed " + ittr + " iterations in " + time + " seconds. Results can be found at: " + outputFolder.getText());
+					dialog.setMessage("Dream just completed " + ittr + " iterations in " + Constants.formatSeconds(time) + ". Results can be found at: " + outputFolder.getText());
 					dialog.open();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -481,6 +476,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				HashMap<Float, Float> averages = SensorSetting.getAverageVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> maximums = SensorSetting.getMaxVolumeDegradedAtTimesteps();
 				HashMap<Float, Float> minimums = SensorSetting.getMinVolumeDegradedAtTimesteps();
+				float totalVolume = structure.getPossibleVAD();
 				String xUnit = structure.getUnit("x");
 				String timeUnit = structure.getUnit("times");
 				
@@ -488,6 +484,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				
 				// Heading
 				text.append("Time ("+timeUnit+"),Average VAD ("+xUnit+"³),Minimum VAD ("+xUnit+"³),Maximum VAD ("+xUnit+"³)");
+				text.append(",,Total Possible VAD = " + totalVolume + " " + xUnit + "³");
 				
 				ArrayList<Float> years = new ArrayList<Float>(averages.keySet());
 				Collections.sort(years);
@@ -790,7 +787,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 									configurationCosts.add(cost);
 									configurationAverageTTDs.add(ResultPrinter.results.bestConfigSumTTDs.get(config));
 									configurationPercentDetected.add(ResultPrinter.results.bestConfigSumPercents.get(config)*100);
-									averageVolumeDegraded.add(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
+									averageVolumeDegraded.add(SensorSetting.getAverageVolumeDegraded(config.getTimesToDetection()));
 									configs.add(config);
 								}
 							} catch (Exception e) {
@@ -914,7 +911,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 							for(ExtendedConfiguration config: innerSet){
 								sb.append(j == 0 ? "Original": String.valueOf(j));
 								sb.append(",");
-								sb.append(SensorSetting.getVolumeDegradedByTTDs(config.getTimesToDetection(), data.getSet().getScenarios().size()));
+								sb.append(SensorSetting.getAverageVolumeDegraded(config.getTimesToDetection()));
 								sb.append(",");
 								sb.append(config.getObjectiveValue());
 								Map<String, Float> ttds = config.getTimesToDetection();

@@ -275,16 +275,22 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 			
 		}
 		data.needToResetMonitoringParameters = true;
+		data.getSet().setEqualWeights(true);
 		data.getSet().getScenarioWeights().clear();
 		data.getSet().getScenarios().clear();
 		
 		// Save the weights
+		float firstWeight = 0;
 		for(String scenario: data.getSet().getAllScenarios()) {
 			float weight = Float.valueOf(weights.get(scenario).getText());
+			if(scenario.equals(data.getSet().getAllScenarios().get(0)))
+				firstWeight = weight; //Save the first weight to be compared later to detect change
 			if(selectedScenarios.get(scenario).getSelection() && weight!=0) {//If scenario is checked and weight is not 0
 				data.getSet().getScenarioWeights().put(scenario, weight);
 				data.getSet().getScenarios().add(scenario);
 			}
+			if(weight!=firstWeight) //If weights differ at all, this should be set to false
+				data.getSet().setEqualWeights(false);
 		}
 		
 		System.out.println("Number of scenarios = " + data.getSet().getScenarios().size() + " (" + data.getSet().getAllScenarios().size() + " available)");
