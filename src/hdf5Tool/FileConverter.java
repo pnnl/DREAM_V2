@@ -513,7 +513,8 @@ public class FileConverter extends javax.swing.JFrame {
 				
 				statusLabel.setText("The " + fileType + " files were successfully converted to H5 files.");
 				statusLabel.setForeground(new java.awt.Color(5, 70, 5));
-				System.out.println("Finished reading "+scenario+", writing to "+hdf5File+"... took "+(System.currentTimeMillis()-startTime)/1000+" s");
+				long endTime = (System.currentTimeMillis()-startTime)/1000;
+				System.out.println("Finished reading "+scenario+", writing to "+hdf5File+"... took "+Constants.formatSeconds(endTime));
 			} catch (Exception e) {
 				e.printStackTrace();
 				statusLabel.setText("Error converting the files.");

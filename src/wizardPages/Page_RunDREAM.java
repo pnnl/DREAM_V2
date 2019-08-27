@@ -1029,7 +1029,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				long time = (System.currentTimeMillis() - startTime) / 1000;
 				MessageBox dialog = new MessageBox(container.getShell(), SWT.OK);
 				dialog.setText("Finished writing the Detection Map");
-				dialog.setMessage("DREAM just finished writing the detection map in "+time/60+" minutes. Results can be found at: " + outputFolder.getText());
+				dialog.setMessage("DREAM just finished writing the detection map in "+Constants.formatSeconds(time)+". Results can be found at: " + outputFolder.getText());
 				dialog.open();
 			}
 		});

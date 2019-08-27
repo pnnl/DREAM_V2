@@ -13,6 +13,8 @@ import javax.swing.JCheckBox;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
+import utilities.Constants;
+
 
 /**
  * @brief  Reads a variety of input files to convert into DREAM-compatible Hdf5 files
@@ -291,8 +293,9 @@ public class ParseRawFiles {
 				System.out.println(" error reading the file");
 				e.printStackTrace();
 			}
+			long endTime = (System.currentTimeMillis()-startTime)/1000;
 			if(!parameter.equals(""))
-				System.out.println(" took " + (System.currentTimeMillis() - startTime) + " ms");
+				System.out.println(" took " + Constants.formatSeconds(endTime));
 		}
 	}
 	
@@ -422,7 +425,8 @@ public class ParseRawFiles {
 				dataMap.get(scenario).put(parameter, tempData);
 				statistics.get(scenario).put(parameter, tempStats);
 			}
-			System.out.println("    Reading "+subFile.getName()+"... took "+(System.currentTimeMillis()-startTime)/1000+" s");
+			long endTime = (System.currentTimeMillis()-startTime)/1000;
+			System.out.println("    Reading "+subFile.getName()+"... took "+Constants.formatSeconds(endTime));
 		}
 	}
 	
@@ -608,7 +612,8 @@ public class ParseRawFiles {
 					}
 				}
 			}
-			System.out.println(" took " + (System.currentTimeMillis() - startTime)/1000 + " s");
+			long endTime = (System.currentTimeMillis()-startTime)/1000;
+			System.out.println(" took " + Constants.formatSeconds(endTime));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
