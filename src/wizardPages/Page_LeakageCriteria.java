@@ -823,6 +823,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		//TODO: Place holder spot for this button.
 		Button launchGravityButton = new Button(container, SWT.BALLOON);
 		launchGravityButton.setText("Launch Gravity Contour Map");
+		launchGravityButton.setVisible(Constants.buildDev);
 		launchGravityButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(final Event theEvent) {
