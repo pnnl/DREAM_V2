@@ -66,7 +66,9 @@ class GravGrad():
         if len(sys.argv) > 2:
             self.outfile = str(sys.argv[2])
         else:
-            self.outfile = self.infile + '.fwd'
+            extension = '.in'
+            ind = self.infile.index(extension)
+            self.outfile = self.infile[:ind] + '_1' + '.fwd'
 
     #-----------------
     def input_density_model(self):
