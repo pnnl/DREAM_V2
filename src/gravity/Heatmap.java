@@ -15,7 +15,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import gravity.HeatChart;
-
+/**
+ * Heatmap creation class.
+ * @author huan482
+ *
+ */
 // Format for a .FWD File 
 // Header
 // x   y  gz  gy
@@ -38,9 +42,9 @@ public class Heatmap {
 	private double sizeOfSquare;
 
 	private double maxY;
-	
+
 	private Font baseFont;
-	
+
 	private Comparator<Grid> compare;
 
 	private List<String> myTimeSteps;
@@ -54,11 +58,11 @@ public class Heatmap {
 	private Image colorScaleImage;
 
 	private boolean colorScaleCreated;
-	
-	private static final String LOW_VAL_COLOUR =  "#05469B";
-	
-	private static final String HIGH_VAL_COLOUR =  "#3f0000";
-	
+
+	private static final String LOW_VAL_COLOUR = "#05469B";
+
+	private static final String HIGH_VAL_COLOUR = "#3f0000";
+
 	public Heatmap(final String directory) {
 		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
@@ -156,7 +160,7 @@ public class Heatmap {
 		int counter = 0;
 		int rowCounter = 0;
 		divisibleTick = (int) sizeOfSquare / 5;
-		//Creates the 1:1 resolution map.
+		// Creates the 1:1 resolution map.
 		double[][] mapARR = new double[(int) sizeOfSquare][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
 			counter = 0;
@@ -174,21 +178,24 @@ public class Heatmap {
 			rowCounter++;
 		}
 		myImg = outputHeatMap(mapARR);
-		//This section of the code is what we use for different resolutions
+		// This section of the code is what we use for different resolutions
 		if (resolution != 1) {
 			myImg = createDifferentResolutionMap(mapARR, resolution);
 		}
 		return myImg;
 	}
-	
+
 	/**
-	 * This method deals with creating a heatmap with different resolutions. (resolution != 1)
-	 * @param mapARR - The map we're changing and which has all of our information in.
+	 * This method deals with creating a heatmap with different resolutions.
+	 * (resolution != 1)
+	 * 
+	 * @param mapARR     - The map we're changing and which has all of our
+	 *                   information in.
 	 * @param resolution - The resolution requested.
 	 * @return - The new HeatMap
 	 * @throws IOException - We're turning an image which has some risks inherently.
 	 */
-	private Image createDifferentResolutionMap(final double [][] mapARR, final int resolution) throws IOException {
+	private Image createDifferentResolutionMap(final double[][] mapARR, final int resolution) throws IOException {
 		ArrayList<Double> temp = new ArrayList<Double>();
 		double average = 0;
 		int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
@@ -197,8 +204,9 @@ public class Heatmap {
 		double outlierAverageColumn = 0;
 		ArrayList<Double> rowOutlier = new ArrayList<Double>();
 		ArrayList<Double> columnOutlier = new ArrayList<Double>();
-		//This part of the code calculates the average of the (resolution x resolution) square we're requesting for.
-		//THe 4 for loops is just a method to average the values in the square.
+		// This part of the code calculates the average of the (resolution x resolution)
+		// square we're requesting for.
+		// THe 4 for loops is just a method to average the values in the square.
 		for (int row = 0; row < sizeOfSquare; row += resolution) {
 			for (int column = 0; column < sizeOfSquare; column += resolution) {
 				for (int k = 0; k < resolution; k++) {
@@ -210,8 +218,8 @@ public class Heatmap {
 							}
 							average += mapARR[row + k][column + l];
 						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
-							//Purpose of this branch is too average the outlier's rows/columns.
-							//We add the averaged values into a separate list.
+							// Purpose of this branch is too average the outlier's rows/columns.
+							// We add the averaged values into a separate list.
 							outlierAverageRow += mapARR[row + k][column + l];
 							outlierAverageColumn += mapARR[column + l][row + k];
 							cc++;
@@ -230,21 +238,24 @@ public class Heatmap {
 		int squareCounter = 0;
 		int outlierCounter = 0;
 		int otherC = 0;
-		//This section of the for loop places all the averages we calculated for the square inside the square.
+		// This section of the for loop places all the averages we calculated for the
+		// square inside the square.
 		for (int row = 0; row < sizeOfSquare; row += resolution) {
 			for (int column = 0; column < sizeOfSquare; column += resolution) {
 				for (int k = 0; k < resolution; k++) {
 					for (int l = 0; l < resolution; l++) {
 						if (row < remainder && column < remainder) {
-							//This is the replacement part of the code where we replace the elements inside our array.
+							// This is the replacement part of the code where we replace the elements inside
+							// our array.
 							mapARR[row + k][column + l] = temp.get(squareCounter);
 							if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
-								//When we move onto the next (# x # square) we're going to go to the next value we found averaged
+								// When we move onto the next (# x # square) we're going to go to the next value
+								// we found averaged
 								squareCounter++;
 							}
 						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
 							if (otherC == resolution) {
-								//We need to replace the outlier's now.
+								// We need to replace the outlier's now.
 								outlierCounter++;
 								otherC = 0;
 								if (outlierCounter == rowOutlier.size()) {
@@ -261,10 +272,10 @@ public class Heatmap {
 		}
 		return outputHeatMap(mapARR);
 	}
-	
+
 	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
-		//To change the font please change the variable baseFont
+		// To change the font please change the variable baseFont
 		map.setAxisValuesFont(baseFont);
 		map.setAxisLabelsFont(baseFont);
 		// Dark Blue
@@ -298,7 +309,7 @@ public class Heatmap {
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
-	
+
 	public int getDivisibleTick() {
 		return divisibleTick;
 	}

@@ -55,8 +55,8 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		imageLabel = new JLabel(temp);
 		imageLabel.setVisible(true);
 
-		makeJPanel(imageLabel);
-
+		imagePanel.add(imageLabel, BorderLayout.CENTER);
+		
 		add(imagePanel);
 		makeJDialog();
 		add(new JLabel(new ImageIcon(
@@ -65,11 +65,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		setVisible(true);
 		pack();
 	}
-
-	private void makeJPanel(JLabel image) {
-		imagePanel.add(image, BorderLayout.CENTER);
-	}
-
+	
 	private void makeJDialog() {
 		JPanel temp = new JPanel();
 
