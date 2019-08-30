@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ import org.eclipse.swt.widgets.Text;
 
 import gravity.HeatMapWindow;
 import gravity.Heatmap;
+import gravity.RunPyScript;
 import hdf5Tool.HDF5Interface;
 import mapView.CoordinateSystemDialog;
 import utilities.Constants;
@@ -820,7 +822,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}	       
 		});
 		
-		//TODO: Place holder spot for this button.
 		Button launchGravityButton = new Button(container, SWT.BALLOON);
 		launchGravityButton.setText("Launch Gravity Contour Map");
 		launchGravityButton.setVisible(Constants.buildDev);
@@ -829,6 +830,15 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			public void handleEvent(final Event theEvent) {
 				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), false, false, true);
 				dialog.open(); 
+				RunPyScript py = new RunPyScript();
+				try {
+					File dir = new File(dialog.getOutputDir());
+					File[] listOfFiles = dir.listFiles((d, name) -> name.endsWith(".in"));
+					py.calculateGravity(listOfFiles);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				// When we start doing this program
 				Heatmap heatMap = new Heatmap(dialog.getOutputDir());
 				try {
