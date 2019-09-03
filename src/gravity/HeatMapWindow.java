@@ -83,6 +83,8 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		resolution.addChangeListener(theEvent -> {
 			myResolution = resolution.getValue();
 			try {
+				//When resolution is changed we want to make a new heat map.
+				//Also we need to change the image icon to the new heat map.
 				Image myImage = myHeatMap.getHeatMap(myResolution, timeStep);
 				imageLabel.setIcon(new ImageIcon(
 						myImage.getScaledInstance((int) (width / 1.2), (int) (height / 1.2), Image.SCALE_SMOOTH)));
@@ -96,6 +98,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		selectTimeStep.addActionListener(theEvent -> {
 			timeStep = Integer.parseInt((String) selectTimeStep.getSelectedItem());
 			try {
+				//When they select a new time step revert resolution back to 1, and make a new heat map.
 				resolution.setValue(1);
 				Image myImage = myHeatMap.getHeatMap(1, timeStep);
 				imageLabel.setIcon(new ImageIcon(

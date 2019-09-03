@@ -19,17 +19,25 @@ import results.ResultPrinter;
  *
  */
 public class RunPyScript {
-
+	/**Name of the gravity script we're running. */
 	private static final String SCRIPT_NAME = "gravgrad.py";
-
+	
 	private boolean printToConsole = true;
-
+		
+	private int myCounter = 0;
+	
+	//Loop through all the files given through
 	public void calculateGravity(final File[] allFiles) throws IOException {
 		for (File f : allFiles) {
+			myCounter++;
 			runGravityCalculationScript(f.getAbsolutePath());
 		}
 	}
-
+	/**
+	 * Execute the the gravity calculation by getting the .in file and outputting the .fwd out.
+	 * @param fileName - The absolute path of the .in file inputted.
+	 * @throws IOException
+	 */
 	private void runGravityCalculationScript(final String fileName) throws IOException {
 		try {
 			InputStream in = ResultPrinter.class.getResourceAsStream("/" + SCRIPT_NAME);
@@ -43,9 +51,11 @@ public class RunPyScript {
 			theException.printStackTrace();
 		}
 		String script = System.getProperty("java.io.tmpdir") + File.separator + SCRIPT_NAME;
+		//The String our script is represented.
 		StringBuilder command = new StringBuilder();
 		command.append("py -3 \"" + script + "\"");
-		command.append(" \"" + fileName + "\"");
+		command.append(" \"" + fileName + "\"" + " " + myCounter);
+		System.out.println(command.toString());
 		try {
 			Process p = Runtime.getRuntime().exec(command.toString());
 			if (printToConsole) {
