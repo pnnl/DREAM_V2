@@ -310,7 +310,7 @@ public class CoordinateSystemDialog extends TitleAreaDialog {
 		final DirectoryDialog directoryDialog = new DirectoryDialog(theContainer.getShell());
 		Button buttonSelectDir = new Button(theContainer, SWT.PUSH);
 		if (generateMap) {
-			buttonSelectDir.setText("Input .fwd Files");
+			buttonSelectDir.setText("Input .in Files");
 		} else {
 			buttonSelectDir.setText("Output Directory");	
 		}
