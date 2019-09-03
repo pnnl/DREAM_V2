@@ -55,7 +55,6 @@ public class RunPyScript {
 		StringBuilder command = new StringBuilder();
 		command.append("py -3 \"" + script + "\"");
 		command.append(" \"" + fileName + "\"" + " " + myCounter);
-		System.out.println(command.toString());
 		try {
 			Process p = Runtime.getRuntime().exec(command.toString());
 			if (printToConsole) {
