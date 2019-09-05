@@ -64,6 +64,8 @@ public class Heatmap {
 	private static final String HIGH_VAL_COLOUR = "#3f0000";
 
 	public Heatmap(final String directory) {
+		//Base Font can be subject to change.
+		//Format (Font, Font Attribute, Font Size)
 		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
 		myTimeSteps = new ArrayList<String>();
@@ -74,7 +76,7 @@ public class Heatmap {
 	public Image getHeatMap(final int resolution, final int timeStep) throws IOException {
 		return parseGridData(resolution, timeStep);
 	}
-
+	
 	public List<String> parseTimeSteps() {
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
@@ -272,7 +274,12 @@ public class Heatmap {
 		}
 		return outputHeatMap(mapARR);
 	}
-
+	/**
+	 * This method generates are entire heatmap.
+	 * @param theHeatMapData - Our entire 2-D heatmap array.
+	 * @return - The heatmap as an image.
+	 * @throws IOException
+	 */
 	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
 		// To change the font please change the variable baseFont
@@ -293,7 +300,14 @@ public class Heatmap {
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
-
+	/**
+	 * This method outputs the color legend shown on the right most part of the container.
+	 * @param theColourScale - The colour scale arrays we need to build the legend.
+	 * @param max - max double that our colourscale has.
+	 * @param interval - Interval for each mark.
+	 * @return - A colour legend image for our heatmap.
+	 * @throws IOException
+	 */
 	private Image outputColorScale(double[][] theColourScale, final double max, final double interval)
 			throws IOException {
 		HeatChart map = new HeatChart(theColourScale);
