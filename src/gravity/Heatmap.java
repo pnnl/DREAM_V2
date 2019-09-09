@@ -10,13 +10,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import gravity.HeatChart;
+
 /**
  * Heatmap creation class.
+ * 
  * @author huan482
  *
  */
@@ -28,6 +31,8 @@ import gravity.HeatChart;
 public class Heatmap {
 
 	private static final int BASE_DIMENSIONS = 20;
+
+//	private double[][] firstHeatMap;
 
 	private File theFolder;
 
@@ -57,15 +62,25 @@ public class Heatmap {
 
 	private Image colorScaleImage;
 
+	private Image differenceMap;
+
 	private boolean colorScaleCreated;
 
 	private static final String LOW_VAL_COLOUR = "#05469B";
 
 	private static final String HIGH_VAL_COLOUR = "#3f0000";
 
+	private boolean doOnce;
+
+	private double[][] firstHeatMap;
+
+	private double[][] differenceArr;
+
+	private double[][] firstTimeStep;
+
 	public Heatmap(final String directory) {
-		//Base Font can be subject to change.
-		//Format (Font, Font Attribute, Font Size)
+		// Base Font can be subject to change.
+		// Format (Font, Font Attribute, Font Size)
 		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
 		myTimeSteps = new ArrayList<String>();
@@ -76,7 +91,7 @@ public class Heatmap {
 	public Image getHeatMap(final int resolution, final int timeStep) throws IOException {
 		return parseGridData(resolution, timeStep);
 	}
-	
+
 	public List<String> parseTimeSteps() {
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
@@ -95,6 +110,7 @@ public class Heatmap {
 	private Image parseGridData(final int resolution, final int timeStep) throws IOException {
 		String line;
 		int theFile = 0;
+		myGrid.clear();
 		// The First File
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
@@ -153,12 +169,14 @@ public class Heatmap {
 			colorScaleImage = outputColorScale(colorScale, originalMax, intervalForColorScale);
 		}
 		colorScaleCreated = true;
-
+		differenceArr = new double[(int) sizeOfSquare][(int) sizeOfSquare];
+		firstHeatMap = new double[(int) sizeOfSquare][(int) sizeOfSquare];
 		return createHeatMap(maxX, maxY, resolution);
 	}
 
 	private Image createHeatMap(double themaxX, double theMaxY, int resolution) throws IOException {
 		Image myImg = null;
+		differenceMap = null;
 		int counter = 0;
 		int rowCounter = 0;
 		divisibleTick = (int) sizeOfSquare / 5;
@@ -179,16 +197,24 @@ public class Heatmap {
 			mapARR[rowCounter] = tempRow;
 			rowCounter++;
 		}
+		if (!doOnce) {
+			firstTimeStep = Arrays.stream(mapARR).map(r -> r.clone()).toArray(double[][]::new);
+			doOnce = true;
+		}
+		firstHeatMap = Arrays.stream(firstTimeStep).map(r -> r.clone()).toArray(double[][]::new);
 		myImg = outputHeatMap(mapARR);
+		differenceMap = outputHeatMap(createFirstDifferenceMap(mapARR, firstHeatMap));
 		// This section of the code is what we use for different resolutions
 		if (resolution != 1) {
-			myImg = createDifferentResolutionMap(mapARR, resolution);
+			myImg = outputHeatMap(createDifferentResolutionMap(mapARR, resolution));
+			differenceMap = outputHeatMap(
+					createFirstDifferenceMap(mapARR, createDifferentResolutionMap(firstHeatMap, resolution)));
 		}
 		return myImg;
 	}
 
 	/**
-	 * This method deals with creating a heatmap with different resolutions.
+	 * This method deals with creating a HeatMap with different resolutions.
 	 * (resolution != 1)
 	 * 
 	 * @param mapARR     - The map we're changing and which has all of our
@@ -197,7 +223,7 @@ public class Heatmap {
 	 * @return - The new HeatMap
 	 * @throws IOException - We're turning an image which has some risks inherently.
 	 */
-	private Image createDifferentResolutionMap(final double[][] mapARR, final int resolution) throws IOException {
+	private double[][] createDifferentResolutionMap(final double[][] mapARR, final int resolution) throws IOException {
 		ArrayList<Double> temp = new ArrayList<Double>();
 		double average = 0;
 		int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
@@ -272,10 +298,22 @@ public class Heatmap {
 				}
 			}
 		}
-		return outputHeatMap(mapARR);
+		return mapARR;
 	}
+
+	private double[][] createFirstDifferenceMap(final double[][] absoluteHeatMap, final double[][] first)
+			throws IOException {
+		for (int i = 0; i < absoluteHeatMap.length; i++) {
+			for (int j = 0; j < absoluteHeatMap[i].length; j++) {
+				differenceArr[i][j] = absoluteHeatMap[i][j] - first[i][j];
+			}
+		}
+		return differenceArr;
+	}
+
 	/**
 	 * This method generates are entire heatmap.
+	 * 
 	 * @param theHeatMapData - Our entire 2-D heatmap array.
 	 * @return - The heatmap as an image.
 	 * @throws IOException
@@ -300,11 +338,14 @@ public class Heatmap {
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
+
 	/**
-	 * This method outputs the color legend shown on the right most part of the container.
+	 * This method outputs the color legend shown on the right most part of the
+	 * container.
+	 * 
 	 * @param theColourScale - The colour scale arrays we need to build the legend.
-	 * @param max - max double that our colourscale has.
-	 * @param interval - Interval for each mark.
+	 * @param max            - max double that our colourscale has.
+	 * @param interval       - Interval for each mark.
 	 * @return - A colour legend image for our heatmap.
 	 * @throws IOException
 	 */
@@ -330,6 +371,10 @@ public class Heatmap {
 
 	public Image getColorScale() {
 		return colorScaleImage;
+	}
+
+	public Image getDifferenceMap() {
+		return differenceMap;
 	}
 
 }

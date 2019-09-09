@@ -30,7 +30,9 @@ public class HeatMapWindow extends JFrame implements Runnable {
 	private Heatmap myHeatMap;
 
 	private JLabel imageLabel;
-
+	
+	private JLabel differenceImage;
+	
 	private int timeStep;
 
 	private int myResolution;
@@ -51,12 +53,18 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		setResizable(true);
 		setTitle("Gravity Contour Map");
 		ImageIcon temp = new ImageIcon(
-				image.getImage().getScaledInstance((int) (width / 1.2), (int) (height / 1.2), Image.SCALE_SMOOTH));
+				image.getImage().getScaledInstance((int) (width / 1.5), (int) (height / 1.5), Image.SCALE_SMOOTH));
 		imageLabel = new JLabel(temp);
 		imageLabel.setVisible(true);
-
 		imagePanel.add(imageLabel, BorderLayout.CENTER);
-		
+
+		ImageIcon differenceMap = new ImageIcon(myHeatMap.getDifferenceMap().getScaledInstance((int) (width / 1.5),
+				(int) (height / 2), Image.SCALE_SMOOTH));
+
+		differenceImage = new JLabel(differenceMap);
+		differenceImage.setVisible(true);
+		imagePanel.add(differenceImage, BorderLayout.SOUTH);
+
 		add(imagePanel);
 		makeJDialog();
 		add(new JLabel(new ImageIcon(
@@ -65,10 +73,9 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		setVisible(true);
 		pack();
 	}
-	
+
 	private void makeJDialog() {
 		JPanel temp = new JPanel();
-
 
 		int max = myHeatMap.getDivisibleTick();
 		int min = 1;
@@ -83,11 +90,14 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		resolution.addChangeListener(theEvent -> {
 			myResolution = resolution.getValue();
 			try {
-				//When resolution is changed we want to make a new heat map.
-				//Also we need to change the image icon to the new heat map.
+				// When resolution is changed we want to make a new heat map.
+				// Also we need to change the image icon to the new heat map.
 				Image myImage = myHeatMap.getHeatMap(myResolution, timeStep);
 				imageLabel.setIcon(new ImageIcon(
-						myImage.getScaledInstance((int) (width / 1.2), (int) (height / 1.2), Image.SCALE_SMOOTH)));
+						myImage.getScaledInstance((int) (width / 1.5), (int) (height / 1.5), Image.SCALE_SMOOTH)));
+				Image myDifferenceImage = myHeatMap.getDifferenceMap();
+				differenceImage.setIcon(new ImageIcon(myDifferenceImage.getScaledInstance((int) (width / 1.5),
+				(int) (height / 2), Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -98,11 +108,15 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		selectTimeStep.addActionListener(theEvent -> {
 			timeStep = Integer.parseInt((String) selectTimeStep.getSelectedItem());
 			try {
-				//When they select a new time step revert resolution back to 1, and make a new heat map.
+				// When they select a new time step revert resolution back to 1, and make a new
+				// heat map.
 				resolution.setValue(1);
 				Image myImage = myHeatMap.getHeatMap(1, timeStep);
 				imageLabel.setIcon(new ImageIcon(
-						myImage.getScaledInstance((int) (width / 1.2), (int) (height / 1.2), Image.SCALE_SMOOTH)));
+						myImage.getScaledInstance((int) (width / 1.5), (int) (height / 1.5), Image.SCALE_SMOOTH)));
+				Image myDifferenceImage = myHeatMap.getDifferenceMap();
+				differenceImage.setIcon(new ImageIcon(myDifferenceImage.getScaledInstance((int) (width / 1.5),
+				(int) (height / 2), Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
