@@ -52,7 +52,7 @@ public class Heatmap {
 
 	private Comparator<Grid> compare;
 
-	private List<String> myTimeSteps;
+	private List<Integer> myTimeSteps;
 
 	private int divisibleTick;
 
@@ -83,7 +83,7 @@ public class Heatmap {
 		// Format (Font, Font Attribute, Font Size)
 		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
-		myTimeSteps = new ArrayList<String>();
+		myTimeSteps = new ArrayList<Integer>();
 		theFolder = new File(directory);
 		listOfFiles = theFolder.listFiles((d, name) -> name.endsWith(".fwd"));
 	}
@@ -92,11 +92,11 @@ public class Heatmap {
 		return parseGridData(resolution, timeStep);
 	}
 
-	public List<String> parseTimeSteps() {
+	public List<Integer> parseTimeSteps() {
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
 			String[] tempTokens = temp.split("_");
-			myTimeSteps.add(tempTokens[tempTokens.length - 1]);
+			myTimeSteps.add(Integer.parseInt(tempTokens[tempTokens.length - 1]));
 		}
 		return myTimeSteps;
 	}

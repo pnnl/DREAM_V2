@@ -1606,7 +1606,7 @@ public class HeatChart {
 				continue;
 			}
 			
-			String xValueStr = xValues[i].toString();
+			String xValueStr = xValues[i].toString() + "  ";
 			
 			chartGraphics.setFont(axisValuesFont);
 			FontMetrics metrics = chartGraphics.getFontMetrics();
@@ -1654,7 +1654,7 @@ public class HeatChart {
 				continue;
 			}
 			
-			String yValueStr = yValues[i].toString();
+			String yValueStr = yValues[i].toString() + "  ";
 			
 			chartGraphics.setFont(axisValuesFont);
 			FontMetrics metrics = chartGraphics.getFontMetrics();
