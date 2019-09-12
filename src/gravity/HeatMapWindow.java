@@ -14,6 +14,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import gravity.RotatedIcon.Rotate;
+
 public class HeatMapWindow extends JFrame implements Runnable {
 
 	private static final long serialVersionUID = 1L;
@@ -60,17 +62,17 @@ public class HeatMapWindow extends JFrame implements Runnable {
 		imagePanel.add(imageLabel, BorderLayout.CENTER);
 
 		ImageIcon differenceMap = new ImageIcon(myHeatMap.getDifferenceMap().getScaledInstance((int) (width / 1.5),
-				(int) (height / 2), Image.SCALE_SMOOTH));
+				(int) (height / 1.5), Image.SCALE_SMOOTH));
 
 		differenceImage = new JLabel(differenceMap);
 		differenceImage.setVisible(true);
-		imagePanel.add(differenceImage, BorderLayout.SOUTH);
+		imagePanel.add(differenceImage, BorderLayout.EAST);
 
 		add(imagePanel);
 		makeJDialog();
-		add(new JLabel(new ImageIcon(
-				myHeatMap.getColorScale().getScaledInstance(width / 10, (int) (height / 1.1), Image.SCALE_SMOOTH))),
-				BorderLayout.EAST);
+		RotatedIcon ri = new RotatedIcon(new ImageIcon(
+				myHeatMap.getColorScale().getScaledInstance(width / 10, (int) (height / 1.1), Image.SCALE_SMOOTH)), Rotate.DOWN);
+		add(new JLabel(ri),BorderLayout.SOUTH);
 		setVisible(true);
 		pack();
 	}
@@ -107,7 +109,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 						myImage.getScaledInstance((int) (width / 1.5), (int) (height / 1.5), Image.SCALE_SMOOTH)));
 				Image myDifferenceImage = myHeatMap.getDifferenceMap();
 				differenceImage.setIcon(new ImageIcon(myDifferenceImage.getScaledInstance((int) (width / 1.5),
-				(int) (height / 2), Image.SCALE_SMOOTH)));
+				(int) (height / 1.5), Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -123,7 +125,7 @@ public class HeatMapWindow extends JFrame implements Runnable {
 						myImage.getScaledInstance((int) (width / 1.5), (int) (height / 1.5), Image.SCALE_SMOOTH)));
 				Image myDifferenceImage = myHeatMap.getDifferenceMap();
 				differenceImage.setIcon(new ImageIcon(myDifferenceImage.getScaledInstance((int) (width / 1.5),
-				(int) (height / 2), Image.SCALE_SMOOTH)));
+				(int) (height / 1.5), Image.SCALE_SMOOTH)));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
