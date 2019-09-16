@@ -63,6 +63,8 @@ public class FileConverter extends javax.swing.JFrame {
 	public static final String TECPLOT = "tecplot";
 	public static final String STOMP = "stomp";
 	public static final String NUFT = "nuft";
+	public static final String TOUGH = "tough";
+
 	
 	public static final String SCENARIO_PER_FILE = "scenario per file";
 	public static final String SCENARIO_PER_FOLDER = "scenario per folder";
@@ -125,7 +127,7 @@ public class FileConverter extends javax.swing.JFrame {
 		setJMenuBar(menuBar);
 		
 		JPanel jPanel_fileType = new JPanel();
-		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, TECPLOT});
+		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, TOUGH, TECPLOT});
 		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FOLDER, SCENARIO_PER_FILE});
 		jComboBox_folderStructure.setEnabled(false);
 		jComboBox_fileType.addActionListener(new ActionListener() {
@@ -140,6 +142,9 @@ public class FileConverter extends javax.swing.JFrame {
 					jComboBox_folderStructure.setEnabled(false);
 				} else if(jComboBox_fileType.getSelectedItem().equals(NUFT)) {
 					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FILE);
+					jComboBox_folderStructure.setEnabled(false);
+				} else if(jComboBox_fileType.getSelectedItem().equals(TOUGH)) {
+					jComboBox_folderStructure.setSelectedItem(SCENARIO_PER_FOLDER);
 					jComboBox_folderStructure.setEnabled(false);
 				}
 			}
@@ -496,6 +501,9 @@ public class FileConverter extends javax.swing.JFrame {
 				gp.extractStompData(scenarioFolder);
 			} else if(fileType.equals(NUFT)) {
 				gp.extractNuftData(file_inputDir, scenario);
+			} else if(fileType.equals(TOUGH)) {
+				File scenarioFolder = new File(file_inputDir, scenario);
+				gp.extractToughData(scenarioFolder);
 			} else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) { //TODO: This assumes files per folder, need to add folders per folder option when I get an example
 				File scenarioFile = new File(file_inputDir, scenario + ".dat");
 				gp.extractTecplotData(scenarioFile);
@@ -573,6 +581,8 @@ public class FileConverter extends javax.swing.JFrame {
 							gp.extractStompStructure(file_inputDir);
 						else if(fileType.equals(NUFT))
 							gp.extractNuftStructure(file_inputDir);
+						else if(fileType.equals(TOUGH))
+							gp.extractToughStructure(file_inputDir);
 						else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) //TODO: This assumes files per folder, need to add scenarios per folder option when I get an example
 							gp.extractTecplotStructure(file_inputDir);
 						
@@ -582,6 +592,8 @@ public class FileConverter extends javax.swing.JFrame {
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>STOMP requires that you select a folder containing a folder for each scenario.</html>");
 							else if(fileType.equals(NUFT))
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>NUFT requires that you select a folder containing a file for each scenario.</html>");
+							else if(fileType.equals(TOUGH))
+								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>TOUGH requires that you select a folder containing a folder for each scenario.</html>");
 							else
 								statusLabel.setText("<html>Error: Correct File Structure Not Found.<br>Make sure you select the correct folder structure.</html>");
 							statusLabel.setForeground(Color.RED);

@@ -431,6 +431,143 @@ public class ParseRawFiles {
 	}
 	
 	
+	// Extracting scenarios, times, parameters, and xyz from the first TOUGH file
+	public void extractToughStructure(File parentDirectory) {
+		
+		// The out files don't provide column headers, so we need to read them from a separate file
+		// Assumes all the files have the same column indices
+		File[] fileList = parentDirectory.listFiles((d, name) -> name.endsWith(".map"));
+		if(fileList.length == 1) {
+			String line;
+			try (BufferedReader br = new BufferedReader(new FileReader(fileList[0]))) {
+				while ((line = br.readLine()) != null) { //We actually have to read the whole file... times are scattered throughout
+					String[] tokens = line.split("\\s+"); //The line is space delimited
+					String parameter = tokens[1].trim().toLowerCase();
+					if(tokens[1].contains("(")) {
+						parameter = parameter.split("\\(")[0].trim();
+						String unit = tokens[1].substring(tokens[1].lastIndexOf("(")+1,tokens[1].lastIndexOf(")"));
+						units.put(parameter, unit);
+					}
+					indexMap.add(parameter);
+					if(!parameter.equals("x") && !parameter.equals("y") && !parameter.equals("z") && !parameter.contains("porosity")) {
+						parameters.add(parameter);
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); //Ignore any files in the directory that aren't TOUGH files
+		boolean doOnce = true;
+		// Loop through the list of directories in the parent folder
+		for(File directory: parentDirectory.listFiles()) {
+			if(!directory.isDirectory()) continue; //We only want folders - skip files
+			// Add all the scenarios from folder names
+			String scenarioName = directory.getName();
+			if(!scenarios.contains(scenarioName)) scenarios.add(scenarioName);
+			// A quick check that we actually have TOUGH files in the directory
+			if(directory.listFiles().length==0) {
+				System.out.println("No TOUGH files were found in the selected directory.");
+				return;
+			}
+			// Get the times from the file names in the first directory
+			if(doOnce) {
+				for(File subfile: directory.listFiles(fileFilter)) {
+					String[] t = subfile.getName().split("\\.")[0].split("_");
+					String time = t[t.length - 1].replaceAll("\\D+", "");
+					times.add(Float.parseFloat(time));
+				}
+				doOnce = false;
+			}
+			// Read the first file to get the file structure
+			File firstFile = directory.listFiles(fileFilter)[0];
+			String line;
+			try (BufferedReader br = new BufferedReader(new FileReader(firstFile))) {
+				while ((line = br.readLine()) != null) { //We actually have to read the whole file... parameters are scattered throughout
+					// index is pulled from the structure map earlier
+					String[] tokens = line.trim().split("\\s+"); //The line is space delimited
+					for(String parameter: indexMap.subList(0, 3)) {
+						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
+						if(parameter.equals("x") && !x.contains(value))
+							x.add(value);
+						else if(parameter.equals("y") && !y.contains(value))
+							y.add(value);
+						else if(parameter.equals("z") && !z.contains(value))
+							z.add(value);
+					}
+					//TODO: temporary for testing
+					if(x.size()>20 && y.size()>20 && z.size()>20);
+						break;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		nodes = x.size()*y.size()*z.size();
+		//Provided values are at the nodes (center) of each cell
+		vertexX = calculateEdges(x);
+		vertexY = calculateEdges(y);
+		vertexZ = calculateEdges(z);
+		cleanParameters();
+	}
+	
+	
+	// Extracting data, statistics, and porosity from a list of TOUGH directories
+	public void extractToughData(File directory) {
+		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); //Ignore any files in the directory that aren't TOUGH files
+		String scenario = directory.getName();
+		if(!selectedScenarios.contains(scenario)) return; //Make sure this is a selected scenario
+		porosity = new float[nodes];
+		dataMap.put(scenario, new HashMap<String, float[][]>()); //Initialize dataMap for this scenario
+		statistics.put(scenario, new HashMap<String, float[]>()); //Initialize statistics for this scenario
+		for(String parameter: selectedParameters) {
+			dataMap.get(scenario).put(parameter, new float[selectedTimes.size()][nodes]);
+			statistics.get(scenario).put(parameter, new float[3]);
+		}
+		System.out.println("Reading variables: " + selectedParameters.toString());
+		// Loop through the list of files in each directory
+		for(File dataFile: directory.listFiles(fileFilter)) {
+			//Verify that the file represents a selected time step
+			String[] t = dataFile.getName().split("\\.")[0].split("_");
+			Float time = Float.parseFloat(t[t.length - 1].replaceAll("\\D+", ""));
+			if(!selectedTimes.contains(time)) continue;
+			System.out.print("    Reading " + scenario + "/" + dataFile.getName() + "...");
+			long startTime = System.currentTimeMillis();
+			String line;
+			try (BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
+				while ((line = br.readLine()) != null) { //We are reading the entire file
+					// index is pulled from the structure map earlier
+					String[] tokens = line.trim().split("\\s+"); //The line is space delimited
+					int i = x.indexOf(Float.parseFloat(tokens[0])); //Assuming i comes first
+					int j = y.indexOf(Float.parseFloat(tokens[1])); //Assuming j comes second
+					int k = z.indexOf(Float.parseFloat(tokens[2])); //Assuming k comes third
+					int index = i*y.size()*z.size() + j*z.size() + k;
+					for(String parameter: indexMap.subList(3, indexMap.size())) {
+						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
+						if(dataMap.get(scenario).containsKey(parameter)) {
+							System.out.println(line);
+							dataMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index] = value;
+							//[min, avg, max]
+							if(value < statistics.get(scenario).get(parameter)[0]) //Min
+								statistics.get(scenario).get(parameter)[0] = value;
+							else if(value > statistics.get(scenario).get(parameter)[2]) //Max
+								statistics.get(scenario).get(parameter)[2] = value;
+							statistics.get(scenario).get(parameter)[1] += value/nodes/selectedTimes.size(); //Avg
+						} else if(parameter.contains("porosity")) {
+							porosity[index] = value;
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			long endTime = (System.currentTimeMillis()-startTime)/1000;
+			System.out.println("    Reading "+dataFile.getName()+"... took "+Constants.formatSeconds(endTime));
+		}
+	}
+	
+	
+	
 	// Extracting scenarios, times, parameters, and xyz from the first Tecplot file
 	public void extractTecplotStructure(File directory) {
 		FileFilter fileFilter = new WildcardFileFilter("*.dat"); //Ignore any files in the directory that aren't Tecplot files
