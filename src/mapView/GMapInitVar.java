@@ -92,10 +92,11 @@ public class GMapInitVar {
 		List<Float> myNorthEastY = new ArrayList<Float>();
 		List<Float> mySouthWestX = new ArrayList<Float>();
 		List<Float> mySouthWestY = new ArrayList<Float>();
-		//Grabbing the correct location of the well from the IJ.
+		//Convert our points into Lat Long and more specifically the NorthEast and SouthWest corners.
 		for (Point3i thePoint : myValidNodePoints) {
 			counter++;
 			if (myUnit.equals("ft")) {
+				//If the units given are in feet we need to convert to meter
 				myNorthEastX.add(myXEdge.get(thePoint.getI() + 1) / FT_TO_M_CONVERSION_FACTOR);
 				myNorthEastY.add(myYEdge.get(thePoint.getJ()) / FT_TO_M_CONVERSION_FACTOR);
 				mySouthWestX.add(myXEdge.get(thePoint.getI()) / FT_TO_M_CONVERSION_FACTOR);
@@ -106,6 +107,7 @@ public class GMapInitVar {
 				mySouthWestX.add(myXEdge.get(thePoint.getI()));
 				mySouthWestY.add(myYEdge.get(thePoint.getJ() + 1));
 			}
+			//Maps correct Box to the location seen in our Google Map View.
 			for (IJ box : myBoxes) {
 				if (thePoint.getI() == box.i && thePoint.getJ() == box.j) {
 					myTempMapping.put(counter, box);
@@ -126,7 +128,7 @@ public class GMapInitVar {
 	}
 
 	/**
-	 * Finds the bounds of our entire space.
+	 * This method finds the max and min bounds to create a rectangle that spans the our entire space.
 	 */
 	private void findBounds() {
 		double[] boundsSW;

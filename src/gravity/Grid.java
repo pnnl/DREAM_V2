@@ -31,7 +31,12 @@ public class Grid  {
 	public double getgz() {
 		return gz;
 	}
-	
+	/**
+	 * Check if a grid object contains the designated x and y inputs.
+	 * @param xInput - x input
+	 * @param yInput - y input
+	 * @return - Boolean value ifContains.
+	 */
 	public boolean contains(final double xInput, final double yInput) {
 		return xInput == x && yInput == y;
 	}

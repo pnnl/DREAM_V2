@@ -114,6 +114,7 @@ public class GMapView extends Application implements MapComponentInitializedList
 	 * Grabs the variables from our GMapInitVar class.
 	 */
 	private void initVariables() {
+		//Initalizes all variables.
 		myMinBoundsX = GMapInitVar.getMinBoundX();
 		myMinBoundsY = GMapInitVar.getMinBoundY();
 		myMaxBoundsX = GMapInitVar.getMaxBoundX();
@@ -175,6 +176,7 @@ public class GMapView extends Application implements MapComponentInitializedList
 	 * required.
 	 */
 	private void createRectangles() {
+		//Loop through all our NE and SW corners.
 		for (int i = 0; i < myNorthEastXLongitudes.size(); i++) {
 			LatLong SouthWest = new LatLong(mySouthWestYLatitudes.get(i), mySouthWestXLongitudes.get(i));
 			LatLong NorthEast = new LatLong(myNorthEastYLatitudes.get(i), myNorthEastXLongitudes.get(i));
@@ -187,9 +189,12 @@ public class GMapView extends Application implements MapComponentInitializedList
 					.fillColor("black");
 			Rectangle rect = new Rectangle(rectOpts);
 			myMap.addMapShape(rect);
+			//Map our rectangle to its corrpsonding box, so when the rectangle is checked or unchecked
+			//It's reflected on our exclude locations page.
 			rectToBox.put(rect, myBoxMapping.get(i + 1));
 			myMap.addUIEventHandler(rect, UIEventType.click, (JSObject obj) -> {
 				if (rect.getJSObject().getMember("fillColor").equals("black")) {
+					//Change color and then uncheck our box.
 					myMap.removeMapShape(rect);
 					rectOpts.bounds(rect.getBounds()).fillColor("white");
 					rect.setRectangleOptions(rectOpts);

@@ -10,12 +10,19 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import gravity.HeatChart;
 
+/**
+ * Heatmap creation class.
+ * 
+ * @author huan482
+ *
+ */
 // Format for a .FWD File 
 // Header
 // x   y  gz  gy
@@ -24,6 +31,8 @@ import gravity.HeatChart;
 public class Heatmap {
 
 	private static final int BASE_DIMENSIONS = 20;
+
+//	private double[][] firstHeatMap;
 
 	private File theFolder;
 
@@ -38,12 +47,12 @@ public class Heatmap {
 	private double sizeOfSquare;
 
 	private double maxY;
-	
+
 	private Font baseFont;
-	
+
 	private Comparator<Grid> compare;
 
-	private List<String> myTimeSteps;
+	private List<Integer> myTimeSteps;
 
 	private int divisibleTick;
 
@@ -53,16 +62,28 @@ public class Heatmap {
 
 	private Image colorScaleImage;
 
+	private Image differenceMap;
+
 	private boolean colorScaleCreated;
-	
-	private static final String LOW_VAL_COLOUR =  "#05469B";
-	
-	private static final String HIGH_VAL_COLOUR =  "#3f0000";
-	
+
+	private static final String LOW_VAL_COLOUR = "#05469B";
+
+	private static final String HIGH_VAL_COLOUR = "#3f0000";
+
+	private boolean doOnce;
+
+	private double[][] firstHeatMap;
+
+	private double[][] differenceArr;
+
+	private double[][] firstTimeStep;
+
 	public Heatmap(final String directory) {
+		// Base Font can be subject to change.
+		// Format (Font, Font Attribute, Font Size)
 		baseFont = new Font("Arial", Font.BOLD, 16);
 		myGrid = new ArrayList<Grid>();
-		myTimeSteps = new ArrayList<String>();
+		myTimeSteps = new ArrayList<Integer>();
 		theFolder = new File(directory);
 		listOfFiles = theFolder.listFiles((d, name) -> name.endsWith(".fwd"));
 	}
@@ -71,11 +92,11 @@ public class Heatmap {
 		return parseGridData(resolution, timeStep);
 	}
 
-	public List<String> parseTimeSteps() {
+	public List<Integer> parseTimeSteps() {
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
 			String[] tempTokens = temp.split("_");
-			myTimeSteps.add(tempTokens[tempTokens.length - 1]);
+			myTimeSteps.add(Integer.parseInt(tempTokens[tempTokens.length - 1]));
 		}
 		return myTimeSteps;
 	}
@@ -89,6 +110,7 @@ public class Heatmap {
 	private Image parseGridData(final int resolution, final int timeStep) throws IOException {
 		String line;
 		int theFile = 0;
+		myGrid.clear();
 		// The First File
 		for (File f : listOfFiles) {
 			String temp = f.getName().substring(0, f.getName().indexOf("."));
@@ -147,16 +169,18 @@ public class Heatmap {
 			colorScaleImage = outputColorScale(colorScale, originalMax, intervalForColorScale);
 		}
 		colorScaleCreated = true;
-
+		differenceArr = new double[(int) sizeOfSquare][(int) sizeOfSquare];
+		firstHeatMap = new double[(int) sizeOfSquare][(int) sizeOfSquare];
 		return createHeatMap(maxX, maxY, resolution);
 	}
 
 	private Image createHeatMap(double themaxX, double theMaxY, int resolution) throws IOException {
 		Image myImg = null;
+		differenceMap = null;
 		int counter = 0;
 		int rowCounter = 0;
 		divisibleTick = (int) sizeOfSquare / 5;
-		//Creates the 1:1 resolution map.
+		// Creates the 1:1 resolution map.
 		double[][] mapARR = new double[(int) sizeOfSquare][];
 		for (double yVal = theMaxY; yVal >= intervalY; yVal -= intervalY) {
 			counter = 0;
@@ -173,22 +197,33 @@ public class Heatmap {
 			mapARR[rowCounter] = tempRow;
 			rowCounter++;
 		}
-		myImg = outputHeatMap(mapARR);
-		//This section of the code is what we use for different resolutions
+		if (!doOnce) {
+			firstTimeStep = Arrays.stream(mapARR).map(r -> r.clone()).toArray(double[][]::new);
+			doOnce = true;
+		}
+		firstHeatMap = Arrays.stream(firstTimeStep).map(r -> r.clone()).toArray(double[][]::new);
+		myImg = outputHeatMap(mapARR, true);
+		differenceMap = outputHeatMap(createFirstDifferenceMap(mapARR, firstHeatMap), false);
+		// This section of the code is what we use for different resolutions
 		if (resolution != 1) {
-			myImg = createDifferentResolutionMap(mapARR, resolution);
+			myImg = outputHeatMap(createDifferentResolutionMap(mapARR, resolution), true);
+			differenceMap = outputHeatMap(
+					createFirstDifferenceMap(mapARR, createDifferentResolutionMap(firstHeatMap, resolution)), false);
 		}
 		return myImg;
 	}
-	
+
 	/**
-	 * This method deals with creating a heatmap with different resolutions. (resolution != 1)
-	 * @param mapARR - The map we're changing and which has all of our information in.
+	 * This method deals with creating a HeatMap with different resolutions.
+	 * (resolution != 1)
+	 * 
+	 * @param mapARR     - The map we're changing and which has all of our
+	 *                   information in.
 	 * @param resolution - The resolution requested.
 	 * @return - The new HeatMap
 	 * @throws IOException - We're turning an image which has some risks inherently.
 	 */
-	private Image createDifferentResolutionMap(final double [][] mapARR, final int resolution) throws IOException {
+	private double[][] createDifferentResolutionMap(final double[][] mapARR, final int resolution) throws IOException {
 		ArrayList<Double> temp = new ArrayList<Double>();
 		double average = 0;
 		int remainder = (int) (sizeOfSquare - (sizeOfSquare % resolution));
@@ -197,8 +232,9 @@ public class Heatmap {
 		double outlierAverageColumn = 0;
 		ArrayList<Double> rowOutlier = new ArrayList<Double>();
 		ArrayList<Double> columnOutlier = new ArrayList<Double>();
-		//This part of the code calculates the average of the (resolution x resolution) square we're requesting for.
-		//THe 4 for loops is just a method to average the values in the square.
+		// This part of the code calculates the average of the (resolution x resolution)
+		// square we're requesting for.
+		// THe 4 for loops is just a method to average the values in the square.
 		for (int row = 0; row < sizeOfSquare; row += resolution) {
 			for (int column = 0; column < sizeOfSquare; column += resolution) {
 				for (int k = 0; k < resolution; k++) {
@@ -210,8 +246,8 @@ public class Heatmap {
 							}
 							average += mapARR[row + k][column + l];
 						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
-							//Purpose of this branch is too average the outlier's rows/columns.
-							//We add the averaged values into a separate list.
+							// Purpose of this branch is too average the outlier's rows/columns.
+							// We add the averaged values into a separate list.
 							outlierAverageRow += mapARR[row + k][column + l];
 							outlierAverageColumn += mapARR[column + l][row + k];
 							cc++;
@@ -230,21 +266,24 @@ public class Heatmap {
 		int squareCounter = 0;
 		int outlierCounter = 0;
 		int otherC = 0;
-		//This section of the for loop places all the averages we calculated for the square inside the square.
+		// This section of the for loop places all the averages we calculated for the
+		// square inside the square.
 		for (int row = 0; row < sizeOfSquare; row += resolution) {
 			for (int column = 0; column < sizeOfSquare; column += resolution) {
 				for (int k = 0; k < resolution; k++) {
 					for (int l = 0; l < resolution; l++) {
 						if (row < remainder && column < remainder) {
-							//This is the replacement part of the code where we replace the elements inside our array.
+							// This is the replacement part of the code where we replace the elements inside
+							// our array.
 							mapARR[row + k][column + l] = temp.get(squareCounter);
 							if ((row + k + 1) % resolution == 0 && (column + l + 1) % resolution == 0) {
-								//When we move onto the next (# x # square) we're going to go to the next value we found averaged
+								// When we move onto the next (# x # square) we're going to go to the next value
+								// we found averaged
 								squareCounter++;
 							}
 						} else if (column + l < sizeOfSquare && row + k < sizeOfSquare && column + l >= remainder) {
 							if (otherC == resolution) {
-								//We need to replace the outlier's now.
+								// We need to replace the outlier's now.
 								outlierCounter++;
 								otherC = 0;
 								if (outlierCounter == rowOutlier.size()) {
@@ -259,12 +298,29 @@ public class Heatmap {
 				}
 			}
 		}
-		return outputHeatMap(mapARR);
+		return mapARR;
 	}
-	
-	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
+
+	private double[][] createFirstDifferenceMap(final double[][] absoluteHeatMap, final double[][] first)
+			throws IOException {
+		for (int i = 0; i < absoluteHeatMap.length; i++) {
+			for (int j = 0; j < absoluteHeatMap[i].length; j++) {
+				differenceArr[i][j] = absoluteHeatMap[i][j] - first[i][j];
+			}
+		}
+		return differenceArr;
+	}
+
+	/**
+	 * This method generates are entire heatmap.
+	 * 
+	 * @param theHeatMapData - Our entire 2-D heatmap array.
+	 * @return - The heatmap as an image.
+	 * @throws IOException
+	 */
+	private Image outputHeatMap(double[][] theHeatMapData, final boolean isAbsoluteMap) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
-		//To change the font please change the variable baseFont
+		// To change the font please change the variable baseFont
 		map.setAxisValuesFont(baseFont);
 		map.setAxisLabelsFont(baseFont);
 		// Dark Blue
@@ -280,9 +336,24 @@ public class Heatmap {
 		map.setYAxisLabel("Northing (m)");
 		// Default is 20, change static variable to get different cell size.
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
+		if (isAbsoluteMap) {
+			map.setTitle("Absolute Heat Map");
+		} else {
+			map.setTitle("Difference Heat Map");
+		}
 		return map.getChartImage();
 	}
 
+	/**
+	 * This method outputs the color legend shown on the right most part of the
+	 * container.
+	 * 
+	 * @param theColourScale - The colour scale arrays we need to build the legend.
+	 * @param max            - max double that our colourscale has.
+	 * @param interval       - Interval for each mark.
+	 * @return - A colour legend image for our heatmap.
+	 * @throws IOException
+	 */
 	private Image outputColorScale(double[][] theColourScale, final double max, final double interval)
 			throws IOException {
 		HeatChart map = new HeatChart(theColourScale);
@@ -298,13 +369,17 @@ public class Heatmap {
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
 		return map.getChartImage();
 	}
-	
+
 	public int getDivisibleTick() {
 		return divisibleTick;
 	}
 
 	public Image getColorScale() {
 		return colorScaleImage;
+	}
+
+	public Image getDifferenceMap() {
+		return differenceMap;
 	}
 
 }
