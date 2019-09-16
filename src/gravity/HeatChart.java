@@ -1532,7 +1532,7 @@ public class HeatChart {
 	private void drawXLabel(Graphics2D chartGraphics) {
 		if (xAxisLabel != null) {
 			// Strings are drawn from the baseline position of the leftmost char.
-			int yPosXAxisLabel = chartSize.height - (margin / 2) - xAxisLabelDescent;
+			int yPosXAxisLabel = chartSize.height - (margin / 2) - xAxisLabelDescent + 5;
 			//TODO This will need to be updated if the y-axis values/label can be moved to the right.
 			int xPosXAxisLabel = heatMapC.x - (xAxisLabelSize.width / 2);
 			
@@ -1549,7 +1549,7 @@ public class HeatChart {
 		if (yAxisLabel != null) {
 			// Strings are drawn from the baseline position of the leftmost char.
 			int yPosYAxisLabel = heatMapC.y + (yAxisLabelSize.width / 2);
-			int xPosYAxisLabel = (margin / 2) + yAxisLabelAscent;
+			int xPosYAxisLabel = (margin / 2) + yAxisLabelAscent - 5;
 			
 			chartGraphics.setFont(axisLabelsFont);
 			chartGraphics.setColor(axisLabelColour);

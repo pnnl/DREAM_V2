@@ -202,13 +202,13 @@ public class Heatmap {
 			doOnce = true;
 		}
 		firstHeatMap = Arrays.stream(firstTimeStep).map(r -> r.clone()).toArray(double[][]::new);
-		myImg = outputHeatMap(mapARR);
-		differenceMap = outputHeatMap(createFirstDifferenceMap(mapARR, firstHeatMap));
+		myImg = outputHeatMap(mapARR, true);
+		differenceMap = outputHeatMap(createFirstDifferenceMap(mapARR, firstHeatMap), false);
 		// This section of the code is what we use for different resolutions
 		if (resolution != 1) {
-			myImg = outputHeatMap(createDifferentResolutionMap(mapARR, resolution));
+			myImg = outputHeatMap(createDifferentResolutionMap(mapARR, resolution), true);
 			differenceMap = outputHeatMap(
-					createFirstDifferenceMap(mapARR, createDifferentResolutionMap(firstHeatMap, resolution)));
+					createFirstDifferenceMap(mapARR, createDifferentResolutionMap(firstHeatMap, resolution)), false);
 		}
 		return myImg;
 	}
@@ -318,7 +318,7 @@ public class Heatmap {
 	 * @return - The heatmap as an image.
 	 * @throws IOException
 	 */
-	private Image outputHeatMap(double[][] theHeatMapData) throws IOException {
+	private Image outputHeatMap(double[][] theHeatMapData, final boolean isAbsoluteMap) throws IOException {
 		HeatChart map = new HeatChart(theHeatMapData);
 		// To change the font please change the variable baseFont
 		map.setAxisValuesFont(baseFont);
@@ -336,6 +336,11 @@ public class Heatmap {
 		map.setYAxisLabel("Northing (m)");
 		// Default is 20, change static variable to get different cell size.
 		map.setCellSize(new Dimension(BASE_DIMENSIONS, BASE_DIMENSIONS));
+		if (isAbsoluteMap) {
+			map.setTitle("Absolute Heat Map");
+		} else {
+			map.setTitle("Difference Heat Map");
+		}
 		return map.getChartImage();
 	}
 
