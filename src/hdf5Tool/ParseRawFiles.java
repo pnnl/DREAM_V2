@@ -44,17 +44,17 @@ public class ParseRawFiles {
 	private int nodes;
 
 	private ArrayList<Float> vertexX;
-	
+
 	private ArrayList<Float> vertexY;
-	
+
 	private ArrayList<Float> vertexZ;
-	
+
 	private float[] porosity;
-	
+
 	private Map<String, Map<String, float[][]>> dataMap; // scenario <parameter, float[time][nodes]>
-	
+
 	private Map<String, Map<String, float[]>> statistics; // scenario, parameter, float[min, avg, max]
-	
+
 	private Map<String, String> units; // parameter, units
 
 	// Only used by STOMP
@@ -63,7 +63,7 @@ public class ParseRawFiles {
 	private ArrayList<String> indexMap; // Maps parameters to columns or blocks
 	// Only used by Tecplot
 	private int elements;
-	
+
 	// Initialize variables
 	public ParseRawFiles() {
 		scenarios = new ArrayList<String>();
@@ -513,7 +513,8 @@ public class ParseRawFiles {
 				e.printStackTrace();
 			}
 		}
-		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH															// files
+		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
+																	// // files
 		boolean doOnce = true;
 		// Loop through the list of directories in the parent folder
 		for (File directory : parentDirectory.listFiles()) {
@@ -584,12 +585,15 @@ public class ParseRawFiles {
 			}
 		}
 		double intervalX = (xMax + (Math.abs(xMin))) / 50;
-//		double intervalY = (yMax + (Math.abs(yMin))) / 50;
-		//Just going to use this grid.
-		double[] tempArr = new double[50];
+		double intervalY = (yMax + (Math.abs(yMin))) / 50;
+		// Just going to use this grid.
+		double[] xMinValues = new double[50];
+		double[] yMinValues = new double[50];
 		for (int i = 0; i < 50; i++) {
-			tempArr[i] = xMin;
+			xMinValues[i] = xMin;
 			xMin += intervalX;
+			yMinValues[i] = yMin;
+			yMin += intervalY;
 		}
 		nodes = x.size() * y.size() * z.size();
 		// Provided values are at the nodes (center) of each cell
@@ -598,62 +602,75 @@ public class ParseRawFiles {
 		vertexZ = calculateEdges(z);
 		cleanParameters();
 		File[] listOfFiles = dir.listFiles(fileFilter);
-		interpolateDataToMap(listOfFiles, tempArr);
+		interpolateDataToMap(listOfFiles, xMinValues, yMinValues);
 	}
-	
-	private void interpolateDataToMap(final File[] theListOfFiles, double[] xMins) throws FileNotFoundException, IOException {
-		List<Map<Double, double[]>> fileData = new ArrayList<Map<Double, double[]>>();
+
+	private void interpolateDataToMap(final File[] theListOfFiles, double[] xMins, final double[] yMins)
+			throws FileNotFoundException, IOException {
+
+		List<Map<pointDouble, double[]>> fileData = new ArrayList<Map<pointDouble, double[]>>();
+		Map<pointDouble, double[]> gridPoints = new HashMap<pointDouble, double[]>();
 		String line;
 		int arrSize = 0;
-		double key = 0;
-		for (File f: theListOfFiles) {
-			Map<Double, double[]> tempXGrid = new HashMap<Double, double[]>();
-			for (double d : xMins) {
-				tempXGrid.put(d, new double[22]);
+		double keyX = 0;
+		double keyY = 0;
+		for (int i = 0; i < xMins.length; i++) {
+			for (int j = 0; j < yMins.length; j++) {
+				gridPoints.put(new pointDouble(xMins[i], yMins[j]), new double[22]);
 			}
+		}
+		for (File f : theListOfFiles) {
 			try (BufferedReader br = new BufferedReader(new FileReader(f))) {
 				while ((line = br.readLine()) != null) {
 					int counter = 3;
 					String[] tokens = line.trim().split("\\s+");
+					keyX = getKeyInInterval(Double.parseDouble(tokens[0]), xMins);
+					keyY = getKeyInInterval(Double.parseDouble(tokens[1]), yMins);
+					pointDouble thePoint = null;
 					for (int i = 3; i < (tokens.length - 2) * 2; i += 2) {
-						//get the interval where the key should be.
-					    key = getKeyInInterval(Double.parseDouble(tokens[0]), xMins);
-						tempXGrid.get(key)[i - 3]++;
-						tempXGrid.get(key)[i - 2] += Double.parseDouble(tokens[counter]);
+						// get the interval where the key should be.
+						for (pointDouble key: gridPoints.keySet()) {
+							if (key.contains(keyX, keyY)) {
+								thePoint = key;
+								break;
+							}
+						}
+						gridPoints.get(thePoint)[i - 3]++;
+						gridPoints.get(thePoint)[i - 2] += Double.parseDouble(tokens[counter]);
 						counter++;
 					}
 				}
 			}
 			arrSize = 22;
-			fileData.add(tempXGrid);
+			fileData.add(gridPoints);
 		}
 		averageValue(fileData, arrSize);
 	}
-		
-	private List<Map<Double, double[]>> averageValue(List<Map<Double, double[]>> valsList, final int size) {
-		for (Map<Double, double[]> map : valsList) {
-			 for (Double key: map.keySet()) {
-				 for (int i = 0; i < size; i += 2) {
-					 map.get(key)[i + 1]  = map.get(key)[i + 1] / map.get(key)[i];
-				 }
-			 }
- 		}
+
+	private List<Map<pointDouble, double[]>> averageValue(List<Map<pointDouble, double[]>> valsList, final int size) {
+		for (Map<pointDouble, double[]> map : valsList) {
+			for (pointDouble key : map.keySet()) {
+				for (int i = 0; i < size; i += 2) {
+					map.get(key)[i + 1] = map.get(key)[i + 1] / map.get(key)[i];
+				}
+			}
+		}
 		return valsList;
 	}
-	
+
 	private double getKeyInInterval(final double theValue, double[] keyList) {
-	    double minDiff = Double.MAX_VALUE;
-	    double nearest = 0;
-	    for (double key : keyList) {
-	        double diff = Math.abs(theValue - key);
-	        if (diff < minDiff) {
-	            nearest = key;
-	            minDiff = diff;
-	        }
-	    }
-	    return nearest;
+		double minDiff = Double.MAX_VALUE;
+		double nearest = 0;
+		for (double key : keyList) {
+			double diff = Math.abs(theValue - key);
+			if (diff < minDiff) {
+				nearest = key;
+				minDiff = diff;
+			}
+		}
+		return nearest;
 	}
-	
+
 	// Extracting data, statistics, and porosity from a list of TOUGH directories
 	public void extractToughData(File directory) {
 		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
@@ -712,7 +729,7 @@ public class ParseRawFiles {
 			System.out.println("    Reading " + dataFile.getName() + "... took " + Constants.formatSeconds(endTime));
 		}
 	}
-	
+
 	// Extracting scenarios, times, parameters, and xyz from the first Tecplot file
 	public void extractTecplotStructure(File directory) {
 		FileFilter fileFilter = new WildcardFileFilter("*.dat"); // Ignore any files in the directory that aren't
