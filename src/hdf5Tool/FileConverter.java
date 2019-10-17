@@ -584,15 +584,7 @@ public class FileConverter extends javax.swing.JFrame {
 						else if(fileType.equals(NUFT))
 							gp.extractNuftStructure(file_inputDir);
 						else if(fileType.equals(TOUGH))
-							try {
-								gp.extractToughStructure(file_inputDir);
-							} catch (FileNotFoundException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+							gp.extractToughStructure(file_inputDir);
 						else if(fileType.equals(TECPLOT) && folderStructure.equals(SCENARIO_PER_FILE)) //TODO: This assumes files per folder, need to add scenarios per folder option when I get an example
 							gp.extractTecplotStructure(file_inputDir);
 						
