@@ -3,7 +3,6 @@ package hdf5Tool;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,14 +53,63 @@ public class ParseRawFiles {
 
 	private Map<String, String> units; // parameter, units
 
-	private List<Map<pointDouble, double[]>> fileData;
-	
+//	private List<Map<pointDouble, double[]>> fileData;
+
 	// Only used by STOMP
 	private boolean nodal; // Determine whether parameters are given for nodes or vertices
 	// Only used by NUFT and Tecplot
 	private ArrayList<String> indexMap; // Maps parameters to columns or blocks
 	// Only used by Tecplot
 	private int elements;
+
+	private class IndexTime {
+		private String scenario;
+
+		private String parameter;
+
+		private int index;
+
+		private float time;
+
+		private int counter;
+
+		public IndexTime(final String scenario, final String parameter, final int index, final float time) {
+			this.scenario = scenario;
+			this.parameter = parameter;
+			this.index = index;
+			this.time = time;
+			counter = 0;
+		}
+
+		private boolean isEquals(final String s, final String p, final int i, final float t) {
+			return scenario.equals(s) && parameter.equals(p) && index == i && time == t;
+		}
+
+		private void incrementCounter() {
+			counter++;
+		}
+
+		private int getCounter() {
+			return counter;
+		}
+
+		private String getScenario() {
+			return scenario;
+		}
+
+		private String getParameter() {
+			return parameter;
+		}
+
+		private int getIndex() {
+			return index;
+		}
+
+		private float getTime() {
+			return time;
+		}
+
+	};
 
 	// Initialize variables
 	public ParseRawFiles() {
@@ -82,7 +130,6 @@ public class ParseRawFiles {
 		vertexX = new ArrayList<Float>();
 		vertexY = new ArrayList<Float>();
 		vertexZ = new ArrayList<Float>();
-
 		dataMap = new HashMap<String, Map<String, float[][]>>();
 		statistics = new HashMap<String, Map<String, float[]>>();
 		units = new HashMap<String, String>();
@@ -476,26 +523,34 @@ public class ParseRawFiles {
 			System.out.println("    Reading " + subFile.getName() + "... took " + Constants.formatSeconds(endTime));
 		}
 	}
-	
+
 	// Extracting scenarios, times, parameters, and xyz from the first TOUGH file
 	public void extractToughStructure(File parentDirectory) {
-		
-		// The out files don't provide column headers, so we need to read them from a separate file
+		double xMin = 0;
+		double xMax = 0;
+		double yMin = 0;
+		double yMax = 0;
+		double zMin = 0;
+		double zMax = 0;
+		// The out files don't provide column headers, so we need to read them from a
+		// separate file
 		// Assumes all the files have the same column indices
 		File[] fileList = parentDirectory.listFiles((d, name) -> name.endsWith(".map"));
-		if(fileList.length == 1) {
+		if (fileList.length == 1) {
 			String line;
 			try (BufferedReader br = new BufferedReader(new FileReader(fileList[0]))) {
-				while ((line = br.readLine()) != null) { //We actually have to read the whole file... times are scattered throughout
-					String[] tokens = line.split("\\s+"); //The line is space delimited
+				while ((line = br.readLine()) != null) { // We actually have to read the whole file... times are
+															// scattered throughout
+					String[] tokens = line.split("\\s+"); // The line is space delimited
 					String parameter = tokens[1].trim().toLowerCase();
-					if(tokens[1].contains("(")) {
+					if (tokens[1].contains("(")) {
 						parameter = parameter.split("\\(")[0].trim();
-						String unit = tokens[1].substring(tokens[1].lastIndexOf("(")+1,tokens[1].lastIndexOf(")"));
+						String unit = tokens[1].substring(tokens[1].lastIndexOf("(") + 1, tokens[1].lastIndexOf(")"));
 						units.put(parameter, unit);
 					}
 					indexMap.add(parameter);
-					if(!parameter.equals("x") && !parameter.equals("y") && !parameter.equals("z") && !parameter.contains("porosity")) {
+					if (!parameter.equals("x") && !parameter.equals("y") && !parameter.equals("z")
+							&& !parameter.contains("porosity")) {
 						parameters.add(parameter);
 					}
 				}
@@ -503,22 +558,25 @@ public class ParseRawFiles {
 				e.printStackTrace();
 			}
 		}
-		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); //Ignore any files in the directory that aren't TOUGH files
+		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
+																	// files
 		boolean doOnce = true;
 		// Loop through the list of directories in the parent folder
-		for(File directory: parentDirectory.listFiles()) {
-			if(!directory.isDirectory()) continue; //We only want folders - skip files
+		for (File directory : parentDirectory.listFiles()) {
+			if (!directory.isDirectory())
+				continue; // We only want folders - skip files
 			// Add all the scenarios from folder names
 			String scenarioName = directory.getName();
-			if(!scenarios.contains(scenarioName)) scenarios.add(scenarioName);
+			if (!scenarios.contains(scenarioName))
+				scenarios.add(scenarioName);
 			// A quick check that we actually have TOUGH files in the directory
-			if(directory.listFiles().length==0) {
+			if (directory.listFiles().length == 0) {
 				System.out.println("No TOUGH files were found in the selected directory.");
 				return;
 			}
 			// Get the times from the file names in the first directory
-			if(doOnce) {
-				for(File subfile: directory.listFiles(fileFilter)) {
+			if (doOnce) {
+				for (File subfile : directory.listFiles(fileFilter)) {
 					String[] t = subfile.getName().split("\\.")[0].split("_");
 					String time = t[t.length - 1].replaceAll("\\D+", "");
 					times.add(Float.parseFloat(time));
@@ -529,33 +587,65 @@ public class ParseRawFiles {
 			File firstFile = directory.listFiles(fileFilter)[0];
 			String line;
 			try (BufferedReader br = new BufferedReader(new FileReader(firstFile))) {
-				while ((line = br.readLine()) != null) { //We actually have to read the whole file... parameters are scattered throughout
+				while ((line = br.readLine()) != null) { // We actually have to read the whole file... parameters are
+															// scattered throughout
 					// index is pulled from the structure map earlier
-					String[] tokens = line.trim().split("\\s+"); //The line is space delimited
-					for(String parameter: indexMap.subList(0, 3)) {
+					String[] tokens = line.trim().split("\\s+"); // The line is space delimited
+					for (String parameter : indexMap.subList(0, 3)) {
 						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
-						if(parameter.equals("x") && !x.contains(value))
-							x.add(value);
-						else if(parameter.equals("y") && !y.contains(value))
-							y.add(value);
-						else if(parameter.equals("z") && !z.contains(value))
-							z.add(value);
+						if (parameter.equals("x")) {
+							if (value < xMin) {
+								xMin = value;
+							} else {
+								xMax = value;
+							}
+						} else if (parameter.equals("y")) {
+							if (value < yMin) {
+								yMin = value;
+							} else {
+								yMax = value;
+							}
+						} else if (parameter.equals("z")) {
+							if (value < zMin) {
+								zMin = value;
+							} else {
+								zMax = value;
+							}
+						}
+//						if (parameter.equals("x") && !x.contains(value))
+//							x.add(value);
+//						else if (parameter.equals("y") && !y.contains(value))
+//							y.add(value);
+//						else if (parameter.equals("z") && !z.contains(value))
+//							z.add(value);
 					}
-					//TODO: temporary for testing
-					if(x.size()>20 && y.size()>20 && z.size()>20);
-						break;
+					// TODO: temporary for testing
+//					if(x.size()>20 && y.size()>20 && z.size()>20);
+//						break;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		nodes = x.size()*y.size()*z.size();
-		//Provided values are at the nodes (center) of each cell
+		double intervalX = calculateInterval(xMax, xMin, 50);
+		double intervalY = calculateInterval(yMax, yMin, 50);
+		double intervalZ = calculateInterval(zMax, zMin, 50);
+		for (int i = 0; i < 50; i++) {
+			x.add((float) xMin);
+			xMin += intervalX;
+			y.add((float) yMin);
+			yMin += intervalY;
+			z.add((float) zMin);
+			zMin += intervalZ;
+		}
+		nodes = x.size() * y.size() * z.size();
+		// Provided values are at the nodes (center) of each cell
 		vertexX = calculateEdges(x);
 		vertexY = calculateEdges(y);
 		vertexZ = calculateEdges(z);
 		cleanParameters();
 	}
+
 //	// Extracting scenarios, times, parameters, and xyz from the first TOUGH file
 //	public void extractToughStructure(final File parentDirectory) throws FileNotFoundException, IOException {
 //		File dir = null;
@@ -744,27 +834,33 @@ public class ParseRawFiles {
 //		}
 //		return valsList;
 //	}
-//	/**
-//	 * Returns the nearest key entered from the list of keys we have. 
-//	 * @param theValue
-//	 * @param keyList
-//	 * @return the nearest key in the interval.
-//	 */
-//	private double getKeyInInterval(final double theValue, double[] keyList) {
-//		double minDiff = Double.MAX_VALUE;
-//		double nearest = 0;
-//		for (double key : keyList) {
-//			double diff = Math.abs(theValue - key);
-//			if (diff < minDiff) {
-//				nearest = key;
-//				minDiff = diff;
-//			}
-//		}
-//		return nearest;
-//	}
+	/**
+	 * Returns the nearest key entered from the list of keys we have.
+	 * 
+	 * @param theValue
+	 * @param keyList
+	 * @return the nearest key in the interval.
+	 */
+	private double getKeyInInterval(final double theValue, final ArrayList<Float> theXYZVal) {
+		double minDiff = Double.MAX_VALUE;
+		double nearest = 0;
+		for (double key : theXYZVal) {
+			double diff = Math.abs(theValue - key);
+			if (diff < minDiff) {
+				nearest = key;
+				minDiff = diff;
+			}
+		}
+		return nearest;
+	}
+
+	private double calculateInterval(final double max, final double min, final double interval) {
+		return (max + (Math.abs(min))) / interval;
+	}
 
 	// Extracting data, statistics, and porosity from a list of TOUGH directories
 	public void extractToughData(File directory) {
+		List<IndexTime> averageCounter = new ArrayList<IndexTime>();
 		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
 																	// files
 		String scenario = directory.getName();
@@ -780,6 +876,7 @@ public class ParseRawFiles {
 		System.out.println("Reading variables: " + selectedParameters.toString());
 		// Loop through the list of files in each directory
 		for (File dataFile : directory.listFiles(fileFilter)) {
+			averageCounter.clear();
 			// Verify that the file represents a selected time step
 			String[] t = dataFile.getName().split("\\.")[0].split("_");
 			Float time = Float.parseFloat(t[t.length - 1].replaceAll("\\D+", ""));
@@ -792,18 +889,36 @@ public class ParseRawFiles {
 				while ((line = br.readLine()) != null) { // We are reading the entire file
 					// index is pulled from the structure map earlier
 					String[] tokens = line.trim().split("\\s+"); // The line is space delimited
-					int i = x.indexOf(Float.parseFloat(tokens[0])); // Assuming i comes first
-					int j = y.indexOf(Float.parseFloat(tokens[1])); // Assuming j comes second
-					int k = z.indexOf(Float.parseFloat(tokens[2])); // Assuming k comes third
+					int i = x.indexOf((float) getKeyInInterval(Double.parseDouble(tokens[0]), x)); // Assuming i comes
+																									// first
+					int j = y.indexOf((float) getKeyInInterval(Double.parseDouble(tokens[1]), y)); // Assuming j comes
+																									// second
+					int k = z.indexOf((float) getKeyInInterval(Double.parseDouble(tokens[2]), z)); // Assuming k comes
+																									// third
 					int index = i * y.size() * z.size() + j * z.size() + k;
 					// i and k does not contain the parsed values.
 					for (String parameter : indexMap.subList(3, indexMap.size())) {
+						boolean found = false;
 						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
 						if (dataMap.get(scenario).containsKey(parameter)) {
-							System.out.println(line);
-//							System.out.println("Scenario: " + scenario + " Parameter: " + parameter + " Time: " + time + " index: " + index);
-							dataMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index] = value;
-							// [min, avg, max] 
+							if (averageCounter.isEmpty()) {
+								found = true;
+								averageCounter.add(new IndexTime(scenario, parameter, index, time));
+							} else {
+								for (IndexTime it : averageCounter) {
+									if (it.isEquals(scenario, parameter, index, time)) {
+										it.incrementCounter();
+										found = true;
+										break;
+									}
+								}
+							}
+							if (!found) {
+								averageCounter.add(new IndexTime(scenario, parameter, index, time));
+							}
+							dataMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index] += value; // [min,
+																												// avg,
+																												// max]
 							if (value < statistics.get(scenario).get(parameter)[0]) // Min
 								statistics.get(scenario).get(parameter)[0] = value;
 							else if (value > statistics.get(scenario).get(parameter)[2]) // Max
@@ -819,6 +934,10 @@ public class ParseRawFiles {
 			}
 			long endTime = (System.currentTimeMillis() - startTime) / 1000;
 			System.out.println("    Reading " + dataFile.getName() + "... took " + Constants.formatSeconds(endTime));
+			for (IndexTime it : averageCounter) {
+				dataMap.get(it.getScenario()).get(it.getParameter())[selectedTimes.indexOf(it.getTime())][it
+						.getIndex()] /= it.getCounter();
+			}
 		}
 	}
 
