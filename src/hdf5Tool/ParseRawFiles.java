@@ -6,6 +6,7 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -596,19 +597,19 @@ public class ParseRawFiles {
 						if (parameter.equals("x")) {
 							if (value < xMin) {
 								xMin = value;
-							} else {
+							} else if (value > xMax) {
 								xMax = value;
 							}
 						} else if (parameter.equals("y")) {
 							if (value < yMin) {
 								yMin = value;
-							} else {
+							} else if (value > xMax) {
 								yMax = value;
 							}
 						} else if (parameter.equals("z")) {
 							if (value < zMin) {
 								zMin = value;
-							} else {
+							} else if (value > xMax) {
 								zMax = value;
 							}
 						}
@@ -841,13 +842,16 @@ public class ParseRawFiles {
 	 * @param keyList
 	 * @return the nearest key in the interval.
 	 */
-	private double getKeyInInterval(final double theValue, final ArrayList<Float> theXYZVal) {
-		double minDiff = Double.MAX_VALUE;
-		double nearest = 0;
+	// Works for only positive numbers
+	// Need to fix this so it works for negative numbers as well.
+	private float getKeyInInterval(final double theValue, final ArrayList<Float> theXYZVal) {
+		float minDiff = Float.MAX_VALUE;
+		float nearest = 0;
+		float diff = 0;
 		for (double key : theXYZVal) {
-			double diff = Math.abs(theValue - key);
+			diff = (float) Math.abs(theValue - key);
 			if (diff < minDiff) {
-				nearest = key;
+				nearest = (float) key;
 				minDiff = diff;
 			}
 		}
@@ -894,7 +898,6 @@ public class ParseRawFiles {
 					int j = y.indexOf((float) getKeyInInterval(Double.parseDouble(tokens[1]), y)); // Assuming j comes
 																									// second
 					int k = z.indexOf((float) getKeyInInterval(Double.parseDouble(tokens[2]), z)); // Assuming k comes
-																									// third
 					int index = i * y.size() * z.size() + j * z.size() + k;
 					// i and k does not contain the parsed values.
 					for (String parameter : indexMap.subList(3, indexMap.size())) {
@@ -935,7 +938,8 @@ public class ParseRawFiles {
 			long endTime = (System.currentTimeMillis() - startTime) / 1000;
 			System.out.println("    Reading " + dataFile.getName() + "... took " + Constants.formatSeconds(endTime));
 			for (IndexTime it : averageCounter) {
-				dataMap.get(it.getScenario()).get(it.getParameter())[selectedTimes.indexOf(it.getTime())][it
+				if (it.getCounter() != 0) 
+					dataMap.get(it.getScenario()).get(it.getParameter())[selectedTimes.indexOf(it.getTime())][it
 						.getIndex()] /= it.getCounter();
 			}
 		}
@@ -950,7 +954,8 @@ public class ParseRawFiles {
 			System.out.println("No Tecplot files were found in the selected directory.");
 			return;
 		}
-		// Add all the scenarios from file names
+		// Add all the scenarios from file names.
+
 		for (File subFile : directory.listFiles(fileFilter)) {
 			String scenario = subFile.getName().split("\\.")[0];
 			if (!scenarios.contains(scenario))
