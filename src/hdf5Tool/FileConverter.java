@@ -11,8 +11,6 @@ import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -736,7 +734,6 @@ public class FileConverter extends javax.swing.JFrame {
 		hdf5File.createScalarDS("porosity", dataGroup, dtype, dims3D, null, null, 0, gp.getPorosity()); //Porosity is a fraction (no units)
 		
 
-		
 		///////////////////////////////////////////////////////
 		// Plot groups per step with data for all parameters //
 		///////////////////////////////////////////////////////

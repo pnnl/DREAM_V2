@@ -6,9 +6,7 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JCheckBox;
@@ -24,6 +22,7 @@ import utilities.Constants;
  * @date February 18, 2019
  */
 public class ParseRawFiles {
+	private static final int GRID_SIZE = 20;
 	private static final String POSITIVE = "positive";
 	private ArrayList<String> scenarios;
 	private ArrayList<Float> times;
@@ -62,56 +61,7 @@ public class ParseRawFiles {
 	private ArrayList<String> indexMap; // Maps parameters to columns or blocks
 	// Only used by Tecplot
 	private int elements;
-
-	private class IndexTime {
-		private String scenario;
-
-		private String parameter;
-
-		private int index;
-
-		private float time;
-
-		private int counter;
-
-		public IndexTime(final String scenario, final String parameter, final int index, final float time) {
-			this.scenario = scenario;
-			this.parameter = parameter;
-			this.index = index;
-			this.time = time;
-			counter = 0;
-		}
-
-		private boolean isEquals(final String s, final String p, final int i, final float t) {
-			return scenario.equals(s) && parameter.equals(p) && index == i && time == t;
-		}
-
-		private void incrementCounter() {
-			counter++;
-		}
-
-		private int getCounter() {
-			return counter;
-		}
-
-		private String getScenario() {
-			return scenario;
-		}
-
-		private String getParameter() {
-			return parameter;
-		}
-
-		private int getIndex() {
-			return index;
-		}
-
-		private float getTime() {
-			return time;
-		}
-
-	};
-
+	
 	// Initialize variables
 	public ParseRawFiles() {
 		scenarios = new ArrayList<String>();
@@ -628,10 +578,10 @@ public class ParseRawFiles {
 				e.printStackTrace();
 			}
 		}
-		double intervalX = calculateInterval(xMax, xMin, 50);
-		double intervalY = calculateInterval(yMax, yMin, 50);
-		double intervalZ = calculateInterval(zMax, zMin, 50);
-		for (int i = 0; i < 50; i++) {
+		double intervalX = calculateInterval(xMax, xMin, GRID_SIZE);
+		double intervalY = calculateInterval(yMax, yMin, GRID_SIZE);
+		double intervalZ = calculateInterval(zMax, zMin, GRID_SIZE);
+		for (int i = 0; i < GRID_SIZE; i++) {
 			x.add((float) xMin);
 			xMin += intervalX;
 			y.add((float) yMin);
@@ -646,195 +596,7 @@ public class ParseRawFiles {
 		vertexZ = calculateEdges(z);
 		cleanParameters();
 	}
-
-//	// Extracting scenarios, times, parameters, and xyz from the first TOUGH file
-//	public void extractToughStructure(final File parentDirectory) throws FileNotFoundException, IOException {
-//		File dir = null;
-//		double xMax = 0;
-//		double yMax = 0;
-//		double xMin = 0;
-//		double yMin = 0;
-//		// The out files don't provide column headers, so we need to read them from a
-//		// separate file
-//		// Assumes all the files have the same column indices
-//		File[] fileList = parentDirectory.listFiles((d, name) -> name.endsWith(".map"));
-//		if (fileList.length == 1) {
-//			String line;
-//			try (BufferedReader br = new BufferedReader(new FileReader(fileList[0]))) {
-//				while ((line = br.readLine()) != null) { // We actually have to read the whole file... times are
-//															// scattered throughout
-//					String[] tokens = line.split("\\s+"); // The line is space delimited
-//					String parameter = tokens[1].trim().toLowerCase();
-//					if (tokens[1].contains("(")) {
-//						parameter = parameter.split("\\(")[0].trim();
-//						String unit = tokens[1].substring(tokens[1].lastIndexOf("(") + 1, tokens[1].lastIndexOf(")"));
-//						units.put(parameter, unit);
-//					}
-//					indexMap.add(parameter);
-//					if (!parameter.equals("x") && !parameter.equals("y") && !parameter.equals("z")
-//							&& !parameter.contains("porosity")) {
-//						parameters.add(parameter);
-//					}
-//				}
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
-//																	// // files
-//		boolean doOnce = true;
-//		// Loop through the list of directories in the parent folder
-//		for (File directory : parentDirectory.listFiles()) {
-//			if (!directory.isDirectory())
-//				continue; // We only want folders - skip files
-//			// Add all the scenarios from folder names
-//			String scenarioName = directory.getName();
-//			if (!scenarios.contains(scenarioName))
-//				scenarios.add(scenarioName);
-//			// A quick check that we actually have TOUGH files in the directory
-//			if (directory.listFiles().length == 0) {
-//				System.out.println("No TOUGH files were found in the selected directory.");
-//				return;
-//			}
-//			// Get the times from the file names in the first directory
-//			if (doOnce) {
-//				for (File subfile : directory.listFiles(fileFilter)) {
-//					String[] t = subfile.getName().split("\\.")[0].split("_");
-//					String time = t[t.length - 1].replaceAll("\\D+", "");
-//					times.add(Float.parseFloat(time));
-//				}
-//				doOnce = false;
-//			}
-//			// Read the first file to the min and max x/y/z values.
-//			File firstFile = directory.listFiles(fileFilter)[0];
-//			dir = directory;
-//			String line;
-//			try (BufferedReader br = new BufferedReader(new FileReader(firstFile))) {
-//				while ((line = br.readLine()) != null) { // We actually have to read the whole file... parameters are
-//															// scattered throughout
-//					// index is pulled from the structure map earlier
-//					String[] tokens = line.trim().split("\\s+"); // The line is space delimited
-//					// This part of the code should read every line.
-//					for (String parameter : indexMap.subList(0, 3)) {
-//						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
-//						if (parameter.equals("x")) {
-//							if (value < xMin) {
-//								xMin = value;
-//							} else {
-//								xMax = value;
-//							}
-//						} else if (parameter.equals("y")) {
-//							if (value < yMin) {
-//								yMin = value;
-//							} else {
-//								yMax = value;
-//							}
-//						}
-////						if(parameter.equals("x") && !x.contains(value))
-////							x.add(value);
-////						else if(parameter.equals("y") && !y.contains(value))
-////							y.add(value);
-////						else if(parameter.equals("z") && !z.contains(value))
-////							z.add(value);
-//					}
-////					//TODO: temporary for testing
-////					if(x.size()>20 && y.size()>20 && z.size()>20);
-////						break;
-//				}
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		double intervalX = (xMax + (Math.abs(xMin))) / 50;
-//		double intervalY = (yMax + (Math.abs(yMin))) / 50;
-//		// Just going to use this grid.
-//		double[] xMinValues = new double[50];
-//		double[] yMinValues = new double[50];
-//		for (int i = 0; i < 50; i++) {
-//			xMinValues[i] = xMin;
-//			xMin += intervalX;
-//			yMinValues[i] = yMin;
-//			yMin += intervalY;
-//		}
-//		nodes = x.size() * y.size() * z.size();
-//		// Provided values are at the nodes (center) of each cell
-//		vertexX = calculateEdges(x);
-//		vertexY = calculateEdges(y);
-//		vertexZ = calculateEdges(z);
-//		cleanParameters();
-//		File[] listOfFiles = dir.listFiles(fileFilter);
-//		interpolateDataToMap(listOfFiles, xMinValues, yMinValues);
-//	}
-//	/**
-//	 * This method structures the data into a 50x50 grid. The values are averaged.
-//	 * @param theListOfFiles - List of Files
-//	 * @param xMins - the xMin of the file.
-//	 * @param yMins - the yMin of the file.
-//	 * @throws FileNotFoundException
-//	 * @throws IOException
-//	 */
-//	private void interpolateDataToMap(final File[] theListOfFiles, double[] xMins, final double[] yMins)
-//			throws FileNotFoundException, IOException {
-//		
-//		fileData = new ArrayList<Map<pointDouble, double[]>>();
-//		Map<pointDouble, double[]> gridPoints = new HashMap<pointDouble, double[]>();
-//		String line;
-//		int arrSize = 0;
-//		double keyX = 0;
-//		double keyY = 0;
-//		//Populates our map with all the keys or points in our grid.
-//		for (int i = 0; i < xMins.length; i++) {
-//			for (int j = 0; j < yMins.length; j++) {
-//				gridPoints.put(new pointDouble(xMins[i], yMins[j]), new double[22]);
-//			}
-//		}
-//		//For every file and every line we will have a counter that tracks how many times that
-//		//parameter inside that interval has appeared and the sum of that parameter.
-//		for (File f : theListOfFiles) {
-//			try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-//				while ((line = br.readLine()) != null) {
-//					int counter = 3;
-//					String[] tokens = line.trim().split("\\s+");
-//					keyX = getKeyInInterval(Double.parseDouble(tokens[0]), xMins);
-//					keyY = getKeyInInterval(Double.parseDouble(tokens[1]), yMins);
-//					pointDouble thePoint = null;
-//					for (int i = 3; i < (tokens.length - 2) * 2; i += 2) {
-//						// get the interval where the key should be.
-//						for (pointDouble key: gridPoints.keySet()) {
-//							if (key.contains(keyX, keyY)) {
-//								thePoint = key;
-//								break;
-//							}
-//						}
-//						gridPoints.get(thePoint)[i - 3]++;
-//						gridPoints.get(thePoint)[i - 2] += Double.parseDouble(tokens[counter]);
-//						counter++;
-//					}
-//				}
-//			}
-//			arrSize = 22;
-//			//Add our grid for that file inside a list.
-//			fileData.add(gridPoints);
-//		}
-//		//For every file average the value.
-//		averageValue(fileData, arrSize);
-//	}
-//	/**
-//	 * Takes in a map and then averages out all the values inside that map.
-//	 * @param valsList
-//	 * @param size
-//	 * @return
-//	 */
-//	private List<Map<pointDouble, double[]>> averageValue(List<Map<pointDouble, double[]>> valsList, final int size) {
-//		for (Map<pointDouble, double[]> map : valsList) {
-//			for (pointDouble key : map.keySet()) {
-//				for (int i = 0; i < size; i += 2) {
-//					map.get(key)[i + 1] = map.get(key)[i + 1] / map.get(key)[i];
-//				}
-//			}
-//		}
-//		return valsList;
-//	}
+	
 	/**
 	 * Returns the nearest key entered from the list of keys we have.
 	 * 
@@ -842,8 +604,6 @@ public class ParseRawFiles {
 	 * @param keyList
 	 * @return the nearest key in the interval.
 	 */
-	// Works for only positive numbers
-	// Need to fix this so it works for negative numbers as well.
 	private float getKeyInInterval(final double theValue, final ArrayList<Float> theXYZVal) {
 		float minDiff = Float.MAX_VALUE;
 		float nearest = 0;
@@ -863,24 +623,26 @@ public class ParseRawFiles {
 	}
 
 	// Extracting data, statistics, and porosity from a list of TOUGH directories
+	//TODO: Might have to assign the 0's as a value when calculating wet bulk density.
 	public void extractToughData(File directory) {
-		List<IndexTime> averageCounter = new ArrayList<IndexTime>();
+		Map<String, Map<String, float[][]>> counterMap = new HashMap<String, Map<String,float[][]>>();
 		FileFilter fileFilter = new WildcardFileFilter("*.OUT"); // Ignore any files in the directory that aren't TOUGH
 																	// files
 		String scenario = directory.getName();
 		if (!selectedScenarios.contains(scenario))
 			return; // Make sure this is a selected scenario
 		porosity = new float[nodes];
+		counterMap.put(scenario, new HashMap<String, float[][]>());
 		dataMap.put(scenario, new HashMap<String, float[][]>()); // Initialize dataMap for this scenario
 		statistics.put(scenario, new HashMap<String, float[]>()); // Initialize statistics for this scenario
 		for (String parameter : selectedParameters) {
+			counterMap.get(scenario).put(parameter, new float[selectedTimes.size()][nodes]);
 			dataMap.get(scenario).put(parameter, new float[selectedTimes.size()][nodes]);
 			statistics.get(scenario).put(parameter, new float[3]);
 		}
 		System.out.println("Reading variables: " + selectedParameters.toString());
 		// Loop through the list of files in each directory
 		for (File dataFile : directory.listFiles(fileFilter)) {
-			averageCounter.clear();
 			// Verify that the file represents a selected time step
 			String[] t = dataFile.getName().split("\\.")[0].split("_");
 			Float time = Float.parseFloat(t[t.length - 1].replaceAll("\\D+", ""));
@@ -901,27 +663,10 @@ public class ParseRawFiles {
 					int index = i * y.size() * z.size() + j * z.size() + k;
 					// i and k does not contain the parsed values.
 					for (String parameter : indexMap.subList(3, indexMap.size())) {
-						boolean found = false;
 						float value = Float.parseFloat(tokens[indexMap.indexOf(parameter)]);
 						if (dataMap.get(scenario).containsKey(parameter)) {
-							if (averageCounter.isEmpty()) {
-								found = true;
-								averageCounter.add(new IndexTime(scenario, parameter, index, time));
-							} else {
-								for (IndexTime it : averageCounter) {
-									if (it.isEquals(scenario, parameter, index, time)) {
-										it.incrementCounter();
-										found = true;
-										break;
-									}
-								}
-							}
-							if (!found) {
-								averageCounter.add(new IndexTime(scenario, parameter, index, time));
-							}
-							dataMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index] += value; // [min,
-																												// avg,
-																												// max]
+							counterMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index]++;
+							dataMap.get(scenario).get(parameter)[selectedTimes.indexOf(time)][index] += value; // [min,avg]
 							if (value < statistics.get(scenario).get(parameter)[0]) // Min
 								statistics.get(scenario).get(parameter)[0] = value;
 							else if (value > statistics.get(scenario).get(parameter)[2]) // Max
@@ -937,11 +682,16 @@ public class ParseRawFiles {
 			}
 			long endTime = (System.currentTimeMillis() - startTime) / 1000;
 			System.out.println("    Reading " + dataFile.getName() + "... took " + Constants.formatSeconds(endTime));
-			for (IndexTime it : averageCounter) {
-				if (it.getCounter() != 0) 
-					dataMap.get(it.getScenario()).get(it.getParameter())[selectedTimes.indexOf(it.getTime())][it
-						.getIndex()] /= it.getCounter();
-			}
+			for (String scen : counterMap.keySet()) {
+				for (String map: counterMap.get(scen).keySet()) {
+					for (int i = 0; i < counterMap.get(scen).get(map).length; i++) {
+						for (int j = 0; j < counterMap.get(scen).get(map)[i].length; j++) {
+							if (counterMap.get(scen).get(map)[i][j] != 0)
+								dataMap.get(scen).get(map)[i][j] /= counterMap.get(scen).get(map)[i][j];
+						}
+					}
+				}
+			}		
 		}
 	}
 
