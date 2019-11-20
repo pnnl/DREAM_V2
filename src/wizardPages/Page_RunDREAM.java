@@ -3,6 +3,8 @@ package wizardPages;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,7 +99,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private boolean iterationsError;
 	private boolean samplesError;
 	
-	private String outputs = (Constants.runningJar ? Constants.userDir : Constants.parentDir) + File.separator + "_results";
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+	private String outputs = (Constants.runningJar ? Constants.userDir : Constants.parentDir) + File.separator + "Results_" + dtf.format(LocalDateTime.now());
 	private int runs = 1;
 	private int samples = 20;
 	
