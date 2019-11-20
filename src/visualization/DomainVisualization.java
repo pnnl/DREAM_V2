@@ -52,8 +52,7 @@ import utilities.Point3i;
  * Backend for interfacing between DomainViewer and the DREAM data.
  * The main display has three different kinds of data:
  * 1) sensor - actual locations of sensors from proposed configurations
- * 2) cloud - all locations that meet the leakage criteria
- * 3) valid - only the locations that are pareto-optimal
+ * 2) valid - all locations that meet the leakage criteria
  * @author port091
  * @author rodr144
  */
@@ -62,9 +61,8 @@ public class DomainVisualization {
 
 	private Shell shell;
 	private Tree tree_configurationTree;
-	private Table table_sensorTable;
+	private Table table_sensorTable1;
 	private Table table_sensorTable2;
-	private Table table_sensorTable3;
 	private DomainViewer domainViewer;
 
 	private ScenarioSet set;
@@ -85,14 +83,11 @@ public class DomainVisualization {
 	private Text text_labelZ;
 
 	private Map<String, SensorTableItem> sensorTableItems;
-	private Map<String, CloudTableItem> cloudTableItems;
 	private Map<String, CloudTableItem> validTableItems;
 	private Map<Float, TreeDetectingPercentItem> configurations;
 	
-	private boolean cloudOldSelection = true;
 	private boolean validOldSelection = true;
 	private boolean sensorOldSelection = true;
-	private TableItem cloudSelectAll;
 	private TableItem validSelectAll;
 	private TableItem sensorSelectAll;
 	
@@ -226,23 +221,17 @@ public class DomainVisualization {
 		
 		//Make the first tab
 		TabItem tab1 = new TabItem(tab, SWT.NONE);
-		tab1.setText(" Full Solution Space ");
+		tab1.setText("  Solution Space  ");
 		
-		table_sensorTable = buildCloudTable(tab);
-
+		table_sensorTable1 = buildValidTable(tab);
+		
 		TabItem tab2 = new TabItem(tab, SWT.NONE);
-		tab2.setText("  Pareto Space  ");
+		tab2.setText(" Monitoring Configuration ");
 		
-		table_sensorTable2 = buildValidTable(tab);
-		
-		TabItem tab3 = new TabItem(tab, SWT.NONE);
-		tab3.setText(" Monitoring Configuration ");
-		
-		table_sensorTable3 = buildSensorTable(tab);
+		table_sensorTable2 = buildSensorTable(tab);
 
-		tab1.setControl(table_sensorTable);
+		tab1.setControl(table_sensorTable1);
 		tab2.setControl(table_sensorTable2);
-		tab3.setControl(table_sensorTable3);
 		
 		Label label_configurations = new Label(composite, SWT.NONE);
 		label_configurations.setText("Configurations");
@@ -352,14 +341,6 @@ public class DomainVisualization {
 		return sensors;
 	}
 
-	public List<String> getAllCloudsToRender() {
-		List<String> sensors = new ArrayList<String>();
-		for(String key: cloudTableItems.keySet()) {
-			sensors.add(key);
-		}
-		return sensors;
-	}
-
 	public boolean renderConfiguration(String uuid) {
 		if(this.configurations == null)
 			return false;
@@ -414,12 +395,6 @@ public class DomainVisualization {
 		return false;
 	}
 
-	public boolean renderCloud(String sensor) {
-		if(cloudTableItems.containsKey(sensor))
-			return cloudTableItems.get(sensor).getTableItem().getChecked();
-		return false;
-	}
-
 	public boolean renderSensor(String sensor) {
 		if(sensorTableItems.containsKey(sensor))
 			return sensorTableItems.get(sensor).getTableItem().getChecked();
@@ -437,17 +412,6 @@ public class DomainVisualization {
 		return validNodes;
 	}
 
-	public List<Point3i> getCloudNodes(String sensor) {
-		List<Point3i> cloudNodes = new ArrayList<Point3i>();
-		Set<Integer> nodeNumbers = new HashSet<Integer>();
-		if(set.getSensorSettings().containsKey(sensor))
-			nodeNumbers.addAll(set.getSensorSettings().get(sensor).getCloudNodes());
-		for(Integer nodeNumber: nodeNumbers) {
-			cloudNodes.add(set.getNodeStructure().getIJKFromNodeNumber(nodeNumber));
-		}
-		return cloudNodes;
-	}
-
 	public Point3i getColorOfSensor(String sensor) {
 		Color color = sensorTableItems.get(sensor).getColor();
 		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
@@ -458,21 +422,12 @@ public class DomainVisualization {
 		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
 	}
 
-	public Point3i getColorOfCloud(String sensor) {
-		Color color = cloudTableItems.get(sensor).getColor();
-		return new Point3i(color.getRed(), color.getGreen(), color.getBlue());
-	}
-
 	public float getSensorTransparency(String sensor) {
 		return sensorTableItems.get(sensor).getTransparency();
 	}
 
 	public float getValidTransparency(String sensor) {
 		return validTableItems.get(sensor).getTransparency();
-	}
-
-	public float getCloudTransparency(String sensor) {
-		return cloudTableItems.get(sensor).getTransparency();
 	}
 
 	public Point3i getMeshColor() {
@@ -797,80 +752,6 @@ public class DomainVisualization {
 		return table;
 	}
 	
-	private Table buildCloudTable(Composite composite) {
-		final Table table = new Table(composite, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		final int rowHeight = 12;
-
-		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-		
-		TableColumn tableColumn_sensorType = new TableColumn(table, SWT.CENTER);
-		tableColumn_sensorType.setText("Include");
-
-		TableColumn tableColumn_displayColor = new TableColumn(table, SWT.CENTER);
-		tableColumn_displayColor.setText("Color");
-
-		TableColumn tableColumn_transparency = new TableColumn(table, SWT.CENTER);
-		tableColumn_transparency.setText("Transparency");
-
-		TableColumn tableColumn_selectColor = new TableColumn(table, SWT.CENTER);
-		tableColumn_selectColor.setText("");
-		
-		cloudTableItems = new HashMap<String, CloudTableItem>();
-		for(String type: set.getDataTypes()) {
-			CloudTableItem cloudTableItem = new CloudTableItem(table, rowHeight, type);
-			cloudTableItems.put(type, cloudTableItem);
-		}
-
-		// resize the row height using a MeasureItem listener
-		table.addListener(SWT.MeasureItem, new Listener() {
-			public void handleEvent(Event event) {
-				// height cannot be per row so simply set
-				event.height = rowHeight; // lame
-				if(event.index % 4 == 1)
-					event.width = 40;
-				if(event.index % 4 == 2)
-					event.width = 40;
-				if(event.index % 4 == 0) // label
-					event.width = 100;
-				if(event.index % 4 == 3) // button
-					event.width = 60;
-			}
-		});
-
-		table.addListener(SWT.EraseItem, new Listener() {
-			// Copied from stack overflow, used to stop highlight color
-			public void handleEvent(Event event) {
-				// Selection:
-				event.detail &= ~SWT.SELECTED;
-				// Expect: selection now has no visual effect.
-				// Actual: selection remains but changes from light blue to white.
-
-				// MouseOver:
-				event.detail &= ~SWT.HOT;
-				// Expect: mouse over now has no visual effect.
-				// Actual: behavior remains unchanged.
-
-				GC gc = event.gc;
-				TableItem item = (TableItem) event.item;
-				gc.setBackground(item.getBackground(event.index));
-				gc.fillRectangle(event.x, event.y, event.width, event.height);
-			}
-		});
-
-
-
-		cloudSelectAll = new TableItem(table, SWT.CENTER);
-		cloudSelectAll.setText("Select all");
-		cloudSelectAll.setChecked(true);
-		
-		tableColumn_sensorType.pack();
-		tableColumn_selectColor.pack();
-		tableColumn_displayColor.pack();
-		tableColumn_transparency.pack();
-
-		return table;
-	}
 	
 	public void clearViewer() {
 		if(shell != null && !shell.isDisposed()) {
@@ -1288,15 +1169,6 @@ public class DomainVisualization {
 
 	
 	public void checkSelectAll(){
-		if(cloudSelectAll != null){
-			boolean newValue = cloudSelectAll.getChecked();
-			if(cloudOldSelection != newValue){
-				for(CloudTableItem cloudItem: cloudTableItems.values()){
-					cloudItem.getTableItem().setChecked(newValue);
-				}
-				cloudOldSelection = newValue;
-			}
-		}
 		if(validSelectAll != null){
 			boolean newValue = validSelectAll.getChecked();
 			if(validOldSelection != newValue){

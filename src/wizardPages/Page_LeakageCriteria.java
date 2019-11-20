@@ -96,8 +96,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		public boolean isIncluded;
 		private boolean isDuplicate;
 		
-		private Label fullCloudNodeLabel;
-		private Label paretoNodeLabel;
+		private Label solutionNodeLabel;
 		private Label sensorTypeLabel;
 		
 		private Text aliasText;
@@ -852,37 +851,20 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			}
 		});
 		// Resulting nodes for full solution space (unique nodes that trigger on any scenario)
-		Group fullSolutionGroup = new Group(container, SWT.SHADOW_NONE);
-		fullSolutionGroup.setText("Full Solution Space for Each Parameter");
-		fullSolutionGroup.setFont(boldFontSmall);
-		fullSolutionGroup.setLayout(new GridLayout(4,true));
+		Group solutionGroup = new Group(container, SWT.SHADOW_NONE);
+		solutionGroup.setText("Solution Space for Each Parameter");
+		solutionGroup.setFont(boldFontSmall);
+		solutionGroup.setLayout(new GridLayout(4,true));
 		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		tempData.horizontalSpan = 10;
-		fullSolutionGroup.setLayoutData(tempData);
+		solutionGroup.setLayoutData(tempData);
 		for(String label: sensorData.keySet()){
 			SensorData sensor = sensorData.get(label);
-			sensor.fullCloudNodeLabel = new Label(fullSolutionGroup, SWT.WRAP);
-			if(data.getSet().getSensorSettings(label) == null)
-				data.getSet().resetSensorSettings(label);
-			if(data.getSet().getSensorSettings(label).getCloudNodes().size() > 0)
-				sensor.fullCloudNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getCloudNodes().size());
-			else
-				sensor.fullCloudNodeLabel.setText(label+": Not set");
-		}
-		
-		// Resulting nodes from pareto optimal (unique nodes that trigger on the most scenarios)
-		Group paretoGroup = new Group(container, SWT.SHADOW_NONE);
-		paretoGroup.setText("Pareto Space for Each Parameter");
-		paretoGroup.setFont(boldFontSmall);
-		paretoGroup.setLayout(new GridLayout(4,true));
-		paretoGroup.setLayoutData(tempData);
-		for(String label: sensorData.keySet()){
-			SensorData sensor = sensorData.get(label);
-			sensor.paretoNodeLabel = new Label(paretoGroup, SWT.WRAP);
+			sensor.solutionNodeLabel = new Label(solutionGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
-				sensor.paretoNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
+				sensor.solutionNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
 			else
-				sensor.paretoNodeLabel.setText(label+": Not set");
+				sensor.solutionNodeLabel.setText(label+": Not set");
 		}
 		
 		// If the user has the E4D module installed, allow the E4D buttons to show up
@@ -1210,11 +1192,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		for(String label: sensorData.keySet()) {
 			SensorData sensor = sensorData.get(label);
 			if(sensor.isIncluded) {
-				sensor.fullCloudNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getCloudNodes().size());
-				sensor.paretoNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
+				sensor.solutionNodeLabel.setText(label+": "+data.getSet().getSensorSettings(label).getValidNodes().size());
 			} else {
-				sensor.fullCloudNodeLabel.setText(label+": Not set");
-				sensor.paretoNodeLabel.setText(label+": Not set");
+				sensor.solutionNodeLabel.setText(label+": Not set");
 			}
 		}
 		

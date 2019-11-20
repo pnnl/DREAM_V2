@@ -277,7 +277,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		iterativeProceedureButton.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event arg0) {
-				printSolutionSpace();
+				if(data.getSet().getNodeStructure().getTotalNodes() < 100000000)
+					printSolutionSpace();
 				int runs = Integer.parseInt(runsText.getText());
 				int ittr = Integer.parseInt(iterationsText.getText());
 				data.setWorkingDirectory(outputFolder.getText());
@@ -972,19 +973,19 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					// Skip if sensorSettings doesn't contain the parameter
 					if(!data.getSet().getSensorSettings().containsKey(parameter.split("_")[0])) continue;
 					// Initialize arrays to save statistics across all scenarios
-					List<Integer> cloudNodes = new ArrayList<Integer>(data.getSet().getSensorSettings(parameter.split("_")[0]).getCloudNodes());
-					float[][] ttds = new float[cloudNodes.size()][scenarios.size()];
-					float[] min = new float[cloudNodes.size()];
+					List<Integer> solutionNodes = new ArrayList<Integer>(data.getSet().getSensorSettings(parameter.split("_")[0]).getValidNodes());
+					float[][] ttds = new float[solutionNodes.size()][scenarios.size()];
+					float[] min = new float[solutionNodes.size()];
 					Arrays.fill(min, Float.MAX_VALUE);
-					float[] max = new float[cloudNodes.size()];
+					float[] max = new float[solutionNodes.size()];
 					Arrays.fill(max, Float.MIN_VALUE);
-					float[] avg = new float[cloudNodes.size()];
-					float[] count = new float[cloudNodes.size()];
+					float[] avg = new float[solutionNodes.size()];
+					float[] count = new float[solutionNodes.size()];
 					// Each scenario should be a column
 					for(String scenario: data.getSet().getDetectionMap().get(parameter).keySet()) {
 						// Each node should be a row
 						for(int node: data.getSet().getDetectionMap().get(parameter).get(scenario).keySet()) {
-							int i = cloudNodes.indexOf(node);
+							int i = solutionNodes.indexOf(node);
 							float ttd = data.getSet().getDetectionMap().get(parameter).get(scenario).get(node);
 							ttds[i][scenarios.indexOf(scenario)] = ttd;
 							if(ttd < min[i]) min[i] = ttd;
@@ -1000,8 +1001,8 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 						text.append("," + scenario);
 					text.append("\n");
 					// Writing out a row for each node
-					for(int node: cloudNodes) {
-						int i = cloudNodes.indexOf(node);
+					for(int node: solutionNodes) {
+						int i = solutionNodes.indexOf(node);
 						Point3f xyz = structure.getXYZFromNodeNumber(node);
 						text.append(xyz+","+count[i]/(float)scenarios.size()*100.0+"%,");
 						text.append((min[i]==Float.MAX_VALUE ? "" : min[i]) + ",");

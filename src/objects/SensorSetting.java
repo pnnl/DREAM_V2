@@ -69,8 +69,7 @@ public class SensorSetting {
 
 	private float detectionThreshold;
 
-	private HashSet<Integer> validNodes; //Pareto optimal locations (if set in Constants class)
-	private HashSet<Integer> fullCloudNodes; //Full set of allowed locations
+	private HashSet<Integer> validNodes; //Detecting nodes
 	private static Map<String, HashMap<Float, Float>> volumeDegradedByYear; //Scenario <time, VAD>
 	private static List<Float> years;
 	public static float globalMinZ;
@@ -81,7 +80,6 @@ public class SensorSetting {
 	 * Percentage to increase nodes in your pareto space.
 	 * Higher percentage = more nodes.
 	 */
-	private static double PERCENTAGE = 0.05;
 	private NodeStructure nodeStructure;
 	
 	// Sensor Settings for H5 Files
@@ -96,7 +94,6 @@ public class SensorSetting {
 		setGlobalMaxZ(Collections.max(nodeStructure.getZ()));
 		setGlobalMinZ(Collections.min(nodeStructure.getZ()));
 		
-		fullCloudNodes = new HashSet<Integer>(); //Added later, initialize here
 		validNodes = new HashSet<Integer>(); //Added later, initialize here
 		
 		// specificType can be set after inputting parameters in Page_LeakageCriteria for H5 files
@@ -116,7 +113,6 @@ public class SensorSetting {
 		detectionThreshold = Float.parseFloat(threshold); //Based on the trigger, this represents the range for valid nodes
 		setGlobalMaxZ(Collections.max(nodeStructure.getZ()));
 		setGlobalMinZ(Collections.min(nodeStructure.getZ()));
-		fullCloudNodes = new HashSet<Integer>(); //Added later, initialize here
 		validNodes = new HashSet<Integer>(); //Added later, initialize here
 		
 		specificType = getSpecificType(); //Needs to be set now before the detection map is created
@@ -222,30 +218,19 @@ public class SensorSetting {
 	
 	public void setNodes(ScenarioSet set) {
 		
-		fullCloudNodes.clear();
 		validNodes.clear();
 		
 		if(type.contains("Electrical Conductivity"))
-			fullCloudNodes = validNodes = E4DSensors.setValidNodesERT(detectionThreshold);
+			validNodes = E4DSensors.setValidNodesERT(detectionThreshold);
 		else {
 			// From the detectionMap, we just need to get a list of nodes that exist across selected scenarios (fullCloudNodes)
 			for(String scenario: set.getScenarios()) {
 				if(set.getDetectionMap().get(specificType).get(scenario).size() > 0) {
 					for(Integer node: set.getDetectionMap().get(specificType).get(scenario).keySet())
-						fullCloudNodes.add(node);
+						validNodes.add(node);
 				}
 			}
-			validNodes.addAll(fullCloudNodes);
-//			System.out.println(fullCloudNodes.size());
-			// Remove nodes outside of Z range
-			trimZ();
-//			System.out.println(fullCloudNodes.size());
-
-			// Use pareto Optimal algorithm to get a smaller subset of good nodes (validNodes)
-			validNodes.clear();
-			validNodes.addAll(fullCloudNodes);
-			if(Constants.useParetoOptimal && !type.contains("Electrical Conductivity"))
-				primaryParetoOptimization(set.getDetectionMap(), set.getScenarios());
+			trimZ(); // Remove nodes outside of Z range
 		}
 	}
 	
@@ -257,7 +242,7 @@ public class SensorSetting {
 			Point3f test = nodeStructure.getXYZFromNodeNumber(node);
 //			System.out.println("Minimum: " + minZ + " Current: " + test.getZ() + " Maximum: " + maxZ);
 			if(test.getZ() < minZ || test.getZ() > maxZ) //outside of bounds
-				fullCloudNodes.remove(node);
+				validNodes.remove(node);
 		}
 	}
 	
@@ -338,8 +323,9 @@ public class SensorSetting {
 	 * The Pareto Algorithm that looks at the number of scenarios detected and gets rid of any nodes
 	 * with scenarios that are less than the node with the highest number of scenarios.
 	 */
-	private void primaryParetoOptimization(final Map<String, Map<String, Map<Integer, Float>>> theDetectionMap,
+	/*private void primaryParetoOptimization(final Map<String, Map<String, Map<Integer, Float>>> theDetectionMap,
 			final List<String> theScenarios) {
+		double PERCENTAGE = 0.05;
 		int max = 0;
 		// Our "fuzziness" based off of a percent of the number of total scenarios.
 		int threshold = (int) (theScenarios.size() * PERCENTAGE);
@@ -370,7 +356,7 @@ public class SensorSetting {
 				validNodes.add(theNode);
 			}
 		}
-	}
+	}*/
 	
 	
 	/**					**\
@@ -396,10 +382,6 @@ public class SensorSetting {
 	
 	public Set<Integer> getValidNodes() {
 		return validNodes;
-	}
-	
-	public Set<Integer> getCloudNodes() {
-		return fullCloudNodes;
 	}
 	
 	public void removeNode(Integer node) {
@@ -455,7 +437,6 @@ public class SensorSetting {
 	}
 
 	public void clearNodes() {
-		fullCloudNodes.clear();
 		validNodes.clear();
 	}
 	

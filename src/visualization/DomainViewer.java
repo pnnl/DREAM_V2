@@ -76,7 +76,6 @@ public class DomainViewer {
 	private boolean reset = true;
 	private boolean resetConfigurations = true;
 	private Map<String, TreeMap<Float, List<Face>>> validFaces;
-	private Map<String, TreeMap<Float, List<Face>>> cloudFaces;
 	private Map<String, TreeMap<Float, List<Face>>> configurations;
 	private List<Line> lines;
 	private Point3f cameraPosition = new Point3f(0, 0, 0);
@@ -99,7 +98,6 @@ public class DomainViewer {
 		GLData gldata = new GLData();
 		gldata.doubleBuffer = true;
 		validFaces = new HashMap<String, TreeMap<Float, List<Face>>>();
-		cloudFaces = new HashMap<String, TreeMap<Float, List<Face>>>();
 		configurations = new HashMap<String, TreeMap<Float, List<Face>>>();
 		lines = new ArrayList<Line>();
 
@@ -240,7 +238,6 @@ public class DomainViewer {
 			if(reset) {
 				this.buildLines();
 				this.buildValidFaces();
-				this.buildCloudFaces();
 				reset = false;
 			}			
 			if(resetConfigurations) {
@@ -317,22 +314,13 @@ public class DomainViewer {
 				}
 			}
 			numValidFaces *= 4;
-			int numCloudFaces = 0;
-			for(String key: cloudFaces.keySet()) {
-				if(domainVisualization.renderCloud(key)) {
-					for(Float distance: cloudFaces.get(key).keySet()) {
-						numCloudFaces += cloudFaces.get(key).get(distance).size();
-					}
-				}
-			}
-			numCloudFaces *= 4;
 
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
-			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices+numValidFaces+numCloudFaces, numVertices);
+			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices+numValidFaces, numVertices);
 
 			gl2.glDepthMask(false);
 			gl2.glPolygonMode( GL.GL_FRONT_AND_BACK, GL2.GL_FILL );
-			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numValidFaces+numCloudFaces);
+			gl2.glDrawArrays( GL2.GL_QUADS, numMeshVertices, numMeshVertices+numValidFaces);
 			gl2.glDepthMask(true); // Already sorted, don't override
 			
 			
@@ -455,18 +443,6 @@ public class DomainViewer {
 						facesToDraw.put(distance, new ArrayList<Face>());
 					}
 					for(Face face:validFaces.get(key).get(distance))
-						facesToDraw.get(distance).add(face);
-				}
-			}
-		}
-		for(String key: cloudFaces.keySet()) {
-			if(domainVisualization.renderCloud(key)) {
-				for(Float distance: cloudFaces.get(key).keySet()) {
-					numFaces += cloudFaces.get(key).get(distance).size();
-					if(!facesToDraw.containsKey(distance)) {
-						facesToDraw.put(distance, new ArrayList<Face>());
-					}
-					for(Face face:cloudFaces.get(key).get(distance))
 						facesToDraw.get(distance).add(face);
 				}
 			}
@@ -769,123 +745,7 @@ public class DomainViewer {
 			validFaces.putAll(facesByDistance);
 		}
 	}
-
-	private void buildCloudFaces() {
-		List<Float> xs = domainVisualization.getRenderCellBoundsX();
-		List<Float> ys = domainVisualization.getRenderCellBoundsY();
-		List<Float> zs = domainVisualization.getRenderCellBoundsZ();
-		Point3f camera = cameraPosition; // TODO: Doesn't seem to change anything
-		Map<String, TreeMap<Float, List<Face>>> facesByDistance = new HashMap<String, TreeMap<Float, List<Face>>>();
-		
-		//Get all the ones for the cloud nodes
-		for(String sensor: domainVisualization.getAllCloudsToRender()) {
-			Point3i color = domainVisualization.getColorOfCloud(sensor);
-			float transparency = domainVisualization.getCloudTransparency(sensor);
-			List<Point3i> nodes = domainVisualization.getCloudNodes(sensor);
-			
-			// Special handling for ERT
-			if (sensor.contains("Electrical Conductivity"))
-				nodes = addWellColumnE4D(nodes);
-			
-			if(!facesByDistance.containsKey(sensor))
-				facesByDistance.put(sensor, new TreeMap<Float, List<Face>>());
-			for(Point3i point: nodes) {
-				float xMin = xs.get(point.getI()-1);
-				float yMin = ys.get(point.getJ()-1);
-				float zMin = zs.get(point.getK()-1);
-				float xMax = xs.get(point.getI());
-				float yMax = ys.get(point.getJ());
-				float zMax = zs.get(point.getK());
-				if (domainVisualization.getZAxialPosition()) {
-					float temp = zMin;
-					zMin = zMax;
-					zMax = temp;
-				}
-				Face f1 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
-						new Point3f(xMax, yMax, zMin), new Point3f(xMin, yMax, zMin), color, transparency);
-				Face f2 = new Face(new Point3f(xMin, yMin, zMax), new Point3f(xMax, yMin, zMax), 
-						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
-				Face f3 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMin, yMax, zMin), 
-						new Point3f(xMin, yMax, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
-				Face f4 = new Face(new Point3f(xMax, yMin, zMin), new Point3f(xMax, yMax, zMin), 
-						new Point3f(xMax, yMax, zMax), new Point3f(xMax, yMin, zMax), color, transparency);
-				Face f5 = new Face(new Point3f(xMin, yMin, zMin), new Point3f(xMax, yMin, zMin), 
-						new Point3f(xMax, yMin, zMax), new Point3f(xMin, yMin, zMax), color, transparency);
-				Face f6 = new Face(new Point3f(xMin, yMax, zMin), new Point3f(xMax, yMax, zMin), 
-						new Point3f(xMax, yMax, zMax), new Point3f(xMin, yMax, zMax), color, transparency);
-
-				float f1Distance = f1.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f1Distance)) {
-					facesByDistance.get(sensor).put(f1Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f1Distance).add(f1);
-
-				float f2Distance = f2.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f2Distance)) {
-					facesByDistance.get(sensor).put(f2Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f2Distance).add(f2);
-
-				float f3Distance = f3.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f3Distance)) {
-					facesByDistance.get(sensor).put(f3Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f3Distance).add(f3);
-
-				float f4Distance = f4.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f4Distance)) {
-					facesByDistance.get(sensor).put(f4Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f4Distance).add(f4);
-
-				float f5Distance = f5.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f5Distance)) {
-					facesByDistance.get(sensor).put(f5Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f5Distance).add(f5);
-
-				float f6Distance = f6.getDistance(camera);
-				if(!facesByDistance.get(sensor).containsKey(f6Distance)) {
-					facesByDistance.get(sensor).put(f6Distance, new ArrayList<Face>());
-				}				
-				facesByDistance.get(sensor).get(f6Distance).add(f6);
-			}
-		}
-
-		// Purge equal faces
-
-		for(String sensor: facesByDistance.keySet()) {
-			for(Float distance: facesByDistance.get(sensor).keySet()) {
-				Map<Face, Integer> faceCount = new HashMap<Face, Integer>();
-				for(Face face: facesByDistance.get(sensor).get(distance)) {
-					Face found = null;
-					for(Face countedFace: faceCount.keySet()) {
-						if(face.equals(countedFace)) {
-							found = countedFace;
-							break;
-						}
-					}
-					if(found != null){
-						int currentCount = faceCount.get(found);
-						faceCount.put(found, currentCount + 1);
-					} else {
-						faceCount.put(face, 1);
-					}
-				}
-				facesByDistance.get(sensor).get(distance).clear();
-				for(Face face: faceCount.keySet()) {
-					if(faceCount.get(face) == 1)
-						facesByDistance.get(sensor).get(distance).add(face);
-				}
-			}
-		}
-
-
-		synchronized(cloudFaces) {
-			cloudFaces.clear();
-			cloudFaces.putAll(facesByDistance);
-		}
-	}
+	
 	
 	////E4D Hack: allows ERT valid nodes to show as columns rather than points at the bottom
 	private List<Point3i> addWellColumnE4D(List<Point3i> nodes) {
