@@ -174,7 +174,7 @@ public class NodeStructure {
 		float lengthz = edgez.get(location.getK()) - edgez.get(location.getK()-1);
 		float totalVolume = Math.abs(lengthx*lengthy*lengthz);
 		float porosity = this.porosity;
-		if(porosityOfNode==null) porosity = porosityOfNode.get(location);
+		if(porosityOfNode!=null) porosity = porosityOfNode.get(location);
 		return totalVolume*porosity;
 	}
 	
