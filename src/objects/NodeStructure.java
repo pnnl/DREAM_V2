@@ -39,6 +39,7 @@ public class NodeStructure {
 	private Point3i ijkDimensions;
 	
 	private HashMap<Point3i, Float> porosityOfNode;
+	private float porosity; //For large grids we run out of member with porosityOfNode, so this is an option when not read from file
 	
 	/**
 	 * Initializes node structure from new H5 files (includes edge, porosity, units)
@@ -89,7 +90,7 @@ public class NodeStructure {
 		parameters = new ArrayList<String>();
 		units = new HashMap<String, String>();
 		ijkDimensions = new Point3i(x.size(), y.size(), z.size());
-		porosityOfNode = new HashMap<Point3i, Float>();
+		porosity = 0;
 		
 		Constants.log(Level.INFO, "Node structure: initialized", null);
 		Constants.log(Level.CONFIG, "Node structure: configuration", this);
@@ -172,7 +173,8 @@ public class NodeStructure {
 		float lengthy = edgey.get(location.getJ()) - edgey.get(location.getJ()-1);
 		float lengthz = edgez.get(location.getK()) - edgez.get(location.getK()-1);
 		float totalVolume = Math.abs(lengthx*lengthy*lengthz);
-		float porosity = porosityOfNode.get(location);
+		float porosity = this.porosity;
+		if(porosityOfNode==null) porosity = porosityOfNode.get(location);
 		return totalVolume*porosity;
 	}
 	
@@ -319,8 +321,8 @@ public class NodeStructure {
 	}
 	
 	// Check if porosity values have been added
-	public boolean porosityOfNodeIsSet() {
-		if(porosityOfNode==null || porosityOfNode.size()==0) return false;
+	public boolean porosityIsSet() {
+		if(porosityOfNode==null && porosity==0) return false;
 		return true;
 	}
 	
@@ -367,6 +369,10 @@ public class NodeStructure {
 				}
 			}
 		}
+	}
+	
+	public void setPorosity(float porosity) {
+		this.porosity = porosity;
 	}
 	
 	public void writePorositiesToIJKFile(File file) throws FileNotFoundException, UnsupportedEncodingException{

@@ -125,7 +125,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator) + 1));
 		// Ask for porosity input if it doesn't exist yet
 		createOptionPane();
-		if (!data.getSet().getNodeStructure().porosityOfNodeIsSet()) {
+		if (!data.getSet().getNodeStructure().porosityIsSet()) {
 			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 			dialog.open();
 		}
@@ -257,8 +257,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		if (isH5) {
 			if (data.getSet().getNodeStructure().getUnit("x").equals("")
 					|| data.getSet().getNodeStructure().getUnit("times").equals("")
-					|| data.getSet().getNodeStructure().porosityOfNodeIsSet()
-					|| data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+					|| data.getSet().getNodeStructure().getUnit("positive").equals("")
+					|| !data.getSet().getNodeStructure().porosityIsSet()) {
 				JComboBox<String> ZOrientation = new JComboBox<String>(new String[] { "up", "down" });
 				JComboBox<String> distanceList = new JComboBox<String>(new String[] { "m", "ft" });
 				JComboBox<String> timeList = new JComboBox<String>(new String[] { "years", "months", "days" });
@@ -266,7 +266,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 
 				int option = JOptionPane.showConfirmDialog(null,
 						theDialogBoxes(distanceList, timeList, porosityText, ZOrientation),
-						"Set Units, Set Porosity, or Set Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
+						"Set Units, Porosity, or Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
 				// When user clicks ok.
 				if (option == JOptionPane.OK_OPTION) {
 					// Put units into our unit HashMap.
@@ -282,6 +282,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 						String time = timeList.getSelectedItem().toString();
 						data.getSet().getNodeStructure().addUnit("times", time);
 					}
+					if(!data.getSet().getNodeStructure().porosityIsSet()) {
+						data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
+					}
 				}
 			}
 		} else if (isIAM) {
@@ -292,7 +295,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 
 			int option = JOptionPane.showConfirmDialog(null,
 					theDialogBoxes(distanceList, timeList, porosityText, ZOrientation),
-					"Set Units, Set Porosity, or Set Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
+					"Set Units, Porosity, or Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
 			// When user clicks ok.
 			if (option == JOptionPane.OK_OPTION) {
 				// Put units into our unit HashMap.
@@ -308,6 +311,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 					String time = timeList.getSelectedItem().toString();
 					data.getSet().getNodeStructure().addUnit("times", time);
 				}
+				if(!data.getSet().getNodeStructure().porosityIsSet()) {
+					data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
+				}
 			}
 		}
 	}
@@ -318,8 +324,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 
 		if (data.getSet().getNodeStructure().getUnit("x").equals("")
 				|| data.getSet().getNodeStructure().getUnit("times").equals("")
-				|| data.getSet().getNodeStructure().porosityOfNodeIsSet()
-				|| data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+				|| data.getSet().getNodeStructure().getUnit("positive").equals("")
+				|| !data.getSet().getNodeStructure().porosityIsSet()) {
 
 			java.awt.Label distanceLabel = new java.awt.Label();
 			distanceLabel.setText("XYZ Units:");
@@ -357,7 +363,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				mainPanel.remove(timeList);
 				mainPanel.remove(timeLabel);
 			}
-			if (data.getSet().getNodeStructure().porosityOfNodeIsSet() || isIAM) {
+			if (data.getSet().getNodeStructure().porosityIsSet()) {
 				mainPanel.remove(porosityText);
 				mainPanel.remove(porosityLabel);
 			}
