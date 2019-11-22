@@ -712,7 +712,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		if(!DREAMWizard.errorMessage.getText().contains("  No nodes were found for the provided parameters."))
 			DREAMWizard.errorMessage.setText("");
 		removeChildren(container);
-		
 		// If we need to reset sensors, this boolean will be set to true
 		if(data.needToResetMonitoringParameters) {
 			data.needToResetMonitoringParameters = false;
@@ -731,7 +730,6 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 				}
 				data.getSet().resetRemovedSensorSettings();
 			}
-			
 			// IAM values are already stored in detectionMap, but E4D files might also be stored in detectionMap
 			else {
 				for(String specificType: data.getSet().getDetectionMap().keySet()) {
@@ -859,6 +857,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		tempData.horizontalSpan = 10;
 		solutionGroup.setLayoutData(tempData);
 		for(String label: sensorData.keySet()){
+			if (data.getSet().getSensorSettings(label) == null ) {
+				data.getSet().resetSensorSettings(label);		
+			}
 			SensorData sensor = sensorData.get(label);
 			sensor.solutionNodeLabel = new Label(solutionGroup, SWT.WRAP);
 			if(data.getSet().getSensorSettings(label).getValidNodes().size() > 0)
@@ -1152,7 +1153,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 	
 	//We want to do the same process when the page is completed or the "find triggering nodes" is selected
 	private void findTriggeringNodes() {
-		
+		//Removal portion of the code where it removes the sensorname from sensor settings.
 		// sensorSettings needs to only have selected sensors now
 		// Also create a map of sensors where we need to find nodes
 		Sensor.sensorAliases = new HashMap<String, String>();
@@ -1200,6 +1201,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		// Now that we've found nodes, make vis available
 		DREAMWizard.visLauncher.setEnabled(true);
+
 	}
 	
 	//Hack to fix a bug on mac that would replace the contents of whatever field was selected with the alias of the first selected monitoring parameter.
