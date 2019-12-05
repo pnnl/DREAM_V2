@@ -6,15 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javafx.scene.Scene;
 import utilities.Point3i;
 
 /**
  * This class sets up the variables for the google maps.
- * 
+ * Note: this class can be cleaned up substantially (On my To Do list).
  * @author huan482
  */
 
-public class GMapInitVar {
+public class InitMapVars {
 
 	private final static float FT_TO_M_CONVERSION_FACTOR = (float) 3.281;
 
@@ -51,8 +52,10 @@ public class GMapInitVar {
 	private static List<IJ> myBoxes;
 	
 	private static Map<Integer, IJ> myTempMapping;
-
-	public GMapInitVar(final List<IJ> theBoxes, final List<Float> theXEdge, final List<Float> theYEdge,
+	
+	private InitMapScene map;
+	
+	public InitMapVars(final List<IJ> theBoxes, final List<Float> theXEdge, final List<Float> theYEdge,
 			final int theZoneNumber, final String theZone, final String theUnit,
 			final List<Point3i> theValidNodePoints) {
 		myBoxes = theBoxes;
@@ -68,6 +71,7 @@ public class GMapInitVar {
 		myZone = theZoneNumber;
 		myZoneDirection = theZone;
 		myTempMapping = new HashMap<Integer, IJ>();
+		map = new InitMapScene();
 	}
 
 	/**
@@ -191,5 +195,7 @@ public class GMapInitVar {
 	public static Map<Integer, IJ> getTempMapping() {
 		return myTempMapping;
 	}
-	
+	public Scene getScene() {
+		return map.getScene();
+	}
 }

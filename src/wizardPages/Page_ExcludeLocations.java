@@ -1,5 +1,7 @@
 package wizardPages;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,10 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleBinaryOperator;
 
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
 import mapView.CoordinateSystemDialog;
 import mapView.ExistingWellsDialogBox;
-import mapView.GMapInitVar;
-import mapView.GMapView;
+import mapView.InitMapVars;
 import mapView.IJ;
 import objects.SensorSetting;
 
@@ -19,18 +23,21 @@ import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-
-import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
 import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
@@ -44,23 +51,26 @@ import wizardPages.DREAMWizard.STORMData;
  */
 
 public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWizardPage {
+	private static final int MAP_FRAME_HEIGHT = 700;
+
+	private static final int MAP_FRAME_WIDTH = 500;
 
 	private ScrolledComposite sc;
 	private Composite container;
-	private Composite rootContainer; 
+	private Composite rootContainer;
 	private STORMData data;
 
 	private GridLayout layout;
-	private Map<Integer, Map<Integer, Button>> buttons;
+	private static Map<Integer, Map<Integer, Button>> buttons;
 	private Map<Integer, List<Integer>> wells;
 	private Map<Integer, Map<Integer, Boolean>> selection;
 
 	private List<Float> myWellLocationsX;
 
 	private List<Float> myWellLocationsY;
-	
+
 	private List<Point3i> myValidNodePoints = new ArrayList<Point3i>();
-	
+
 	private int minI = Integer.MAX_VALUE;
 	private int maxI = -Integer.MAX_VALUE;
 	private int minJ = Integer.MAX_VALUE;
@@ -71,12 +81,13 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 
 	private boolean isCurrentPage = false;
 
-	private List<IJ> ijs;
-	
+	private static List<IJ> ijs;
+
 	private boolean offsetRequired;
-	
+
 	private boolean offsetDone;
-	
+	private static JFrame mapFrame;
+
 	public Page_ExcludeLocations(final STORMData data) {
 		super("Exclude Locations");
 		this.data = data;
@@ -218,7 +229,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		launchButtonData.horizontalSpan = ((GridLayout) container.getLayout()).numColumns;
 		launchButtonData.verticalSpan = 4;
 		launchMapButton.setLayoutData(launchButtonData);
-		
+
 		Button launchExistingWellButton = new Button(container, SWT.BUTTON1);
 		GridData launchExistingData = new GridData(GridData.BEGINNING);
 		launchExistingData.horizontalSpan = ((GridLayout) container.getLayout()).numColumns;
@@ -246,6 +257,14 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 					// Wells
 					if (wells.containsKey(xVals) && wells.get(xVals).contains(yVals)) {
 						Button wellButton = new Button(container, SWT.CHECK);
+						wellButton.addSelectionListener(new SelectionAdapter() {
+							@Override
+							public void widgetSelected(SelectionEvent theEvent) {
+								if (wellButton.getSelection()) {
+
+								}
+							}
+						});
 						wellButton.setSelection(true);
 						myWellLocationsY.add(data.getSet().getNodeStructure().getEdgeY().get(yVals - 1));
 						if (selection.containsKey(xVals) && selection.get(xVals).containsKey(yVals)) {
@@ -272,37 +291,38 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		launchMapButton.setText("Launch Google map (requires internet connection)");
 		launchMapButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(final Event event) {
-				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(),
-						offsetRequired, false, false);
+				CoordinateSystemDialog dialog = new CoordinateSystemDialog(container.getShell(), offsetRequired, false,
+						false);
 				dialog.open();
-				offsetCalculation(dialog, false, (x , y) -> x + y);
-				if  (dialog.getButtonPressed()) {
-					GMapInitVar map = new GMapInitVar(
-							ijs,
+				offsetCalculation(dialog, false, (x, y) -> x + y);
+				createBoxList();
+				if (dialog.getButtonPressed()) {
+					InitMapVars map = new InitMapVars(ijs,
 							new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeX()),
-							new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeY()),
-							dialog.getZone(),
-							dialog.getZoneDirection(),
-							data.getSet().getNodeStructure().getUnit("x"),
+							new ArrayList<Float>(data.getSet().getNodeStructure().getEdgeY()), dialog.getZone(),
+							dialog.getZoneDirection(), data.getSet().getNodeStructure().getUnit("x"),
 							myValidNodePoints);
 					map.initVariables();
-					Application.launch(GMapView.class);
-					
-					if (Platform.isImplicitExit()) {
-						for (IJ box : ijs) {
-							if (buttons.get(box.i).get(box.j) != null) {
-								buttons.get(box.i).get(box.j).setSelection(box.prohibited);
-							}
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							initFXFrame(map);
 						}
-					}
+					});
+//					if (Platform.isImplicitExit()) {
+//						for (IJ box : ijs) {
+//							if (buttons.get(box.i).get(box.j) != null) {
+//								buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+//							}
+//						}
+//					}
 				}
 				if (offsetDone) {
-					offsetCalculation(dialog, false, (x , y) -> x - y);
+					offsetCalculation(dialog, false, (x, y) -> x - y);
 					offsetDone = false;
 				}
 			}
 		});
-		
 		launchExistingWellButton.addListener(SWT.Selection, new Listener() {
 
 			@Override
@@ -310,7 +330,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				ExistingWellsDialogBox wellDialog = new ExistingWellsDialogBox(container.getShell(), data);
 				wellDialog.open();
 			}
-			
+
 		});
 		container.layout();
 		sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -380,7 +400,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
-	
+
 	private void populatePointList() {
 		for (SensorSetting setting : data.getSet().getSensorSettings().values()) {
 			for (Integer nodeNumber : setting.getValidNodes()) {
@@ -389,38 +409,77 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
-	
+
 	private void createBoxList() {
+		ijs.clear();
 		for (int i = minI; i <= maxI; i++) {
 			for (int j = minJ; j <= maxJ; j++) {
 				boolean selectable = buttons.containsKey(i) && buttons.get(i).containsKey(j);
 				if (selectable) {
-					ijs.add(new IJ(i,j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));
+					ijs.add(new IJ(i, j, selectable ? buttons.get(i).get(j).getSelection() : false, selectable));
 				}
 			}
 		}
 	}
-	//Calculates the well locations after the offset is applied.
-	private void offsetCalculation (final CoordinateSystemDialog dialog, final boolean includeButton,
+
+	// Calculates the well locations after the offset is applied.
+	private void offsetCalculation(final CoordinateSystemDialog dialog, final boolean includeButton,
 			final DoubleBinaryOperator theOperation) {
 		if (offsetRequired) {
 			offsetDone = true;
 			int sizeX = data.getSet().getNodeStructure().getEdgeX().size();
 			for (int i = 0; i < sizeX; i++) {
-				double temp = theOperation.applyAsDouble(
-						(double) data.getSet().getNodeStructure().getEdgeX().get(i),
+				double temp = theOperation.applyAsDouble((double) data.getSet().getNodeStructure().getEdgeX().get(i),
 						(double) dialog.getMinX());
-				
+
 				data.getSet().getNodeStructure().getEdgeX().set(i, (float) temp);
-				
+
 			}
 			int sizeY = data.getSet().getNodeStructure().getEdgeY().size();
 			for (int i = 0; i < sizeY; i++) {
-				double temp = theOperation.applyAsDouble(
-						(double) data.getSet().getNodeStructure().getEdgeY().get(i),
+				double temp = theOperation.applyAsDouble((double) data.getSet().getNodeStructure().getEdgeY().get(i),
 						(double) dialog.getMinY());
 				data.getSet().getNodeStructure().getEdgeY().set(i, (float) temp);
 			}
 		}
+	}
+
+//	for (IJ box : ijs) {
+//		if (buttons.get(box.i).get(box.j) != null) {
+//			buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+//		}
+//}
+	private static void initFXFrame(final InitMapVars map) {
+		mapFrame = new JFrame("Google Map View");
+		final JFXPanel fxPanel = new JFXPanel();
+		mapFrame.add(fxPanel);
+		mapFrame.setSize(MAP_FRAME_HEIGHT, MAP_FRAME_WIDTH);
+		mapFrame.setVisible(true);
+		mapFrame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						for (IJ box : ijs) {
+							if (buttons.get(box.i).get(box.j) != null) {
+								buttons.get(box.i).get(box.j).setSelection(box.prohibited);
+							}
+						}
+					}
+				});
+			}
+		});
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				initFXScene(fxPanel, map);
+			}
+		});
+	}
+
+	private static void initFXScene(final JFXPanel fxPanel, final InitMapVars theMap) {
+		Scene map = theMap.getScene();
+		fxPanel.setScene(map);
 	}
 }

@@ -14,10 +14,8 @@ import com.lynden.gmapsfx.javascript.object.MapOptions;
 import com.lynden.gmapsfx.javascript.object.MapTypeIdEnum;
 import mapView.Rectangle;
 import com.lynden.gmapsfx.shapes.RectangleOptions;
-import javafx.application.Application;
 import netscape.javascript.JSObject;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
 /**
  * Implements Google Maps via GMapsFX 
  * Credits to rterp @ http://rterp.github.io/GMapsFX/
@@ -25,7 +23,7 @@ import javafx.stage.Stage;
  * @author huan482
  *
  */
-public class GMapView extends Application implements MapComponentInitializedListener {
+public class InitMapScene implements MapComponentInitializedListener {
 	private static final int INIT_ZOOM = 13; 
 	
 	private GoogleMapView myMapView;
@@ -33,8 +31,6 @@ public class GMapView extends Application implements MapComponentInitializedList
 	private GoogleMap myMap;
 	
 	private MapOptions myMapOpts;
-	
-	private Stage myStage;
 	
 	private double myMinBoundsX;
 	
@@ -56,24 +52,13 @@ public class GMapView extends Application implements MapComponentInitializedList
 	
 	private Map<Rectangle, IJ> rectToBox;
 	
-	/**
-	 * JavaFX start method.
-	 */
-	@Override
-	public void start(final Stage theStage) throws Exception {
-		myStage = theStage;
+	public Scene getScene() {
 		//Google Maps API Key, 2nd parameter
 		myMapView = new GoogleMapView("en", "AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
 		myMapView.addMapInializedListener(this);
-
+		Scene temp = new Scene(myMapView);
 		//My Scene
-		Scene scene = new Scene(myMapView);
-		
-		//The stage
-		myStage.setTitle("Well Locations");
-		myStage.setScene(scene);
-		myStage.show();
-		
+		return temp;
 	}
 	
 	/**
@@ -109,22 +94,21 @@ public class GMapView extends Application implements MapComponentInitializedList
 		drawBoundPolyLines();
 		createRectangles();
 	}
-	
 	/** 
 	 * Grabs the variables from our GMapInitVar class.
 	 */
 	private void initVariables() {
 		//Initalizes all variables.
-		myMinBoundsX = GMapInitVar.getMinBoundX();
-		myMinBoundsY = GMapInitVar.getMinBoundY();
-		myMaxBoundsX = GMapInitVar.getMaxBoundX();
-		myMaxBoundsY= GMapInitVar.getMaxBoundY();
+		myMinBoundsX = InitMapVars.getMinBoundX();
+		myMinBoundsY = InitMapVars.getMinBoundY();
+		myMaxBoundsX = InitMapVars.getMaxBoundX();
+		myMaxBoundsY= InitMapVars.getMaxBoundY();
 		myBoxMapping = new HashMap<Integer, IJ>();
-		myNorthEastXLongitudes = GMapInitVar.getMyNorthEastXLongitude();
-		myNorthEastYLatitudes = GMapInitVar.getMyNorthEastYLatitude();
-		mySouthWestXLongitudes = GMapInitVar.getMySouthWestXLongitude();
-		mySouthWestYLatitudes = GMapInitVar.getMySouthWestYLatitude();
-		myBoxMapping = GMapInitVar.getTempMapping();
+		myNorthEastXLongitudes = InitMapVars.getMyNorthEastXLongitude();
+		myNorthEastYLatitudes = InitMapVars.getMyNorthEastYLatitude();
+		mySouthWestXLongitudes = InitMapVars.getMySouthWestXLongitude();
+		mySouthWestYLatitudes = InitMapVars.getMySouthWestYLatitude();
+		myBoxMapping = InitMapVars.getTempMapping();
 		rectToBox = new HashMap<Rectangle, IJ>();
 	}
 	
@@ -178,21 +162,32 @@ public class GMapView extends Application implements MapComponentInitializedList
 	private void createRectangles() {
 		//Loop through all our NE and SW corners.
 		for (int i = 0; i < myNorthEastXLongitudes.size(); i++) {
+			RectangleOptions rectOpts;
 			LatLong SouthWest = new LatLong(mySouthWestYLatitudes.get(i), mySouthWestXLongitudes.get(i));
 			LatLong NorthEast = new LatLong(myNorthEastYLatitudes.get(i), myNorthEastXLongitudes.get(i));
 			LatLongBounds rectangleBounds = new LatLongBounds(SouthWest,NorthEast);
-			RectangleOptions rectOpts = new RectangleOptions()
-					.bounds(rectangleBounds)
-					.strokeColor("black")
-					.strokeWeight(2)
-					.clickable(true)
-					.fillColor("black");
+			if (myBoxMapping.get(i + 1).prohibited) {
+				rectOpts = new RectangleOptions()
+						.bounds(rectangleBounds)
+						.strokeColor("black")
+						.strokeWeight(2)
+						.clickable(true)
+						.fillColor("black");
+			} else {
+				rectOpts = new RectangleOptions()
+						.bounds(rectangleBounds)
+						.strokeColor("black")
+						.strokeWeight(2)
+						.clickable(true)
+						.fillColor("white");
+			}
 			Rectangle rect = new Rectangle(rectOpts);
 			myMap.addMapShape(rect);
 			//Map our rectangle to its corrpsonding box, so when the rectangle is checked or unchecked
 			//It's reflected on our exclude locations page.
 			rectToBox.put(rect, myBoxMapping.get(i + 1));
 			myMap.addUIEventHandler(rect, UIEventType.click, (JSObject obj) -> {
+				System.out.println(rect.getBounds());
 				if (rect.getJSObject().getMember("fillColor").equals("black")) {
 					//Change color and then uncheck our box.
 					myMap.removeMapShape(rect);
