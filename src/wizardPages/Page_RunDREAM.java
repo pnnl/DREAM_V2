@@ -81,6 +81,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 	private Button vadButton;
 	private Button iterativeProceedureButton;
 	private Button showPlots;
+	private Button plotResults;
 	private Button fullEnumerationButton;
 	private Button ijkToxyzButton;
 	private Button randomSampleButton;
@@ -290,7 +291,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					Constants.random.setSeed(1);
 					long startTime = System.currentTimeMillis();
 					Constants.random.setSeed(10);
-					ResultPrinter.runScripts = false;
+					ResultPrinter.runScripts = plotResults.getSelection();
 					data.run(runs, showPlots.getSelection());
 					long time = (System.currentTimeMillis() - startTime) / 1000;
 					System.out.println("Iterative procedure took: " + Constants.formatSeconds(time));
@@ -358,7 +359,11 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 		showPlots = new Button(runGroup, SWT.CHECK);
 		showPlots.setText("Show Plots");
 		showPlots.setSelection(true);
-		new Label(runGroup, SWT.NULL);
+		
+		// Deselecting the Plot Results button will prevent the post-processing Python scripts from running
+		plotResults = new Button(runGroup, SWT.CHECK);
+		plotResults.setText("Plot Results");
+		plotResults.setSelection(ResultPrinter.runScripts);
 		
 		Group diagnosticGroup = new Group(container, SWT.SHADOW_NONE);
 		diagnosticGroup.setText("Diagnostic Tools");
@@ -845,7 +850,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 					}
 				}
 			}
-			});
+		});
 		multiRunEnsembleButton.setVisible(Constants.buildDev);
 		
 		comparisonButton = new Button(devGroup, SWT.BALLOON);

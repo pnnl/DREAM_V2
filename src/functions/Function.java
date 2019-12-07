@@ -105,10 +105,10 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 				monitor.setTaskName("Running iterative procedure " + (i+1) + "/" + sets);
 			wasCancelled = runInternal(initialConfiguration, set);
 			if(wasCancelled) {
-				ResultPrinter.runScripts = false;
 				return true;
 			}
 		}
+		monitor.setTaskName("Printing results");
 		ResultPrinter.printAll(set.getNodeStructure());
 		return false;
 	}
@@ -214,7 +214,6 @@ public class Function implements ObjectiveFunction, MutationFunction, InferenceM
 			counter++;
 			
 			if(monitor.isCanceled()) {
-				ResultPrinter.runScripts = false;
 				return true;
 			}
 			if(monitor != null)

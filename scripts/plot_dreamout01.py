@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import time
 import pandas as pd
+import random
 from random import randint
 
 
@@ -66,6 +67,7 @@ dfttd=dfttd.astype(float)
 dfdect=dfdect.astype(float)
 
 #Assign colors to each run
+random.seed(1)
 color = []
 n = len(dfttd.columns)
 for i in range(n):
