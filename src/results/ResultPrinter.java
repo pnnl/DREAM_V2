@@ -453,7 +453,8 @@ public class ResultPrinter {
     	}
 		String script = System.getProperty("java.io.tmpdir")+File.separator+scriptName;
 		StringBuilder command = new StringBuilder();
-		command.append("python \"" + script + "\"");
+		
+		command.append("py -3 \"" + script + "\"");
 		for(String arg: args) {
 			command.append(" \"" + arg + "\"");
 		}
