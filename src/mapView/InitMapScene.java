@@ -51,7 +51,10 @@ public class InitMapScene implements MapComponentInitializedListener {
 	private Map<Integer, IJ> myBoxMapping;
 	
 	private Map<Rectangle, IJ> rectToBox;
-	
+	/**
+	 * Initializes the google map view and returns the scene containing the map.
+	 * @return - The Scene containing the map.
+	 */
 	public Scene getScene() {
 		//Google Maps API Key, 2nd parameter
 		myMapView = new GoogleMapView("en", "AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");

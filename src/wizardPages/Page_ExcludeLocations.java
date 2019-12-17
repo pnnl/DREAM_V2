@@ -443,12 +443,10 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		}
 	}
-
-//	for (IJ box : ijs) {
-//		if (buttons.get(box.i).get(box.j) != null) {
-//			buttons.get(box.i).get(box.j).setSelection(box.prohibited);
-//		}
-//}
+	/**
+	 * Initializes the JFrame that contains the JFXPanel for our map.
+	 * @param map - Our InitMapScene Object.
+	 */
 	private static void initFXFrame(final InitMapVars map) {
 		mapFrame = new JFrame("Google Map View");
 		final JFXPanel fxPanel = new JFXPanel();
@@ -477,7 +475,11 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 			}
 		});
 	}
-
+	/**
+	 * Sets the scene of the fxPanel to our map view.
+	 * @param fxPanel - The fx panel we're embedding into a JFXPanel
+	 * @param theMap - Our InitMapScene object.
+	 */
 	private static void initFXScene(final JFXPanel fxPanel, final InitMapVars theMap) {
 		Scene map = theMap.getScene();
 		fxPanel.setScene(map);
