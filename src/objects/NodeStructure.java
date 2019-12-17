@@ -179,11 +179,12 @@ public class NodeStructure {
 	}
 	
 	// Return IJK from Node Number
+	//Current
 	public Point3i getIJKFromNodeNumber(int nodeNumber) {
 		int k = nodeNumber/(ijkDimensions.getI()*ijkDimensions.getJ()) + 1;
 		int remainder = nodeNumber - (k-1)*(ijkDimensions.getI()*ijkDimensions.getJ());
 		int j = remainder/ijkDimensions.getI() + 1;
-		int i = remainder - (j-1)*ijkDimensions.getI();
+		int i = remainder - (j-1) * ijkDimensions.getI() + 1;
 		return new Point3i(i, j, k);
 	}
 	
