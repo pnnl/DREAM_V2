@@ -40,9 +40,11 @@ public class Grid  {
 	public boolean contains(final double xInput, final double yInput) {
 		return xInput == x && yInput == y;
 	}
-	
+	/**
+	 * String will output "(x, y, gz)".
+	 */
 	@Override
 	public String toString() {
-		return "x: " + x + " y: " + y + " " + gz; 
+		return "(" + x + ", " + y + ", " + gz + ")"; 
 	}
 }
