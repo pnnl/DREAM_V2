@@ -35,7 +35,10 @@ public class DataSlice {
 
 	/// The values contained within this slice
 	private float values[][];
-
+	
+	// Describes an epsilon value for floating point arithmetic
+	private static final double EPS = 1e-6;
+	
 	/// The width of the slice
 	private int w;
 
@@ -307,7 +310,7 @@ public class DataSlice {
 	//	Extrema extrema = getExtrema();
 		for (int i=0; i<h; i++)
 			for (int j=0; j<w; j++)
-				values[i][j] = (float)Math.log(values[i][j] + 1.0 + Utilities.EPS);
+				values[i][j] = (float)Math.log(values[i][j] + 1.0 + EPS);
 		
 	//	scaledExtrema = new Extrema();
 	//	scaledExtrema.min = Math.log(extrema.min + 1.0 + Utilities.EPS);
@@ -446,7 +449,7 @@ public class DataSlice {
 
 		List<Float> lnScaled = new ArrayList<Float>();
 		for(float val: normalized) {
-			lnScaled.add((float) Math.log(val + 1.0 + Utilities.EPS));
+			lnScaled.add((float) Math.log(val + 1.0 + EPS));
 		}
 		Collections.sort(lnScaled);
 		System.out.println("Scaled values: " + lnScaled.toString());
