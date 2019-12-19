@@ -98,7 +98,9 @@ for x in to_plot_list:
     ax.set_title('Config_%d - Number of Scenarios Detected by TTD'%(i+1))
     ax.set_xticks(ind)
     ax.set_xticklabels(labels)
-
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    
     def autolabel(rects):
         # attach some text labels
         for rect in rects:
