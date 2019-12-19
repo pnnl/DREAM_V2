@@ -15,7 +15,7 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 
-t0=float(time.clock())
+t0=float(time.process_time())
 
 # Make sure that we have the correct number of arguments, otherwise abort
 if (len(sys.argv) != 2):
@@ -113,5 +113,5 @@ for x in to_plot_list:
     plt.close()
     i += 1
 
-t1=float(time.clock())
+t1=float(time.process_time())
 print('\n  Done!! [%3ds] open %s\n\n\n' % (t1-t0,fignamepdf))

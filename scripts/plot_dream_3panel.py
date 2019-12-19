@@ -18,7 +18,7 @@ import matplotlib as mpl
 import time
 import pandas as pd
 
-t0=float(time.clock())
+t0=float(time.process_time())
 
 # Make sure that we have the correct number of arguments, otherwise abort
 if (len(sys.argv) != 3):
@@ -278,6 +278,6 @@ for config, group in df3.groupby(['config']):
     fig.savefig(fignamepng)
     plt.close()
 
-t1=float(time.clock())
+t1=float(time.process_time())
 print ('\n\n  Done!![%4ds]   open %s/configuration*.*.png\n\n'%(t1-t0,new_folder))
 

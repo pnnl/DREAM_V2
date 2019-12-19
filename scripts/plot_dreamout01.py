@@ -19,7 +19,7 @@ import random
 from random import randint
 
 
-t0=float(time.clock())
+t0=float(time.process_time())
 
 # Make sure that we have the correct number of arguments, otherwise abort
 if (len(sys.argv) != 2):
@@ -92,6 +92,6 @@ ax2.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 plt.savefig(fignamepdf)
 plt.close()
-t1=float(time.clock())
+t1=float(time.process_time())
 print('\n  Done!! [%3ds] open %s\n\n\n' % (t1-t0,fignamepdf))
 
