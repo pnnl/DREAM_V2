@@ -127,7 +127,9 @@ public class FileConverter extends javax.swing.JFrame {
 		setJMenuBar(menuBar);
 		
 		JPanel jPanel_fileType = new JPanel();
-		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, GRAVITY_OUT, TECPLOT});
+		//Taking out file conversion of gravity out files for v2 release.
+//		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, GRAVITY_OUT, TECPLOT});
+		jComboBox_fileType = new JComboBox(new String[]{STOMP, NUFT, TECPLOT});
 		jComboBox_folderStructure = new JComboBox(new String[]{SCENARIO_PER_FOLDER, SCENARIO_PER_FILE});
 		jComboBox_folderStructure.setEnabled(false);
 		jComboBox_fileType.addActionListener(new ActionListener() {
