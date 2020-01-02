@@ -214,8 +214,9 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 */
 	private void createCostConstraintHelper(final ModifyEvent theEvent) {
 		boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());
+		boolean negError = Float.parseFloat(((Text)theEvent.getSource()).getText()) < 0;
 		boolean minError = false;
-		if (numError == true)
+		if (numError || negError)
 			((Text) theEvent.getSource()).setForeground(Constants.red);
 		else {
 			((Text) theEvent.getSource()).setForeground(Constants.black);
@@ -227,8 +228,26 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		}
 		errorFound(numError, "  Cost constraint is not a real number.");
 		errorFound(minError, "  Cost constraint cannot be less the minimum sensor requirement.");
+		errorFound(negError, "  Cost constraint is a negative number");
 	}
 	
+	/**
+	 * Throws error if negative number is found.
+	 * @param theEvent - The user input event.
+	 */
+	private void negativeNumberError(final ModifyEvent theEvent) {
+		try {
+			boolean negError = Float.parseFloat(((Text)theEvent.getSource()).getText()) < 0;
+			if (negError)
+				((Text) theEvent.getSource()).setForeground(Constants.red);
+			else {
+				((Text) theEvent.getSource()).setForeground(Constants.black);
+			}
+			errorFound(negError, "  Cost constraint is a negative number");
+		} catch (final Exception e) {
+			System.out.println("Cost constraint is a negative number. ");
+		}
+	}
 	/**
 	 * Creates the label text for the maximum number of wells.
 	 * Takes directly from the data set.
@@ -238,6 +257,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellLabel.setText("Maximum Number of Wells");
 		maxWells = new Text(container, SWT.BORDER | SWT.SINGLE);
 		maxWells.setText(String.valueOf(data.getSet().getMaxWells()));
+		maxWells.addModifyListener(this::negativeNumberError);
 		createWellLabels(maxWells, true);
 	}
 	
@@ -249,6 +269,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		exclusionRadiusLabel.setText("Minimum Distance Between Wells" + (unit.equals("") ? "" : " ("+unit+")"));
 		exclusionRadius = new Text(container, SWT.BORDER | SWT.SINGLE);
 		exclusionRadius.setText(String.valueOf(data.getSet().getExclusionRadius()));
+		exclusionRadius.addModifyListener(this::negativeNumberError);
 		createWellLabels(exclusionRadius, true);
 	}
 	
@@ -260,6 +281,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellCostLabel.setText("Cost Per Well");
 		wellCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellCost.setText(String.valueOf(data.getSet().getWellCost()));
+		wellCost.addModifyListener(this::negativeNumberError);
 		createWellLabels(wellCost, true);
 	}
 	
@@ -271,6 +293,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		wellDepthCostLabel.setText("Cost of Well Per " + (unit=="" ? "Unit": unit) + " Depth");
 		wellDepthCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		wellDepthCost.setText(String.valueOf(data.getSet().getWellDepthCost()));
+		wellDepthCost.addModifyListener(this::negativeNumberError);
 		createWellLabels(wellDepthCost, true);
 	}
 	
@@ -282,6 +305,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 		remediationCostLabel.setText("Remediation Cost Per " + (unit.equals("") ? "Water Unit" : unit + "³"));
 		remediationCost = new Text(container, SWT.BORDER | SWT.SINGLE);
 		remediationCost.setText(String.valueOf(data.getSet().getRemediationCost()));
+		remediationCost.addModifyListener(this::negativeNumberError);
 		createWellLabels(remediationCost, false);
 	}
 	
