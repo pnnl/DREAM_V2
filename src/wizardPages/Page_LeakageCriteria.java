@@ -362,7 +362,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean costError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(Constants.isValidFloat(temp.costText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.costText.getText()) &&
+								Float.parseFloat(temp.costText.getText()) >= 0) { //Valid number
 							temp.costText.setForeground(Constants.black);
 							temp.cost = Float.valueOf(temp.costText.getText());
 						} else { //Not a valid number
@@ -370,7 +371,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							costError = true;
 						}
 					}
-					errorFound(costError, "  Cost is not a real number.");
+					errorFound(costError, "  Cost is not a real number or cost is a negative number.");
 				}
 			});
 			GridData costTextData = new GridData(SWT.FILL, SWT.END, true, false);
@@ -487,7 +488,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 					boolean detectionError = false;
 					for(SensorData temp: sensorData.values()) {
 						if(!temp.isIncluded) continue; //Skip unchecked parameters
-						if(Constants.isValidFloat(temp.detectionText.getText())) { //Valid number
+						if(Constants.isValidFloat(temp.detectionText.getText()) && 
+								Float.parseFloat(temp.detectionText.getText()) >= 0 ) { //Valid number
 							temp.detectionText.setForeground(Constants.black);
 							temp.detectionThreshold = Float.valueOf(temp.detectionText.getText());
 						} else { //Not a valid number
@@ -495,7 +497,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 							detectionError = true;
 						}
 					}
-					errorFound(detectionError, "  Detection is not a real number.");
+					errorFound(detectionError, "  Detection is not a real number or is a negative number.");
 					errorFound(false, "  No nodes were found for the provided parameters.");
 					if(detectionText.getText().contains("+")) deltaType = DeltaType.INCREASE;
 					else if(detectionText.getText().contains("-")) deltaType = DeltaType.DECREASE;

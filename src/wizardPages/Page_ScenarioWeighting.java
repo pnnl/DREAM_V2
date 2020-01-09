@@ -234,19 +234,22 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 				@Override
 				public void modifyText(ModifyEvent e) {
 					boolean numberError = false;
-					
+					boolean negError = false;
 					for(String scenario: weights.keySet()) {
 						if(((Text)e.getSource()).getText().contains(scenario))
 							weights.put(scenario, (Text)e.getSource());
 						if(selectedScenarios.get(scenario).getSelection()) {//If scenario is checked
-							if(Constants.isValidFloat(weights.get(scenario).getText())) {//Valid number
+							if(Constants.isValidFloat(weights.get(scenario).getText()) &&
+									Float.parseFloat(weights.get(scenario).getText()) >= 0) {//Valid number
 								weights.get(scenario).setForeground(Constants.black);
 							} else { //Not a valid number
 								weights.get(scenario).setForeground(Constants.red);
 								numberError = true;
+								negError = true;
 							}
 						}
 					}
+					errorFound(negError, " Weight is a negative number");
 					errorFound(numberError, "  Weight is not a real number.");
 				}
 			});

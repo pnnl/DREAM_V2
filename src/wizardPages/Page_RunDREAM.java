@@ -340,15 +340,19 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				iterationsError = false;
-				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
+				boolean negError = false;
+				if(Constants.isValidInt(((Text)e.getSource()).getText()) && 
+						Float.parseFloat(((Text)e.getSource()).getText()) >= 0) { //Valid number
 					((Text)e.getSource()).setForeground(Constants.black);
 					data.getSet().setIterations(Integer.parseInt(((Text)e.getSource()).getText()));
 				} else { //Not a valid number
 					((Text)e.getSource()).setForeground(Constants.red);
 					iterationsError = true;
+					negError = true;
 				}
 				errorFound(iterationsError, "  Iterations is not a real number.");
-				if (iterationsError || runsError)
+				errorFound(negError, " Iterations is a negative number");
+				if (iterationsError || runsError || negError)
 					iterativeProceedureButton.setEnabled(false);
 				else if (!outputError)
 					iterativeProceedureButton.setEnabled(true);

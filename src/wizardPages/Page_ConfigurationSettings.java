@@ -214,9 +214,9 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 	 */
 	private void createCostConstraintHelper(final ModifyEvent theEvent) {
 		boolean numError = !Constants.isValidFloat(((Text) theEvent.getSource()).getText());
-		boolean negError = Float.parseFloat(((Text)theEvent.getSource()).getText()) < 0;
+		boolean negError = false;
 		boolean minError = false;
-		if (numError || negError)
+		if (numError && Float.parseFloat(((Text)theEvent.getSource()).getText()) < 0)
 			((Text) theEvent.getSource()).setForeground(Constants.red);
 		else {
 			((Text) theEvent.getSource()).setForeground(Constants.black);
@@ -245,7 +245,7 @@ public class Page_ConfigurationSettings extends DreamWizardPage implements Abstr
 			}
 			errorFound(negError, "  Cost constraint is a negative number");
 		} catch (final Exception e) {
-			System.out.println("Cost constraint is a negative number. ");
+			System.out.println("Cost constraint is a negative number");
 		}
 	}
 	/**
