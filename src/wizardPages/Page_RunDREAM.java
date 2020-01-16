@@ -306,7 +306,7 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				}
 			}
 		});
-
+		//TODO: Add error checking for the runs text.
 		runsText = new Text(runGroup, SWT.BORDER | SWT.SINGLE);
 		runsText.setText(String.valueOf(runs));
 		runsText.setForeground(Constants.black);
@@ -315,14 +315,15 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				runsError = false;
-				if(Constants.isValidInt(((Text)e.getSource()).getText())) { //Valid number
+				if(Constants.isValidInt(((Text)e.getSource()).getText()) &&
+						Integer.parseInt(((Text)e.getSource()).getText()) > 0) { //Valid number
 					((Text)e.getSource()).setForeground(Constants.black);
 					runs = Integer.parseInt(((Text)e.getSource()).getText());
 				} else { //Not a valid number
 					((Text)e.getSource()).setForeground(Constants.red);
 					runsError = true;
 				}
-				errorFound(runsError, "  Runs is not a real number.");
+				errorFound(runsError, "  Runs is not a real number or it's a negative number.");
 				if (iterationsError || runsError)
 					iterativeProceedureButton.setEnabled(false);
 				else if (!outputError)
@@ -340,7 +341,6 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 			@Override
 			public void modifyText(ModifyEvent e) {
 				iterationsError = false;
-				boolean negError = false;
 				if(Constants.isValidInt(((Text)e.getSource()).getText()) && 
 						Float.parseFloat(((Text)e.getSource()).getText()) >= 0) { //Valid number
 					((Text)e.getSource()).setForeground(Constants.black);
@@ -348,11 +348,10 @@ public class Page_RunDREAM extends DreamWizardPage implements AbstractWizardPage
 				} else { //Not a valid number
 					((Text)e.getSource()).setForeground(Constants.red);
 					iterationsError = true;
-					negError = true;
 				}
 				errorFound(iterationsError, "  Iterations is not a real number.");
-				errorFound(negError, " Iterations is a negative number");
-				if (iterationsError || runsError || negError)
+//				errorFound(negError, " Iterations is a negative number");
+				if (iterationsError || runsError)
 					iterativeProceedureButton.setEnabled(false);
 				else if (!outputError)
 					iterativeProceedureButton.setEnabled(true);
