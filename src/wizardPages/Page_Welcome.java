@@ -157,7 +157,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			}
 		});
 		
-		new Label(container, SWT.BEGINNING).setText("\tVersion 2019.05-2.0");
+		new Label(container, SWT.BEGINNING).setText("\tVersion 2020.01-2.0");
 		Link userManual = new Link(container, SWT.BEGINNING);
 		userManual.setText("                   <A>User manual</A>");
 		userManual.addListener(SWT.Selection, new Listener() {
