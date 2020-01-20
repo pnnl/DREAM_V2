@@ -176,7 +176,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 			}
 		});
 		
-		new Label(container, SWT.BEGINNING).setText("\tDeveloper: Whiting, J.");
+		new Label(container, SWT.BEGINNING).setText("\tDevelopers: Whiting, J., Huang, B.");
 		Link references = new Link(container, SWT.BEGINNING);
 		references.setText("                   <A>References</A>");
 		references.addListener(SWT.Selection, new Listener() {
