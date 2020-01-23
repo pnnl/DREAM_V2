@@ -150,7 +150,7 @@ public class ScenarioSet {
 				else if (sensorSetting.getDeltaType() == DeltaType.INCREASE)
 					builder.append("\t\tLeakage threshold: Positive change of " + sensorSetting.getDetectionThreshold() + " " + unit + "\r\n");
 				else
-					builder.append("\t\tLeakage threshold: Change of " + sensorSetting.getDetectionThreshold() + " " + unit + "\r\n");
+					builder.append("\t\tLeakage threshold: Change of " + sensorSetting.getDetectionThreshold() + "\r\n");
 			}
 			builder.append("\t\tZone bottom: " + Constants.percentageFormat.format(sensorSetting.getThisMinZ()) + " " + zUnit + "\r\n");
 			builder.append("\t\tZone top: " + Constants.percentageFormat.format(sensorSetting.getThisMaxZ()) + " " + zUnit + "\r\n");
