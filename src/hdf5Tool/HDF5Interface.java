@@ -119,7 +119,12 @@ public class HDF5Interface {
 						else if(dataset.getName().equals("vertex-z")) edgez = Constants.arrayToList(temp);
 						// If we have units stored for x, y, z, we want to save them
 						if(dataset.hasAttribute()) //Right now we only list one attribute - units
-							units.put(dataset.getName(), extractUnitAttribute(dataset));
+							if(extractUnitAttribute(dataset).equals("up") || 
+									extractUnitAttribute(dataset).equals("down")) {
+								units.put("positive", extractUnitAttribute(dataset));
+							} else {
+								units.put(dataset.getName(), extractUnitAttribute(dataset));
+							}
 						dataset.close(dataset_id);
 					}
 					if(edgex.size()>0)
@@ -431,7 +436,7 @@ public class HDF5Interface {
 	private static String extractUnitAttribute(Dataset dataset) throws Exception {
 		List<Attribute> attributes = dataset.getMetadata();
 		for(Attribute a: attributes) {
-			if(a.getName().equals("units")) {
+			if(a.getName().equals("units") || a.getName().equals("positive")) {
 				Object obj = a.getValue();
 				return ((String[]) obj)[0];
 			}

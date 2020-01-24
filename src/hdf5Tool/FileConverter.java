@@ -694,7 +694,10 @@ public class FileConverter extends javax.swing.JFrame {
 		d = hdf5File.createScalarDS("z", dataGroup, dtype, new long[]{gp.getZ().length}, null, null, 0, gp.getZ());
 		classValue = new String[]{ gp.getUnit("z") }; //Z units will always exist, add as attribute
 		attr = new Attribute("units", attrType, attrDims, classValue);
+		Attribute orientationZ = new Attribute("positive", attrType,
+				attrDims, new String[] {gp.getZOrientation()});
 		d.writeMetadata(attr);
+		d.writeMetadata(orientationZ);
 		
 		// Writing x vertex variable with units
 		d = hdf5File.createScalarDS("vertex-x", dataGroup, dtype, new long[]{gp.getVertexX().length}, null, null, 0, gp.getVertexX());
@@ -712,7 +715,10 @@ public class FileConverter extends javax.swing.JFrame {
 		d = hdf5File.createScalarDS("vertex-z", dataGroup, dtype, new long[]{gp.getVertexZ().length}, null, null, 0, gp.getVertexZ());
 		classValue = new String[]{ gp.getUnit("z") }; //Z units will always exist, add as attribute
 		attr = new Attribute("units", attrType, attrDims, classValue);
+		Attribute orientationVertexZ = new Attribute("positive", attrType,
+				attrDims, new String[] {gp.getZOrientation()});
 		d.writeMetadata(attr);
+		d.writeMetadata(orientationVertexZ);
 		
 		// Writing time variable with units
 		d = hdf5File.createScalarDS("times", dataGroup, dtype, new long[]{gp.getSelectedTimesArray().length}, null, null, 0, gp.getSelectedTimesArray());
@@ -720,11 +726,11 @@ public class FileConverter extends javax.swing.JFrame {
 		attr = new Attribute("units", attrType, attrDims, classValue);
 		d.writeMetadata(attr); //Add the units as an attribute
 		
-		//Writing Z-Orientation variable
-		d = hdf5File.createScalarDS("positive", dataGroup, dtype, new long[]{gp.ZOrientationArray().length}, null, null, 0, gp.ZOrientationArray());
-		classValue = new String[] {gp.getZOrientation()};
-		attr = new Attribute("units", attrType, attrDims, classValue);
-		d.writeMetadata(attr);
+//		//Writing Z-Orientation variable
+//		d = hdf5File.createScalarDS("positive", dataGroup, dtype, new long[]{gp.ZOrientationArray().length}, null, null, 0, gp.ZOrientationArray());
+//		classValue = new String[] {gp.getZOrientation()};
+//		attr = new Attribute("units", attrType, attrDims, classValue);
+//		d.writeMetadata(attr);
 		
 		// Writing step variable, no units
 		float[] steps = new float[gp.getSelectedTimesArray().length];
