@@ -79,7 +79,8 @@ public class DREAMWizard extends Wizard {
 		setWindowTitle(null);
 		setWindowTitle("DREAM Wizard");
 		setNeedsProgressMonitor(true);	
-		ImageData imgData = new ImageData(getClass().getResourceAsStream("/dream.png")); 
+		ImageData imgData = new ImageData(getClass().getResourceAsStream("/dream.png"));
+		imgData.height = 100;
 		this.setDefaultPageImageDescriptor(ImageDescriptor.createFromImageData(imgData));
 		this.setTitleBarColor(new RGB(255,255,255));
 		data = new STORMData(this);

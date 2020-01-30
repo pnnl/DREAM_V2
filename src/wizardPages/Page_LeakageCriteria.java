@@ -447,8 +447,8 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// GridData layout for the main composite
 			GridData compositeGridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 			compositeGridData.widthHint = 60;
-			compositeGridData.heightHint = 18;
-			//compositeGridData.verticalIndent = 4;
+			compositeGridData.heightHint = 22;
+			compositeGridData.minimumHeight = 22;
 			
 			// GridLayout for the two fields within the composite
 			final GridLayout unitGridLayout = new GridLayout(2, false);

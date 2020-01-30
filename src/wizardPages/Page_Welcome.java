@@ -99,6 +99,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 
 		Label infoLabel1 = new Label(container, SWT.TOP | SWT.LEFT | SWT.WRAP );
 		infoLabel1.setText("Welcome");
+		infoLabel1.setSize(20, 20);
 		GridData infoGridData1 = new GridData(GridData.FILL);
 		infoGridData1.horizontalSpan = ((GridLayout)container.getLayout()).numColumns;
 		infoGridData1.heightHint = 20;
@@ -116,12 +117,14 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		fd[0].setHeight(11);
 		aboutInfo.setFont(new Font(container.getDisplay(), fd)); 
 		aboutInfo.setText(text);
+		aboutInfo.setSize(11,11);
 		aboutInfo.setLayoutData(aboutInfoData);
 		
 		GridData dreamImageData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_BEGINNING);
 		Image dreamImage = new Image(container.getDisplay(), getClass().getResourceAsStream("/DreamConcept.jpg"));
 		dreamImageData.horizontalSpan = 2;
-		dreamImageData.heightHint = 260;
+		dreamImageData.heightHint = 262;
+		dreamImageData.minimumHeight = 262;
 		CLabel dreamImageLabel = new CLabel(container, SWT.BORDER_SOLID);
 		dreamImageLabel.setImage(dreamImage);
 		dreamImageLabel.setLayoutData(dreamImageData);
@@ -131,21 +134,21 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		nrapImageData.horizontalSpan = 2;
 		nrapImageData.verticalSpan = 8;
 		nrapImageData.heightHint = 110;
+		nrapImageData.minimumHeight = 110;
 		Image nrapLogo = new Image(container.getDisplay(), getClass().getResourceAsStream("/NRAP.png"));
 		CLabel nrapLogoLabel = new CLabel(container, SWT.BORDER_SOLID);
 		nrapLogoLabel.setImage(nrapLogo);
 		nrapLogoLabel.setLayoutData(nrapImageData);
-
 		
 		
 		new Label(container, SWT.BEGINNING).setText("\tPrimary contact: Yonkofski, C.");
 		new Label(container, SWT.BEGINNING);
-
+		
 		new Label(container, SWT.BEGINNING).setText("\tEmail: catherine.yonkofski@pnnl.gov");
 		Link acknowledgements = new Link(container, SWT.BEGINNING);
 		acknowledgements.setText("                   <A>Acknowledgements</A>");
 		acknowledgements.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {			
+			public void handleEvent(Event event) {
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Acknowledgements");
 				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. "
@@ -192,6 +195,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		GridData imageData = new GridData(SWT.CENTER | SWT.BEGINNING);
 		imageData.horizontalSpan = 4;
 		imageData.heightHint = 100;
+		imageData.minimumHeight = 86;
 		Image labLogos = new Image(container.getDisplay(), getClass().getResourceAsStream("/DOE-LABS_S.png"));
 		CLabel labLogosLabel = new CLabel(container, SWT.BORDER_SOLID);
 		labLogosLabel.setImage(labLogos);
