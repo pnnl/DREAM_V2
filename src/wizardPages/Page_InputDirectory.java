@@ -2,11 +2,6 @@ package wizardPages;
 
 import java.io.File;
 
-import javax.swing.JComboBox;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -16,20 +11,23 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Monitor;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import functions.MutationFunction.MUTATE;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
-import utilities.PorosityDialog;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -59,9 +57,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private boolean isIAM;
 
 	private static String positiveDirection;
-
-	private JPanel mainPanel = new JPanel();
-
+	
 	protected Page_InputDirectory(final STORMData data) {
 		super("Input Directory");
 		this.data = data;
@@ -124,11 +120,12 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		data.getSet().setScenarioEnsemble(
 				fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator) + 1));
 		// Ask for porosity input if it doesn't exist yet
-		createOptionPane();
-		if (!data.getSet().getNodeStructure().porosityIsSet()) {
-			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
-			dialog.open();
-		}
+		//createOptionPane();
+		 createDialogBox();
+//		if (!data.getSet().getNodeStructure().porosityIsSet()) {
+//			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
+//			dialog.open();
+//		}
 	}
 
 	@Override
@@ -251,124 +248,122 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		}
 		return h5Error;
 	}
-
-	private void createOptionPane() {
-		mainPanel.removeAll();
+	
+	private void createDialogBox() {
 		if (isH5) {
 			if (data.getSet().getNodeStructure().getUnit("x").equals("")
 					|| data.getSet().getNodeStructure().getUnit("times").equals("")
 					|| data.getSet().getNodeStructure().getUnit("positive").equals("")
 					|| !data.getSet().getNodeStructure().porosityIsSet()) {
-				JComboBox<String> ZOrientation = new JComboBox<String>(new String[] { "up", "down" });
-				JComboBox<String> distanceList = new JComboBox<String>(new String[] { "m", "ft" });
-				JComboBox<String> timeList = new JComboBox<String>(new String[] { "years", "months", "days" });
-				JTextField porosityText = new JTextField();
-
-				int option = JOptionPane.showConfirmDialog(null,
-						theDialogBoxes(distanceList, timeList, porosityText, ZOrientation),
-						"Set Units, Porosity, or Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
-				// When user clicks ok.
-				if (option == JOptionPane.OK_OPTION) {
-					// Put units into our unit HashMap.
-					if (data.getSet().getNodeStructure().getUnit("x").equals("")) {
-						String distance = distanceList.getSelectedItem().toString();
-						data.getSet().getNodeStructure().addUnit("x", distance);
-						data.getSet().getNodeStructure().addUnit("y", distance);
-						data.getSet().getNodeStructure().addUnit("z", distance);
-					}
-					String ZOrient = ZOrientation.getSelectedItem().toString();
-					data.getSet().getNodeStructure().addUnit("positive", ZOrient);
-					if (data.getSet().getNodeStructure().getUnit("times").equals("")) {
-						String time = timeList.getSelectedItem().toString();
-						data.getSet().getNodeStructure().addUnit("times", time);
-					}
-					if(!data.getSet().getNodeStructure().porosityIsSet()) {
-						data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
-					}
-				}
+				initUnits();
 			}
 		} else if (isIAM) {
-			JComboBox<String> ZOrientation = new JComboBox<String>(new String[] { "up", "down" });
-			JComboBox<String> distanceList = new JComboBox<String>(new String[] { "m", "ft" });
-			JComboBox<String> timeList = new JComboBox<String>(new String[] { "years", "months", "days" });
-			JTextField porosityText = new JTextField();
+			initUnits();
+		}
+	}
+	
+	public void initUnits() {
+		Shell shell = new Shell();
+		shell.setLayout(new GridLayout());
+		shell.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
+		shell.setText("Set Units, Porosity, or Elevation/Depth");
+		shell.setSize(200, 270);
 
-			int option = JOptionPane.showConfirmDialog(null,
-					theDialogBoxes(distanceList, timeList, porosityText, ZOrientation),
-					"Set Units, Porosity, or Elevation/Depth", JOptionPane.OK_CANCEL_OPTION);
-			// When user clicks ok.
-			if (option == JOptionPane.OK_OPTION) {
-				// Put units into our unit HashMap.
+		Label unitText = new Label(shell, SWT.NONE | SWT.CENTER);
+		Combo unitDropDown = new Combo(shell, SWT.DROP_DOWN | SWT.BORDER | SWT.CENTER);
+		Label zText = new Label(shell, SWT.NONE | SWT.CENTER);
+		Combo zOrientationDropDown = new Combo(shell, SWT.DROP_DOWN | SWT.BORDER | SWT.CENTER);
+		Label timeText = new Label(shell, SWT.NONE | SWT.CENTER);
+		Combo timeDropDown = new Combo(shell, SWT.DROP_DOWN | SWT.BORDER | SWT.CENTER);
+		Label porosity = new Label(shell, SWT.NONE | SWT.CENTER);
+		Text porosityText = new Text(shell, SWT.BORDER | SWT.CENTER);
+
+		Button okBtn = new Button(shell, SWT.PUSH | SWT.CENTER);
+
+		okBtn.setText("OK");
+
+		porosityText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		okBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		unitText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		unitDropDown.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		zText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		zOrientationDropDown.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		timeText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		timeDropDown.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+		porosity.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+		unitText.setText("XYZ Units:");
+		unitDropDown.add("m");
+		unitDropDown.add("ft");
+
+		zText.setText("Z-Axis Positive Direction: ");
+		zOrientationDropDown.add("up");
+		zOrientationDropDown.add("down");
+
+		timeText.setText("Time Units: ");
+		timeDropDown.add("years");
+		timeDropDown.add("months");
+		timeDropDown.add("days");
+
+		unitDropDown.select(0);
+		zOrientationDropDown.select(0);
+		timeDropDown.select(0);
+
+		porosity.setText("Set Porosity: ");
+		porosityText.setText("0.1");
+
+		okBtn.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event theEvent) {
 				if (data.getSet().getNodeStructure().getUnit("x").equals("")) {
-					String distance = distanceList.getSelectedItem().toString();
+					String distance = unitDropDown.getText();
 					data.getSet().getNodeStructure().addUnit("x", distance);
 					data.getSet().getNodeStructure().addUnit("y", distance);
 					data.getSet().getNodeStructure().addUnit("z", distance);
 				}
-				String ZOrient = ZOrientation.getSelectedItem().toString();
-				data.getSet().getNodeStructure().addUnit("positive", ZOrient);
+				if (data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+					String ZOrient = zOrientationDropDown.getText();
+					data.getSet().getNodeStructure().addUnit("positive", ZOrient);
+				}
 				if (data.getSet().getNodeStructure().getUnit("times").equals("")) {
-					String time = timeList.getSelectedItem().toString();
+					String time = timeDropDown.getText();
 					data.getSet().getNodeStructure().addUnit("times", time);
 				}
-				if(!data.getSet().getNodeStructure().porosityIsSet()) {
+				if (!data.getSet().getNodeStructure().porosityIsSet()) {
 					data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
 				}
+
+				shell.dispose();
 			}
+		});
+		
+		if (!data.getSet().getNodeStructure().getUnit("x").equals("")) {
+			unitText.dispose();
+			unitDropDown.dispose();
 		}
-	}
-
-	private JPanel theDialogBoxes(final JComboBox<String> distanceList, final JComboBox<String> timeList,
-			final JTextField porosityText, final JComboBox<String> theZOrientation) {
-		mainPanel.setLayout(new java.awt.GridLayout(0, 1));
-
-		if (data.getSet().getNodeStructure().getUnit("x").equals("")
-				|| data.getSet().getNodeStructure().getUnit("times").equals("")
-				|| data.getSet().getNodeStructure().getUnit("positive").equals("")
-				|| !data.getSet().getNodeStructure().porosityIsSet()) {
-
-			java.awt.Label distanceLabel = new java.awt.Label();
-			distanceLabel.setText("XYZ Units:");
-
-			java.awt.Label timeLabel = new java.awt.Label();
-			timeLabel.setText("Time Units:");
-
-			java.awt.Label ZOrientationLabel = new java.awt.Label();
-			ZOrientationLabel.setText("Z-Axis Positive Direction: ");
-
-			java.awt.Label porosityLabel = new java.awt.Label();
-			porosityLabel.setText("Specify Porosity Value");
-
-			porosityText.setText("0.1");
-
-			mainPanel.add(distanceLabel);
-			mainPanel.add(distanceList);
-
-			mainPanel.add(timeLabel);
-			mainPanel.add(timeList);
-
-			mainPanel.add(ZOrientationLabel);
-			mainPanel.add(theZOrientation);
-
-			mainPanel.add(porosityLabel);
-			mainPanel.add(porosityText);
-
-			// If we already have these units, remove them from the JPanel they don't need
-			// to be set.
-			if (!data.getSet().getNodeStructure().getUnit("x").equals("")) {
-				mainPanel.remove(distanceList);
-				mainPanel.remove(distanceLabel);
-			}
-			if (!data.getSet().getNodeStructure().getUnit("times").equals("")) {
-				mainPanel.remove(timeList);
-				mainPanel.remove(timeLabel);
-			}
-			if (data.getSet().getNodeStructure().porosityIsSet()) {
-				mainPanel.remove(porosityText);
-				mainPanel.remove(porosityLabel);
-			}
+		if (!data.getSet().getNodeStructure().getUnit("times").equals("")) {
+			timeText.dispose();
+			timeDropDown.dispose();
 		}
-		return mainPanel;
+		if (!data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+			zOrientationDropDown.dispose();
+			zText.dispose();
+		}
+		if (data.getSet().getNodeStructure().porosityIsSet()) {
+			porosity.dispose();
+			porosityText.dispose();
+		}
+		Monitor primary = sc.getMonitor();
+	    Rectangle bounds = primary.getBounds();
+	    Rectangle rect = shell.getBounds();
+	    
+	    int x = bounds.x + (bounds.width - rect.width) / 2;
+	    int y = bounds.y + (bounds.height - rect.height) / 2;
+	    
+	    shell.setLocation(x, y);
+		// shell.pack();
+		shell.open();
+		
 	}
 
 	public static String getPositiveDirection() {
