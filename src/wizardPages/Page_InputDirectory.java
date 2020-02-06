@@ -258,17 +258,22 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				initUnits();
 			}
 		} else if (isIAM) {
+			//IAM Files will never have any of the units we want.
 			initUnits();
 		}
 	}
-	
-	public void initUnits() {
+	/**
+	 * This method creates the dialog box that asks for the units to insert into the hdf5 files.
+	 * @author huan482
+	 */
+	private void initUnits() {
+		//Init Shell
 		Shell shell = new Shell();
 		shell.setLayout(new GridLayout());
 		shell.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 		shell.setText("Set Units, Porosity, or Elevation/Depth");
 		shell.setSize(200, 270);
-
+		//init drop down menus and text boxes.
 		Label unitText = new Label(shell, SWT.NONE | SWT.CENTER);
 		Combo unitDropDown = new Combo(shell, SWT.DROP_DOWN | SWT.BORDER | SWT.CENTER);
 		Label zText = new Label(shell, SWT.NONE | SWT.CENTER);
@@ -281,7 +286,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		Button okBtn = new Button(shell, SWT.PUSH | SWT.CENTER);
 
 		okBtn.setText("OK");
-
+		
+		//center components.
 		porosityText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		okBtn.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		unitText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -315,6 +321,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		okBtn.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event theEvent) {
+				//Set the units if it doesn't exist.
 				if (data.getSet().getNodeStructure().getUnit("x").equals("")) {
 					String distance = unitDropDown.getText();
 					data.getSet().getNodeStructure().addUnit("x", distance);
@@ -336,7 +343,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				shell.dispose();
 			}
 		});
-		
+		//If the unit already exists get rid of the corresponding dialog boxs.
 		if (!data.getSet().getNodeStructure().getUnit("x").equals("")) {
 			unitText.dispose();
 			unitDropDown.dispose();
@@ -353,6 +360,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			porosity.dispose();
 			porosityText.dispose();
 		}
+		
+		//center the pop-up box.
 		Monitor primary = sc.getMonitor();
 	    Rectangle bounds = primary.getBounds();
 	    Rectangle rect = shell.getBounds();
