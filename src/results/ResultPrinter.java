@@ -459,7 +459,13 @@ public class ResultPrinter {
 			command.append(" \"" + arg + "\"");
 		}
 		try {
-			Process p = Runtime.getRuntime().exec(command.toString());
+			Process p;
+			if (System.getProperty("os.name").contains("Mac")) {
+				String temp = command.toString().replaceAll("\"", "");
+				p = Runtime.getRuntime().exec(temp);
+			} else {
+				p = Runtime.getRuntime().exec(command.toString());
+			}
 			if(printToConsole) {
 				BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
