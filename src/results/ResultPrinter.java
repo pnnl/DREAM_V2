@@ -234,7 +234,7 @@ public class ResultPrinter {
 			line.append(Constants.percentageFormat.format(minYear) + "-" + Constants.percentageFormat.format(maxYear) + " " + timeUnit + "," + scenariosNotDetected);
 			line.append("," + numberOfWells);
 			line.append("," + ((costOfConfig < 1000) ? Constants.percentageFormat.format(costOfConfig) : Constants.exponentialFormat.format(costOfConfig)));
-			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "³"));
+			line.append("," + Constants.decimalFormat.format(volumeDegraded) + (xUnit.equals("") ? "" : " " + xUnit + "ï¿½"));
 			
 			for(Sensor sensor: configuration.getSensors()) {
 				Point3f xyz = results.set.getNodeStructure().getXYZFromIJK(sensor.getIJK());
@@ -363,7 +363,7 @@ public class ResultPrinter {
 		
 		// Assemble strings of VADs for the best configurations
 		StringBuilder title = new StringBuilder();
-		title.append("Volume of Aquifer Degraded (" + xUnit + "³)");
+		title.append("Volume of Aquifer Degraded (" + xUnit + "ï¿½)");
 		for(String scenario: results.set.getScenarios()) {
 			title.append("," + scenario);
 		}
@@ -453,8 +453,8 @@ public class ResultPrinter {
     	}
 		String script = System.getProperty("java.io.tmpdir")+File.separator+scriptName;
 		StringBuilder command = new StringBuilder();
-		
-		command.append("py -3 \"" + script + "\"");
+		if (System.getProperty("os.name").contains("Mac")) command.append("python3 " + script);
+		else command.append("py -3 \"" + script + "\"");
 		for(String arg: args) {
 			command.append(" \"" + arg + "\"");
 		}
@@ -462,6 +462,7 @@ public class ResultPrinter {
 			Process p;
 			if (System.getProperty("os.name").contains("Mac")) {
 				String temp = command.toString().replaceAll("\"", "");
+				System.out.println(temp);
 				p = Runtime.getRuntime().exec(temp);
 			} else {
 				p = Runtime.getRuntime().exec(command.toString());
