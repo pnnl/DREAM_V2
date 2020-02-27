@@ -37,6 +37,7 @@ import wizardPages.DREAMWizard.STORMData;
  * @author port091
  * @author rodr144
  * @author whit162
+ * @author huan482
  */
 
 public class Page_InputDirectory extends DreamWizardPage implements AbstractWizardPage {
@@ -151,7 +152,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				MessageDialog.openInformation(container.getShell(), "Additional information",
 						"Select the directory containing HDF5 or NRAP-Open-IAM files for all leakage simulations to be considered. "
 								+ "If the user has not converted ASCII simulation output data into DREAM readable HDF5 input files, the Launch Converter button will open a pop-up file converter tool. "
-								+ "Read more about the DREAM HDF5 Converter tool in the user manual. Note: The files must be directly available within the directory provided; they may not be in "
+								+ "Read more about the DREAM HDF5 Conver	ter tool in the user manual. Note: The files must be directly available within the directory provided; they may not be in "
 								+ "subdirectories within the root directory.");
 			}
 		});
@@ -182,10 +183,10 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			if (!System.getProperty("os.name").contains("Mac") && directory.contains("rupr404")
 					&& directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Desktop\\BCO_new";
-			if (directory.contains("d3x455") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
+			if (directory.contains("d3x455") && directory  == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "C:\\Users\\D3X455\\OneDrive - PNNL\\Desktop\\DREAM-FY19\\BCO_new";
 			if (directory.contains("huan482") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
-				directory = directory + "\\OneDrive - PNNL\\Documents\\DREAM Test Cases (5)";
+				directory = directory + "\\OneDrive - PNNL\\Documents\\task6_rev";
 			if (directory.contains("hann898") && directory == Constants.homeDirectory && !directory.contains("Desktop"))
 				directory = directory + "\\OneDrive - PNNL\\Documents\\Dream\\BCO";
 		}
@@ -272,7 +273,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		shell.setLayout(new GridLayout());
 		shell.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
 		shell.setText("Set Units, Porosity, or Elevation/Depth");
-		shell.setSize(200, 270);
+		shell.setSize(230, 300);
 		//init drop down menus and text boxes.
 		Label unitText = new Label(shell, SWT.NONE | SWT.CENTER);
 		Combo unitDropDown = new Combo(shell, SWT.DROP_DOWN | SWT.BORDER | SWT.CENTER);
@@ -339,7 +340,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				if (!data.getSet().getNodeStructure().porosityIsSet()) {
 					data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
 				}
-
+				System.out.println(data.getSet().getNodeStructure().porosityIsSet());
 				shell.dispose();
 			}
 		});
