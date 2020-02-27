@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.Text;
 import functions.MutationFunction.MUTATE;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
-import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -54,9 +53,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 
 	private boolean isCurrentPage = false;
 
-	private boolean isH5;
-
-	private boolean isIAM;
+//	private boolean isH5;
+//
+//	private boolean isIAM;
 
 	private static String positiveDirection;
 	
@@ -123,7 +122,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 				fileDirectoryText.getText().substring(fileDirectoryText.getText().lastIndexOf(File.separator) + 1));
 		// Ask for porosity input if it doesn't exist yet
 		//createOptionPane();
-		 createDialogBox();
+		createDialogBox();
 //		if (!data.getSet().getNodeStructure().porosityIsSet()) {
 //			PorosityDialog dialog = new PorosityDialog(container.getShell(), data);
 //			dialog.open();
@@ -242,8 +241,8 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		File[] fList = folder.listFiles();
 		for (File file : fList) {
 			if (file.getName().contains(".h5") || file.getName().contains(".iam")) {
-				isH5 = file.getName().contains(".h5");
-				isIAM = file.getName().contains(".iam");
+				Constants.isH5 = file.getName().contains(".h5");
+				Constants.isIAM = file.getName().contains(".iam");
 				h5Error = false;
 				break;
 			}
@@ -252,14 +251,14 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	}
 	
 	private void createDialogBox() {
-		if (isH5) {
+		if (Constants.isH5) {
 			if (data.getSet().getNodeStructure().getUnit("x").equals("")
 					|| data.getSet().getNodeStructure().getUnit("times").equals("")
 					|| data.getSet().getNodeStructure().getUnit("positive").equals("")
 					|| !data.getSet().getNodeStructure().porosityIsSet()) {
 				initUnits();
 			}
-		} else if (isIAM) {
+		} else if (Constants.isIAM) {
 			//IAM Files will never have any of the units we want.
 			initUnits();
 		}
@@ -339,15 +338,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 					data.getSet().getNodeStructure().addUnit("times", time);
 				}
 				if (!data.getSet().getNodeStructure().porosityIsSet()) {
-					Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
-					int iMin = 1;
-					int jMin = 1;
-					int kMin = 1;
-					int iMax = dims.getI();
-					int jMax = dims.getJ();
-					int kMax = dims.getK();
-					data.getSet().getNodeStructure().setPorositiesFromZone
-						(iMin, iMax, jMin, jMax, kMin, kMax, Float.valueOf(porosityText.getText()));
+					data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
 				}
 				shell.dispose();
 			}

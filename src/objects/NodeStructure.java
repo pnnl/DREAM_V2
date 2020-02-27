@@ -152,6 +152,7 @@ public class NodeStructure {
 	
 	// Returns the total possible volume of aquifer degraded
 	public float getPossibleVAD() {
+		float volume = 0;
 		float totalVolume = 0;
 		for(int i=1; i<edgex.size(); i++) {
 			for(int j=1; j<edgey.size(); j++) {
@@ -159,7 +160,11 @@ public class NodeStructure {
 					float lengthx = edgex.get(i) - edgex.get(i-1);
 					float lengthy = edgey.get(j) - edgey.get(j-1);
 					float lengthz = edgez.get(k) - edgez.get(k-1);
-					float volume = lengthx*lengthy*lengthz*porosityOfNode.get(new Point3i(i,j,k));
+					if (Constants.isH5) {
+						volume = lengthx*lengthy*lengthz*porosityOfNode.get(new Point3i(i,j,k));
+					} else {
+						volume = lengthx*lengthy*lengthz*this.porosity;
+					}
 					totalVolume += volume;
 				}
 			}

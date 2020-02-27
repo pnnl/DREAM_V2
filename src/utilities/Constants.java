@@ -28,6 +28,8 @@ public class Constants {
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
 	public static boolean runningJar = false; 
+	public static boolean isH5 = false;
+	public static boolean isIAM = false;
 	
 	static File userDirectory = new File(System.getProperty("user.dir"));
 	public static String userDir = userDirectory.getPath();
