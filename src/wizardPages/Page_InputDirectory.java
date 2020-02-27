@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Text;
 import functions.MutationFunction.MUTATE;
 import hdf5Tool.HDF5Interface;
 import utilities.Constants;
+import utilities.Point3i;
 import wizardPages.DREAMWizard.STORMData;
 
 /**
@@ -338,9 +339,16 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 					data.getSet().getNodeStructure().addUnit("times", time);
 				}
 				if (!data.getSet().getNodeStructure().porosityIsSet()) {
-					data.getSet().getNodeStructure().setPorosity(Float.valueOf(porosityText.getText()));
+					Point3i dims = data.getSet().getNodeStructure().getIJKDimensions();
+					int iMin = 1;
+					int jMin = 1;
+					int kMin = 1;
+					int iMax = dims.getI();
+					int jMax = dims.getJ();
+					int kMax = dims.getK();
+					data.getSet().getNodeStructure().setPorositiesFromZone
+						(iMin, iMax, jMin, jMax, kMin, kMax, Float.valueOf(porosityText.getText()));
 				}
-				System.out.println(data.getSet().getNodeStructure().porosityIsSet());
 				shell.dispose();
 			}
 		});
