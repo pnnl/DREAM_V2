@@ -363,6 +363,7 @@ public class NodeStructure {
 	}
 	
 	public void setPorositiesFromZone(int iMin, int iMax, int jMin, int jMax, int kMin, int kMax, float porosity){
+		porosityOfNode = new HashMap<Point3i, Float>();
 		for(int i = iMin; i<=iMax; i++) {
 			for(int j = jMin; j<=jMax; j++) {
 				for(int k = kMin; k<=kMax; k++) {
