@@ -52,12 +52,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 	private String directory = Constants.homeDirectory;
 
 	private boolean isCurrentPage = false;
-
-//	private boolean isH5;
-//
-//	private boolean isIAM;
-
-	private static String positiveDirection;
 	
 	protected Page_InputDirectory(final STORMData data) {
 		super("Input Directory");
@@ -254,7 +248,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		if (Constants.isH5) {
 			if (data.getSet().getNodeStructure().getUnit("x").equals("")
 					|| data.getSet().getNodeStructure().getUnit("times").equals("")
-					|| data.getSet().getNodeStructure().getUnit("positive").equals("")
+					|| data.getSet().getNodeStructure().getPositive().equals("")
 					|| !data.getSet().getNodeStructure().porosityIsSet()) {
 				initUnits();
 			}
@@ -329,9 +323,9 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 					data.getSet().getNodeStructure().addUnit("y", distance);
 					data.getSet().getNodeStructure().addUnit("z", distance);
 				}
-				if (data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+				if (data.getSet().getNodeStructure().getPositive().equals("")) {
 					String ZOrient = zOrientationDropDown.getText();
-					data.getSet().getNodeStructure().addUnit("positive", ZOrient);
+					data.getSet().getNodeStructure().addPositive(ZOrient);
 				}
 				if (data.getSet().getNodeStructure().getUnit("times").equals("")) {
 					String time = timeDropDown.getText();
@@ -352,7 +346,7 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 			timeText.dispose();
 			timeDropDown.dispose();
 		}
-		if (!data.getSet().getNodeStructure().getUnit("positive").equals("")) {
+		if (!data.getSet().getNodeStructure().getPositive().equals("")) {
 			zOrientationDropDown.dispose();
 			zText.dispose();
 		}
@@ -373,10 +367,6 @@ public class Page_InputDirectory extends DreamWizardPage implements AbstractWiza
 		// shell.pack();
 		shell.open();
 		
-	}
-
-	public static String getPositiveDirection() {
-		return positiveDirection;
 	}
 
 	@Override

@@ -695,7 +695,7 @@ public class FileConverter extends javax.swing.JFrame {
 		classValue = new String[]{ gp.getUnit("z") }; //Z units will always exist, add as attribute
 		attr = new Attribute("units", attrType, attrDims, classValue);
 		Attribute orientationZ = new Attribute("positive", attrType,
-				attrDims, new String[] {gp.getZOrientation()});
+				attrDims, new String[] {gp.getPositive()});
 		d.writeMetadata(attr);
 		d.writeMetadata(orientationZ);
 		
@@ -716,7 +716,7 @@ public class FileConverter extends javax.swing.JFrame {
 		classValue = new String[]{ gp.getUnit("z") }; //Z units will always exist, add as attribute
 		attr = new Attribute("units", attrType, attrDims, classValue);
 		Attribute orientationVertexZ = new Attribute("positive", attrType,
-				attrDims, new String[] {gp.getZOrientation()});
+				attrDims, new String[] {gp.getPositive()});
 		d.writeMetadata(attr);
 		d.writeMetadata(orientationVertexZ);
 		
@@ -780,7 +780,7 @@ public class FileConverter extends javax.swing.JFrame {
 		//Remove all to make sure their aren't any duplicates.
 		mainPanel.removeAll();
 		if (gp.getUnit("x").equals("") || gp.getUnit("times").equals("") || gp.getPorosity() == null
-				|| gp.getZOrientation().equals("")) {
+				|| gp.getPositive().equals("")) {
 			JComboBox<String> ZOrientation = new JComboBox<String>(new String[] {"up", "down"});	
 			JComboBox<String> distanceList = new JComboBox<String>(new String[] {"m", "ft"});
 			JComboBox<String> timeList = new JComboBox<String>(new String[] {"years", "months", "days"});
@@ -800,7 +800,7 @@ public class FileConverter extends javax.swing.JFrame {
 					gp.setUnit("z", distance);
 				}
 				String ZOrient = ZOrientation.getSelectedItem().toString();
-				gp.setZOrientation(ZOrient);
+				gp.setPositive(ZOrient);
 				if (gp.getUnit("times").equals("")) {
 					String time = timeList.getSelectedItem().toString();
 					gp.setUnit("times", time);
@@ -838,7 +838,7 @@ public class FileConverter extends javax.swing.JFrame {
 			final JComboBox<String> theZOrientation) {
 		mainPanel.setLayout(new GridLayout(0,1));
 		if (gp.getUnit("x").equals("") || gp.getUnit("times").equals("") || gp.getPorosity() == null
-				|| gp.getZOrientation().equals("")) {
+				|| gp.getPositive().equals("")) {
 
 			
 			Label distanceLabel = new Label();

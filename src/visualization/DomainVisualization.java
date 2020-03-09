@@ -1200,7 +1200,7 @@ public class DomainVisualization {
 	}
 	
 	public boolean getZAxialPosition() {
-		return set.getNodeStructure().getUnit("positive").equals("down");
+		return set.getNodeStructure().getPositive().equals("down");
 	}
 
 }

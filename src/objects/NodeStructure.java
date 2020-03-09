@@ -32,6 +32,7 @@ public class NodeStructure {
 	private List<Float> edgex;
 	private List<Float> edgey;
 	private List<Float> edgez;
+	private String positive;
 
 	private List<TimeStep> timeSteps;
 	private List<String> parameters;
@@ -54,13 +55,14 @@ public class NodeStructure {
 	 * @param porosity
 	 * @param units
 	 */
-	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosity, HashMap<String, String> units) {
+	public NodeStructure(List<Float> x, List<Float> y, List<Float> z, List<Float> edgex, List<Float> edgey, List<Float> edgez, List<TimeStep> timeSteps, HashMap<Point3i, Float> porosity, HashMap<String, String> units, String positive) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.edgex = edgex;
 		this.edgey = edgey;
 		this.edgez = edgez;
+		this.positive = positive;
 		this.timeSteps = timeSteps;
 		parameters = new ArrayList<String>();
 		this.units = units;
@@ -86,6 +88,7 @@ public class NodeStructure {
 		edgex = setEdge(x);
 		edgey = setEdge(y);
 		edgez = setEdge(z);
+		positive = "";
 		this.timeSteps = timeSteps;
 		parameters = new ArrayList<String>();
 		units = new HashMap<String, String>();
@@ -106,6 +109,7 @@ public class NodeStructure {
 		builder.append("\tx: " + x.toString() + "\n");
 		builder.append("\ty: " + y.toString() + "\n");
 		builder.append("\tz: " + z.toString() + "\n");
+		builder.append("\tpositive: " + positive + "\n");
 		builder.append("\tTime steps: " + timeSteps.toString() + "\n");
 		return builder.toString();
 	}
@@ -285,6 +289,16 @@ public class NodeStructure {
 		if(units.containsKey(parameter))
 			return units.get(parameter);
 		return "";
+	}
+	
+	// Assigns a positive direction
+	public void addPositive(String positive) {
+		this.positive = positive;
+	}
+	
+	// Returns the positive direction for the z-axis
+	public String getPositive() {
+		return positive;
 	}
 	
 	// Returns the total number of nodes in the domain
