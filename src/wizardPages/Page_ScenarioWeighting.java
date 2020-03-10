@@ -269,14 +269,6 @@ public class Page_ScenarioWeighting extends DreamWizardPage implements AbstractW
 	@Override
 	public void completePage() throws Exception {
 		isCurrentPage = false;
-		try {
-			if (!Page_InputDirectory.getPositiveDirection().equals(null)) {
-				data.getSet().getNodeStructure().addUnit("positive", Page_InputDirectory.getPositiveDirection());
-				
-			}
-		} catch (Exception e) {
-			
-		}
 		data.needToResetMonitoringParameters = true;
 		data.getSet().setEqualWeights(true);
 		data.getSet().getScenarioWeights().clear();

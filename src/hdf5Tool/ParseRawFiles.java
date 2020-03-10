@@ -23,7 +23,6 @@ import utilities.Constants;
  */
 public class ParseRawFiles {
 	private static final int GRID_SIZE = 20;
-	private static final String POSITIVE = "positive";
 	private ArrayList<String> scenarios;
 	private ArrayList<Float> times;
 	private ArrayList<String> parameters;
@@ -52,7 +51,9 @@ public class ParseRawFiles {
 	private Map<String, Map<String, float[]>> statistics; // scenario, parameter, float[min, avg, max]
 
 	private Map<String, String> units; // parameter, units
-
+	
+	private String positive;
+	
 //	private List<Map<pointDouble, double[]>> fileData;
 
 	// Only used by STOMP
@@ -77,14 +78,13 @@ public class ParseRawFiles {
 		x = new ArrayList<Float>();
 		y = new ArrayList<Float>();
 		z = new ArrayList<Float>();
-
 		vertexX = new ArrayList<Float>();
 		vertexY = new ArrayList<Float>();
 		vertexZ = new ArrayList<Float>();
+		positive = "";
 		dataMap = new HashMap<String, Map<String, float[][]>>();
 		statistics = new HashMap<String, Map<String, float[]>>();
 		units = new HashMap<String, String>();
-		units.put(POSITIVE, "");
 		indexMap = new ArrayList<String>();
 	}
 
@@ -1069,17 +1069,13 @@ public class ParseRawFiles {
 	public void setUnit(final String theParameter, final String theValue) {
 		units.put(theParameter, theValue);
 	}
-
-	public void setZOrientation(final String positiveDirection) {
-		units.put(POSITIVE, positiveDirection);
+	
+	public String getPositive() {
+		return positive;
+	}
+	
+	public void setPositive(String positive) {
+		this.positive = positive;
 	}
 
-	public Float[] ZOrientationArray() {
-		Float[] temp = { (float) -1 };
-		return temp;
-	}
-
-	public String getZOrientation() {
-		return units.get(POSITIVE);
-	}
 }

@@ -80,6 +80,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 	private List<Integer> validYWells = new ArrayList<>();
 
 	private boolean isCurrentPage = false;
+	private boolean tooLarge = false;
 
 	private static List<IJ> ijs;
 
@@ -169,19 +170,15 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		}
 
 		for (Integer i : wells.keySet()) {
-			if (i < minI) {
+			if (i < minI)
 				minI = i;
-			}
-			if (i > maxI) {
+			if (i > maxI)
 				maxI = i;
-			}
 			for (Integer j : wells.get(i)) {
-				if (j < minJ) {
+				if (j < minJ)
 					minJ = j;
-				}
-				if (j > maxJ) {
+				if (j > maxJ)
 					maxJ = j;
-				}
 			}
 		}
 		validXWells.clear();
@@ -241,7 +238,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 		 * This page can only handle so many checkboxes. If we exceed this amount, we
 		 * disable this functionality and display none.
 		 */
-		if (validXWells.size() * validYWells.size() > 9000) {
+		if (tooLarge) {
 			corner.setText("Domain is too large for individual well exclusion.");
 		} else {
 			corner.setText("Y | X");
@@ -309,13 +306,6 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 							initFXFrame(map);
 						}
 					});
-//					if (Platform.isImplicitExit()) {
-//						for (IJ box : ijs) {
-//							if (buttons.get(box.i).get(box.j) != null) {
-//								buttons.get(box.i).get(box.j).setSelection(box.prohibited);
-//							}
-//						}
-//					}
 				}
 				if (offsetDone) {
 					offsetCalculation(dialog, false, (x, y) -> x - y);
@@ -323,6 +313,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				}
 			}
 		});
+		launchMapButton.setVisible(!tooLarge);
 		launchExistingWellButton.addListener(SWT.Selection, new Listener() {
 
 			@Override
@@ -399,6 +390,9 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				}
 			}
 		}
+		// This page can only handle so many checkboxes. If we exceed this amount, 
+		// we disable this functionality and display none.
+		tooLarge = validXWells.size() * validYWells.size() > 9000;
 	}
 
 	private void populatePointList() {

@@ -117,7 +117,7 @@ public class IncludeLocationResults {
 			// Have to take account for the Z-Axis positive orientation and if it's a negative value
 			if (foundAYLocation) {
 				for (int j = 1; j < myEdgeZValues.size(); j++) {
-					if (myData.getSet().getNodeStructure().getUnit("positive").equals("down")
+					if (myData.getSet().getNodeStructure().getPositive().equals("down")
 							&& myEdgeZValues.get(j - 1) < myIncludedWells.get(i).getZ() &&
 							myEdgeZValues.get(j) > myIncludedWells.get(i).getZ()) {
 						foundAZLocation = true;

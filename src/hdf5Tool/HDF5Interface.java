@@ -82,6 +82,7 @@ public class HDF5Interface {
 				if(name.startsWith("data")) {
 					HashMap<Point3i, Float> porosity = new HashMap<Point3i, Float>();
 					HashMap<String, String> units = new HashMap<String, String>();
+					String positive = "";
 					List<TimeStep> times = new ArrayList<TimeStep>();
 					List<Float> xValues = new ArrayList<Float>();
 					List<Float> yValues = new ArrayList<Float>();
@@ -117,18 +118,15 @@ public class HDF5Interface {
 						else if(dataset.getName().equals("vertex-x")) edgex = Constants.arrayToList(temp);
 						else if(dataset.getName().equals("vertex-y")) edgey = Constants.arrayToList(temp);
 						else if(dataset.getName().equals("vertex-z")) edgez = Constants.arrayToList(temp);
-						// If we have units stored for x, y, z, we want to save them
-						if(dataset.hasAttribute()) //Right now we only list one attribute - units
-							if(extractUnitAttribute(dataset).equals("up") || 
-									extractUnitAttribute(dataset).equals("down")) {
-								units.put("positive", extractUnitAttribute(dataset));
-							} else {
-								units.put(dataset.getName(), extractUnitAttribute(dataset));
-							}
+						// Save attributes, including units for x, y, z and positive direction for z
+						if(dataset.hasAttribute()) { //Right now we only list two attributes - units and positive
+							units.put(dataset.getName(), extractAttribute(dataset, "units"));
+							positive = extractAttribute(dataset, "positive");
+						}
 						dataset.close(dataset_id);
 					}
 					if(edgex.size()>0)
-						nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity, units);
+						nodeStructure = new NodeStructure(xValues, yValues, zValues, edgex, edgey, edgez, times, porosity, units, positive);
 					else //support for old file structures that don't have vertex information or units TODO: Remove when we no longer want to support
 						nodeStructure = new NodeStructure(xValues, yValues, zValues, times);
 					
@@ -138,7 +136,7 @@ public class HDF5Interface {
 						nodeStructure.addParameter(dataset.getName());
 						// If we have units stored for parameters, we want to save them
 						if(dataset.hasAttribute()) //Right now we only list one attribute - units
-							nodeStructure.addUnit(dataset.getName(), extractUnitAttribute(dataset));
+							nodeStructure.addUnit(dataset.getName(), extractAttribute(dataset, "units"));
 					}
 					
 				} else if(name.startsWith("statistics")) {
@@ -431,18 +429,19 @@ public class HDF5Interface {
 		return true;
 	}
 	
-	// This extracts the unit attribute from an HDF5 file
+	// This extracts an attribute from an HDF5 file
 	@SuppressWarnings("unchecked")
-	private static String extractUnitAttribute(Dataset dataset) throws Exception {
+	private static String extractAttribute(Dataset dataset, String find) throws Exception {
 		List<Attribute> attributes = dataset.getMetadata();
 		for(Attribute a: attributes) {
-			if(a.getName().equals("units") || a.getName().equals("positive")) {
+			if(a.getName().equals(find)) {
 				Object obj = a.getValue();
 				return ((String[]) obj)[0];
 			}
 		}
 		return null;
 	}
+	
 	
 	/**					**\
 	 * Getters & Setters *

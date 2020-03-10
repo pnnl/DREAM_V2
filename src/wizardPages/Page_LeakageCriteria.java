@@ -170,8 +170,9 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		
 		public void buildUI(String sensorKey) {
 			// Creates dataGrid information for each field
-			GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-			gridData.widthHint = 60; //sets minimum width per column
+			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+			gridData.widthHint = 60; //sets desired width for the text area
+			gridData.heightHint = 22; //sets desired height for the text area
 			
 			//Add a button here
 			if(isDuplicate){
@@ -446,15 +447,14 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			
 			// GridData layout for the main composite
 			GridData compositeGridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-			compositeGridData.widthHint = 60;
-			compositeGridData.heightHint = 22;
-			compositeGridData.minimumHeight = 22;
+			compositeGridData.widthHint = 60; //sets desired width for the composite
+			compositeGridData.heightHint = 22; //sets desired height for the composite
 			
 			// GridLayout for the two fields within the composite
-			final GridLayout unitGridLayout = new GridLayout(2, false);
-			unitGridLayout.marginHeight = 1;
-			unitGridLayout.marginWidth = 0;
-			unitGridLayout.horizontalSpacing = 0;
+			final GridLayout compositeGridLayout = new GridLayout(2, false);
+			compositeGridLayout.marginHeight = 1;
+			compositeGridLayout.marginWidth = 0;
+			compositeGridLayout.horizontalSpacing = 0;
 			
 			//Get the units for each parameter
 //			String unit = data.getSet().getNodeStructure().getUnit(sensorKey);
@@ -474,7 +474,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// The border gives the appearance of a single component
 			detectionComposite = new Composite(container, SWT.BORDER);
 			detectionComposite.setLayoutData(compositeGridData);
-			detectionComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			detectionComposite.setLayout(compositeGridLayout); //Specifies two fields for composite
 			
 			detectionText = new Text(detectionComposite, SWT.SINGLE | SWT.RIGHT);
 			detectionText.setLayoutData(gridData);
@@ -531,7 +531,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// The border gives the appearance of a single component
 			bottomComposite = new Composite(container, SWT.BORDER);
 			bottomComposite.setLayoutData(compositeGridData);
-			bottomComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			bottomComposite.setLayout(compositeGridLayout); //Specifies two fields for composite
 			
 			bottomText = new Text(bottomComposite, SWT.SINGLE | SWT.RIGHT);
 			bottomText.setLayoutData(gridData);
@@ -566,7 +566,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			
 			bottomUnit = new Label(bottomComposite, SWT.NONE);
-			bottomUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			bottomUnit.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 			bottomUnit.setText(unit);
 			bottomUnit.setForeground(Constants.grey);
 			bottomUnit.setToolTipText("Global zone bottom = " + minZBound + unit);
@@ -586,7 +586,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			// The border gives the appearance of a single component
 			topComposite = new Composite(container, SWT.BORDER);
 			topComposite.setLayoutData(compositeGridData);
-			topComposite.setLayout(unitGridLayout); //Specifies two fields for composite
+			topComposite.setLayout(compositeGridLayout); //Specifies two fields for composite
 			
 			topText = new Text(topComposite, SWT.SINGLE | SWT.RIGHT);
 			topText.setLayoutData(gridData);
@@ -621,7 +621,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 			});
 			
 			topUnit = new Label(topComposite, SWT.NONE);
-			topUnit.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+			topUnit.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 			topUnit.setText(unit);
 			topUnit.setForeground(Constants.grey);
 			topUnit.setToolTipText("Global zone top = " + maxZBound + unit);
@@ -854,7 +854,7 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
 		solutionGroup.setText("Solution Space for Each Parameter");
 		solutionGroup.setFont(boldFontSmall);
 		solutionGroup.setLayout(new GridLayout(4,true));
-		GridData tempData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		GridData tempData = new GridData(SWT.FILL, SWT.FILL, true, false);
 		tempData.horizontalSpan = 10;
 		solutionGroup.setLayoutData(tempData);
 		for(String label: sensorData.keySet()){
@@ -1234,10 +1234,10 @@ public class Page_LeakageCriteria extends DreamWizardPage implements AbstractWiz
             baseComposite.setBackgroundMode(SWT.INHERIT_FORCE);
             
             text = new Text(baseComposite, SWT.SINGLE | SWT.RIGHT);
-            text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            text.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
             
             label = new Label(baseComposite, SWT.NONE);
-            label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+            label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
             label.setText(suffix);
         }
     }

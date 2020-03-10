@@ -398,7 +398,7 @@ public class ScenarioSet {
 		}
 		for(Point3i location: locations){
 //			float xVal = 0;
-//			if (nodeStructure.getUnit("positive").equals("down")) {
+//			if (nodeStructure.getPositive().equals("down")) {
 //				xVal = 0;
 //			} else {
 //				xVal = SensorSetting.globalMaxZ;
