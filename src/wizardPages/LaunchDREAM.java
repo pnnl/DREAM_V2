@@ -23,12 +23,19 @@ public class LaunchDREAM extends DREAMWizard {
 	public static void main(String[] args) {
 		String nameOfFile = new java.io.File(LaunchDREAM.class.getProtectionDomain().
 				getCodeSource().getLocation().getPath()).getName();
+		InputStream in = null;
+		File fileOut = null;
         if (args.length == 0) {
         	try {
         		// We are creating a copy of jhdf5.dll in the user's temp directory
         		// This is because the jar compresses internal files so that we can't point directly at it
-    	        InputStream in = LaunchDREAM.class.getResourceAsStream("/jhdf5.dll");
-    	        File fileOut = new File(System.getProperty("java.io.tmpdir"),"jhdf5.dll"); //Within the user's temp directory
+        		if (System.getProperty("os.name").contains("Mac")) {
+        	        in = LaunchDREAM.class.getResourceAsStream("/libjhdf5.jnilib");
+        	        fileOut = new File(System.getProperty("java.io.tmpdir"),"libjhdf5.jnilib");
+        		} else {
+        			in = LaunchDREAM.class.getResourceAsStream("/jhdf5.dll");
+    	        	fileOut = new File(System.getProperty("java.io.tmpdir"),"jhdf5.dll");
+        		} //Within the user's temp directory
     	        OutputStream out = FileUtils.openOutputStream(fileOut);
     	        IOUtils.copy(in, out);
     	        in.close();
@@ -38,9 +45,14 @@ public class LaunchDREAM extends DREAMWizard {
         	}
             try {
                 // re-launch the program itself with VM option passed
-                Runtime.getRuntime().exec(new String[] {"java", "-Dncsa.hdf.hdf5lib.H5.hdf5lib="+ 
-                System.getProperty("java.io.tmpdir")+"/jhdf5.dll", "-jar", nameOfFile, "test"});
-            } catch (IOException ioe) {
+               if (System.getProperty("os.name").contains("Mac")) {
+                   Runtime.getRuntime().exec(new String[] {"java", "-Dncsa.hdf.hdf5lib.H5.hdf5lib="+ 
+                   System.getProperty("java.io.tmpdir")+"/libjhdf5.jnilib","-XstartOnFirstThread", "-jar", nameOfFile, "test"});
+               } else {
+                   Runtime.getRuntime().exec(new String[] {"java", "-Dncsa.hdf.hdf5lib.H5.hdf5lib="+ 
+                   System.getProperty("java.io.tmpdir")+"/jhdf5.dll", "-jar", nameOfFile, "test"});
+                   }
+               } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
             System.exit(0);

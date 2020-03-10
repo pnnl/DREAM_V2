@@ -462,7 +462,6 @@ public class ResultPrinter {
 			Process p;
 			if (System.getProperty("os.name").contains("Mac")) {
 				String temp = command.toString().replaceAll("\"", "");
-				System.out.println(temp);
 				p = Runtime.getRuntime().exec(temp);
 			} else {
 				p = Runtime.getRuntime().exec(command.toString());

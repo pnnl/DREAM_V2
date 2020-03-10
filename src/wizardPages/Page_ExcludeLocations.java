@@ -313,6 +313,7 @@ public class Page_ExcludeLocations extends DreamWizardPage implements AbstractWi
 				}
 			}
 		});
+		if (System.getProperty("os.name").contains("Mac")) tooLarge = true;
 		launchMapButton.setVisible(!tooLarge);
 		launchExistingWellButton.addListener(SWT.Selection, new Listener() {
 
