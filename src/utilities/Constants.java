@@ -23,13 +23,14 @@ import org.eclipse.swt.widgets.Display;
 public class Constants {
 	
 	// These probably be eventually wrapped into the code directly, but for now give us functionality for debugging/developing extensions without breaking the working release
-	public static boolean buildDev = false;
+	public static boolean buildDev = true;
 	public static boolean runThreaded = true;
 	public static boolean runScripts = true;
 	public static boolean useParetoOptimal = true;
 	public static boolean runningJar = false; 
 	public static boolean isH5 = false;
 	public static boolean isIAM = false;
+	public static int uniqueError = 0;
 	
 	static File userDirectory = new File(System.getProperty("user.dir"));
 	public static String userDir = userDirectory.getPath();
