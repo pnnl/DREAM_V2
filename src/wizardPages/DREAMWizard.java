@@ -4,10 +4,12 @@ import hdf5Tool.FileConverter;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
@@ -149,6 +151,14 @@ public class DREAMWizard extends Wizard {
 			currentPage.completePage();
 			return next;
 		} catch (Exception e) {
+			try {
+				PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+				e.printStackTrace(errorWriter);
+				Constants.uniqueError++;
+				errorWriter.close();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			currentPage.loadPage();
 			System.out.println("Something went wrong, stay on this page.");
 			return current;
@@ -388,11 +398,27 @@ public class DREAMWizard extends Wizard {
 								set.getNodeStructure().clear();
 							}
 						} catch (Exception e) {
+							try {
+								PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+								e.printStackTrace(errorWriter);
+								Constants.uniqueError++;
+								errorWriter.close();
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							}
 							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 						}
 					}					
 				});
 			} catch (Exception e) {
+				try {
+					PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+					e.printStackTrace(errorWriter);
+					Constants.uniqueError++;
+					errorWriter.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
 				JOptionPane.showMessageDialog(null, "Loading files was canceled by the user.");
 				e.printStackTrace();
 			} 
@@ -437,6 +463,14 @@ public class DREAMWizard extends Wizard {
 							}
 							
 						} catch (Exception e) {
+							try {
+								PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+								e.printStackTrace(errorWriter);
+								Constants.uniqueError++;
+								errorWriter.close();
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							}
 							System.out.println("Was the monitor cancelled?\t" + monitor.isCanceled());
 						}
 					}
@@ -528,6 +562,14 @@ public class DREAMWizard extends Wizard {
 					try {
 						wells = E4DSensors.calculateE4DWells(data, selectedParameter, maximumWells, monitor);
 					} catch (Exception e) {
+						try  {
+						PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+						e.printStackTrace(errorWriter);
+						Constants.uniqueError++;
+						errorWriter.close();
+					} catch (FileNotFoundException e1) {
+						e1.printStackTrace();
+					}
 						wells = null;
 						e.printStackTrace();
 					}
@@ -606,6 +648,14 @@ public class DREAMWizard extends Wizard {
 							}
 							text.append("\n");
 						} catch(Exception e) {
+							try  {
+								PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+								e.printStackTrace(errorWriter);
+								Constants.uniqueError++;
+								errorWriter.close();
+							} catch (FileNotFoundException e1) {
+								e1.printStackTrace();
+							}
 							e.printStackTrace();
 						}
 						monitor.worked(10);

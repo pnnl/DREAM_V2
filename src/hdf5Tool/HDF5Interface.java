@@ -1,6 +1,8 @@
 package hdf5Tool;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -156,6 +158,14 @@ public class HDF5Interface {
 			}
 			hdf5File.close();
 		} catch (Exception e) {
+			try {
+				PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+				e.printStackTrace(errorWriter);
+				Constants.uniqueError++;
+				errorWriter.close();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			System.out.println("Error loading Node Struture from " + file.getName());
 			e.printStackTrace();
 		}
@@ -260,10 +270,18 @@ public class HDF5Interface {
 				}
 				hdf5File.close();
 			} catch (Exception e) {
+				try {
+					PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+					e.printStackTrace(errorWriter);
+					Constants.uniqueError++;
+					errorWriter.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
 				System.out.println("Unable to read detection values from the hdf5 files...");
 				e.printStackTrace();
 			}
-			monitor.worked(900/hdf5Files.size());
+			monitor.worked(900 / hdf5Files.size());
 		}
 		long elapsedTime = (System.currentTimeMillis() - startTime)/1000;
 		System.out.println("You just created a detection map for " + specificType + " in " + Constants.formatSeconds(elapsedTime) + "! Awesome! So Fast!");
@@ -329,6 +347,14 @@ public class HDF5Interface {
 				}
 				hdf5File.close();
 			} catch (Exception e) {
+				try {
+					PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+					e.printStackTrace(errorWriter);
+					Constants.uniqueError++;
+					errorWriter.close();
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
+				}
 				System.out.println("Unable to read detection values from the hdf5 files...");
 				e.printStackTrace();
 			}
@@ -393,6 +419,14 @@ public class HDF5Interface {
 			}
 			storageH5.close();
 		} catch (Exception e) {
+			try {
+				PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+				e.printStackTrace(errorWriter);
+				Constants.uniqueError++;
+				errorWriter.close();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			System.out.println("Unable to read time values from the hdf5 storage file...");
 			e.printStackTrace();
 		}
@@ -418,6 +452,14 @@ public class HDF5Interface {
 			}
 			leakageH5.close();
 		} catch (Exception e) {
+			try {
+				PrintWriter errorWriter = new PrintWriter("Errors " + Constants.uniqueError + ".txt");
+				e.printStackTrace(errorWriter);
+				Constants.uniqueError++;
+				errorWriter.close();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
 			System.out.println("Unable to read time values from the hdf5 leakage file...");
 			e.printStackTrace();
 		}
