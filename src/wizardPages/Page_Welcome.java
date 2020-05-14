@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Year;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -150,7 +151,6 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 		acknowledgements.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
-				messageBox.setMessage("Acknowledgements");
 				messageBox.setMessage("This work was completed as part of the National Risk Assessment Partnership (NRAP) project. Support for this project came from the U.S. Department of Energy's (DOE) Office of Fossil Energy's Crosscutting Research program. "
 						+ "The authors wish to acknowledge Traci Rodosta (Carbon Storage Technology Manager), Kanwal Mahajan (Carbon Storage Division Director), M. Kylee Rice (Carbon Storage Division Project Manager), Mark Ackiewicz (Division of CCS Research Program Manager),"
 						+ "Robert Romanosky (NETL Crosscutting Research, Office of Strategic Planning), and Regis Conrad (DOE Office of Fossil Energy) for programmatic guidance, direction, and support. "
@@ -187,6 +187,58 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setMessage("Yonkofski, C.M., Gastelum, J.A., Porter, E.A., Rodriguez, L.R., Bacon, D.H. and Brown, C.F., 2016. An optimization approach to design monitoring schemes for CO2 leakage detection. International Journal of Greenhouse Gas Control, 47, pp.233-239.");
 				messageBox.setText("References");
+				messageBox.open();
+			}
+		});
+		
+		// Add a copyright notice
+		new Label(container, SWT.NULL);
+		Link copyright = new Link(container, SWT.BEGINNING);
+		copyright.setText("                   <A>Copyright</A>");
+		copyright.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
+				messageBox.setText("Open source license (BSD-style)");
+				String year = Year.now().toString();
+				messageBox.setMessage("Designs for Risk Evaluation and Management (DREAM)"
+						+ "\nCopyright \u00a9 "+year+", Battelle Memorial Institute"
+						+ "\nAll rights reserved."
+						
+						+ "\n1. Battelle Memorial Institute (hereinafter Battelle) hereby grants permission to"
+						+ "\n\u0020\u0020 any person or entity lawfully obtaining a copy of this software and associated"
+						+ "\n\u0020\u0020 documentation files (hereinafter “the Software”) to redistribute and use the"
+						+ "\n\u0020\u0020 Software in source and binary forms, with or without modification.  Such"
+						+ "\n\u0020\u0020 person or entity may use, copy, modify, merge, publish, distribute, sublicense,"
+						+ "\n\u0020\u0020 and/or sell copies of the Software, and may permit others to do so, subject to"
+						+ "\n\u0020\u0020 the following conditions:"
+						
+						+ "\n\t\u2022 Redistributions of source code must retain the above copyright"
+						+ "\n\t\u0020\u0020 notice, this list of conditions and the following disclaimers."
+						
+						+ "\n\t\u2022 Redistributions in binary form must reproduce the above copyright"
+						+ "\n\t\u0020\u0020 notice, this list of conditions and the following disclaimer in the"
+						+ "\n\t\u0020\u0020 documentation and/or other materials provided with the"
+						+ "\n\t\u0020\u0020 distribution."
+						
+						+ "\n\t\u2022 Other than as used herein, neither the name Battelle Memorial"
+						+ "\n\t\u0020\u0020 Institute or Battelle may be used in any form whatsoever"
+						+ "\n\t\u0020\u0020 without the express written consent of Battelle."
+						
+						+ "\n2. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND"
+						+ "\n\u0020\u0020 CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,"
+						+ "\n\u0020\u0020 INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF"
+						+ "\n\u0020\u0020 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE"
+						+ "\n\u0020\u0020 DISCLAIMED. IN NO EVENT SHALL BATTELLE OR CONTRIBUTORS BE LIABLE"
+						+ "\n\u0020\u0020 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,"
+						+ "\n\u0020\u0020 OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,"
+						+ "\n\u0020\u0020 PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,"
+						+ "\n\u0020\u0020 OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON"
+						+ "\n\u0020\u0020 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR"
+						+ "\n\u0020\u0020 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT"
+						+ "\n\u0020\u0020 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY"
+						+ "\n\u0020\u0020 OF SUCH DAMAGE."
+						);
+				
 				messageBox.open();
 			}
 		});

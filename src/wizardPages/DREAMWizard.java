@@ -197,7 +197,8 @@ public class DREAMWizard extends Wizard {
 				+ "\n\t\t\t\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020 BATTELLE"
 				+ "\n\t\t\t\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020\u0020 for the"
 				+ "\n\t\t\u0020\u0020\u0020 UNITED STATES DEPARTMENT OF ENERGY"
-				+ "\n\t\t\u0020\u0020\u0020\u0020\u0020\u0020\u0020 under Contract DE-AC05-76RL01830");
+				+ "\n\t\t\u0020\u0020\u0020\u0020\u0020\u0020\u0020 under Contract DE-AC05-76RL01830"
+				);
 		messageBox.setText("General Disclaimer");
 		int response = messageBox.open();
 		if (response == SWT.CANCEL)
