@@ -200,7 +200,7 @@ public class Page_Welcome  extends WizardPage implements AbstractWizardPage {
 				MessageBox messageBox = new MessageBox(Page_Welcome.this.getShell(), SWT.OK );
 				messageBox.setText("Open source license (BSD-style)");
 				String year = Year.now().toString();
-				messageBox.setMessage("Designs for Risk Evaluation and Management (DREAM)"
+				messageBox.setMessage("Designs for Risk Evaluation and Management (DREAM) V2"
 						+ "\nCopyright \u00a9 "+year+", Battelle Memorial Institute"
 						+ "\nAll rights reserved."
 						
