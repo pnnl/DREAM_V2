@@ -1,5 +1,8 @@
 package mapView;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +18,7 @@ import com.lynden.gmapsfx.javascript.object.MapTypeIdEnum;
 import mapView.Rectangle;
 import com.lynden.gmapsfx.shapes.RectangleOptions;
 import netscape.javascript.JSObject;
+import utilities.Constants;
 import javafx.scene.Scene;
 /**
  * Implements Google Maps via GMapsFX 
@@ -26,7 +30,7 @@ import javafx.scene.Scene;
 public class InitMapScene implements MapComponentInitializedListener {
 	private static final int INIT_ZOOM = 13; 
 	
-	private static final String GOOGLE_MAP_API_KEY = "";
+	private String GOOGLE_MAP_API_KEY = "";
 	
 	private GoogleMapView myMapView;
 	
@@ -58,6 +62,15 @@ public class InitMapScene implements MapComponentInitializedListener {
 	 * @return - The Scene containing the map.
 	 */
 	public Scene getScene() {
+		// For security, we don't want to hardcode the API key
+		// Instead it is stored in a separate file and encrypted
+	    try {
+	    	GOOGLE_MAP_API_KEY = new String(Files.readAllBytes(Paths.get(".env")));
+	    } catch (IOException e) {
+	    	e.printStackTrace();
+	    }
+	    GOOGLE_MAP_API_KEY = Constants.transform(GOOGLE_MAP_API_KEY);
+		
 		//Google Maps API Key, 2nd parameter
 		myMapView = new GoogleMapView("en", GOOGLE_MAP_API_KEY);
 		myMapView.addMapInializedListener(this);

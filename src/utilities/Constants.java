@@ -129,6 +129,21 @@ public class Constants {
 		//	LOGGER.getH
 	}
 	
+	public static String transform(String in) {
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < in.length(); i++){
+		    char c = in.charAt(i);
+			if(!Character.isDigit(c)) {
+				if(Character.isUpperCase(c))
+					out.append(Character.toLowerCase(c));
+				else
+					out.append(Character.toUpperCase(c));
+			} else
+				out.append((Integer.parseInt(String.valueOf(c)) + 5) % 10);
+		}
+		return out.toString();
+	}
+	
 	public class Timer {
 		
 		private long perConfiguration;
