@@ -26,6 +26,8 @@ import javafx.scene.Scene;
 public class InitMapScene implements MapComponentInitializedListener {
 	private static final int INIT_ZOOM = 13; 
 	
+	private static final String GOOGLE_MAP_API_KEY = "";
+	
 	private GoogleMapView myMapView;
 	
 	private GoogleMap myMap;
@@ -57,7 +59,7 @@ public class InitMapScene implements MapComponentInitializedListener {
 	 */
 	public Scene getScene() {
 		//Google Maps API Key, 2nd parameter
-		myMapView = new GoogleMapView("en", "AIzaSyCqMjOt2Q17PnE9-9843sutOpihbglC_6k");
+		myMapView = new GoogleMapView("en", GOOGLE_MAP_API_KEY);
 		myMapView.addMapInializedListener(this);
 		Scene temp = new Scene(myMapView);
 		//My Scene
