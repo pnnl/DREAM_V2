@@ -9,6 +9,7 @@
 - [Software Installation and Requirements](#software-installation-and-requirements)
 - [User Interface](#user-interface)
 - [Simulated Annealing Algorithm](#simulated-annealing-algorithm)
+- [DREAM Applicability](#dream-applicability)
 
 ## Introduction
 
@@ -88,3 +89,15 @@
 <p>Each of the listed actions are limited by prior user inputs such as cost constraints, available locations, and the maximum number of wells. The first action (add a location) is weighted more heavily so that the iterations approach a maximized budget which is assumed to yield the best results, though randomization can result in configurations using less budget. All other actions are equally weighted. If one action is attempted and fails due to constraints (i.e. add a location when no budget is available), a new action is randomly selected until an action is successful.</p>
 <p>Simulated annealing comes into play as the algorithm decides whether to keep the previous configuration or the mutated configuration at each iteration. Simply taking the better configuration every time is likely to trap the algorithm at a locally optimized result rather than the globally optimized result. Simulated annealing uses a temperature value that exponentially degrades from 1 to 0 through the iterations (Figure 21), used to determine the likelihood of keeping the worst of the two configurations. This allows the algorithm to act “risky” towards the start of the run and transition towards more “stable” changes as the solution converges on an optimized location at the end of the run. Best configurations are saved during the entire process.</p>
 <p>An objective function is used to value each configuration for the above simulated annealing algorithm. Currently, DREAM optimizes exclusively on the shortest time to detection of leaks. Value is assigned based on the shortest time to detection for all scenarios, with a large penalty assessed if a leak is not detected.</p>
+
+## DREAM Applicability
+
+<p>DREAM version 2.0 is designed as a tool for additional analysis of subsurface CO2 leakage simulations. However, it can be applied to any dataset of the formats described in Section 3.2. Users should take note of the following limitations:
+<ul>
+  <li>The only objective function solved is the time to first detection of leakage.</li>
+  <li>The cost of monitoring devices is treated as a one-time fee, as opposed to incurring costs during operation.</li>
+  <li>The constraint on the number of sensors is determined by the total monitoring budget compared to the cost of each technology. Costs for wells and remediation are not factored in the optimization but are post-processed for the best configurations.</li>
+  <li>The monitoring configuration results produced by the simulated annealing algorithm are a function of the scenarios provided to DREAM as well as the number of iterative procedures and number of configurations tested. Users are encouraged to vary each of these parameters to determine the sensitivity of their results.</li>
+  <li>DREAM was developed for use on PC and MAC and takes advantage of threading for some processes; therefore the speed of the tool is dependent on the capability of the specific PC or MAC to handle the size of the datasets.</li>
+  <li>The interactive map feature (Section 3.1.7) cannot work without an internet connection.</li>
+</ul></p>
