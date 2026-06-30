@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> This repository has been archived and is no longer maintained.
+> The code is provided for historical reference and may contain unpatched or unknown vulnerabilities.
+> It should not be used in production systems.
+
 <h3>Designs for Risk Evaluation and Management (DREAM) Version 2.0</h3>
 <p>This manual provides a brief guide for the use of the Designs for Risk Evaluation and Management (DREAM) tool Version 2.0, developed as part of the effort to quantify the risk of geologic storage of carbon dioxide (CO2) under the U.S. Department of Energy’s (DOE) National Risk Assessment Partnership (NRAP). DREAM is an optimization tool created to identify optimal monitoring schemes that minimize the time to first detection of CO2 leakage from a subsurface storage formation. DREAM optimizes across user-provided output from subsurface leakage simulations or using outputs from reduced order models. While DREAM was developed for CO2 leakage scenarios, it is applicable to any subsurface leakage simulation of the same output format.</p>
 <p>The DREAM tool is comprised of four main components: (1) a Java wizard used to configure and execute the simulations, (2) a visualization tool to view the domain space and optimization results, and (3) plotting scripts used to analyze the results, and (4) a Java application to aid users in converting common American Standard Code for Information Interchange (ASCII) output data to the standard DREAM hierarchical data format (HDF5).</p>
